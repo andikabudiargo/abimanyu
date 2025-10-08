@@ -1,0 +1,116 @@
+ let html = `
+      <html>
+        <head>
+        
+          <title>Preview Label</title>
+          <style>
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+            .print-btn:hover {
+              background: #4338ca;
+            }
+          </style>
+        </head>
+        <body>
+         <button class="no-print" onclick="window.print()">Cetak Label</button>
+    `;
+
+    response.labels.forEach(label => {
+      html += `
+     <style>
+  .label-container {
+    width: 100mm;
+    height: 60mm;
+    padding: 4mm;
+    box-sizing: border-box;
+    background: white;
+    page-break-after: always;
+  }
+
+  table {
+    width: 100%;
+    height: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    table-layout: fixed;
+    color: #000;
+
+  }
+
+  td {
+    border: 1px solid #000;
+    padding: 2px 4px;
+    vertical-align: top;
+     color: #000; /* pastikan teks hitam */
+    white-space: normal;       /* agar teks tidak dipotong */
+    overflow: visible;         /* agar teks tidak tersembunyi */
+    line-height: 1.2;          /* agar spasi antar baris cukup */
+    word-wrap: break-word;     /* pisahkan kata jika terlalu panjang */
+  }
+
+  @media print {
+    @page {
+      size: 100mm 60mm;
+      margin: 0;
+    }
+
+    body {
+      margin: 0;
+    }
+  }
+</style>
+
+<div id="label-area" class="label-container">
+  <table>
+    <tr>
+      <td colspan="2" style="text-align:center; vertical-align: middle;"><b>PT. Abimanyu Sekar Nusantara</b></td>
+      <td style="text-align:center; vertical-align: middle;"><b>Reference Number</b></td>
+      <td colspan="2" style="text-align:center; vertical-align: middle;">${label.reference_number}</td>
+    </tr>
+    <tr>
+      <td rowspan="3" colspan="2" style="text-align:center; vertical-align: middle;"Z><img src="${label.qr_path}" style="width: 80px; height:80px;"></td>
+      <td colspan="3" style="text-align:center; vertical-align: middle;">${label.supplier_name}</td>
+    </tr>
+    <tr>
+      <td colspan="2" style="text-align:center; vertical-align: middle;"><b>Article Name</b></td>
+      <td style="text-align:center; vertical-align: middle;"><b>Exp. Date</b></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="text-align:center; vertical-align: middle;">${label.description}</td>
+      <td style="text-align:center; vertical-align: middle;">${label.expired_date}</td>
+    </tr>
+    <tr>
+      <td colspan="2" style="text-align:center; vertical-align: middle;">${label.code}</td>
+      <td colspan="2" style="text-align:center; vertical-align: middle;"><b>Article Code</b></td>
+      <td style="text-align:center; vertical-align: middle;"><b>Date</b></td>
+    </tr>
+    <tr>
+      <td rowspan="2" style="text-align:center; vertical-align: middle; font-size:20px;"><b>Qty</b></td>
+      <td rowspan="2" style="text-align:center; vertical-align: middle;">
+      <div style="font-size:15px; font-weight:bold;">${label.qty}</div>
+      <div style="font-size:10px;">${label.uom}</div></td>
+      <td colspan="2" style="text-align:center; vertical-align: middle;">${label.article_code}</td>
+      <td style="text-align:center; vertical-align: middle;">${label.date}</td>
+    </tr>
+    <tr>
+      <td><b>Operator</b></td>
+      <td>Salvo</td>
+      <td style="text-align:center; vertical-align: middle;">Shift A</td>
+    </tr>
+  </table>
+</div>
+`;
+    });
+
+    html += `
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
