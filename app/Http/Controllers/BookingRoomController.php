@@ -187,50 +187,73 @@ public function getUserBookings()
 
 
 
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'booking_date' => 'required|date',
-            'start_time'   => 'required|date_format:H:i',
-            'end_time'     => 'required|date_format:H:i|after:start_time',
-            'purpose'      => 'required|string|max:100',
-            'description'  => 'nullable|string|max:255',
-            'room_id'      => 'required|exists:rooms,id',
-        ]);
+  public function store(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'booking_date' => 'required|date',
+        'start_time'   => 'required|date_format:H:i',
+        'end_time'     => 'required|date_format:H:i|after:start_time',
+        'purpose'      => 'required|string|max:100',
+        'description'  => 'nullable|string|max:255',
+        'room_id'      => 'required|exists:rooms,id',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $booking = BookingRoom::create([
-            'booking_date' => $request->booking_date,
-            'start_time'   => $request->start_time,
-            'end_time'     => $request->end_time,
-            'purpose'      => $request->purpose,
-            'description'  => $request->description,
-            'room_id'      => $request->room_id,
-            'status'       => 'Waiting Approval',
-            'created_by'   => Auth::id(),
-        ]);
-
-        $bookingEmail = [
-    'admin.generalaffair@asnusantara.co.id',
-    'it2@asnusantara.co.id'
-];
-
-Mail::to($bookingEmail)->send(new BookingRoomRequest($booking));
-
-
-       return response()->json([
-    'success' => true,
-    'message' => 'Room Succesfully Booked and Waiting for Approval',
-    'data'    => $booking
-]);
-
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => false,
+            'errors' => $validator->errors()
+        ], 422);
     }
+
+    $room_id = $request->room_id;
+    $date    = $request->booking_date;
+    $start   = $request->start_time;
+    $end     = $request->end_time;
+
+    // 🛑 1️⃣ Cek apakah sudah ada booking lain yang bentrok
+    $isConflict = BookingRoom::where('room_id', $room_id)
+        ->where('booking_date', $date)
+        ->where('status', '!=', 'Cancelled') // abaikan yang dibatalkan
+        ->where(function ($q) use ($start, $end) {
+            $q->where('start_time', '<', $end)
+              ->where('end_time', '>', $start);
+        })
+        ->exists();
+
+    if ($isConflict) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Ruangan sudah dibooking pada waktu tersebut. Silakan pilih waktu lain.'
+        ], 409); // 409 Conflict
+    }
+
+    // ✅ 2️⃣ Kalau tidak bentrok, lanjut simpan booking
+    $booking = BookingRoom::create([
+        'booking_date' => $date,
+        'start_time'   => $start,
+        'end_time'     => $end,
+        'purpose'      => $request->purpose,
+        'description'  => $request->description,
+        'room_id'      => $room_id,
+        'status'       => 'Waiting Approval',
+        'created_by'   => Auth::id(),
+    ]);
+
+    // Kirim email notifikasi
+    $bookingEmail = [
+        'admin.generalaffair@asnusantara.co.id',
+        'it2@asnusantara.co.id'
+    ];
+
+    Mail::to($bookingEmail)->send(new BookingRoomRequest($booking));
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Room successfully booked and waiting for approval.',
+        'data'    => $booking
+    ]);
+}
+
 
      public function export(Request $request)
     {
