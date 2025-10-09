@@ -2,7 +2,7 @@
 <header class="pc-header">
   <div class="header-wrapper flex items-center h-14 max-sm:px-[15px] px-[25px] grow
               bg-transparent lg:bg-transparent 
-              max-lg:bg-teal-400 max-lg:text-white relative">
+              max-lg:bg-gradient-to-b from-gray-600 to-blue-950 max-lg:text-white relative">
 
     <!-- [Mobile Burger] tetap tampil di mobile -->
     <div class="me-auto pc-mob-drp">
@@ -15,7 +15,7 @@
         </li>
         <li class="pc-h-item pc-sidebar-popup lg:hidden">
           <a href="#" class="pc-head-link ltr:!ml-0 rtl:!mr-0" id="mobile-collapse">
-            <i data-feather="menu"></i>
+            <i data-feather="menu" class="text-white lg:text-gray-600"></i>
           </a>
         </li>
       </ul>
@@ -32,7 +32,7 @@
         <li class="dropdown pc-h-item">
           <a class="pc-head-link dropdown-toggle me-0" data-pc-toggle="dropdown" href="#" role="button"
             aria-haspopup="false" aria-expanded="false">
-            <i data-feather="sun"></i>
+            <i data-feather="sun" class="text-white lg:text-gray-600"></i>
           </a>
           <div class="dropdown-menu dropdown-menu-end pc-h-dropdown">
             <a href="#!" class="dropdown-item" onclick="layout_change('dark')">
@@ -133,10 +133,10 @@ $ticketsToApprove = $canApprove
    <li class="dropdown pc-h-item header-user-profile">
           <a class="pc-head-link dropdown-toggle arrow-none me-0" data-pc-toggle="dropdown" href="#" role="button"
             aria-haspopup="false" data-pc-auto-close="outside" aria-expanded="false">
-            <i data-feather="user"></i>
+            <i data-feather="user" class="text-white lg:text-gray-600"></i>
           </a>
           <div class="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown p-2 overflow-hidden">
-            <div class="dropdown-header flex items-center justify-between py-4 px-5 bg-primary-500">
+            <div class="dropdown-header flex items-center justify-between py-4 px-5 bg-teal-500">
               <div class="flex mb-1 items-center">
                 <div class="shrink-0">
                  <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : asset('img/avatar-dummy.png') }}"
@@ -160,7 +160,7 @@ $ticketsToApprove = $canApprove
               <div class="grid my-3">
                <form action="{{ route('logout') }}" method="POST">
                   @csrf
-                  <button type="submit" class="btn btn-primary flex items-center justify-center w-full">
+                  <button type="submit" class="btn bg-teal-500 hover:text-red-500 text-white flex items-center justify-center w-full">
                     <svg class="pc-icon me-2 w-[22px] h-[22px]">
                       <use xlink:href="#custom-logout-1-outline"></use>
                     </svg>
