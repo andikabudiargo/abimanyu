@@ -26,117 +26,131 @@ $colorClass = match($status) {
     
 @endphp
 
-<div class="w-full bg-white shadow-md rounded-xl p-6 space-y-4 mb-2">
-   <div class="flex justify-between items-center mb-4">
-     <div class="flex items-center gap-4">
-    <h1 class="text-3xl font-extrabold text-gray-900 uppercase">{{ $ticket->title }}</h1>
+<div class="w-full bg-white shadow-md rounded-xl p-4 md:p-6 space-y-4 mb-2">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
 
-    <span class="px-3 py-1 rounded-full font-semibold text-sm {{ $colorClass }}">
-      {{ strtoupper($ticket->status ?? '-') }}
-    </span>
-  </div>
-    <div>
-    <span class="inline-block px-2 py-1 rounded mr-2">
-        #{{ $ticket->ticket_number}}
-    </span>
+    <!-- Ticket Number -->
+    <div class="order-1 md:order-2 mt-0 mb-2 md:mb-0">
+      <span class="inline-block px-2 py-1 rounded mr-2 text-sm md:text-base">
+        #{{ $ticket->ticket_number }}
+      </span>
     </div>
-</div>
- <div class="text-sm text-gray-600 mb-6">
- <span class="inline-block mr-2">
-        <i data-feather="user" class="inline w-4 h-4 mr-1"></i> {{ $ticket->requestor->name ?? 'Unknown' }}
-    </span>
-    <span class="inline-block">
-        <i data-feather="calendar" class="inline w-4 h-4 mr-1"></i> {{ $ticket->created_at->format('d M Y H:i') }}
-    </span>
-        </div>
-<hr>
 
-<div class="flex gap-6 mb-2">
+    <!-- Title + Status -->
+    <div class="order-2 md:order-1 w-full md:max-w-[70%]">
+      <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 uppercase flex flex-wrap items-center gap-2 break-words">
+        {{ $ticket->title }}
+        <span class="px-3 py-1 rounded-full font-semibold text-sm {{ $colorClass }}">
+          {{ strtoupper($ticket->status ?? '-') }}
+        </span>
+      </h1>
+    </div>
+
+</div>
+
+
+
+ <div class="flex flex-col md:flex-row text-sm text-gray-600 mb-6">
+    <span class="inline-flex items-center mb-2 md:mb-0 md:mr-4">
+        <i data-feather="user" class="w-4 h-4 mr-1"></i> {{ $ticket->requestor->name ?? 'Unknown' }}
+    </span>
+    <span class="inline-flex items-center">
+        <i data-feather="calendar" class="w-4 h-4 mr-1"></i> {{ $ticket->created_at->format('d M Y H:i') }} WIB
+    </span>
+</div>
+
+<hr class=" border border-gray-900">
+
+<div class="flex flex-col md:flex-row gap-6 mb-2">
   <!-- MAIN CONTENT: PO Info + Items -->
-  <div class="w-2/3 flex flex-col space-y-6">
+  <div class="w-full md:w-2/3 flex flex-col space-y-6">
     
     <!-- Purchase Order Information -->
-    <div class="border border-gray-200 bg-white shadow-md rounded-xl p-6">
-       <div class="flex justify-between items-center mb-8">
-        <h3 class="text-xl font-semibold text-gray-700">Ticket Information</h3>
-       @php
-    $statusClasses = [
-        'Low' => 'bg-green-600 text-white',
-        'Medium' => 'bg-blue-600 text-white',
-        'Urgent' => 'bg-yellow-600 text-white',
-        'Critical' => 'bg-red-600 text-white',
-    ];
+    <div class="border border-gray-200 bg-white shadow-md rounded-xl p-4 md:p-6">
+       <div class="flex flex-row flex-wrap justify-between items-center mb-6 md:mb-8">
+    <h3 class="text-lg md:text-xl font-semibold text-gray-700">
+        Ticket Information
+    </h3>
+    @php
+        $statusClasses = [
+            'Low' => 'bg-green-600 text-white',
+            'Medium' => 'bg-blue-600 text-white',
+            'Urgent' => 'bg-yellow-600 text-white',
+            'Critical' => 'bg-red-600 text-white',
+        ];
+        $statusClass = $statusClasses[$ticket->priority] ?? 'bg-gray-100 text-gray-800';
+    @endphp
+    <span class="inline-block {{ $statusClass }} px-2 py-1 rounded-lg text-sm mt-2 md:mt-0">
+        {{ $ticket->priority }}
+    </span>
+</div>
 
-    $statusClass = $statusClasses[$ticket->priority] ?? 'bg-gray-100 text-gray-800';
-@endphp
 
-<span class="inline-block {{ $statusClass }} px-2 py-1 rounded-lg text-sm">
-    {{ $ticket->priority }}
-</span>
-
-      </div>
-
-      <div class="text-sm mb-8">
-        <div class="mb-6">
+       <div class="text-sm mb-6 md:mb-8">
+        <div class="mb-4 md:mb-6">
           <div class="text-gray-500 font-medium mb-1">Category</div>
           <div class="text-gray-800">{{ $ticket->category->description ?? 'No Category' }}</div>
         </div>
-         <div class="text-gray-500 font-medium mb-2">Attachment File</div>
 
-@if($ticket->attachments->count() > 0)
-    @foreach($ticket->attachments as $attachment)
-        @php
-            $filename = basename($attachment->path);
-            $extension = pathinfo($attachment->path, PATHINFO_EXTENSION);
-        @endphp
-        <div class="flex items-center justify-between bg-gray-100 p-3 rounded shadow-sm mb-4">
-            <div>
-                <p class="text-sm font-medium text-gray-800">{{ $filename }}</p>
-                <p class="text-xs text-gray-500">Format: .{{ $extension }}</p>
-            </div>
-            <div class="flex gap-2">
-                <a href="{{ asset('storage/'.$attachment->path) }}" target="_blank" class="inline-flex items-center text-blue-600 hover:underline">
-                    <i data-feather="eye" class="w-4 h-4 mr-1"></i> Watch
-                </a>
-                <a href="{{ asset('storage/'.$attachment->path) }}" download class="inline-flex items-center text-green-600 hover:underline">
-                    <i data-feather="download" class="w-4 h-4 mr-1"></i> Download
-                </a>
-            </div>
-        </div>
-    @endforeach
-@else
-    <p class="text-gray-500 italic">No Attachment</p>
-@endif
-
+        <div class="text-gray-500 font-medium mb-2">Attachment File</div>
+        @if($ticket->attachments->count() > 0)
+            @foreach($ticket->attachments as $attachment)
+                @php
+                    $filename = basename($attachment->path);
+                    $extension = pathinfo($attachment->path, PATHINFO_EXTENSION);
+                @endphp
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between bg-gray-100 p-3 rounded shadow-sm mb-4">
+                    <div class="mb-2 md:mb-0">
+                        <p class="text-sm font-medium text-gray-800">{{ $filename }}</p>
+                        <p class="text-xs text-gray-500">Format: .{{ $extension }}</p>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <a href="{{ asset('storage/'.$attachment->path) }}" target="_blank" class="inline-flex items-center text-blue-600 hover:underline">
+                            <i data-feather="eye" class="w-4 h-4 mr-1"></i> Watch
+                        </a>
+                        <a href="{{ asset('storage/'.$attachment->path) }}" download class="inline-flex items-center text-green-600 hover:underline">
+                            <i data-feather="download" class="w-4 h-4 mr-1"></i> Download
+                        </a>
+                    </div>
+                </div>
+            @endforeach
+        @else
+            <p class="text-gray-500 italic">No Attachment</p>
+        @endif
       </div>
 
-       <h3 class="text-lg font-semibold mb-4">Description Issue</h3>
-            <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
-              {{ $ticket->description ?? 'No Description' }}
-            </div>
+       <h3 class="text-lg md:text-xl font-semibold mb-4">Description Issue</h3>
+       <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
+          {{ $ticket->description ?? 'No Description' }}
+       </div>
 
-<h3 class="text-xl font-semibold text-gray-700 mb-4 mt-6">Internal Notes</h3>
-<hr class="mb-4">
+      <h3 class="text-lg md:text-xl font-semibold text-gray-700 mb-4 mt-6">Internal Notes</h3>
+      <hr class="mb-4">
+@php
+    $hasNotes = $ticket->holds->count() > 0 || 
+                in_array($ticket->status, ['Done', 'Closed', 'Rejected']);
+@endphp
 
-  {{-- Hold Timeline --}}
-    @foreach ($ticket->holds as $hold)
-       <div class="flex items-start space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
-            <img src="{{ $ticket->process->avatar ? asset('storage/' . $ticket->process->avatar) : asset('img/avatar-dummy.png') }}" class="w-10 h-10 rounded-full" alt="Avatar">
-            <div>
-                <div class="text-sm font-semibold">{{ $ticket->process->name ?? '-' }}</div>
-                <div class="text-xs text-gray-500">On Hold • {{ \Carbon\Carbon::parse($hold->created_at)->format('d M Y H:i') }}</div>
-                @if($hold->reason)
-                    <div class="mt-1 text-sm">
-                        <div class="mt-2 text-sm text-gray-700"><strong>Hold Reason:</strong> {{ $hold->reason }}</div>
-                    </div>
-                @endif
-            </div>
-        </div>
-    @endforeach
+@if(!$hasNotes)
+    <p class="text-gray-500 italic text-center">No Notes Added</p>
+@endif
+      {{-- Timeline entries --}}
+      @foreach ($ticket->holds as $hold)
+         <div class="flex flex-col md:flex-row items-start md:items-center space-x-0 md:space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
+              <img src="{{ $ticket->process->avatar ? asset('storage/' . $ticket->process->avatar) : asset('img/avatar-dummy.png') }}" class="w-10 h-10 rounded-full mb-2 md:mb-0" alt="Avatar">
+              <div>
+                  <div class="text-sm font-semibold">{{ $ticket->process->name ?? '-' }}</div>
+                  <div class="text-xs text-gray-500">On Hold • {{ \Carbon\Carbon::parse($hold->created_at)->format('d M Y H:i') }}</div>
+                  @if($hold->reason)
+                      <div class="mt-1 text-sm text-gray-700"><strong>Hold Reason:</strong> {{ $hold->reason }}</div>
+                  @endif
+              </div>
+          </div>
+      @endforeach
 
     {{-- Done --}}
     @if($ticket->status === 'Done' || $ticket->status === 'Closed' )
-        <div class="flex items-start space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
+       <div class="flex flex-col md:flex-row items-start md:items-center space-x-0 md:space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
              <img src="{{ $ticket->process->avatar ? asset('storage/' . $ticket->process->avatar) : asset('img/avatar-dummy.png') }}" class="w-10 h-10 rounded-full" alt="Avatar">
             <div>
                 <div class="font-semibold">{{ $ticket->process->name }}</div>
@@ -165,7 +179,7 @@ $colorClass = match($status) {
 
 {{-- Closed --}}
     @if($ticket->status === 'Closed')
-        <div class="flex items-start space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
+        <div class="flex flex-col md:flex-row items-start md:items-center space-x-0 md:space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
              <img src="{{ $ticket->requestor->avatar ? asset('storage/' . $ticket->requestor->avatar) : asset('img/avatar-dummy.png') }}" class="w-10 h-10 rounded-full" alt="Avatar">
             <div>
                 <div class="font-semibold">{{ $ticket->requestor->name }}</div>
@@ -181,7 +195,7 @@ $colorClass = match($status) {
 
     {{-- Reject --}}
     @if($ticket->status === 'Rejected' && $ticket->rejected_reason)
-        <div class="flex items-start space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
+        <div class="flex flex-col md:flex-row items-start md:items-center space-x-0 md:space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
             <img src="{{ $ticket->reject->avatar ? asset('storage/' . $ticket->process->avatar) : asset('img/avatar-dummy.png') }}" alt="Avatar" class="w-8 h-8 rounded-full">
             <div>
                 <div class="font-semibold">{{ $ticket->reject->name ?? 'Unknown' }}</div>
@@ -194,14 +208,19 @@ $colorClass = match($status) {
   </div>
 
   <!-- SIDEBAR: Order History + Summary -->
-  <div class="w-1/3 flex flex-col space-y-6">
-    <!-- Order History -->
-    <div class="border border-gray-200 bg-white shadow-md rounded-xl p-6">
-  <div class="flex justify-between items-center mb-2">
-    <h3 class="text-xl font-semibold text-gray-700">Ticket Timeline</h3>
-    <i data-feather="clock" class="text-gray-700 w-5 h-5"></i>
-  </div>
-  <hr class="my-4">
+  <div class="w-full md:w-1/3 flex flex-col space-y-6">
+    <div class="border border-gray-200 bg-white shadow-md rounded-xl p-4 md:p-6">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg md:text-xl font-semibold text-gray-700">Ticket Timeline</h3>
+        <i data-feather="clock" class="text-gray-700 w-5 h-5"></i>
+      </div>
+      <hr class="my-4">
+
+       @php
+            $hasTimeline = $ticket->approved || $ticket->processed_by || $ticket->due_date || $ticket->holds->count() || $ticket->done_at || $ticket->closed_at;
+        @endphp
+
+        @if($hasTimeline)
     {{-- Approved --}}
     @if($ticket->approved)
         <div>
@@ -332,48 +351,70 @@ $colorClass = match($status) {
         </div>
     </div>
 @endif
+  @else
+            {{-- Jika belum ada timeline --}}
+            <div class="text-sm text-gray-500 italic text-center py-6">
+                No Timeline Added Yet
+            </div>
+        @endif
 </div>
   </div>
     </div>
 <hr>
-   <div class="flex justify-start space-x-2 mt-4">
-    <a href="{{ route('it.ticket.index') }}" class="w-36 text-center flex gap-2 items-center px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">← Back</a>
+  <div class="flex flex-wrap justify-start gap-2 mt-4">
+    <a href="{{ route('it.ticket.index') }}" 
+       class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
+       <i data-feather="arrow-left" class="w-4 h-4 inline"></i> Back
+    </a>
 
-    {{-- Approve & Reject (Manager/Supervisor Special Access from IT) --}}
     @if($ticket->status == 'Pending' &&
-     auth()->user()->hasRole('Manager Special Access') &&
-     auth()->user()->hasDepartment('Information & Technology'))
-    <button onclick="approveTicket({{ $ticket->id }})" class="w-36 text-center flex gap-2 items-center px-4 py-2 bg-green-600 text-white rounded"><i data-feather="check-circle" class="w-4 h-4 inline"></i> <span>Approve</span></button>
-    <button onclick="rejectTicket({{ $ticket->id }})" class="w-36 text-center flex gap-2 items-center px-4 py-2 bg-red-600 text-white rounded"><i data-feather="x-circle" class="w-4 h-4 inline"></i> <span>Reject</span></button>
-@endif
+        auth()->user()->hasRole('Manager Special Access') &&
+        auth()->user()->hasDepartment('Information & Technology'))
+        <button onclick="approveTicket({{ $ticket->id }})" 
+            class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-green-600 text-white rounded">
+            <i data-feather="check-circle" class="w-4 h-4 inline"></i> Approve
+        </button>
+        <button onclick="rejectTicket({{ $ticket->id }})" 
+            class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-red-600 text-white rounded">
+            <i data-feather="x-circle" class="w-4 h-4 inline"></i> Reject
+        </button>
+    @endif
 
-@if(
-    $ticket->status == 'Approved' &&
-    auth()->user()->hasDepartment($ticket->category->department->name)
-)
-    <button onclick="openProcessModal({{ $ticket->id }})" 
-        class="w-36 text-center flex gap-2 items-center px-4 py-2 bg-yellow-500 text-white rounded">
-        <i data-feather="refresh-ccw" class="w-4 h-4 inline"></i>
-        <span>Process</span>
-    </button>
-@endif
+    @if($ticket->status == 'Approved' &&
+        auth()->user()->hasDepartment($ticket->category->department->name))
+        <button onclick="openProcessModal({{ $ticket->id }})" 
+            class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-yellow-500 text-white rounded">
+            <i data-feather="refresh-ccw" class="w-4 h-4 inline"></i> Process
+        </button>
+    @endif
 
+    @if($ticket->status == 'Work in Progress' && auth()->id() === $ticket->processed_by)
+        <button onclick="openHoldModal({{ $ticket->id }})" 
+            class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-yellow-600 text-white rounded">
+            <i data-feather="pause-circle" class="w-4 h-4 inline"></i> Hold Ticket
+        </button>
+        <button onclick="showDoneModal({{ $ticket->id }})" 
+            class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-green-600 text-white rounded">
+            <i data-feather="check-circle" class="w-4 h-4 inline"></i> Mark as Done
+        </button>
+    @endif
 
+    @if($ticket->status == 'On Hold' && auth()->id() === $ticket->processed_by)
+        <button onclick="resumeTicket({{ $ticket->id }})" 
+            class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-purple-600 text-white rounded">
+            <i data-feather="play-circle" class="w-4 h-4 inline"></i> Resume Ticket
+        </button>
+    @endif
 
-@if($ticket->status == 'Work in Progress' && auth()->id() === $ticket->processed_by)
-    <button onclick="openHoldModal({{ $ticket->id }})" class="w-36 text-center flex gap-2 items-center px-4 py-2 bg-yellow-600 text-white rounded"><i data-feather="pause-circle" class="w-4 h-4 inline"></i><span>Hold Ticket</span></button>
-    <button onclick="showDoneModal({{ $ticket->id }})" class="w-36 text-center flex gap-2 items-center px-4 py-2 bg-green-600 text-white rounded"><i data-feather="check-circle" class="w-4 h-4 inline"></i><span>Mark as Done</span></button>
-@endif
-
-@if($ticket->status == 'On Hold' && auth()->id() === $ticket->processed_by)
-    <button onclick="resumeTicket({{ $ticket->id }})" class="w-36 text-center flex gap-2 items-center px-4 py-2 bg-purple-600 text-white rounded"><i data-feather="play-circle" class="w-4 h-4 inline"></i><span>Resume Ticket</span></button>
-@endif
-
-@if($ticket->status == 'Done' && auth()->id() === $ticket->request_by)
-    <button onclick="showCloseModal({{ $ticket->id }})" class="w-36 text-center flex gap-2 items-center px-4 py-2 bg-green-500 text-white rounded"><i data-feather="check-circle" class="w-4 h-4 inline"></i> <span>Close Ticket</span></button>
-@endif
-
+    @if($ticket->status == 'Done' && auth()->id() === $ticket->request_by)
+        <button onclick="showCloseModal({{ $ticket->id }})" 
+            class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-green-500 text-white rounded">
+            <i data-feather="check-circle" class="w-4 h-4 inline"></i> Close Ticket
+        </button>
+    @endif
 </div>
+
+
 
 <!-- Modal Reject -->
 <div id="rejectModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
