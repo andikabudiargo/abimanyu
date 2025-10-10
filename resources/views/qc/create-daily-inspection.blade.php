@@ -7,257 +7,204 @@
 
 @section('content')
 <div class="flex flex-col md:flex-row gap-6">
-  <!-- 📘 Sidebar Search Panel -->
   <!-- Sidebar -->
-<div class="w-full md:w-1/4 bg-white shadow-lg rounded-2xl p-6 space-y-6">
-  <!-- Header -->
-  <div>
-    <h2 class="text-lg font-semibold text-gray-700">Inspection Overview</h2>
-  </div>
-
-  <!-- Operator Information -->
-  <div class="space-y-3">
-    <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Operator Information</h3>
-    <div class="flex justify-between text-sm text-gray-600">
-      <span class="font-medium text-gray-500">Operator Name:</span>
-      <span class="text-gray-800">{{ Auth::user()->name }}</span>
+  <div class="w-full md:w-1/4 bg-white shadow-lg rounded-2xl p-4 md:p-6 space-y-6">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-700">Inspection Overview</h2>
     </div>
-    <div class="flex justify-between text-sm text-gray-600">
-      <span class="font-medium text-gray-500">Shift:</span>
-      <span id="shift-label" class="text-gray-800">-</span>
+
+    <!-- Operator Info -->
+    <div class="space-y-2">
+      <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Operator Information</h3>
+      <div class="flex justify-between text-sm text-gray-600">
+        <span class="font-medium text-gray-500">Operator Name:</span>
+        <span class="text-gray-800">{{ Auth::user()->name }}</span>
+      </div>
+      <div class="flex justify-between text-sm text-gray-600">
+        <span class="font-medium text-gray-500">Shift:</span>
+        <span id="shift-label" class="text-gray-800">-</span>
+      </div>
+      <div class="flex justify-between text-sm text-gray-600">
+        <span class="font-medium text-gray-500">Inspection Date:</span>
+        <span id="inspection-date" class="text-gray-800">-</span>
+      </div>
     </div>
-    <div class="flex justify-between text-sm text-gray-600">
-      <span class="font-medium text-gray-500">Inspection Date:</span>
-      <span id="inspection-date" class="text-gray-800">-</span>
+
+    <!-- Part Info -->
+    <div class="space-y-2">
+      <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Part Information</h3>
+      <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
+        <span class="font-medium text-gray-500 whitespace-nowrap">Part Name:</span>
+        <span data-info="part-name" class="text-gray-800 text-right max-w-[65%] break-words">-</span>
+      </div>
+      <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
+        <span class="font-medium text-gray-500 whitespace-nowrap">Supplier:</span>
+        <span data-info="supplier" class="text-gray-800 text-right max-w-[65%] break-words">-</span>
+      </div>
+      <input type="hidden" id="supplier_code" name="supplier_code">
     </div>
-  </div>
 
-  <!-- Part Information -->
-  <div class="space-y-3">
-    <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Part Information</h3>
-    <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
-      <span class="font-medium text-gray-500 whitespace-nowrap">Part Name:</span>
-      <span data-info="part-name" class="text-gray-800 text-right max-w-[70%] break-words">-</span>
-    </div>
-    <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
-      <span class="font-medium text-gray-500 whitespace-nowrap">Supplier:</span>
-      <span data-info="supplier" class="text-gray-800 text-right max-w-[70%] break-words">-</span>
-    </div>
-    <input type="hidden" id="supplier_code" name="supplier_code">
-  </div>
-
-  <!-- Summary Inspection -->
-  <div class="space-y-3">
-    <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Summary Inspection</h3>
-    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
-
-      <!-- Total Check -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-gray-500">
-          <i data-feather="search" class="w-4 h-4"></i>
-          <span class="font-medium">Total Check</span>
+    <!-- Summary & Percentage Inspection -->
+    <div class="space-y-3">
+      <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Summary Inspection</h3>
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2 text-sm">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-gray-500">
+            <i data-feather="search" class="w-4 h-4"></i>
+            <span class="font-medium">Total Check</span>
+          </div>
+          <span data-info="total-check" class="text-gray-800 font-semibold">0</span>
         </div>
-        <span data-info="total-check" class="text-gray-800 font-semibold">0</span>
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-green-600">
+            <i data-feather="check-circle" class="w-4 h-4"></i>
+            <span class="font-medium">Total OK</span>
+          </div>
+          <span data-info="total-ok" class="text-green-600 font-semibold">-</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-yellow-500">
+            <i data-feather="tool" class="w-4 h-4"></i>
+            <span class="font-medium">Total OK Repair</span>
+          </div>
+          <span data-info="total-ok-repair" class="text-yellow-500 font-semibold">0</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-red-600">
+            <i data-feather="x-circle" class="w-4 h-4"></i>
+            <span class="font-medium">Total NG</span>
+          </div>
+          <span data-info="total-ng" class="text-red-600 font-semibold">-</span>
+        </div>
       </div>
 
-      <!-- Total OK -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-green-600">
-          <i data-feather="check-circle" class="w-4 h-4"></i>
-          <span class="font-medium">Total OK</span>
+      <h3 class="text-md font-semibold text-gray-700 border-b pb-1 mt-4">Percentage Inspection</h3>
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2 text-sm">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-green-500">
+            <i data-feather="check-circle" class="w-4 h-4"></i>
+            <span class="font-medium">Pass Rate</span>
+          </div>
+          <span data-info="pass-rate" class="text-green-500 font-semibold">0</span>
         </div>
-        <span data-info="total-ok" class="text-green-600 font-semibold">-</span>
-      </div>
-
-      <!-- Total OK Repair -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-yellow-500">
-          <i data-feather="tool" class="w-4 h-4"></i>
-          <span class="font-medium">Total OK Repair</span>
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-yellow-500">
+            <i data-feather="tool" class="w-4 h-4"></i>
+            <span class="font-medium">OK Repair</span>
+          </div>
+          <span data-info="ok-repair-rate" class="text-yellow-500 font-semibold">-</span>
         </div>
-        <span data-info="total-ok-repair" class="text-yellow-500 font-semibold">0</span>
-      </div>
-
-      <!-- Total NG -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-red-600">
-          <i data-feather="x-circle" class="w-4 h-4"></i>
-          <span class="font-medium">Total NG</span>
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-red-600">
+            <i data-feather="x-circle" class="w-4 h-4"></i>
+            <span class="font-medium">NG Rate</span>
+          </div>
+          <span data-info="ng-rate" class="text-red-600 font-semibold">-</span>
         </div>
-        <span data-info="total-ng" class="text-red-600 font-semibold">-</span>
       </div>
-
-    </div>
-  </div>
-
-   <!-- Percentage Inspection -->
-  <div class="space-y-3">
-    <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Percentage Inspection</h3>
-    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
-
-      <!-- Total Check -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-green-500">
-          <i data-feather="check-circle" class="w-4 h-4"></i>
-          <span class="font-medium">Pass Rate</span>
-        </div>
-        <span data-info="pass-rate" class="text-green-500 font-semibold">0</span>
-      </div>
-
-      <!-- Total OK Repair -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-yellow-500">
-          <i data-feather="tool" class="w-4 h-4"></i>
-          <span class="font-medium">OK Repair</span>
-        </div>
-        <span data-info="ok-repair-rate" class="text-yellow-500 font-semibold">-</span>
-      </div>
-
-       <!-- Total OK -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-red-600">
-          <i data-feather="x-circle" class="w-4 h-4"></i>
-          <span class="font-medium">NG Rate</span>
-        </div>
-        <span data-info="ng-rate" class="text-red-600 font-semibold">-</span>
-      </div>
-
     </div>
   </div>
-</div>
 
-
-  <!-- 📦 Main Transfer Panel -->
   <!-- Main Panel -->
-<div class="w-full md:w-3/4 bg-white shadow-md rounded-xl p-4 space-y-4">
-
+  <div class="w-full md:w-3/4 bg-white shadow-md rounded-xl p-4 space-y-4">
     <h2 class="text-lg font-semibold text-gray-700">Quality Inspection</h2>
-    <form id="inspection-form">
-      <!-- 🔢 Nomor Referensi -->
-    <div class="flex flex-col gap-4 mb-8">
-  <!-- Baris 1 -->
-  <div class="flex flex-col md:flex-row gap-4">
-    <div class="w-full md:w-1/2">
-      <label class="block text-sm font-medium text-gray-700 mb-1">
-        Inspection Post <small class="text-red-600"> *</small>
-      </label>
-      <select name="inspection_post" id="inspection_post"
-        class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-        <option value="">-- Choose Post --</option>
-        <option value="Incoming">Incoming</option>
-        <option value="Unloading">Unloading</option>
-        <option value="Buffing">Buffing</option>
-        <option value="Touch Up">Touch Up</option>
-        <option value="Final">Final</option>
-      </select>
-    </div>
+    <form id="inspection-form" class="space-y-4">
 
-    <div class="w-full md:w-1/2">
-      <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">
-        Supplier<small class="text-red-600"> *</small>
-      </label>
-      <select name="supplier" id="supplier"
-        class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-        <option value="">-- Pilih Supplier --</option>
-        @foreach ($suppliers as $supplier)
-          <option value="{{ $supplier->code }}">{{ $supplier->name }}</option>
-        @endforeach
-      </select>
-    </div>
+     <!-- Row 1 -->
+<div class="flex flex-col md:flex-row gap-4">
+  <div class="w-full md:w-1/2">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Inspection Post <span class="text-red-600">*</span></label>
+    <select name="inspection_post" id="inspection_post" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+      <option value="">-- Choose Post --</option>
+      <option value="Incoming">Incoming</option>
+      <option value="Unloading">Unloading</option>
+      <option value="Buffing">Buffing</option>
+      <option value="Touch Up">Touch Up</option>
+      <option value="Final">Final</option>
+    </select>
   </div>
 
-  <!-- Baris 2 -->
-  <div class="flex flex-col md:flex-row gap-4">
-    <div class="w-full md:w-1/2">
-      <label class="block text-sm font-medium text-gray-700 mb-1">
-        Part Name<small class="text-red-600"> *</small>
-      </label>
-      <select name="part_name" id="part_name"
-        class="part-select w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-        <option value="">-- Select Part --</option>
-      </select>
-    </div>
+  <div class="w-full md:w-1/2">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier <span class="text-red-600">*</span></label>
+    <select name="supplier" id="supplier" class="select2 w-full" required>
+      <option value="">-- Pilih Supplier --</option>
+      @foreach ($suppliers as $supplier)
+        <option value="{{ $supplier->code }}">{{ $supplier->name }}</option>
+      @endforeach
+    </select>
+  </div>
+</div>
 
-    <div class="w-full md:w-1/2">
-      <label for="total_check" class="block text-sm font-medium text-gray-700 mb-1">
-        Qty Received <small class="text-red-600">*</small>
-      </label>
-      <input type="number" name="qty_received" id="qty_received"
-        class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-        placeholder="Masukan Qty Total Kedatangan Barang ..." required />
-    </div>
+<!-- Row 2 -->
+<div class="flex flex-col md:flex-row gap-4">
+  <div class="w-full md:w-1/2">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Part Name <span class="text-red-600">*</span></label>
+    <select name="part_name" id="part_name" class="select2 w-full" required>
+      <option value="">-- Select Part --</option>
+    </select>
   </div>
 
-  <!-- Catatan -->
-  <div class="w-full">
-    <label for="note" class="block text-sm font-medium text-gray-700">Note</label>
-    <textarea id="note" rows="2"
-      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
+  <div class="w-full md:w-1/2">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Qty Received <span class="text-red-600">*</span></label>
+    <input type="number" name="qty_received" id="qty_received" placeholder="Masukan Qty Total Kedatangan Barang ..." class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required/>
   </div>
 </div>
 
 
-      <div class="flex gap-4 mb-4">
-    <!-- Check Method -->
-  <div id="check_method_container" class="hidden">
-    <label for="check_method" class="block text-sm font-medium text-gray-700 mb-1">
-      Inspection Method <small class="text-red-600">*</small></label>
-   <select name="check_method" id="check_method"
-                  class="w-64 px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+      <!-- Note -->
+      <div class="w-full">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
+        <textarea id="note" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
+      </div>
+
+      <!-- Check Method & Total Check -->
+      <div class="flex flex-col md:flex-row gap-4">
+        <div id="check_method_container" class="w-full md:w-1/2 hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Inspection Method <span class="text-red-600">*</span></label>
+          <select name="check_method" id="check_method" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
             <option value="">-- Choose Method --</option>
-            <option value="100%">100% (A)</option> <!-- Dari Produksi -->
-            <option value="Sampling">Sampling (S)</option> <!-- Dari Supplier -->
+            <option value="100%">100% (A)</option>
+            <option value="Sampling">Sampling (S)</option>
           </select>
-  </div>
-  <div>
-    <label for="total_check" class="block text-sm font-medium text-gray-700 mb-1">
-      Total Check <small class="text-red-600">*</small>
-    </label>
-    <input type="number" name="total_check" id="total_check"
-           class="w-64 px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-           placeholder="Masukan Total Qty Part ..." />
-  </div>
-</div>
+        </div>
+        <div class="w-full md:w-1/2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Total Check <span class="text-red-600">*</span></label>
+          <input type="number" name="total_check" id="total_check" placeholder="Masukan Total Qty Part ..." class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
+        </div>
+      </div>
 
+      <!-- Table -->
+      <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400">
+        <table id="itemTable" class="min-w-full bg-white border border-gray-200">
+          <thead class="bg-red-800 text-white">
+            <tr>
+             <th class="p-2 border text-center min-w-[40px]">No.</th>
+        <th class="p-2 border min-w-[140px]">Defect</th>
+        <th class="p-2 border min-w-[80px]">Qty</th>
+        <th class="p-2 border min-w-[80px]">OK Repair</th>
+        <th class="p-2 border min-w-[120px]">Note</th>
+        <th class="p-2 border text-center min-w-[60px]">Action</th>
+            </tr>
+          </thead>
+          <tbody id="defectTableBody"></tbody>
+        </table>
+        <button type="button" id="addRowBtn" class="mt-2 w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Add Row</button>
+      </div>
 
-     <!-- 📋 Tabel Artikel yang Dipindahkan -->
-<div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400">
-  <table id="itemTable" class="min-w-full bg-white border border-gray-200">
-    <thead class="bg-red-800 text-white">
-      <tr>
-        <th class="p-2 border">No.</th>
-        <th class="p-2 border">Defect</th>
-        <th class="p-2 border w-24">Qty</th>
-        <th class="p-2 border w-24">OK Repair</th>
-        <th class="p-2 border">Note</th>
-        <th class="p-2 border">Action</th>
-      </tr>
-    </thead>
-    <tbody id="defectTableBody">
-      <!-- Baris awal -->
-    </tbody>
-  </table>
-  <button type="button" id="addRowBtn" class="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700">
-    + Add Row
-  </button>
-</div>
+      <!-- Buttons -->
+      <div class="flex flex-col md:flex-row gap-2 mt-4">
+        <button id="resetBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
+          <i data-feather="refresh-cw" class="h-4 w-4"></i> Reset
+        </button>
+        <button id="submitBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
+          <i data-feather="save" class="h-4 w-4"></i> Save
+        </button>
+      </div>
 
- <hr class="mt-4">
-   <div class="flex justify-start space-x-2 mt-4">
-   <button id="resetBtn"
-   class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
-   <i data-feather="refresh-cw" class="h-4 w-4"></i> Reset
-</button>
-
-<button id="submitBtn" 
-   class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
-   <i data-feather="save" class="h-4 w-4"></i>
-   Save
-</button>
-  </div>
-   </form>
+    </form>
   </div>
 </div>
+
 
 <style>
 
@@ -457,12 +404,13 @@ $okRepairRate.text(okRepairRate + '%');
   });
 
   // ================== Select2 ==================
-  $('#supplier').select2({ placeholder: "-- Pilih Supplier --", allowClear: true, width: 'resolve' });
+   $('#inspection_post').select2({ placeholder: "-- Pilih Inspection Post --", allowClear: true, width: '100%' });
+  $('#supplier').select2({ placeholder: "-- Pilih Supplier --", allowClear: true, width: '100%' });
 
   $('#part_name').select2({
     placeholder: "-- Select Part --",
     allowClear: true,
-    width: 'resolve',
+    width: '100%',
     ajax: {
       url: '/qc/get-articles',
       dataType: 'json',
@@ -493,122 +441,134 @@ $okRepairRate.text(okRepairRate + '%');
 
 
 
-  let rowIndex = 1;
+ let rowIndex = 1;
 
+// Function buat row
 function createRow(index, defects = []) {
-  const row = document.createElement('tr');
-  let defectOptions = `<option value="">-- Choose Defect --</option>`;
-  defects.forEach(defect => {
-    defectOptions += `<option value="${defect.id}">${defect.defect}</option>`;
-  });
+    const $row = $('<tr>');
 
-  row.innerHTML = `
-    <td class="border p-2 text-center">${index}</td>
-    <td class="border p-2">
-      <select name="defect_id[]" class="w-full border rounded p-1 defect-select">
-        ${defectOptions}
-      </select>
-    </td>
-    <td class="border p-2">
-      <input type="number" name="qty[]" min="1" class="w-full border rounded p-1 qty-defect" required>
-    </td>
-    <td class="border p-2">
-      <input type="number" name="ok_repair[]" class="w-full border rounded p-1 qty-ok-repair" required>
-    </td>
-    <td class="border p-2">
-      <input type="text" name="note_defect[]" class="w-full border rounded p-1">
-    </td>
-    <td class="border p-2 text-center">
-      <button type="button" class="removeBtn text-red-600 hover:text-red-800"><i data-feather="trash-2"></i></button>
-    </td>
-  `;
-
-  // Inisialisasi Select2 untuk select baru
-  const $select = $(row).find('.defect-select');
-  $select.select2({
-    placeholder: '-- Choose Defect --',
-    allowClear: true,
-    width: '100%'
-  });
-
-  // Event untuk deteksi duplikasi defect
-  $select.on('change', function () {
-    const selectedValue = $(this).val();
-    let isDuplicate = false;
-
-    // Cek di semua defect-select lain apakah ada yang sama
-    $('.defect-select').not(this).each(function () {
-      if ($(this).val() === selectedValue && selectedValue !== '') {
-        isDuplicate = true;
-      }
+    let defectOptions = '<option value="">-- Choose Defect --</option>';
+    defects.forEach(defect => {
+        defectOptions += `<option value="${defect.id}">${defect.defect}</option>`;
     });
 
-    if (isDuplicate) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Duplikasi Defect!',
-        text: 'Defect yang sama sudah dipilih di baris lain.',
-        confirmButtonText: 'OK'
-      });
-      $(this).val('').trigger('change'); // Reset kembali
-    }
-  });
+    $row.html(`
+        <td class="border p-2 text-center min-w-[40px]">${index}</td>
+        <td class="border p-2 min-w-[140px]">
+            <select name="defect_id[]" class="w-full border rounded p-1 defect-select">
+                ${defectOptions}
+            </select>
+        </td>
+        <td class="border p-2 min-w-[80px]">
+            <input type="number" name="qty[]" min="1" class="w-full border rounded p-1 qty-defect" required>
+        </td>
+        <td class="border p-2 min-w-[80px]">
+            <input type="number" name="ok_repair[]" class="w-full border rounded p-1 qty-ok-repair" required>
+        </td>
+        <td class="border p-2 min-w-[120px]">
+            <input type="text" name="note_defect[]" class="w-full border rounded p-1">
+        </td>
+        <td class="border p-2 text-center min-w-[60px]">
+            <button type="button" class="removeBtn text-red-600 hover:text-red-800"><i data-feather="trash-2"></i></button>
+        </td>
+    `);
 
-   // Validasi OK Repair <= Qty Defect
-  $(row).find('.qty-ok-repair').on('input', function () {
-    const qtyDefect = parseInt($(row).find('.qty-defect').val()) || 0;
-    const qtyOkRepair = parseInt($(this).val()) || 0;
+    // Init Select2
+    $row.find('.defect-select').select2({
+        placeholder: '-- Choose Defect --',
+        allowClear: true,
+        width: '100%'
+    });
 
-    if (qtyOkRepair > qtyDefect) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Input tidak valid',
-        text: 'Qty OK Repair tidak boleh melebihi Qty Defect di baris ini.',
-        confirmButtonText: 'OK'
-      });
-      $(this).val(qtyDefect); // Reset ke maksimal Qty Defect
-    }
-  });
+    // Validasi duplikat defect
+    $row.find('.defect-select').on('change', function () {
+        const selectedValue = $(this).val();
+        let isDuplicate = false;
 
-  return row;
+        $('.defect-select').not(this).each(function () {
+            if ($(this).val() === selectedValue && selectedValue !== '') {
+                isDuplicate = true;
+            }
+        });
+
+        if (isDuplicate) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Duplikasi Defect!',
+                text: 'Defect yang sama sudah dipilih di baris lain.',
+                confirmButtonText: 'OK'
+            });
+            $(this).val('').trigger('change');
+        }
+    });
+
+    // Validasi OK Repair <= Qty Defect
+    $row.find('.qty-ok-repair').on('input', function () {
+        const qtyDefect = parseInt($row.find('.qty-defect').val()) || 0;
+        const qtyOkRepair = parseInt($(this).val()) || 0;
+
+        if (qtyOkRepair > qtyDefect) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Input tidak valid',
+                text: 'Qty OK Repair tidak boleh melebihi Qty Defect di baris ini.',
+                confirmButtonText: 'OK'
+            });
+            $(this).val(qtyDefect);
+        }
+    });
+
+    return $row;
 }
 
+// Tambahkan default row saat page load
+$(document).ready(function () {
+    const post = $('#inspection_post').val();
+    if (post) {
+        $.getJSON(`/qc/get-defects/${post}`, function(defects) {
+            $('#defectTableBody').append(createRow(rowIndex, defects));
+            feather.replace();
+        });
+    } else {
+        $('#defectTableBody').append(createRow(rowIndex, []));
+        feather.replace();
+    }
+});
 
-document.getElementById('inspection_post').addEventListener('change', function () {
-  const post = this.value;
+// Update row ketika inspection_post berubah
+$('#inspection_post').on('change', function () {
+    const post = $(this).val();
+    if (!post) return;
 
-  if (!post) return;
-
-  fetch(`/qc/get-defects/${post}`)
-    .then(res => res.json())
-    .then(defects => {
-      // Hapus semua baris lama
-      document.getElementById('defectTableBody').innerHTML = '';
-
-      // Buat baris baru pertama dengan defect sesuai post
-      const row = createRow(rowIndex, defects);
-      document.getElementById('defectTableBody').appendChild(row);
-      feather.replace();
-      attachDefectValidation();
+    $.getJSON(`/qc/get-defects/${post}`, function(defects) {
+        $('#defectTableBody').empty();
+        rowIndex = 1;
+        $('#defectTableBody').append(createRow(rowIndex, defects));
+        feather.replace();
     });
 });
 
+// Tombol Add Row
+$('#addRowBtn').on('click', function () {
+    const post = $('#inspection_post').val();
+    if (!post) return alert('Select inspection post first!');
 
-
-  document.getElementById('addRowBtn').addEventListener('click', function () {
-  const post = document.getElementById('inspection_post').value;
-  if (!post) return alert('Select inspection post first!');
-
-  fetch(`/qc/get-defects/${post}`)
-    .then(res => res.json())
-    .then(defects => {
-      rowIndex++;
-      const row = createRow(rowIndex, defects);
-      document.getElementById('defectTableBody').appendChild(row);
-      feather.replace();
-      attachDefectValidation();
+    $.getJSON(`/qc/get-defects/${post}`, function(defects) {
+        rowIndex++;
+        $('#defectTableBody').append(createRow(rowIndex, defects));
+        feather.replace();
     });
 });
+
+// Tombol Remove Row & update nomor
+$('#defectTableBody').on('click', '.removeBtn', function () {
+    $(this).closest('tr').remove();
+    $('#defectTableBody tr').each(function(i) {
+        $(this).find('td:first').text(i + 1);
+    });
+    rowIndex = $('#defectTableBody tr').length;
+});
+
 
 $('#supplier').select2({
   placeholder: "-- Pilih Supplier --",
@@ -700,17 +660,17 @@ $('#part_name').on('change', function () {
 
   document.getElementById('shift-label').textContent = getCurrentShift();
 
-   document.getElementById('inspection_post').addEventListener('change', function () {
-    const typeValue = this.value;
+   // Gunakan event 'change.select2' khusus
+$('#inspection_post').on('change', function() {
+    const typeValue = $(this).val();
     const methodField = document.getElementById('check_method_container');
 
     if (typeValue === 'Incoming') {
-      methodField.classList.remove('hidden');
+        methodField.classList.remove('hidden');
     } else {
-      methodField.classList.add('hidden');
+        methodField.classList.add('hidden');
     }
-  });
-
+});
   function attachDefectValidation() {
   const selects = document.querySelectorAll('.defect-select');
 

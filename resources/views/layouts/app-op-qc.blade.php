@@ -10,7 +10,8 @@
     <meta name="keywords" content="Bootstrap, dashboard, admin, template" />
     <meta name="author" content="CodedThemes" />
 
-    <link rel="icon" href="{{ asset('template/dist/assets/images/favicon.svg') }}" type="image/x-icon" />
+   <link rel="icon" href="{{ asset('img/asn-logo-bulat.png') }}" type="image/png" sizes="32x32" />
+<link rel="apple-touch-icon" href="{{ asset('img/asn-logo-bulat.png') }}" />
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
@@ -72,62 +73,66 @@
     </div>
 
  <!-- [ Header Topbar ] start -->
-<header class="px-8 py-6 rounded-3xl mt-6 mx-8">
-  <!-- [ Header Topbar ] start -->
-<div class="relative">
-  <!-- Blue Background Layer -->
-  <div class="bg-gray-400 px-8 pt-6 pb-20 rounded-xl shadow-md">
-    <div class="flex justify-between items-center">
-      <!-- Logo -->
-      <div class="flex items-center space-x-4">
-        <img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-28 w-auto object-contain" />
+<header>
+  <div class="relative">
+
+    <!-- Blue Background Layer -->
+    <div class="bg-gray-400 px-4 sm:px-8 pt-6 pb-10 lg:pb-16 md:pb-16 shadow-md">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
+        <!-- Logo -->
+        <div class="flex items-center space-x-4">
+          <img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-20 sm:h-28 w-auto object-contain" />
+        </div>
+
+        <!-- Logout -->
+        <form action="{{ route('logout') }}" method="POST" class="w-full sm:w-auto flex justify-end">
+          @csrf
+          <button type="submit"
+            class="flex items-center justify-center gap-2 bg-white text-red-800 font-semibold px-3 sm:px-4 py-2 rounded-xl hover:bg-red-800 hover:text-white transition-all shadow w-full sm:w-auto">
+            <i data-feather="log-out" class="h-4 w-4"></i>
+            <span class="truncate">Log Out</span>
+          </button>
+        </form>
       </div>
-
-      <!-- Logout -->
-      <form action="{{ route('logout') }}" method="POST">
-        @csrf
-        <button type="submit"
-          class="flex items-center gap-2 bg-white text-red-800 font-semibold px-4 py-2 rounded-xl hover:bg-red-800 hover:text-white transition-all shadow">
-          <i data-feather="log-out" class="h-4 w-4"></i>
-          Log Out
-        </button>
-      </form>
     </div>
-  </div>
 
-  <!-- Breadcrumb Box Layer -->
-  <div class=" absolute left-8 right-8 -bottom-6 z-10">
-    <div class="bg-red-800 shadow-lg rounded-xl px-6 py-4 flex justify-between items-center">
-      <!-- Title -->
-      <div class="page-header-title">
-        <h5 class="text-lg font-semibold text-white flex items-center gap-2">
-  <i data-feather="search" class="w-5 h-5"></i>
-  <span>@yield('page-title', 'Dashboard')</span>
-</h5>
-
-      </div>
-
-      <!-- Breadcrumb -->
-      <ul class="text-xs text-white flex items-center">
-        <li class="flex items-center">
-          <a href="{{ url('/') }}" class="text-white hover:underline">
-            <i data-feather="home" class="w-4 h-4"></i>
-          </a>
-          <span class="mx-2 text-white">›</span>
-        </li>
-        <li class="flex items-center">
-          <span>@yield('breadcrumb-item')</span>
-          <span class="mx-2 text-white">›</span>
-        </li>
-        <li class="text-white font-medium">@yield('breadcrumb-active')</li>
-      </ul>
-    </div>
-  </div>
+    <!-- Breadcrumb Box Layer -->
+    <div class="absolute left-2 sm:left-8 right-2 sm:right-8 -bottom-6 z-10">
+      <div class="bg-red-800 shadow-lg rounded-xl px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+        
+       <!-- Title -->
+<div class="page-header-title hidden sm:flex">
+  <h5 class="text-base sm:text-lg font-semibold text-white flex items-center gap-2 truncate">
+    <i data-feather="search" class="w-5 h-5"></i>
+    <span class="truncate">@yield('page-title', 'Dashboard')</span>
+  </h5>
 </div>
+
+
+        <!-- Breadcrumb -->
+        <ul class="text-xs text-white flex flex-wrap sm:flex-nowrap items-center gap-1 sm:gap-2">
+          <li class="flex items-center">
+            <a href="{{ url('/') }}" class="text-white hover:underline">
+              <i data-feather="home" class="w-4 h-4"></i>
+            </a>
+            <span class="mx-1 sm:mx-2 text-white">›</span>
+          </li>
+          <li class="flex items-center">
+            <span class="truncate">@yield('breadcrumb-item')</span>
+            <span class="mx-1 sm:mx-2 text-white">›</span>
+          </li>
+          <li class="text-white font-medium truncate">@yield('breadcrumb-active')</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</header>
+
 <!-- [ Header Topbar ] end -->
 
         <!-- [ Main Page Content ] -->
-        <main class="mt-12">
+       <main class="mt-2 px-4 sm:px-8 py-4 sm:py-6">
           @yield('content')
         </main>
       </div>
