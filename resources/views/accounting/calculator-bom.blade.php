@@ -63,7 +63,10 @@
 <!-- Select Finish Goods -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
   <!-- FG Selection -->
-  <div class="bg-white shadow-md border-l-4 border-indigo-500 rounded-xl p-6">
+ <div class="bg-white shadow-md border-l-4 border-indigo-500 rounded-xl p-6 space-y-4">
+  
+  <!-- Select Finish Goods -->
+  <div>
     <label for="fg_code" class="block text-sm font-medium text-gray-900 font-bold mb-2">
       Select Finish Goods
     </label>
@@ -73,6 +76,50 @@
       {{-- Option akan diisi via JS/AJAX --}}
     </select>
   </div>
+
+  <!-- Select Periode -->
+  <!-- Select Periode + Tahun -->
+  <div class="flex flex-col sm:flex-row gap-4">
+    <!-- Periode -->
+    <div class="w-full sm:w-1/2">
+      <label for="periode_fg" class="block text-sm font-medium text-gray-900 font-bold mb-2">
+        Select Periode
+      </label>
+      <select id="periode_fg"
+        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+        <option value="">-- Choose Periode --</option>
+        <option value="1">Januari</option>
+        <option value="2">Februari</option>
+        <option value="3">Maret</option>
+        <option value="4">April</option>
+        <option value="5">Mei</option>
+        <option value="6">Juni</option>
+        <option value="7">Juli</option>
+        <option value="8">Agustus</option>
+        <option value="9">September</option>
+        <option value="10">Oktober</option>
+        <option value="11">November</option>
+        <option value="12">Desember</option>
+      </select>
+    </div>
+
+    <!-- Tahun -->
+    <div class="w-full sm:w-1/2">
+      <label for="tahun_chemical" class="block text-sm font-medium text-gray-900 font-bold mb-2">
+        Select Tahun
+      </label>
+      <select id="tahun_fg"
+        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+        <option value="">-- Choose Tahun --</option>
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+      </select>
+    </div>
+  </div>
+
+
+</div>
+
 
   <!-- FG Info Box -->
   <div id="fg_info" class="bg-white shadow-md border-l-4 border-emerald-500 rounded-xl p-6">
@@ -91,6 +138,10 @@
       <span class="font-medium">Latest Price:</span>
       <span id="fg_price" class="text-emerald-600 font-semibold">-</span>
     </div>
+    <div class="flex justify-between">
+      <span class="font-medium">Average Price:</span>
+      <span id="avg_fg" class="text-emerald-600 font-semibold">-</span>
+    </div>
   </div>
 </div>
 </div>
@@ -106,7 +157,7 @@
           <th class="px-4 py-3 text-left">RM Code</th>
           <th class="px-4 py-3 text-left">Name</th>
           <th class="px-4 py-3 text-center">Qty BOM</th>
-          <th class="px-4 py-3 text-center">UOM</th>
+          <th class="px-4 py-3 text-center">UoM</th>
           <th class="px-4 py-3 text-right">Price</th>
           <th class="px-4 py-3 text-right">Consumption</th>
           <th class="px-4 py-3 text-right">Qty Sales</th>
@@ -139,7 +190,7 @@
           <th class="px-4 py-3 text-left">CM Code</th>
           <th class="px-4 py-3 text-left">Name</th>
           <th class="px-4 py-3 text-center">Qty BOM</th>
-          <th class="px-4 py-3 text-center">UOM</th>
+          <th class="px-4 py-3 text-center">UoM</th>
           <th class="px-4 py-3 text-right">Price</th>
           <th class="px-4 py-3 text-right">Consumption</th>
           <th class="px-4 py-3 text-right">Qty Sales</th>
@@ -210,7 +261,10 @@
 <!-- Select Finish Goods -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
   <!-- FG Selection -->
-  <div class="bg-white shadow-md border-l-4 border-indigo-500 rounded-xl p-6">
+ <div class="bg-white shadow-md border-l-4 border-indigo-500 rounded-xl p-6 space-y-4">
+
+  <!-- Select Chemical -->
+  <div>
     <label for="cm_code" class="block text-sm font-medium text-gray-900 font-bold mb-2">
       Select Chemical
     </label>
@@ -220,6 +274,49 @@
       {{-- Option akan diisi via JS/AJAX --}}
     </select>
   </div>
+
+  <!-- Select Periode + Tahun -->
+  <div class="flex flex-col sm:flex-row gap-4">
+    <!-- Periode -->
+    <div class="w-full sm:w-1/2">
+      <label for="periode_chemical" class="block text-sm font-medium text-gray-900 font-bold mb-2">
+        Select Periode
+      </label>
+      <select id="periode_chemical"
+        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+        <option value="">-- Choose Periode --</option>
+        <option value="1">Januari</option>
+        <option value="2">Februari</option>
+        <option value="3">Maret</option>
+        <option value="4">April</option>
+        <option value="5">Mei</option>
+        <option value="6">Juni</option>
+        <option value="7">Juli</option>
+        <option value="8">Agustus</option>
+        <option value="9">September</option>
+        <option value="10">Oktober</option>
+        <option value="11">November</option>
+        <option value="12">Desember</option>
+      </select>
+    </div>
+
+    <!-- Tahun -->
+    <div class="w-full sm:w-1/2">
+      <label for="tahun_chemical" class="block text-sm font-medium text-gray-900 font-bold mb-2">
+        Select Tahun
+      </label>
+      <select id="tahun_chemical"
+        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+        <option value="">-- Choose Tahun --</option>
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+      </select>
+    </div>
+  </div>
+
+</div>
+
+
 
   <!-- FG Info Box -->
   <div id="fg_info" class="bg-white shadow-md border-l-4 border-emerald-500 rounded-xl p-6">
@@ -237,6 +334,10 @@
     <div class="flex justify-between">
       <span class="font-medium">Latest Price:</span>
       <span id="cm_price" class="text-emerald-600 font-semibold">-</span>
+    </div>
+     <div class="flex justify-between">
+      <span class="font-medium">Average Price:</span>
+      <span id="cm_avg_price" class="text-emerald-600 font-semibold">-</span>
     </div>
   </div>
 </div>
@@ -266,6 +367,7 @@
           <th class="px-4 py-3 text-left">FG Code</th>
           <th class="px-4 py-3 text-left">Name</th>
           <th class="px-4 py-3 text-center">Qty BOM</th>
+          <th class="px-4 py-3 text-center">UoM</th>
           <th class="px-4 py-3 text-right">Consumption</th>
           <th class="px-4 py-3 text-right">Qty Sales</th>
           <th class="px-4 py-3 text-right">Total</th>
@@ -276,19 +378,19 @@
       </tbody>
       <tfoot>
   <tr>
-    <td colspan="5" class="px-4 py-3 text-right font-semibold text-gray-900">TOTAL CONSUMPTION</td>
+    <td colspan="6" class="px-4 py-3 text-right font-semibold text-gray-900">TOTAL CONSUMPTION</td>
     <td id="total_consumption" class="px-4 py-3 text-right text-green-600 font-bold">0</td>
   </tr>
   <tr>
-    <td colspan="5" class="px-4 py-3 text-right font-semibold text-gray-900">TOTAL PEMBELIAN</td>
+    <td colspan="6" class="px-4 py-3 text-right font-semibold text-gray-900">TOTAL PEMBELIAN</td>
     <td id="total_buy" class="px-4 py-3 text-right text-indigo-600 font-bold">0</td>
   </tr>
   <tr>
-    <td colspan="5" class="px-4 py-3 text-right font-semibold text-gray-900">CONTROL (Consumption - Pembelian)</td>
+    <td colspan="6" class="px-4 py-3 text-right font-semibold text-gray-900">CONTROL (Consumption - Pembelian)</td>
     <td id="total_diff" class="px-4 py-3 text-right text-red-600 font-bold">0</td>
   </tr>
   <tr>
-    <td colspan="5" class="px-4 py-3 text-right font-semibold text-gray-900">PERCENTAGE (%)</td>
+    <td colspan="6" class="px-4 py-3 text-right font-semibold text-gray-900">PERCENTAGE (%)</td>
     <td id="total_percentage" class="px-4 py-3 text-right text-purple-600 font-bold">0%</td>
   </tr>
 </tfoot>
@@ -453,10 +555,26 @@ function initSelect2() {
     });
 }
 
+$('#periode_chemical').select2({
+   placeholder: "-- Choose Periode --",
+   width: '100%',
+   });
+
+   $('#tahun_chemical').select2({
+   placeholder: "-- Choose Tahun --",
+   width: '100%',
+   });
+
+   $('#periode_fg').select2({
+   placeholder: "-- Choose Periode --",
+   width: '100%',
+   });
+
 function formatPrice(num) {
     return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
 }
 
+// --- Event saat pilih FG ---
 $('#fg_code').on('select2:select', function(e) {
     const fgCode = $(this).val();
     if (!fgCode) {
@@ -469,100 +587,113 @@ $('#fg_code').on('select2:select', function(e) {
         return;
     }
 
-   // --- Info Box ---
+    loadFGData(fgCode); // langsung load data
+});
+
+// --- Event saat ganti periode ---
+$('#periode_fg').on('change', function() {
+    const fgCode = $('#fg_code').val();
+    if (fgCode) {
+        loadFGData(fgCode); // reload data RM & CM sesuai periode baru
+    }
+});
+
+// --- Fungsi load data FG, RM, CM ---
+function loadFGData(fgCode) {
+    const periode = $('#periode_fg').val(); // ambil periode
+
+    // --- Info Box ---
     $.get("{{ route('fa.cabom.get-fg-info') }}", { fg_code: fgCode }, function(data) {
-        if (data && data.bom_number) {
-            $("#fg_customer").text(data.customer || "-");
-            $("#fg_bom_number").text(data.bom_number || "-");
-           $("#fg_price").text(data.price ? `Rp ${Number(data.price).toLocaleString('id-ID')}` : "-");
-
-        }
-    });
-   // 2️⃣ RM table
-// 2️⃣ RM table
-$.get("{{ route('fa.cabom.rm') }}", { fg_code: fgCode }, function(res) {
-    const tbody = $("#rm_table_inner tbody").empty();
-    let subtotalConsumptionRM = 0;
-    let subtotalTotalRM = 0;
-
-    res.data.forEach(row => {
-        const price = row.price || 0;
-        const consumption = row.consumption || 0;
-        const total = row.total || 0;
-
-        tbody.append(`
-            <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
-                <td class="px-4 py-2 text-left">${row.article_rm}</td>
-                <td class="px-4 py-2 text-left">${row.name_rm}</td>
-                <td class="px-4 py-2 text-center">${row.qty_bom}</td>
-                <td class="px-4 py-2 text-center">${row.uom}</td>
-                <td class="px-4 py-2 text-right">${price}</td>
-                <td class="px-4 py-2 text-right">${consumption}</td>
-                <td class="px-4 py-2 text-right">${row.qty_sales}</td>
-                <td class="px-4 py-2 text-right font-semibold">${formatPrice(total)}</td>
-            </tr>
-        `);
-
-        subtotalConsumptionRM += consumption;
-        subtotalTotalRM += total;
-    });
-
-    $('#subtotal_consumption').text(subtotalConsumptionRM.toFixed(2));
-    $('#subtotal_total').text(formatPrice(subtotalTotalRM));
-    $('#rm_table').removeClass('hidden');
-
-    // 🔹 Simpan subtotal RM & consumption ke global
-    window.subtotalRM = subtotalTotalRM;
-    window.consumptionRM = subtotalConsumptionRM;
-
-    // 🔹 Update summary
-    updateSummary(subtotalTotalRM, window.subtotalCM || 0, subtotalConsumptionRM, window.consumptionCM || 0);
+    if (data) {
+        $("#fg_customer").text(data.customer || "-");
+        $("#fg_bom_number").text(data.bom_number || "-");
+        $("#fg_price").text(data.latest_price 
+            ? `Rp ${Number(data.latest_price).toLocaleString('id-ID')}` 
+            : "-");
+        $("#avg_fg").text(data.avg_price 
+            ? `Rp ${Number(data.avg_price).toLocaleString('id-ID')}` 
+            : "-");
+    }
 });
 
 
-// 3️⃣ Chemical table
-$.get("{{ route('fa.cabom.cm') }}", { fg_code: fgCode }, function(res) {
-    const tbody = $("#chemical_table_inner tbody").empty();
-    let subtotalConsumptionCM = 0;
-    let subtotalTotalCM = 0;
+    // --- RM Table ---
+    $.get("{{ route('fa.cabom.rm') }}", { fg_code: fgCode, periode: periode }, function(res) {
+        const tbody = $("#rm_table_inner tbody").empty();
+        let subtotalConsumptionRM = 0;
+        let subtotalTotalRM = 0;
 
-    res.data.forEach(row => {
-        const price = row.price || 0;
-        const consumption = row.consumption || 0;
-        const total = row.total || 0;
+        res.data.forEach(row => {
+            const price = row.price || 0;
+            const consumption = row.consumption || 0;
+            const total = row.total || 0;
 
-        tbody.append(`
-            <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
-                <td class="px-4 py-2 text-left">${row.article_cm}</td>
-                <td class="px-4 py-2 text-left">${row.name_cm}</td>
-                <td class="px-4 py-2 text-center">${row.qty_bom}</td>
-                <td class="px-4 py-2 text-center">${row.uom}</td>
-                <td class="px-4 py-2 text-right">${price}</td>
-                <td class="px-4 py-2 text-right">${consumption}</td>
-                <td class="px-4 py-2 text-right">${row.qty_sales}</td>
-                <td class="px-4 py-2 text-right font-semibold">${formatPrice(total)}</td>
-            </tr>
-        `);
+            tbody.append(`
+                <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <td class="px-4 py-2 text-left">${row.article_rm}</td>
+                    <td class="px-4 py-2 text-left">${row.name_rm}</td>
+                    <td class="px-4 py-2 text-center">${row.qty_bom}</td>
+                    <td class="px-4 py-2 text-center">${row.uom}</td>
+                    <td class="px-4 py-2 text-right">${price}</td>
+                    <td class="px-4 py-2 text-right">${consumption}</td>
+                    <td class="px-4 py-2 text-right">${row.qty_sales}</td>
+                    <td class="px-4 py-2 text-right font-semibold">${formatPrice(total)}</td>
+                </tr>
+            `);
 
-        subtotalConsumptionCM += consumption;
-        subtotalTotalCM += total;
+            subtotalConsumptionRM += consumption;
+            subtotalTotalRM += total;
+        });
+
+        $('#subtotal_consumption').text(subtotalConsumptionRM.toFixed(2));
+        $('#subtotal_total').text(formatPrice(subtotalTotalRM));
+        $('#rm_table').removeClass('hidden');
+
+        window.subtotalRM = subtotalTotalRM;
+        window.consumptionRM = subtotalConsumptionRM;
+
+        updateSummary(subtotalTotalRM, window.subtotalCM || 0, subtotalConsumptionRM, window.consumptionCM || 0);
     });
 
-    $('#subtotal_chem_consumption').text(subtotalConsumptionCM.toFixed(2));
-    $('#subtotal_chem_total').text(formatPrice(subtotalTotalCM));
-    $('#chemical_table').removeClass('hidden');
+    // --- Chemical Table ---
+    $.get("{{ route('fa.cabom.cm') }}", { fg_code: fgCode, periode: periode }, function(res) {
+        const tbody = $("#chemical_table_inner tbody").empty();
+        let subtotalConsumptionCM = 0;
+        let subtotalTotalCM = 0;
 
-    // 🔹 Simpan subtotal CM & consumption ke global
-    window.subtotalCM = subtotalTotalCM;
-    window.consumptionCM = subtotalConsumptionCM;
+        res.data.forEach(row => {
+            const price = row.price || 0;
+            const consumption = row.consumption || 0;
+            const total = row.total || 0;
 
-    // 🔹 Update summary
-    updateSummary(window.subtotalRM || 0, subtotalTotalCM, window.consumptionRM || 0, subtotalConsumptionCM);
-});
+            tbody.append(`
+                <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <td class="px-4 py-2 text-left">${row.article_cm}</td>
+                    <td class="px-4 py-2 text-left">${row.name_cm}</td>
+                    <td class="px-4 py-2 text-center">${row.qty_bom}</td>
+                    <td class="px-4 py-2 text-center">${row.uom}</td>
+                    <td class="px-4 py-2 text-right">${price}</td>
+                    <td class="px-4 py-2 text-right">${consumption}</td>
+                    <td class="px-4 py-2 text-right">${row.qty_sales}</td>
+                    <td class="px-4 py-2 text-right font-semibold">${formatPrice(total)}</td>
+                </tr>
+            `);
 
+            subtotalConsumptionCM += consumption;
+            subtotalTotalCM += total;
+        });
 
+        $('#subtotal_chem_consumption').text(subtotalConsumptionCM.toFixed(2));
+        $('#subtotal_chem_total').text(formatPrice(subtotalTotalCM));
+        $('#chemical_table').removeClass('hidden');
 
-});
+        window.subtotalCM = subtotalTotalCM;
+        window.consumptionCM = subtotalConsumptionCM;
+
+        updateSummary(window.subtotalRM || 0, subtotalTotalCM, window.consumptionRM || 0, subtotalConsumptionCM);
+    });
+}
+
 
 function updateSummary(subtotalRM, subtotalCM, consRM, consCM) {
     const rm = Number(subtotalRM) || 0;
@@ -595,73 +726,107 @@ function updateSummary(subtotalRM, subtotalCM, consRM, consCM) {
     document.getElementById('summary_grand_total').textContent = formatRp(grandTotal);
 }
 
+// --- Set default tahun berjalan ---
+const currentYear = new Date().getFullYear();
+$('#tahun_chemical').val(currentYear); // jika pakai <select> atau <input>
+
+// Saat user memilih Chemical
 $('#cm_code').on('select2:select', function(e) {
     const cmCode = $(this).val();
     if (!cmCode) {
-        $("#chemical_table_inner tbody").empty();
-        $("#cm_customer").text("-");
-        $("#cm_name").text("-");
-        $("#cm_price").text("-");
-        $("#total_consumption").html("0");
-        $("#total_buy").html("0");
-        $("#total_diff").html("0");
-        $("#total_percentage").html("0 %");
+        resetChemicalInfo();
         return;
     }
+    loadChemicalData(cmCode);
+});
+
+// Saat user memilih periode (bulan)
+$('#periode_chemical').on('change', function() {
+    const cmCode = $('#cm_code').val();
+    if (cmCode) {
+        loadChemicalData(cmCode);
+    }
+});
+
+// Saat user memilih tahun
+$('#tahun_chemical').on('change', function() {
+    const cmCode = $('#cm_code').val();
+    if (cmCode) {
+        loadChemicalData(cmCode);
+    }
+});
+
+// --- Fungsi utama untuk load data berdasarkan CM, periode, & tahun ---
+function loadChemicalData(cmCode) {
+    const periode = $('#periode_chemical').val(); // misal "1" untuk Januari
+    const tahun = $('#tahun_chemical').val();     // tahun dipilih
 
     // --- Get CM Info ---
-    $.get("{{ route('fa.cabom.get-cm-info') }}", { cm_code: cmCode }, function(data) {
-        if (data && data.cm_code) {
-            $("#cm_customer").text(data.customer || "-");
-            $("#cm_name").text(data.cm_name || "-");
-            $("#cm_price").text(data.price ? `Rp ${Number(data.price).toLocaleString('id-ID')}` : "-");
-        } else {
-            $("#cm_customer").text("-");
-            $("#cm_name").text("-");
-            $("#cm_price").text("-");
+    $.get("{{ route('fa.cabom.get-cm-info') }}", 
+        { cm_code: cmCode, periode: periode, tahun: tahun }, 
+        function(data) {
+            if (data && data.cm_code) {
+                $("#cm_customer").text(data.customer || "-");
+                $("#cm_name").text(data.cm_name || "-");
+                $("#cm_price").text(data.latest_price ? `Rp ${Number(data.latest_price).toLocaleString('id-ID')}` : "-");
+                $("#cm_avg_price").text(data.avg_price ? `Rp ${Number(data.avg_price).toLocaleString('id-ID')}` : "-");
+            } else {
+                $("#cm_customer, #cm_name, #cm_price, #cm_avg_price").text("-");
+            }
         }
-    });
+    );
 
     // --- Get Consumption & Table ---
-    $.get("{{ route('fa.cabom.cm-table') }}", { cm_code: cmCode }, function(res) {
-        const data = res.data || [];
-        const tbody = $("#fg_table_inner tbody").empty();
-        let subtotalCMConsumption = 0;
+    $.get("{{ route('fa.cabom.cm-table') }}", 
+        { cm_code: cmCode, periode: periode, tahun: tahun }, 
+        function(res) {
+            const data = res.data || [];
+            const tbody = $("#fg_table_inner tbody").empty();
+            let subtotalCMConsumption = 0;
 
-        data.forEach(row => {
-            const total = Number(row.total) || 0;
-            tbody.append(`
-                <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <td class="px-4 py-2 text-left">${row.fg_code}</td>
-                    <td class="px-4 py-2 text-left">${row.fg_name}</td>
-                    <td class="px-4 py-2 text-center">${row.qty_bom}</td>
-                    <td class="px-4 py-2 text-right">${formatPrice(row.consumption)}</td>
-                    <td class="px-4 py-2 text-right">${row.qty_sales}</td>
-                    <td class="px-4 py-2 text-right font-semibold">${formatPrice(row.total)}</td>
-                </tr>
-            `);
-            subtotalCMConsumption += total;
-        });
+            data.forEach(row => {
+                const total = Number(row.total) || 0;
+                tbody.append(`
+                    <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <td class="px-4 py-2 text-left">${row.fg_code}</td>
+                        <td class="px-4 py-2 text-left">${row.fg_name}</td>
+                        <td class="px-4 py-2 text-center">${row.qty_bom}</td>
+                        <td class="px-4 py-2 text-center">${row.uom}</td>
+                        <td class="px-4 py-2 text-right">${formatPrice(row.consumption)}</td>
+                        <td class="px-4 py-2 text-right">${row.qty_sales}</td>
+                        <td class="px-4 py-2 text-right font-semibold">${formatPrice(row.total)}</td>
+                    </tr>
+                `);
+                subtotalCMConsumption += total;
+            });
 
-        // Tampilkan subtotal consumption
-        $("#total_consumption").html(formatPrice(subtotalCMConsumption));
+            $("#total_consumption").html(formatPrice(subtotalCMConsumption));
 
-        // --- Get Total Buy ---
-        $.get("{{ route('fa.cabom.get-cm-total-buy') }}", { cm_code: cmCode }, function(res2) {
-            const totalBuy = Number(res2.total_buy) || 0;
-            $("#total_buy").html(formatPrice(totalBuy));
+            // --- Get Total Buy ---
+            $.get("{{ route('fa.cabom.get-cm-total-buy') }}", 
+                { cm_code: cmCode, periode: periode, tahun: tahun }, 
+                function(res2) {
+                    const totalBuy = Number(res2.total_buy) || 0;
+                    $("#total_buy").html(formatPrice(totalBuy));
 
-            // Hitung selisih & persentase
-            const diff = subtotalCMConsumption - totalBuy;
-            const percentage = subtotalCMConsumption > 0
-                ? ((totalBuy / subtotalCMConsumption) * 100).toFixed(2)
-                : 0;
+                    const diff = subtotalCMConsumption - totalBuy;
+                    const percentage = subtotalCMConsumption > 0
+                        ? ((totalBuy / subtotalCMConsumption) * 100).toFixed(2)
+                        : 0;
 
-            $("#total_diff").html(formatPrice(diff));
-            $("#total_percentage").html(percentage + " %");
-        });
-    });
-});
+                    $("#total_diff").html(formatPrice(diff));
+                    $("#total_percentage").html(percentage + " %");
+                }
+            );
+        }
+    );
+}
+
+
+// --- Fungsi format harga ---
+function formatPrice(num) {
+    return num ? Number(num).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00";
+}
 
 
 
