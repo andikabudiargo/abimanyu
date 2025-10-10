@@ -190,7 +190,7 @@
 
             <div>
     <label for="filter-category" class="block text-sm mb-1 font-medium text-gray-700">Category</label>
-    <select id="filter-category" class="select2 w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" data-min-options="5">
+    <select id="filter-category" multiple class="select2 w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" data-min-options="5">
         <option value="">-- All --</option>
        
     </select>
@@ -498,6 +498,34 @@
   </div>
 </div>
 
+<!-- Modal Background -->
+<div id="maintenanceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <!-- Modal Container -->
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center relative animate-fadeIn">
+    
+    <!-- Close Button -->
+    <button onclick="document.getElementById('maintenanceModal').style.display='none'" 
+            class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+
+    <!-- Image -->
+    <img src="{{ asset('img/moving.jpg') }}" alt="Maintenance" class="mx-auto mb-6 w-80 h-40">
+
+    <!-- Text Content -->
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Perhatian!</h2>
+    <p class="text-gray-700 text-lg mb-4">
+      Sistem Helpdesk Ticket akan <span class="text-red-600 font-semibold">dipindahkan</span> ke url baru, pada 
+      <span class="font-semibold">Senin, 13 Oktober 2025</span>.
+    </p>
+    <p class="text-gray-800 text-lg font-medium">
+      Silakan kunjungi situs baru di link berikut: 
+      <a href="https://abimanyulive.cloud" target="_blank" 
+         class="text-blue-500 hover:text-blue-600 underline decoration-2 decoration-blue-300 transition">
+        abimanyulive.cloud
+      </a>
+    </p>
+  </div>
+</div>
+
 
 
 {{-- SCRIPT --}}
@@ -511,29 +539,126 @@
     background-color: #ffffff;
 }
 
-
-/* 🔍 Search input styling */
-.dataTables_filter input {
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    padding: 6px 10px;
-    margin-left: 10px;
-}
-
 /* Non-Tailwind CSS */
 #ticket-table td,
 #ticket-table th {
     white-space: nowrap;
 }
 
-
-/* 🧾 Export Button styling (inherit from JS config) */
-.dt-buttons {
-    position: relative;
-    z-index: 1;
-    margin-left: 10px;
+/* Pastikan pembungkus utama flex */
+.mobile-flex-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem; /* jarak antar elemen */
 }
 
+/* Search filter tetap auto width */
+.dataTables_filter {
+  width: auto !important;
+  display: flex !important;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+/* 🎯 Fine-tuning posisi sejajar Search dan Export */
+@media (max-width: 768px) {
+  .dataTables_filter {
+    align-items: center !important;
+  }
+
+  .dataTables_filter input {
+    height: 38px !important;
+    margin-top: 2px; /* sedikit naik agar sejajar */
+  }
+
+  .dt-buttons .dt-button {
+     height: 38px !important;
+  line-height: 38px;
+    padding-top: 0;
+    padding-bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* 🔍 Extra tuning khusus layar sempit banget (≤414px, iPhone XR/SE) */
+@media (max-width: 414px) {
+  .dataTables_filter input {
+    max-width: 120px;
+  }
+
+  .dt-buttons .dt-button {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.75rem;
+  }
+}
+
+
+/* Input search */
+.dataTables_filter input {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-left: 10px;
+  width: 150px; /* sesuaikan */
+   margin-top: 2px; /* sedikit naik agar sejajar */
+}
+
+/* Tombol export */
+.dt-buttons {
+  display: flex !important;
+  align-items: center;
+  width: auto !important;
+  position: relative;
+  z-index: 1;
+  margin-left: 10px;
+}
+
+/* 📱 Mobile adjustment */
+@media (max-width: 768px) {
+  .mobile-flex-wrapper {
+    flex-wrap: nowrap; /* biar sejajar */
+    justify-content: space-between;
+  }
+
+  .dataTables_filter,
+  .dt-buttons {
+    flex: 1 1 auto;
+    display: flex !important;
+    width: auto !important;
+  }
+
+  /* Ratakan tinggi dan sejajarkan posisi vertikal */
+.dataTables_filter label {
+  display: flex;
+  align-items: center; /* ini penting agar sejajar vertikal */
+  margin-bottom: 0 !important; /* hilangkan margin default */
+}
+
+.dataTables_filter input {
+  height: 38px; /* samakan tinggi dengan tombol Export */
+  margin: 0 0 0 8px; /* jarak kiri sedikit */
+  line-height: 1.2;
+}
+
+.dt-buttons .dt-button {
+  height: 38px; /* samakan tinggi dengan input */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+  .dataTables_filter label span {
+    display: none; /* hilangkan teks Search */
+  }
+
+  .dt-buttons {
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+}
 
 /* Ukuran tombol collection (export) */
 .dt-button.buttons-collection {
@@ -615,8 +740,54 @@ div.dt-button-collection .dt-button:hover {
         top: 1px;
     }
 
+    /* Pagination DataTables modern */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 9999px; /* lingkaran penuh */
+    border: 1px solid transparent;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: 0.25rem 0;
+    margin: 0 0.25rem;
+    text-align: center;
+    line-height: 2rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background-color: #3b82f6; /* Tailwind blue-500 */
+    color: white !important;
+    border-color: #2563eb; /* blue-600 */
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: #2563eb; /* active biru gelap */
+    color: white !important;
+    border-color: #2563eb;
+}
+
+
 </style>
 <script>
+    function openModal() {
+  document.getElementById('maintenanceModal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('maintenanceModal').classList.add('hidden');
+}
+
+// Tampilkan modal tiap reload halaman
+window.addEventListener('load', openModal);
+
+// Opsional: klik di luar modal juga menutup
+document.getElementById('maintenanceModal').addEventListener('click', function(e){
+  if(e.target === this){
+    closeModal();
+  }
+});
+
 flatpickr("#due_date", {
     enableTime: true,
     noCalendar: false,
@@ -1018,12 +1189,15 @@ let today = new Date().toISOString().slice(0, 10); // Hasil: "2025-07-21"
  $(document).ready(function () {
     const table = $('#ticket-table').DataTable({
         processing: true,
+         responsive: true,
         serverSide: true,
         autoWidth: false,
         scrollX:true,
          drawCallback: function(settings) {
     feather.replace(); // <-- WAJIB di sini
+    
 },
+
        ajax: {
             url: '{{ route("it.ticket.data") }}',
             data: function (d) {
@@ -1036,7 +1210,18 @@ let today = new Date().toISOString().slice(0, 10); // Hasil: "2025-07-21"
             }
         },
         lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        dom: '<"flex justify-between items-center mb-2"l<"flex"fB>>rt<"flex justify-between items-center"ip>',
+        dom: `
+    <'flex flex-col md:flex-row justify-between items-center mb-4'
+        <'flex flex-wrap items-center space-x-2 mb-2 md:mb-0'l>
+        <'flex flex-wrap items-center space-x-2'f B>
+    >
+    rt
+    <'flex flex-col md:flex-row justify-between items-center mt-4'
+        <'text-sm text-gray-500 mb-2 md:mb-0'i>
+        <'flex flex-wrap items-center space-x-2'p>
+    >
+`,
+
        buttons: [
     {
         extend: 'collection',
@@ -1099,6 +1284,15 @@ let today = new Date().toISOString().slice(0, 10); // Hasil: "2025-07-21"
     
     
 ],
+
+language: {
+            paginate: {
+                previous: '←',
+                next: '→'
+            }
+        },
+
+        
       columns: [
         { data: 'action', name: 'action', orderable: false, searchable: false },
         { data: 'ticket_number', name: 'ticket_number',  orderable: false },
@@ -1214,7 +1408,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const placeholder = document.createElement('option');
             placeholder.value = '';
             placeholder.textContent = '-- All --';
-            placeholder.selected = true;
+            placeholder.selected = false;
             select.appendChild(placeholder);
 
             data.forEach(group => {
