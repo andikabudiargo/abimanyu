@@ -8,57 +8,91 @@
 @section('content')
 <div class="bg-white rounded-xl shadow-md w-full p-6 relative animate-fadeIn mb-4">
     <!-- Recent Booking -->
-    <div class="flex justify-between items-center mb-3">
-  <h3 class="text-xl font-semibold text-gray-700">Recent Booking</h3>
+   <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+  <!-- Title section -->
+  <div>
+    <h4 class="text-lg font-bold text-gray-900">Recent Booking</h4>
+    <p class="text-xs text-gray-500 mt-1">
+      Keep track of your most recent reservations and requests.
+    </p>
+    <div class="w-24 h-1 bg-teal-600 rounded mt-2"></div>
+  </div>
 
+  <!-- Button (only for GA Admin or Superuser) -->
+  @php
+      $user = Auth::user();
+  @endphp
+
+  @if($user && $user->roles->contains(function ($role) {
+      return in_array(strtolower($role->name), ['admin ga', 'superuser']);
+  }))
   <a href="{{ route('facility.booking-room.history') }}"
-     class="flex items-center gap-2 bg-green-500 text-white text-sm font-medium px-5 py-3 rounded-full shadow-md 
-            hover:bg-green-700 hover:shadow-lg hover:scale-105 hover:shadow-green-400/40 
-            transition-all duration-300">
-    <i data-feather="calendar" class="w-5 h-5"></i>
-    <span>Booking History</span>
+     class="mt-4 md:mt-0 inline-flex items-center gap-2 bg-teal-600 text-white text-sm font-medium px-4 py-2 rounded-md 
+            hover:bg-teal-700 transition-all duration-300 shadow-sm">
+      <i data-feather="clock" class="w-4 h-4"></i>
+      <span>View History</span>
   </a>
+  @endif
 </div>
 
-
- <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-         <!-- On Going -->
-         <div class="bg-gray-50 p-4 rounded-lg shadow">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- On Going -->
+        <div class="bg-gray-50 p-4 rounded-lg shadow">
             <h4 class="font-semibold text-gray-800 mb-2">On Going (Today)</h4>
-            <ul id="ongoingList" class="space-y-2 text-sm text-gray-600">
-               <!-- Akan diisi jQuery -->
+            <ul id="ongoingList" class="space-y-2 text-sm text-gray-600 overflow-auto max-h-60">
+                <!-- Akan diisi jQuery -->
             </ul>
-         </div>
-         <!-- Upcoming -->
-         <div class="bg-gray-50 p-4 rounded-lg shadow">
+        </div>
+        <!-- Upcoming -->
+        <div class="bg-gray-50 p-4 rounded-lg shadow">
             <h4 class="font-semibold text-gray-800 mb-2">Upcoming</h4>
-            <ul id="upcomingList" class="space-y-2 text-sm text-gray-600">
-               <!-- Akan diisi jQuery -->
+            <ul id="upcomingList" class="space-y-2 text-sm text-gray-600 overflow-auto max-h-60">
+                <!-- Akan diisi jQuery -->
             </ul>
-         </div>
-      </div>
+        </div>
+    </div>
 </div>
- <div class="bg-white rounded-xl shadow-2xl w-full p-6 relative animate-fadeIn">
-    
-   <!-- Header -->
-   <div class="flex justify-between bg-green-500 items-center mb-4 border-b rounded-lg px-3 py-2">
-      <div class="flex items-center gap-3"> 
-         <i data-feather="home" class="w-6 h-6 text-white"></i> 
-         <h2 class="text-2xl font-semibold text-white">
-            Booking Meeting Room
-            <span id="selectedDateText" class="ml-3 text-sm font-normal italic"></span>
-         </h2>
-      </div>
-      <div class="flex items-center gap-2">
-         <input type="date" id="datePicker" class="rounded-md px-2 py-1">
-         <button id="openExportModalBtn" 
-        class="openExportModalBtn bg-white text-green-600 px-3 py-1 rounded-md shadow hover:bg-gray-100 transition flex items-center gap-1">
-        <i data-feather="download" class="w-4 h-4"></i>
-        <span>Export</span>
-    </button>
-      </div>
-   </div>
-   
+
+ <div class="bg-white rounded-xl shadow-2xl w-full p-4 relative animate-fadeIn">
+    <!-- Header -->
+   <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3 md:gap-0 bg-teal-50 border border-teal-400 rounded-lg px-4 py-3">
+    <!-- Title & description -->
+    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+        <!-- Icon besar sejajar dengan teks -->
+        <i data-feather="home" class="w-12 h-12 text-teal-600 flex-shrink-0"></i>
+
+        <!-- Judul & Deskripsi -->
+        <div class="flex flex-col justify-center">
+            <h4 class="text-lg font-bold text-gray-900">Booking Meeting Room</h4>
+            <p class="text-xs text-gray-500 mt-1">
+                Check availability and book now.
+            </p>
+            <div class="w-24 h-1 bg-teal-600 rounded mt-2"></div>
+        </div>
+    </div>
+
+    <!-- Controls (Tanggal + Ajakan) -->
+    <div class="flex flex-col md:flex-row items-start md:items-center gap-2 mt-2 md:mt-0">
+        <p class="text-xs text-gray-500 md:mr-2">Select a date to book your room:</p>
+        <input type="date" id="datePicker" 
+               class="rounded-md px-3 py-1 border border-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400">
+    </div>
+</div>
+
+
+   <!-- <button id="openExportModalBtn" 
+                class="bg-teal-600 text-white px-3 py-1 rounded-md shadow hover:bg-teal-700 transition flex items-center gap-1">
+            <i data-feather="download" class="w-4 h-4"></i>
+            <span>Export</span>
+        </button> -->
+<!-- Divider -->
+
+<!-- Section title sebelum tabel -->
+<div class="flex items-center justify-center gap-3 mb-4">
+    <h4 class="text-lg font-bold text-gray-900">Schedule Meeting Room</h4>
+    <span id="selectedDateText" class="text-sm font-normal text-gray-500"></span>
+</div>
+
 
    <!-- Table -->
    <div class="overflow-x-auto">
@@ -70,9 +104,6 @@
 </div>
 
 </div>
-
-
-
 
 
 <!-- Modal Booking -->
@@ -190,6 +221,33 @@
   </div>
 </div>
 
+<!-- Modal Background -->
+<div id="maintenanceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <!-- Modal Container -->
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center relative animate-fadeIn">
+    
+    <!-- Close Button -->
+    <button onclick="document.getElementById('maintenanceModal').style.display='none'" 
+            class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+
+    <!-- Image -->
+    <img src="{{ asset('img/moving.jpg') }}" alt="Maintenance" class="mx-auto mb-6 w-80 h-40">
+
+    <!-- Text Content -->
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Perhatian!</h2>
+    <p class="text-gray-700 text-lg mb-4">
+      Sistem Booking Meeting Room akan <span class="text-red-600 font-semibold">dipindahkan</span> ke url baru, pada 
+      <span class="font-semibold">Senin, 13 Oktober 2025</span>.
+    </p>
+    <p class="text-gray-800 text-lg font-medium">
+      Silakan kunjungi situs baru di link berikut: 
+      <a href="https://abimanyulive.cloud" target="_blank" 
+         class="text-blue-500 hover:text-blue-600 underline decoration-2 decoration-blue-300 transition">
+        abimanyulive.cloud
+      </a>
+    </p>
+  </div>
+</div>
 
 {{-- SCRIPT --}}
 @push('scripts')
@@ -314,6 +372,24 @@ div.dt-button-collection .dt-button:hover {
 
 </style>
 <script>
+      function openModal() {
+  document.getElementById('maintenanceModal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('maintenanceModal').classList.add('hidden');
+}
+
+// Tampilkan modal tiap reload halaman
+window.addEventListener('load', openModal);
+
+// Opsional: klik di luar modal juga menutup
+document.getElementById('maintenanceModal').addEventListener('click', function(e){
+  if(e.target === this){
+    closeModal();
+  }
+});
+
    window.currentUserRoles = @json(Auth::user()->roles->pluck('name')); 
 
    $(document).ready(function () {
@@ -448,7 +524,8 @@ function renderSchedule(date, rooms, schedule) {
     const now = new Date(); // waktu sekarang
 
     $.each(schedule, function (time, roomStatuses) {
-        html += `<tr><td class="border px-3 py-2 text-center">${time} WIB</td>`;
+        html += `<tr>
+            <td class="border px-2 sm:px-3 py-1 sm:py-2 text-center whitespace-nowrap">${time} WIB</td>`;
 
         $.each(rooms, function (i, room) {
             const roomData = roomStatuses[room.name];
@@ -456,19 +533,19 @@ function renderSchedule(date, rooms, schedule) {
 
             if (roomData.status === "Booked") {
                 cellHtml = `
-                    <div class="w-full bg-red-500 text-white rounded px-3 py-1 relative booked-cell"
+                    <div class="w-full bg-red-500 text-white rounded px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm truncate"
                          title="Booked by ${roomData.booked_by}\nPurpose: ${roomData.purpose || ''}\n${roomData.description || ''}">
                         Booked by ${roomData.booked_by}
                     </div>
                 `;
             } else if (roomData.status === "Waiting Approval") {
-    cellHtml = `
-        <div class="w-full bg-yellow-500 text-white rounded px-3 py-1 text-center"
-             title="Waiting for approval\nPurpose: ${roomData.purpose || ''}\n${roomData.description || ''}">
-            Waiting for Approval
-        </div>
-    `;      
-          } else {
+                cellHtml = `
+                    <div class="w-full bg-yellow-500 text-white rounded px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm text-center truncate"
+                         title="Waiting for approval\nPurpose: ${roomData.purpose || ''}\n${roomData.description || ''}">
+                        Waiting for Approval
+                    </div>
+                `;
+            } else {
                 // Hitung waktu slot
                 const [start, end] = time.replace(" WIB", "").split(" - ");
                 const slotStart = new Date(`${date}T${start}:00`);
@@ -476,26 +553,18 @@ function renderSchedule(date, rooms, schedule) {
                 const todayStr  = now.toISOString().split("T")[0];
 
                 let isExpired = false;
-
-                if (date < todayStr) {
-                    // hari kemarin
-                    isExpired = true;
-                } else if (date === todayStr) {
-                    if (slotEnd <= now) {
-                        // slot sudah lewat (jam selesai < sekarang)
-                        isExpired = true;
-                    }
-                }
+                if (date < todayStr) isExpired = true;
+                else if (date === todayStr && slotEnd <= now) isExpired = true;
 
                 if (isExpired) {
                     cellHtml = `
-                        <div class="w-full bg-gray-300 text-gray-600 rounded px-3 py-1 cursor-not-allowed text-center">
+                        <div class="w-full bg-gray-300 text-gray-600 rounded px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm cursor-not-allowed text-center truncate">
                             Expired
                         </div>
                     `;
                 } else {
                     cellHtml = `
-                        <button class="book-btn w-full bg-green-600 text-white rounded px-3 py-1 hover:bg-green-700 transition"
+                        <button class="book-btn w-full bg-green-600 text-white rounded px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm hover:bg-green-700 transition truncate"
                                 data-date="${date}"
                                 data-time="${time}"
                                 data-room="${room.name}">
@@ -505,7 +574,7 @@ function renderSchedule(date, rooms, schedule) {
                 }
             }
 
-            html += `<td class="text-center px-2 py-1">${cellHtml}</td>`;
+            html += `<td class="text-center px-1 sm:px-2 py-1">${cellHtml}</td>`;
         });
 
         html += `</tr>`;
@@ -514,15 +583,17 @@ function renderSchedule(date, rooms, schedule) {
     $("#scheduleBody").html(html);
 
     // Update head
-    let head = `<tr class="bg-white"><th class="border px-3 py-2 text-center">Time</th>`;
+    let head = `<tr class="bg-white">
+        <th class="border bg-teal-600 text-white px-2 sm:px-3 py-1 sm:py-2 text-center whitespace-nowrap">Time</th>`;
     $.each(rooms, function (i, room) {
-        head += `<th class="border px-3 py-2 text-center">${room.name}</th>`;
+        head += `<th class="border bg-teal-600 text-white px-2 sm:px-3 py-1 sm:py-2 text-center whitespace-nowrap">${room.name}</th>`;
     });
     head += `</tr>`;
     $("thead").html(head);
 
     $("#selectedDateText").text(`(${date})`);
 }
+
 
 
 
