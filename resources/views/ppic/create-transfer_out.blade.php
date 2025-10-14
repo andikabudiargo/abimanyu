@@ -7,38 +7,12 @@
 
 @section('content')
 <div class="flex gap-6">
-  <!-- 📘 Sidebar Search Panel -->
-  <div class="w-full md:w-1/4 bg-white shadow-md rounded-xl p-4 space-y-4">
-    <h2 class="text-lg font-semibold text-gray-700">Search Incoming Number</h2>
-
-    <div>
-      <label for="searchTFIn" class="block text-sm font-medium text-gray-700 mb-1">Transfer In / Receiving Number</label>
-      <input type="text" id="searchTFIn" placeholder="Masukkan kode atau nama" 
-             class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
-    </div>
-
-    <div id="searchResult" class="space-y-2 text-sm text-gray-600">
-      <!-- Artikel ditemukan akan tampil di sini -->
-      <p class="text-gray-400 italic">Belum ada pencarian...</p>
-    </div>
-
-    <!-- Loader Spinner -->
-<div id="qrLoader" class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2 hidden"></div>
-
-    <div class="mt-4">
-      <h3 class="text-sm font-medium text-gray-700">QR Code</h3>
-      <div class="border mt-2 rounded p-2 bg-gray-50 flex justify-center items-center">
-        <img id="qrPreview" src="{{ asset('img/tf-in.png') }}" alt="QR Code" class="w-32 h-32 object-contain" />
-      </div>
-    </div>
-  </div>
-
   <!-- 📦 Main Transfer Panel -->
-  <div class="w-3/4 bg-white shadow-md rounded-xl p-4 space-y-4">
+  <div class="w-full bg-white shadow-md rounded-xl p-4 space-y-4">
     <h2 class="text-lg font-semibold text-gray-700">Create Transfer Out</h2>
     <form id="transfer-form">
       <!-- 🔢 Nomor Referensi -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="relative group">
         <label for="reference_number" class="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
         <input type="text" name="reference_number" id="reference_number"
@@ -53,8 +27,8 @@
 
       
       <!-- 📦 Lokasi -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="col-span-2">
         <label for="transfer_type" class="block text-sm font-medium text-gray-700 mb-1">Transfer Type <small class="text-red-600"> *</small></label>
        <select name="transfer_type" id="transfer_type"
                   class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
@@ -68,19 +42,61 @@
         </div>
       </div>
 
-      <!-- 🔍 Input Barcode -->
-      <div class="mb-4">
-        <label for="barcodeInput" class="block text-sm font-medium text-gray-700">Input Manual</label>
-        <input type="text" id="barcodeInput" placeholder="Pilih Nomor Transfer In untuk diinput" 
-               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 text-base">
-               <small class="text-gray-600">*Input manual apabila scanner bermasalah</small>
-        </div>
-
-      <!-- 📝 Catatan Tambahan -->
-      <div class="mb-12">
+       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="col-span-2">
         <label for="note" class="block text-sm font-medium text-gray-700">Note</label>
         <textarea id="note" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
       </div>
+       </div>
+
+         <!-- 🧾 Divider -->
+      <hr class="my-6 border-gray-300">
+
+   <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 mb-4">
+
+  <!-- Select Article -->
+  <div class="w-full md:w-1/2">
+    <label for="article_select" class="block text-sm font-medium text-gray-700 mb-1">
+      Select Kode Transfer In / Receiving
+    </label>
+    <select id="selectArticle"
+      class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+      <option value="">-- Choose Code --</option>
+    </select>
+  </div>
+
+  <!-- Divider (mobile only) -->
+  <div class="flex md:hidden items-center w-full my-2">
+    <div class="flex-grow border-t border-dashed border-gray-300"></div>
+    <span class="px-3 text-gray-400 text-sm font-medium">or</span>
+    <div class="flex-grow border-t border-dashed border-gray-300"></div>
+  </div>
+
+  <!-- Button -->
+  <div class="w-full md:w-auto flex justify-center md:justify-end">
+    <button type="button" id="scanQrBtn"
+      class="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded shadow-md transition">
+      <i data-feather="camera" class="h-4 w-4"></i> Scan QR Code
+    </button>
+  </div>
+</div>
+
+
+<!-- QR Scan Modal -->
+<div id="qrModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-lg shadow-lg p-4 w-11/12 md:w-1/2">
+    <div class="flex justify-between items-start mb-2">
+  <div class="flex flex-col">
+    <h2 class="text-2xl font-bold text-gray-900">Scan QR Code</h2>
+    <p class="text-xs text-gray-500 mt-1">Scan QR yang sudah diprint dari Transfer In/Receiving</p>
+    <div class="w-14 h-1 bg-teal-600 rounded mt-2"></div>
+  </div>
+  <button id="closeQrModal" class="text-red-500 hover:text-red-700 font-bold">X</button>
+</div>
+    <div id="qr-reader" style="width:100%;"></div>
+  </div>
+</div>
+
 
       <!-- 📋 Tabel Artikel yang Dipindahkan -->
      <div class="datatable-container">
@@ -197,27 +213,36 @@
     overflow-x: auto;
   }
 
+   .select2-container {
+    width: 100% !important;
+}
+
+
+ .select2-container--default .select2-selection--single {
+        height: 38px !important;
+        padding: 4px 10px !important;
+        border: 1px solid #d1d5db !important; /* gray-300 */
+        border-radius: 0.375rem !important; /* rounded-md */
+        font-size: 1rem !important; /* text-base */
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 28px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px !important;
+        top: 1px;
+    }
+
 </style>
 
 
 @push('scripts')
+<script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
 <script>
-  function startScannerPolling() {
-  console.log('Polling dimulai...');
-  setInterval(() => {
-    console.log('Polling berjalan...');
-    fetch('/api/scanner/latest')
-      .then(res => res.json())
-      .then(data => {
-        console.log('Response:', data);
-        if (data.code) {
-          handleScannedCode(data.code);
-          fetch('/api/scanner/reset', { method: 'POST' });
-        }
-      })
-      .catch(err => console.error('Polling scanner error:', err));
-  }, 2000);
-}
+  
 let scannedItems = {};  // ← WAJIB ADA
 let activeSupplier = null;  // jika perlu untuk pengecekan supplier
 let locations = [];
@@ -227,6 +252,8 @@ let itemTable = null;
 let itemIndex = 1;
 let barcodeBuffer = '';
 let barcodeTimer = null;
+let html5QrcodeScanner = null;
+let isScannerRunning = false;
 
 // === Inisialisasi ===
 document.addEventListener('DOMContentLoaded', function () {
@@ -243,6 +270,105 @@ function initEventListeners() {
 
   document.addEventListener('keydown', globalScannerListener);
 }
+
+function initQrScanner() {
+    $('#scanQrBtn').click(function() {
+        $('#qrModal').removeClass('hidden');
+
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        }
+
+        const config = { fps: 10, qrbox: 250 };
+
+        setTimeout(() => {
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => {
+                    // Panggil handleScannedCode agar langsung render tabel
+                    handleScannedCode(decodedText);
+                    stopQrScanner();
+                },
+                (errorMessage) => {
+                    console.log("Scan error:", errorMessage);
+                }
+            ).then(() => isScannerRunning = true)
+             .catch(err => {
+                 console.error("QR Scan start failed:", err);
+                 $('#qrModal').addClass('hidden');
+             });
+        }, 300);
+    });
+
+    $('#closeQrModal').click(stopQrScanner);
+}
+
+function stopQrScanner() {
+    if (html5QrcodeScanner && isScannerRunning) {
+        html5QrcodeScanner.stop().then(() => {
+            $('#qrModal').addClass('hidden');
+            isScannerRunning = false;
+        }).catch(err => {
+            console.error('Stop error:', err);
+            $('#qrModal').addClass('hidden');
+            isScannerRunning = false;
+        });
+    } else {
+        $('#qrModal').addClass('hidden');
+    }
+}
+
+// Inisialisasi scanner saat DOM siap
+$(document).ready(function() {
+    initQrScanner();
+});
+
+$(document).ready(function() {
+    $('#selectArticle').select2({
+        placeholder: '-- Choose Kode Transfer In / Receiving --',
+        width: '100%',
+        allowClear: true,
+        ajax: {
+            url: '/ppic/logistic/transfer_out/transfer-in-search', // endpoint
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    q: params.term || '',   // search term
+                    page: params.page || 1  // page for lazy load
+                };
+            },
+            processResults: function(data, params) {
+                params.page = params.page || 1;
+
+                // data.results sesuai struktur JSON dari backend
+                const results = (data.results || []).map(item => ({
+                    id: item.code,
+                    text: `${item.code} - ${item.transfer_type}`,
+                    itemData: item
+                }));
+
+                return {
+                    results: results,
+                    pagination: {
+                        more: data.pagination?.more || false
+                    }
+                };
+            },
+            cache: true
+        }
+    });
+
+    // Saat pilih item, otomatis panggil handleScannedCode
+    $('#selectArticle').on('select2:select', function(e) {
+        const selectedItem = e.params.data.itemData;
+        handleScannedCode(selectedItem.code);
+        $(this).val(null).trigger('change'); // reset dropdown
+    });
+});
+
+
 
 
 

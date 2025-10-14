@@ -562,69 +562,94 @@ public function destroy($id)
 
   public function search(Request $request)
 {
-    $query = $request->query('q');
+    $query = $request->query('q', ''); // default kosong untuk lazy load
+    $page  = max(1, (int)$request->query('page', 1));
+    $perPage = 10;
 
-    if (!$query || strlen($query) < 2) {
-        return response()->json([], 200);
-    }
-
-    // Ambil Transfer In + filter stok habis
-    $transferInResults = TransferIn::with(['supplier', 'warehouse', 'items']) // pastikan ada relasi items
-       ->where('code', 'LIKE', "%{$query}%")
-    ->whereHas('items', function ($query) {
-        $query->whereRaw('(qty + qty_return) > qty_used');
-    })
-    ->limit(10)
-    ->get()
+    // ========================
+    // Transfer In
+    // ========================
+    $transferInResults = TransferIn::with(['supplier', 'warehouse', 'items'])
+        ->when($query, function($q) use ($query) {
+            $q->where('code', 'LIKE', "%{$query}%");
+        })
+        ->whereHas('items', function ($q) {
+            $q->whereRaw('(qty + qty_return) > qty_used');
+        })
+        ->skip(($page-1)*$perPage)
+        ->take($perPage)
+        ->get()
         ->map(function ($transfer) {
             return [
-                'code' => $transfer->code,
-                'supplier_code' => $transfer->supplier_code,
-                'supplier_name' => optional($transfer->supplier)->name ?? '-',
+                'code'           => $transfer->code,
+                'supplier_code'  => $transfer->supplier_code,
+                'supplier_name'  => optional($transfer->supplier)->name ?? '-',
                 'warehouse_name' => optional($transfer->warehouse)->name ?? '-',
-                'transfer_type' => $transfer->transfer_category ?? 'Transfer In',
+                'transfer_type'  => $transfer->transfer_category ?? 'Transfer In',
             ];
         });
 
-        // Ambil Transfer In Items + filter stok habis
-    $transferInItemsResults = TransferInItems::with(['transferIn.supplier', 'transferIn.warehouse']) // pastikan ada relasi items
-       ->where('code', 'LIKE', "%{$query}%")
-        ->whereRaw('(qty + qty_return) > qty_used')
-
-    ->limit(10)
-    ->get()
-        ->map(function ($items) {
-            return [
-                'code' => $items->code,
-                'supplier_code'  => $items->transferIn->supplier_code,
-                'supplier_name'  => optional($items->transferIn->supplier)->name ?? '-',
-                'warehouse_name' => optional($items->transferIn->warehouse)->name ?? '-',
-                'transfer_type' => $transfer->transfer_category ?? 'Transfer In Items',
-            ];
-        });
-
-    // Ambil Receiving + filter stok habis
-    $receivingResults = Receiving::with(['supplier', 'items']) // pastikan ada relasi items
-        ->where('receiving_number', 'LIKE', "%{$query}%")
-        ->limit(10)
-        ->get()
-        ->filter(function ($receive) {
-            return $receive->items->contains(function ($item) {
-                return $item->qty_received > $item->qty_used;
-            });
+    // ========================
+    // Transfer In Items
+    // ========================
+    $transferInItemsResults = TransferInItems::with(['transferIn.supplier', 'transferIn.warehouse'])
+        ->when($query, function($q) use ($query) {
+            $q->where('code', 'LIKE', "%{$query}%");
         })
+        ->whereRaw('(qty + qty_return) > qty_used')
+        ->skip(($page-1)*$perPage)
+        ->take($perPage)
+        ->get()
+        ->map(function ($item) {
+            return [
+                'code'           => $item->code,
+                'supplier_code'  => optional($item->transferIn)->supplier_code,
+                'supplier_name'  => optional($item->transferIn->supplier)->name ?? '-',
+                'warehouse_name' => optional($item->transferIn->warehouse)->name ?? '-',
+                'transfer_type'  => optional($item->transferIn)->transfer_category ?? 'Transfer In Items',
+            ];
+        });
+
+    // ========================
+    // Receiving
+    // ========================
+    $receivingResults = Receiving::with(['supplier', 'items'])
+        ->when($query, function($q) use ($query) {
+            $q->where('receiving_number', 'LIKE', "%{$query}%");
+        })
+        ->whereHas('items', function ($q) {
+            $q->whereRaw('qty_received > qty_used');
+        })
+        ->skip(($page-1)*$perPage)
+        ->take($perPage)
+        ->get()
         ->map(function ($receive) {
             return [
-                'code' => $receive->receiving_number,
-                'supplier_code' => $receive->supplier_code,
-                'supplier_name' => optional($receive->supplier)->name ?? '-',
-                'transfer_type' => 'Receiving',
+                'code'           => $receive->receiving_number,
+                'supplier_code'  => $receive->supplier_code,
+                'supplier_name'  => optional($receive->supplier)->name ?? '-',
+                'warehouse_name' => '-', // Receiving tidak pakai warehouse
+                'transfer_type'  => 'Receiving',
             ];
         });
 
-    $merged = collect($transferInResults)->merge($receivingResults)->merge($transferInItemsResults);
+    // ========================
+    // Merge semua hasil
+    // ========================
+    $merged = collect($transferInResults)
+        ->merge($transferInItemsResults)
+        ->merge($receivingResults)
+        ->values(); // reset index
 
-    return response()->json($merged);
+    // ========================
+    // Pagination info
+    // ========================
+    $more = $merged->count() >= $perPage; // apakah masih ada halaman berikutnya
+
+    return response()->json([
+        'results'    => $merged,
+        'pagination' => ['more' => $more],
+    ]);
 }
 
 public function searchAll(Request $request)
