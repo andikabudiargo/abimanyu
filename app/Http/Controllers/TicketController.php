@@ -718,17 +718,23 @@ public function resume(Request $request, $id)
     $ticket->status = 'Done';
     $ticket->save();
 
-    // Simpan semua evidence ke tabel ticket_evidences
     if ($request->hasFile('evidence')) {
-        foreach ($request->file('evidence') as $file) {
-            $filename = $file->store('evidence', 'public');
+    foreach ($request->file('evidence') as $file) {
+        // Folder tujuan di hosting
+        $destinationPath = '/home/abimany3/public_html/evidence';
 
-            TicketEvidence::create([
-                'ticket_id' => $ticket->id,
-                'path'      => $filename
-            ]);
-        }
+        // Nama file unik supaya tidak overwrite
+        $filename = time() . '_' . $file->getClientOriginalName();
+
+        // Pindahkan file
+        $file->move($destinationPath, $filename);
+
+        TicketEvidence::create([
+            'ticket_id' => $ticket->id,
+            'path'      => 'evidence/' . $filename  // simpan path relatif
+        ]);
     }
+}
 
      if (!empty($ticket->requestor->email)) {
     Mail::to($ticket->requestor->email)
