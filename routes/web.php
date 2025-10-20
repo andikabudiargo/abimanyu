@@ -37,6 +37,7 @@ use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ReceivingController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\IssueTrackerController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\WorkstationController;
 use Illuminate\Support\Facades\Route;
@@ -57,6 +58,16 @@ Route::get('/check-session', function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+    Route::get('/check-auth', function () {
+    return [
+        'auth_id' => auth()->id(),
+        'user' => auth()->user(),
+        'roles' => auth()->user() ? auth()->user()->roles->pluck('name') : null,
+        'departments' => auth()->user() ? auth()->user()->departments->pluck('name') : null,
+    ];
+})->middleware('auth');
+
 
 
 Route::middleware('auth')->group(function () {
@@ -302,7 +313,22 @@ Route::prefix('it')->name('it.')->group(function () {
     Route::get('/storage/data', [ITStorageController::class, 'data'])->name('storage.data');
     Route::get('/storage/create', [ITStorageController::class, 'create'])->name('storage.create');
     Route::post('/storage/store', [ITStorageController::class, 'store'])->name('storage.store');
-   
+    Route::get('/issue-tracker/index', [IssueTrackerController::class, 'index'])->name('issue.index');
+    Route::get('/issue-tracker/create', [IssueTrackerController::class, 'create'])->name('issue.create');
+    Route::post('/issue-tracker/store', [IssueTrackerController::class, 'store'])->name('issue.store');
+    Route::get('/issue-tracker/data', [IssueTrackerController::class, 'data'])->name('issue.data');
+    Route::post('/issue-tracker/{id}/approve', [IssueTrackerController::class, 'approve'])->name('issue.approve');
+    Route::post('/issue-tracker/{id}/checking', [IssueTrackerController::class, 'checking'])->name('issue.checking');
+    Route::post('/issue-tracker/{id}/verification', [IssueTrackerController::class, 'verification'])->name('issue.verification');
+    Route::post('/issue-tracker/{id}/authorized', [IssueTrackerController::class, 'authorized'])->name('issue.authorized');
+    Route::post('/issue-tracker/{id}/done', [IssueTrackerController::class, 'done'])->name('issue.done');
+    Route::post('/issue-tracker/{id}/closed', [IssueTrackerController::class, 'close'])->name('issue.closed');
+    Route::post('/issue-tracker/{id}/reject', [IssueTrackerController::class, 'reject'])->name('issue.reject');
+    Route::get('/issue-tracker/detail/{id}', [IssueTrackerController::class, 'show'])->name('issue.show');
+    Route::get('/issue-tracker/edit/{id}', [IssueTrackerController::class, 'edit'])->name('issue.edit');
+    Route::put('/issue-tracker/{id}/update', [IssueTrackerController::class, 'update'])->name('issue.update');
+    Route::delete('/issue-tracker/{id}/destroy', [IssueTrackerController::class, 'destroy'])->name('issue.destroy');
+     Route::get('/issue-tracker/monthly_report', [IssueTrackerController::class, 'monthlyReport'])->name('issue.monthly');
     });
 
     Route::prefix('qc')->name('qc.')->group(function () {  
