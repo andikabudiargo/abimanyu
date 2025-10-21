@@ -185,26 +185,25 @@ if ($isOwner && $row->status === 'Pending') {
                 <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
             </button>';
 }
-    // Tampilkan tombol Approve/Reject jika status masih Pending dan role & dept cocok
+   // Tampilkan tombol Approve/Reject jika status masih Pending dan role & dept cocok
 if (
     $row->status === 'Pending' &&
-    $hasSameDepartment &&
+    $userDepartments === 'General Affair' && // hanya untuk GA
     $userRoles->contains(function ($role) {
         return in_array($role, [
-            'Supervisor Special Access',
-            'Manager Special Access'
+            'Manager Special Access',  'Supervisor Special Access' // hanya Manager Special Access
         ]);
     })
 ) {
 
-        $actionButtons .= '
-        <button onclick="approveRequest(' . $id . ', \'' . $requestNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-green-100 text-green-700">
-            <i data-feather="check" class="w-4 h-4 inline mr-2"></i>Approve
-        </button>
-        <button onclick="rejectRequest(' . $id . ', \'' . $requestNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-700">
-            <i data-feather="x" class="w-4 h-4 inline mr-2"></i>Reject
-        </button>';
-    }
+    $actionButtons .= '
+    <button onclick="approveRequest(' . $id . ', \'' . $requestNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-green-100 text-green-700">
+        <i data-feather="check" class="w-4 h-4 inline mr-2"></i>Approve
+    </button>
+    <button onclick="rejectRequest(' . $id . ', \'' . $requestNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-700">
+        <i data-feather="x" class="w-4 h-4 inline mr-2"></i>Reject
+    </button>';
+}
 
     // Tombol Checking untuk GA setelah Approved
 if (
@@ -218,55 +217,14 @@ if (
 
 }
 
- // Tombol Checking untuk GA setelah Approved
 if (
-    $row->status === 'Checked' &&
-    $userDepartments->contains('General Affair') && // pastikan $userDepartments sudah pluck('name')
-    $userRoles->contains(function ($role) {
-        return in_array($role, [
-            'Supervisor Special Access',
-            'Manager Special Access'
-        ]);
-    })
-) {
-   $actionButtons .= '
-        <button onclick="verificationRequest(' . $id . ', \'' . $requestNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-green-100 text-green-700">
-            <i data-feather="check-circle" class="w-4 h-4 inline mr-2"></i>Verification
-        </button>
-         <button onclick="rejectRequest(' . $id . ', \'' . $requestNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-700">
-            <i data-feather="x" class="w-4 h-4 inline mr-2"></i>Reject
-        </button>';
-
-}
-
-if (
-    $row->status === 'Verified' &&
-    $userDepartments->contains('General Affair') && // pastikan $userDepartments sudah pluck('name')
-    $userRoles->contains(function ($role) {
-        return in_array($role, [
-            'Supervisor Special Access',
-            'Manager Special Access'
-        ]);
-    })
-) {
-   $actionButtons .= '
-        <button onclick="authorizedRequest(' . $id . ', \'' . $requestNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-lime-100 text-lime-700">
-            <i data-feather="check-circle" class="w-4 h-4 inline mr-2"></i>Authorized
-        </button>
-         <button onclick="rejectRequest(' . $id . ', \'' . $requestNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-700">
-            <i data-feather="x" class="w-4 h-4 inline mr-2"></i>Reject
-        </button>';
-
-}
-
-if (
-    $row->status === 'Authorized' &&
+    $row->status === 'Work in Progress' &&
     $userDepartments->contains('General Affair') &&
     $row->checked_by == auth()->id()
 ) {
     $actionButtons .= '
         <button onclick="openDoneModal(' .  $id . ')" 
-                class="block w-full text-left px-4 py-2 hover:bg-blue-100 text-blue-700">
+                class="block w-full text-left px-4 py-2 hover:bg-green-100 text-green-700">
             <i data-feather="check-square" class="w-4 h-4 inline mr-2"></i>Done
         </button>
          <button onclick="rejectRequest(' . $id . ', \'' . $requestNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-700">
@@ -331,12 +289,8 @@ if (
         return '<span class="bg-gray-500 ' . $commonClasses . '">Pending</span>';
     } elseif ($row->status === 'Approved') {
         return '<span class="bg-yellow-500 ' . $commonClasses . '">Approved</span>';
-    } elseif ($row->status === 'Checked') {
-        return '<span class="bg-purple-500 ' . $commonClasses . '">Menunggu Verifikasi GA</span>';
-    } elseif ($row->status === 'Verified') {
-        return '<span class="bg-orange-500 ' . $commonClasses . '">Menunggu Persetujuan Atasan</span>';
-    } elseif ($row->status === 'Authorized') {
-        return '<span class="bg-blue-400 ' . $commonClasses . '">Disetujui & Siap Dikerjakan</span>';
+    } elseif ($row->status === 'Work in Progress') {
+        return '<span class="bg-blue-500 ' . $commonClasses . '">Work in Progress</span>';
     } elseif ($row->status === 'Done') {
         return '<span class="bg-green-500 ' . $commonClasses . '">Done</span>';
     } elseif ($row->status === 'Closed') {
@@ -367,14 +321,8 @@ if (
         case 'Approved':
             $colorClass = 'bg-yellow-500';
             break;
-        case 'Checked':
-            $colorClass = 'bg-purple-500';
-            break;
-        case 'Verified':
-            $colorClass = 'bg-orange-500';
-            break;
-        case 'Authorized':
-            $colorClass = 'bg-blue-400';
+        case 'Work in Progress':
+            $colorClass = 'bg-blue-500';
             break;
              case 'Done':
             $colorClass = 'bg-green-400';
@@ -611,7 +559,7 @@ public function checking(Request $request, $id)
         $issue = IssueTracker::findOrFail($id);
         $issue->check_result = $request->check_result;
         $issue->duration_work = $request->duration_work;
-        $issue->status = 'Checked';
+        $issue->status = 'Work in Progress';
         $issue->recommended_action = $request->recommended_action;
         $issue->checked_by = auth()->id();
         $issue->checked_at = now();
@@ -653,37 +601,6 @@ public function checking(Request $request, $id)
         ], 500);
     }
 }
-
-public function verification($id)
-{
-    $request = IssueTracker::findOrFail($id);
-    $request->status = 'Verified';
-    $request->verification_by = auth()->id();
-    $request->verification_at = now();
-    $request->save();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Request Berhasil Diverifikasi.',
-        'request_number' => $request->request_number
-    ]);
-}
-
-public function authorized($id)
-{
-    $request = IssueTracker::findOrFail($id);
-    $request->status = 'Authorized';
-    $request->authorized_by = auth()->id();
-    $request->authorized_at = now();
-    $request->save();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Request Disetujui Untuk Dijalankan.',
-        'request_number' => $request->request_number
-    ]);
-}
-
   // IT mengubah status menjadi Done (dengan CA/PA & Evidence)
    public function done(Request $request, $id)
 {
@@ -703,25 +620,30 @@ public function authorized($id)
         'evidence_after'   => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
     ]);
 
-    // Upload foto sebelum & sesudah
-    $photoBeforePath = null;
-    $photoAfterPath  = null;
+$photoBeforeName = null;
+$photoAfterName  = null;
 
     $destinationPath = '/home/abimany3/public_html/evidence';
 
-    if ($request->hasFile('evidence_before')) {
-        $beforeFile = $request->file('evidence_before');
-        $beforeName = time() . '_before_' . $beforeFile->getClientOriginalName();
-        $beforeFile->move($destinationPath, $beforeName);
-        $photoBeforePath = 'evidence/' . $beforeName;
-    }
+    // Upload file sebelum
+if ($request->hasFile('evidence_before')) {
+    $beforeFile = $request->file('evidence_before');
+    $beforeName = time() . '_before_' . $beforeFile->getClientOriginalName();
+    $beforeFile->move($destinationPath, $beforeName);
 
-    if ($request->hasFile('evidence_after')) {
-        $afterFile = $request->file('evidence_after');
-        $afterName = time() . '_after_' . $afterFile->getClientOriginalName();
-        $afterFile->move($destinationPath, $afterName);
-        $photoAfterPath = 'evidence/' . $afterName;
-    }
+    // Hanya simpan nama file (tidak termasuk folder)
+    $photoBeforeName = $beforeName;
+}
+
+// Upload file sesudah
+if ($request->hasFile('evidence_after')) {
+    $afterFile = $request->file('evidence_after');
+    $afterName = time() . '_after_' . $afterFile->getClientOriginalName();
+    $afterFile->move($destinationPath, $afterName);
+
+    // Hanya simpan nama file (tidak termasuk folder)
+    $photoAfterName = $afterName;
+}
 
     // Update data ticket
     $ticket->update([
@@ -729,8 +651,8 @@ public function authorized($id)
         'work_start'    => $request->work_start,
         'work_end'      => $request->work_end,
         'note_done'          => $request->note_done,
-        'evidence_before'  => $photoBeforePath,
-        'evidence_after'   => $photoAfterPath,
+        'evidence_before'  => $photoBeforeName,
+        'evidence_after'   => $photoAfterName,
         'status'        => 'Done',
         'done_by' => auth()->id(),
         'done_at'       => now(),
