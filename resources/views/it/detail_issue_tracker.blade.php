@@ -312,7 +312,7 @@
                     Foto Sebelum
                 </h4>
                 @if($request->evidence_before)
-                    <img src="{{ asset('evidence/'.$request->photo_before) }}" 
+                    <img src="{{ asset('evidence/'.$request->evidence_before) }}" 
                         alt="Foto Sebelum" 
                         class="rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] transition-transform duration-300">
                 @else
@@ -326,7 +326,7 @@
                     Foto Sesudah
                 </h4>
                 @if($request->evidence_after)
-                    <img src="{{ asset('evidence/'.$request->photo_after) }}" 
+                    <img src="{{ asset('evidence/'.$request->evidence_after) }}" 
                         alt="Foto Sesudah" 
                         class="rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] transition-transform duration-300">
                 @else
