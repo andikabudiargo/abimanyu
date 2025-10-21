@@ -304,41 +304,43 @@
             </div>
         </div>
 
-        <!-- Foto Before & After -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="flex flex-col">
-                <h4 class="text-gray-700 font-semibold mb-2 flex items-center gap-2">
-                    <i data-feather="camera" class="w-4 h-4"></i>
-                    Foto Sebelum
-                </h4>
-                @if($request->evidence_before)
-                    <img src="{{ asset('evidence/'.$request->evidence_before) }}" 
-                        alt="Foto Sebelum" 
-                        class="rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] transition-transform duration-300">
-                @else
-                    <div class="text-gray-500 text-sm italic">Belum ada foto sebelum</div>
-                @endif
-            </div>
-
-            <div class="flex flex-col">
-                <h4 class="text-gray-700 font-semibold mb-2 flex items-center gap-2">
-                    <i data-feather="camera-off" class="w-4 h-4"></i>
-                    Foto Sesudah
-                </h4>
-                @if($request->evidence_after)
-                    <img src="{{ asset('evidence/'.$request->evidence_after) }}" 
-                        alt="Foto Sesudah" 
-                        class="rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] transition-transform duration-300">
-                @else
-                    <div class="text-gray-500 text-sm italic">Belum ada foto sesudah</div>
-                @endif
-            </div>
-        </div>
+       <!-- Foto Before & After -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Foto Sebelum -->
+    <div class="flex flex-col">
+        <h4 class="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+            <i data-feather="camera" class="w-4 h-4"></i>
+            Foto Sebelum
+        </h4>
+        @if($request->evidence_before)
+            <a href="{{ asset('evidence/'.$request->evidence_before) }}" target="_blank">
+                <img src="{{ asset('evidence/'.$request->evidence_before) }}" 
+                     alt="Foto Sebelum" 
+                     class="rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] transition-transform duration-300 cursor-pointer">
+            </a>
+        @else
+            <div class="text-gray-500 text-sm italic">Belum ada foto sebelum</div>
         @endif
     </div>
-        
 
+    <!-- Foto Sesudah -->
+    <div class="flex flex-col">
+        <h4 class="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+            <i data-feather="camera-off" class="w-4 h-4"></i>
+            Foto Sesudah
+        </h4>
+        @if($request->evidence_after)
+            <a href="{{ asset('evidence/'.$request->evidence_after) }}" target="_blank">
+                <img src="{{ asset('evidence/'.$request->evidence_after) }}" 
+                     alt="Foto Sesudah" 
+                     class="rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] transition-transform duration-300 cursor-pointer">
+            </a>
+        @else
+            <div class="text-gray-500 text-sm italic">Belum ada foto sesudah</div>
+        @endif
     </div>
+</div>
+
 
     <!-- SIDEBAR: Verifikasi & Evaluasi -->
     <div class="w-full md:w-1/3 bg-white shadow-md border border-gray-200 rounded-xl p-4 md:p-6 mb-6 h-full">
