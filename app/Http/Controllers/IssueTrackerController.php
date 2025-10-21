@@ -439,35 +439,34 @@ if (
     $numberPart = str_pad($countThisMonth, 3, '0', STR_PAD_LEFT); // 001, 002, ...
     $requestNumber = "GA-MNT-{$yearMonth}-{$numberPart}";
 
-  // ============================
-// 2. Handle Attachments dengan pengecekan nama
-// ============================
-$attachments = [];
-if ($request->hasFile('attachment')) {
-    $destinationPath = '/home/abimany3/public_html/attachment';
+    // 3️⃣ Handle upload attachment (single)
+    $fileName = null;
 
-    if (!file_exists($destinationPath)) {
-        mkdir($destinationPath, 0755, true);
-    }
+    if ($request->hasFile('attachment')) {
+        $file = $request->file('attachment');
+        $destinationPath = '/home/abimany3/public_html/attachment';
 
-    foreach ($request->file('attachment') as $file) {
+        // Pastikan folder ada
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+
+        // Buat nama aman (jika ada file dengan nama sama, tambahkan -1, -2, dst)
         $originalName = $file->getClientOriginalName();
-        $fileName = pathinfo($originalName, PATHINFO_FILENAME);
+        $fileBase = pathinfo($originalName, PATHINFO_FILENAME);
         $extension = $file->getClientOriginalExtension();
 
-        $safeName = $fileName . '.' . $extension;
+        $fileName = $fileBase . '.' . $extension;
         $counter = 1;
 
-        // cek jika nama file sudah ada di folder
-        while (file_exists($destinationPath . '/' . $safeName)) {
-            $safeName = $fileName . '-' . $counter . '.' . $extension;
+        while (file_exists($destinationPath . '/' . $fileName)) {
+            $fileName = $fileBase . '-' . $counter . '.' . $extension;
             $counter++;
         }
 
-        $file->move($destinationPath, $safeName);
-        $attachments[] = $safeName;
+        // Pindahkan file ke folder tujuan
+        $file->move($destinationPath, $fileName);
     }
-}
 
     // ============================
     // 3. Simpan ke database (Request)
@@ -478,7 +477,7 @@ if ($request->hasFile('attachment')) {
         'request_type'   => $request->request_type,
         'description'     => $request->description,
         'urgency'         => $request->urgency,
-        'attachments'     => $attachments,
+        'attachment'     => $fileName, // 👈 kolom singular
         'recommendation' => $request->recommendation,
         'created_by'      => Auth::id(),
         'created_at'      => now(),
