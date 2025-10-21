@@ -331,6 +331,7 @@
               class="pc-mtext">Helpdesk Management</span><span class="pc-arrow"></i><i class="ti ti-chevron-right"></i></span></a>
                <ul class="pc-submenu">
             <li class="pc-item"><a class="pc-link" href="{{ route('it.ticket.index') }}">Ticket Management</a></li>
+            <li class="pc-item"><a class="pc-link" href="{{ route('it.issue.index') }}">Facility Issue Management</a></li>
              @if(
     in_array('Information & Technology', $userDepartments) || 
     in_array('Maintenance', $userDepartments) || 
