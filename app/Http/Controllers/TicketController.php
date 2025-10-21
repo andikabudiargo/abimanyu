@@ -1076,4 +1076,3 @@ $sheet->getStyle("A{$startRow}:{$endColumn}{$lastRow}")->applyFromArray([
 
 
 }
-
