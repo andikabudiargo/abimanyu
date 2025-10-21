@@ -143,7 +143,7 @@
                 <label for="attachments" class="block text-sm font-medium text-gray-700 mb-1">
                     Unggah Foto Kerusakan <small class="text-red-600">*</small>
                 </label>
-                <input type="file" name="attachments[]" id="attachments" multiple
+                <input type="file" name="attachment" id="attachment"
                        class="w-full border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
                 <p class="text-xs text-gray-500 mt-1">Allowed: JPG, PNG, PDF, XLSX, Docs. Max total: 20MB.</p>
                 <div class="mt-2">
