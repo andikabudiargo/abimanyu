@@ -93,14 +93,16 @@
 @if($request->attachment)
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between bg-gray-100 p-3 rounded shadow-sm mb-4">
         <div class="mb-2 md:mb-0">
-            <p class="text-sm font-medium text-gray-800">{{ basename($request->attachment) }}</p>
-            <p class="text-xs text-gray-500">{{ $request->attachment }}</p>
+            <p class="text-sm font-medium text-gray-800">{{ $request->attachment }}</p>
         </div>
         <div class="flex gap-2 flex-wrap">
-            <a href="{{ asset($request->attachment) }}" target="_blank" class="inline-flex items-center text-blue-600 hover:underline">
+            <!-- Watch -->
+            <a href="{{ asset('attachment/' . $request->attachment) }}" target="_blank" class="inline-flex items-center text-blue-600 hover:underline">
                 <i data-feather="eye" class="w-4 h-4 mr-1"></i> Watch
             </a>
-            <a href="{{ asset($request->attachment) }}" download class="inline-flex items-center text-green-600 hover:underline">
+
+            <!-- Download -->
+            <a href="{{ asset('attachment/' . $request->attachment) }}" download="{{ $request->attachment }}" class="inline-flex items-center text-green-600 hover:underline">
                 <i data-feather="download" class="w-4 h-4 mr-1"></i> Download
             </a>
         </div>
@@ -108,6 +110,7 @@
 @else
     <p class="text-gray-500 italic">No Attachment</p>
 @endif
+
 
        
       </div>
