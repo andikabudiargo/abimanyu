@@ -607,7 +607,7 @@ public function checking(Request $request, $id)
     $ticket = IssueTracker::findOrFail($id);
 
     // Hanya user yang melakukan pengecekan yang boleh Done
-    if ($ticket->checked_by !== Auth::id()) {
+    if ($ticket->checked_by != Auth::id()) {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
 
