@@ -190,7 +190,7 @@
 
                 <h4 class="text-gray-700 font-semibold mb-2">Rekomendasi Tindakan</h4>
                 <div class="border border-gray-400 rounded-lg shadow-md p-6 mb-6">
-                    {{$request->recommended_action}}
+                    {{$request->recommended_action ?? '-'}}
                 </div>
 
             <!-- Estimasi Material -->
