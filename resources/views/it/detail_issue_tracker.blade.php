@@ -131,7 +131,7 @@
         <span class="text-yellow-500 text-sm">💡</span>
         <div>
             <h3 class="text-sm font-semibold">Rekomendasi / Saran Pemohon</h3>
-            <p class="text-gray-700 mt-1">{{ $request->recommendation }}</p>
+            <p class="text-gray-700 mt-1">{{ $request->recommendation ?? '-'}}</p>
         </div>
     </div>
 
