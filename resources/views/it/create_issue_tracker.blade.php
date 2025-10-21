@@ -5,7 +5,7 @@
 @section('breadcrumb-item', 'Facility Issue Management')
 @section('breadcrumb-active', 'Request Perbaikan Fasilitas')
 @section('content')
-<div class="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
     <!-- ===== 1/3 Card Identitas Pemohon ===== -->
     <div class="bg-white shadow-md rounded-xl p-4 space-y-4">
        <h3 class="flex items-center text-lg font-semibold text-gray-700 mb-3">
@@ -71,124 +71,113 @@
 
     </div>
 
-    <!-- ===== 2/3 Card Detail Permintaan ===== -->
-    <div class="bg-white shadow-md rounded-xl p-4 space-y-4 md:col-span-2">
-         <h3 class="flex items-center text-lg font-semibold text-gray-700 mb-3">
+   <!-- ===== 2/3 Card Detail Permintaan ===== -->
+<div class="bg-white shadow-md rounded-xl p-4 md:p-6 space-y-4 md:col-span-2">
+  <h3 class="flex items-center text-lg font-semibold text-gray-700 mb-3">
     <i data-feather="info" class="w-5 h-5 text-gray-700 mr-2"></i>
     Detail Permintaan
-</h3>
+  </h3>
 
-        <form id="issue-form" enctype="multipart/form-data">
-            @csrf
-            <!-- Ticket Number & Category -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-               <div>
-    <label for="location_area" class="block text-sm font-medium text-gray-700 mb-1">
-        Lokasi Area Perbaikan <small class="text-red-600">*</small>
-    </label>
-    <textarea name="location_area" id="location_area" rows="3"
-              class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-              placeholder="Masukkan lokasi area perbaikan..." required></textarea>
-</div>
+  <form id="issue-form" enctype="multipart/form-data">
+    @csrf
 
-            <div>
-    <label class="block text-sm font-medium text-gray-700 mb-2">
-        Jenis Fasilitas / Area <small class="text-red-600">*</small>
-    </label>
-    <div class="flex flex-wrap -mx-2">
-        <label class="inline-flex items-center w-1/3 px-2 mb-2">
-            <input type="radio" name="request_type" value="Gedung" class="form-radio text-indigo-600" required>
-            <span class="ml-2 text-gray-700">Gedung</span>
+    <!-- Grid utama -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
+      <!-- Lokasi Area -->
+      <div>
+        <label for="location_area" class="block text-sm font-medium text-gray-700 mb-1">
+          Lokasi Area Perbaikan <small class="text-red-600">*</small>
         </label>
-        <label class="inline-flex items-center w-1/3 px-2 mb-2">
-            <input type="radio" name="request_type" value="Listrik" class="form-radio text-indigo-600">
-            <span class="ml-2 text-gray-700">Listrik</span>
+        <textarea
+          name="location_area" id="location_area" rows="3"
+          class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+          placeholder="Masukkan lokasi area perbaikan..." required></textarea>
+      </div>
+
+      <!-- Jenis Fasilitas -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Jenis Fasilitas / Area <small class="text-red-600">*</small>
         </label>
-        <label class="inline-flex items-center w-1/3 px-2 mb-2">
-            <input type="radio" name="request_type" value="Air/Plumbing" class="form-radio text-indigo-600">
-            <span class="ml-2 text-gray-700">Air/Plumbing</span>
+        <div class="flex flex-wrap -mx-1">
+          @foreach (['Gedung','Listrik','Air/Plumbing','AC','Furniture','Keamanan','Kebersihan','Lainnya'] as $type)
+          <label class="inline-flex items-center w-1/2 sm:w-1/3 px-1 mb-2">
+            <input type="radio" name="request_type" value="{{ $type }}" class="form-radio text-indigo-600" required>
+            <span class="ml-2 text-gray-700 text-sm">{{ $type }}</span>
+          </label>
+          @endforeach
+        </div>
+      </div>
+
+      <!-- Deskripsi -->
+      <div class="md:col-span-2">
+        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+          Deskripsi Kerusakan / Kebutuhan <small class="text-red-600">*</small>
         </label>
-        <label class="inline-flex items-center w-1/3 px-2 mb-2">
-            <input type="radio" name="request_type" value="AC" class="form-radio text-indigo-600">
-            <span class="ml-2 text-gray-700">AC</span>
+        <textarea
+          name="description" id="description" rows="4"
+          class="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+          placeholder="Tuliskan deskripsi masalah atau kebutuhan di sini..."
+        ></textarea>
+      </div>
+
+      <!-- Upload Foto -->
+      <div class="md:col-span-2">
+        <label for="attachment" class="block text-sm font-medium text-gray-700 mb-1">
+          Unggah Foto Kerusakan <small class="text-red-600">*</small>
         </label>
-          <label class="inline-flex items-center w-1/3 px-2 mb-2">
-            <input type="radio" name="request_type" value="Furniture" class="form-radio text-indigo-600">
-            <span class="ml-2 text-gray-700">Furniture</span>
+        <input type="file" name="attachment" id="attachment"
+               class="w-full border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500
+                      file:mr-3 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+        <p class="text-xs text-gray-500 mt-1">Allowed: JPG, PNG, PDF, XLSX, DOCX. Max total: 20MB.</p>
+        <ul id="selectedFilesList" class="mt-2 list-disc list-inside text-sm text-gray-700"></ul>
+      </div>
+
+      <!-- Urgensi -->
+      <div>
+        <label for="urgency" class="block text-sm font-medium text-gray-700 mb-1">
+          Urgensi Permintaan <small class="text-red-600">*</small>
         </label>
-          <label class="inline-flex items-center w-1/3 px-2 mb-2">
-            <input type="radio" name="request_type" value="Keamanan" class="form-radio text-indigo-600">
-            <span class="ml-2 text-gray-700">Keamanan</span>
+        <select id="urgency" name="urgency" required
+                class="w-full px-3 py-2 border border-gray-300 text-sm rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+          <option value="">-- Pilih Urgensi --</option>
+          <option value="normal" class="text-green-500" selected>Normal / Rutin</option>
+          <option value="segera" class="text-yellow-500">Segera</option>
+          <option value="darurat" class="text-red-500">Darurat</option>
+        </select>
+      </div>
+
+      <!-- Rekomendasi -->
+      <div class="md:col-span-2">
+        <label for="recommendation" class="block text-sm font-medium text-gray-700 mb-1">
+          Rekomendasi / Saran Pemohon <small class="text-gray-400">(Opsional)</small>
         </label>
-          <label class="inline-flex items-center w-1/3 px-2 mb-2">
-            <input type="radio" name="request_type" value="Kebersihan" class="form-radio text-indigo-600">
-            <span class="ml-2 text-gray-700">Kebersihan</span>
-        </label>
-          <label class="inline-flex items-center w-1/3 px-2 mb-2">
-            <input type="radio" name="request_type" value="Lainnya" class="form-radio text-indigo-600">
-            <span class="ml-2 text-gray-700">Lainnya</span>
-        </label>
+        <textarea name="recommendation" id="recommendation" rows="3"
+                  class="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                  placeholder="Masukkan rekomendasi atau saran tambahan (opsional)..."></textarea>
+      </div>
+
     </div>
-</div>
 
-            <!-- Description -->
-            <div class="col-span-2">
-                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Kerusakan / Kebutuhan <small class="text-red-600"> *</small></label>
-                <textarea name="description" id="description" rows="5"
-                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
-            </div>
+    <hr class="my-4">
 
-            <!-- Attachment -->
-            <div>
-                <label for="attachments" class="block text-sm font-medium text-gray-700 mb-1">
-                    Unggah Foto Kerusakan <small class="text-red-600">*</small>
-                </label>
-                <input type="file" name="attachment" id="attachment"
-                       class="w-full border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                <p class="text-xs text-gray-500 mt-1">Allowed: JPG, PNG, PDF, XLSX, Docs. Max total: 20MB.</p>
-                <div class="mt-2">
-                    <ul id="selectedFilesList" class="list-disc list-inside text-sm text-gray-700"></ul>
-                </div>
-            </div>
-            <!-- Dropdown Urgensi Permintaan -->
-<div>
-    <label for="urgency" class="block text-sm font-medium text-gray-700 mb-1">
-        Urgensi Permintaan <small class="text-red-600">*</small>
-    </label>
-    <select id="urgency" name="urgency" required
-            class="w-full px-3 py-2 border border-gray-300 text-sm rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-        <option value="">-- Pilih Urgensi --</option>
-        <option value="normal" class="text-green-500" selected>Normal / Rutin</option>
-        <option value="segera" class="text-yellow-500">Segera</option>
-        <option value="darurat" class="text-red-500">Darurat</option>
-    </select>
-</div>
+    <!-- Buttons -->
+    <div class="flex flex-col sm:flex-row justify-start items-stretch sm:items-center gap-3 mt-4">
+      <a href="{{ route('it.issue.index') }}"
+         class="flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow w-full sm:w-32 text-center">
+         ← Back
+      </a>
 
-  <!-- Description -->
-            <div class="col-span-2">
-                <label for="recommendation" class="block text-sm font-medium text-gray-700 mb-1">Rekomendasi / Saran Pemohon <small class="text-gray-400">(Opsional)</small></label>
-                <textarea name="recommendation" id="recommendation" rows="5"
-                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
-            </div>
-            </div>
-
-            <hr class="my-4">
-
-            <!-- Buttons -->
-            <div class="flex justify-start items-center gap-2 mt-4">
-                <a href="{{ route('it.issue.index') }}" 
-                   class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
-                   ← Back
-                </a>
-
-                <button type="submit" id="submitBtn"
-                   class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
-                   <i data-feather="save" class="h-4 w-4"></i>
-                   Save
-                </button>
-            </div>
-        </form>
+      <button type="submit" id="submitBtn"
+              class="flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow w-full sm:w-32 text-center">
+              <i data-feather="save" class="h-4 w-4"></i> Save
+      </button>
     </div>
+
+  </form>
+</div>
+
 </div>
 
 

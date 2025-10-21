@@ -265,14 +265,6 @@ if (
     return $row->checker ? $row->checker->name : '-';
 })
 
-->addColumn('verification_by', function ($row) {
-    return $row->verifier ? $row->verifier->name : '-';
-})
-
-->addColumn('authorized_by', function ($row) {
-    return $row->authorizer ? $row->authorizer->name : '-';
-})
-
 ->addColumn('done_by', function ($row) {
     return $row->finisher ? $row->finisher->name : '-';
 })
@@ -283,7 +275,7 @@ if (
 
 ->editColumn('status', function ($row) {
 
-    $commonClasses = 'inline-block text-center w-48 text-gray-100 text-xs font-medium p-1 rounded-xl';
+    $commonClasses = 'inline-block text-center w-24 text-gray-100 text-xs font-medium p-1 rounded-xl';
 
     if ($row->status === 'Pending') {
         return '<span class="bg-gray-500 ' . $commonClasses . '">Pending</span>';
@@ -602,7 +594,7 @@ public function checking(Request $request, $id)
     }
 }
   // IT mengubah status menjadi Done (dengan CA/PA & Evidence)
-   public function done(Request $request, $id)
+ public function done(Request $request, $id)
 {
     $ticket = IssueTracker::findOrFail($id);
 
@@ -613,57 +605,72 @@ public function checking(Request $request, $id)
 
     $request->validate([
         'assigned_by'     => 'required|string',
-        'work_start'    => 'required|date',
-        'work_end'      => 'required|date|after_or_equal:work_start',
-        'note_done'        => 'nullable|string',
-        'evidence_before'  => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
-        'evidence_after'   => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
+        'work_start'      => 'required|date',
+        'work_end'        => 'required|date|after_or_equal:work_start',
+        'note_done'       => 'nullable|string',
+        'evidence_before' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
+        'evidence_after'  => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
     ]);
 
-$photoBeforeName = null;
-$photoAfterName  = null;
-
     $destinationPath = '/home/abimany3/public_html/evidence';
+    $photoBeforeName = null;
+    $photoAfterName  = null;
 
-    // Upload file sebelum
-if ($request->hasFile('evidence_before')) {
-    $beforeFile = $request->file('evidence_before');
-    $beforeName = time() . '_before_' . $beforeFile->getClientOriginalName();
-    $beforeFile->move($destinationPath, $beforeName);
+    // === Fungsi bantu untuk buat nama unik ===
+    $makeUniqueName = function ($path, $filename) {
+        $fileInfo = pathinfo($filename);
+        $baseName = $fileInfo['filename'];
+        $extension = isset($fileInfo['extension']) ? '.' . $fileInfo['extension'] : '';
+        $counter = 1;
 
-    // Hanya simpan nama file (tidak termasuk folder)
-    $photoBeforeName = $beforeName;
-}
+        // Jika nama file sudah ada, tambahkan _1, _2, dst
+        $newName = $filename;
+        while (file_exists($path . '/' . $newName)) {
+            $newName = $baseName . '_' . $counter . $extension;
+            $counter++;
+        }
 
-// Upload file sesudah
-if ($request->hasFile('evidence_after')) {
-    $afterFile = $request->file('evidence_after');
-    $afterName = time() . '_after_' . $afterFile->getClientOriginalName();
-    $afterFile->move($destinationPath, $afterName);
+        return $newName;
+    };
 
-    // Hanya simpan nama file (tidak termasuk folder)
-    $photoAfterName = $afterName;
-}
+    // === Upload file "Before" ===
+    if ($request->hasFile('evidence_before')) {
+        $beforeFile = $request->file('evidence_before');
+        $originalName = 'before_' . $beforeFile->getClientOriginalName();
+        $uniqueBeforeName = $makeUniqueName($destinationPath, $originalName);
+        $beforeFile->move($destinationPath, $uniqueBeforeName);
+        $photoBeforeName = $uniqueBeforeName;
+    }
 
-    // Update data ticket
+    // === Upload file "After" ===
+    if ($request->hasFile('evidence_after')) {
+        $afterFile = $request->file('evidence_after');
+        $originalName = 'after_' . $afterFile->getClientOriginalName();
+        $uniqueAfterName = $makeUniqueName($destinationPath, $originalName);
+        $afterFile->move($destinationPath, $uniqueAfterName);
+        $photoAfterName = $uniqueAfterName;
+    }
+
+    // === Update data ticket ===
     $ticket->update([
         'assigned_by'      => $request->assigned_by,
-        'work_start'    => $request->work_start,
-        'work_end'      => $request->work_end,
-        'note_done'          => $request->note_done,
+        'work_start'       => $request->work_start,
+        'work_end'         => $request->work_end,
+        'note_done'        => $request->note_done,
         'evidence_before'  => $photoBeforeName,
         'evidence_after'   => $photoAfterName,
-        'status'        => 'Done',
-        'done_by' => auth()->id(),
-        'done_at'       => now(),
+        'status'           => 'Done',
+        'done_by'          => auth()->id(),
+        'done_at'          => now(),
     ]);
 
     return response()->json([
-        'success'  => true,
-        'message'  => 'Pekerjaan berhasil diselesaikan!',
+        'success' => true,
+        'message' => 'Pekerjaan berhasil diselesaikan!',
         'request_number' => $ticket->request_number
     ]);
 }
+
 
     public function close(Request $request)
     {

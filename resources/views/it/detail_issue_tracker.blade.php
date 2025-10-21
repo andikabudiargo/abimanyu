@@ -57,483 +57,470 @@
 
 <hr class=" border border-gray-600">
 
-<div class="flex flex-col md:flex-row gap-6 mb-2">
-  <!-- MAIN CONTENT: PO Info + Items -->
-  <div class="w-full md:w-2/3 border border-gray-200 bg-white shadow-md rounded-xl p-4 md:p-6">
+    <div class="flex flex-col md:flex-row gap-4 mb-2 items-stretch">
+    <!-- MAIN CONTENT: PO Info + Items -->
+    <div class="w-full md:w-2/3 border border-gray-200 bg-white shadow-md rounded-xl p-4 md:p-6 h-full">
+        
+        <!-- Purchase Order Information -->
+
+        <div class="flex flex-row flex-wrap justify-between items-center mb-6 md:mb-8">
+        <h3 class="text-lg md:text-xl font-semibold text-gray-700">
+            Informasi Dasar
+        </h3>
     
-    <!-- Purchase Order Information -->
-
-       <div class="flex flex-row flex-wrap justify-between items-center mb-6 md:mb-8">
-    <h3 class="text-lg md:text-xl font-semibold text-gray-700">
-        Informasi Dasar
-    </h3>
-   
-   <span class="px-3 py-1 rounded-full font-semibold text-sm {{ $urgencyColor }}">
-    {{ $urgency }}
-</span>
-</div>
-
-
-       <div class="text-sm mb-6 md:mb-8">
-        <div class="text-sm mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div>
-        <div class="text-gray-500 font-medium mb-1">Lokasi Area Perbaikan</div>
-        <div class="text-gray-800 uppercase">{{ $request->location_area }}</div>
+    <span class="px-3 py-1 rounded-full font-semibold text-sm {{ $urgencyColor }}">
+        {{ $urgency }}
+    </span>
     </div>
 
-    <div>
-        <div class="text-gray-500 font-medium mb-1">Jenis Fasilitas / Area</div>
-        <div class="text-gray-800 uppercase">{{ $request->request_type }}</div>
-    </div>
-</div>
 
-
-        <div class="text-gray-500 font-medium mb-2">Lampiran Bukti Kerusakan</div>
-
-@if($request->attachment)
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between bg-gray-100 p-3 rounded shadow-sm mb-4">
-        <div class="mb-2 md:mb-0">
-            <p class="text-sm font-medium text-gray-800">{{ $request->attachment }}</p>
+        <div class="text-sm mb-6 md:mb-8">
+            <div class="text-sm mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+            <div class="text-gray-500 font-medium mb-1">Lokasi Area Perbaikan</div>
+            <div class="text-gray-800 uppercase">{{ $request->location_area }}</div>
         </div>
-        <div class="flex gap-2 flex-wrap">
-            <!-- Watch -->
-            <a href="{{ asset('attachment/' . $request->attachment) }}" target="_blank" class="inline-flex items-center text-blue-600 hover:underline">
-                <i data-feather="eye" class="w-4 h-4 mr-1"></i> Watch
-            </a>
 
-            <!-- Download -->
-            <a href="{{ asset('attachment/' . $request->attachment) }}" download="{{ $request->attachment }}" class="inline-flex items-center text-green-600 hover:underline">
-                <i data-feather="download" class="w-4 h-4 mr-1"></i> Download
-            </a>
+        <div>
+            <div class="text-gray-500 font-medium mb-1">Jenis Fasilitas / Area</div>
+            <div class="text-gray-800 uppercase">{{ $request->request_type }}</div>
         </div>
     </div>
-@else
-    <p class="text-gray-500 italic">No Attachment</p>
-@endif
 
 
-       
-      </div>
+            <div class="text-gray-500 font-medium mb-2">Lampiran Bukti Kerusakan</div>
 
-       <h4 class="text-gray-700 font-semibold mb-2">Description Issue</h4>
-       <div class="border border-gray-400 rounded-lg shadow-md p-6 mb-6">
-   <!-- Description -->
-<div class="flex items-center gap-3 mb-4">
-    <span class="text-green-500 text-sm">📝</span>
-    <div>
-        <h3 class="text-sm font-semibold">Deskripsi Kerusakan / Kebutuhan</h3>
-        <p class="text-gray-700 mt-1">{{ $request->description }}</p>
-    </div>
-</div>
+    @if($request->attachment)
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between bg-gray-100 p-3 rounded shadow-sm mb-4">
+            <div class="mb-2 md:mb-0">
+                <p class="text-sm font-medium text-gray-800">{{ $request->attachment }}</p>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+                <!-- Watch -->
+                <a href="{{ asset('attachment/' . $request->attachment) }}" target="_blank" class="inline-flex items-center text-blue-600 hover:underline">
+                    <i data-feather="eye" class="w-4 h-4 mr-1"></i> Watch
+                </a>
 
-<!-- Recommendation -->
-<div class="flex items-center gap-3">
-    <span class="text-yellow-500 text-sm">💡</span>
-    <div>
-        <h3 class="text-sm font-semibold">Rekomendasi / Saran Pemohon</h3>
-        <p class="text-gray-700 mt-1">{{ $request->recommendation }}</p>
-    </div>
-</div>
-
-</div>
-
-<!-- NAVBAR (horizontal, hover teal) -->
-<nav class="mt-4 flex justify-start space-x-8 p-2 border-b border-gray-200">
-  <!-- Pemeriksaan -->
-  <a href="#pengecekan" class="group flex items-center space-x-2 text-gray-600 transition-colors relative pb-2">
-    <i data-feather="check-circle" class="w-5 h-5 transition-colors group-hover:text-teal-600"></i>
-    <span class="text-sm font-medium transition-colors group-hover:text-teal-600 hidden md:inline">Pemeriksaan Awal</span>
-    <span class="absolute bottom-0 left-0 w-0 h-[2px] bg-teal-600 transition-all duration-300 group-hover:w-full"></span>
-  </a>
-
-  <!-- Hasil -->
-  <a href="#pelaksanaan" class="group flex items-center space-x-2 text-gray-600 transition-colors relative pb-2">
-    <i data-feather="file-text" class="w-5 h-5 transition-colors group-hover:text-teal-600"></i>
-    <span class="text-sm font-medium transition-colors group-hover:text-teal-600 hidden md:inline">Pelaksanaan Pekerjaan</span>
-    <span class="absolute bottom-0 left-0 w-0 h-[2px] bg-teal-600 transition-all duration-300 group-hover:w-full"></span>
-  </a>
-</nav>
-
-
-
-
-<div id="pemeriksaan">
-    @if(in_array($request->status, ['Pending', 'Approved', 'Rejected']))
-        <div class="mt-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 font-semibold rounded-md">
-            ⚠ Belum Dilakukan Pemeriksaan
+                <!-- Download -->
+                <a href="{{ asset('attachment/' . $request->attachment) }}" download="{{ $request->attachment }}" class="inline-flex items-center text-green-600 hover:underline">
+                    <i data-feather="download" class="w-4 h-4 mr-1"></i> Download
+                </a>
+            </div>
         </div>
     @else
+        <p class="text-gray-500 italic">No Attachment</p>
+    @endif
+
+
+        
+        </div>
+
+        <h4 class="text-gray-700 font-semibold mb-2">Description Issue</h4>
+        <div class="border border-gray-400 rounded-lg shadow-md p-6 mb-6">
+    <!-- Description -->
+    <div class="flex items-center gap-3 mb-4">
+        <span class="text-green-500 text-sm">📝</span>
+        <div>
+            <h3 class="text-sm font-semibold">Deskripsi Kerusakan / Kebutuhan</h3>
+            <p class="text-gray-700 mt-1">{{ $request->description }}</p>
+        </div>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="flex items-center gap-3">
+        <span class="text-yellow-500 text-sm">💡</span>
+        <div>
+            <h3 class="text-sm font-semibold">Rekomendasi / Saran Pemohon</h3>
+            <p class="text-gray-700 mt-1">{{ $request->recommendation }}</p>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- NAVBAR (horizontal, hover teal) -->
+    <nav class="mt-4 flex justify-start space-x-8 p-2 border-b border-gray-200">
+    <!-- Pemeriksaan -->
+    <a href="#pengecekan" class="group flex items-center space-x-2 text-gray-600 transition-colors relative pb-2">
+        <i data-feather="check-circle" class="w-5 h-5 transition-colors group-hover:text-teal-600"></i>
+        <span class="text-sm font-medium transition-colors group-hover:text-teal-600 hidden md:inline">Pemeriksaan Awal</span>
+        <span class="absolute bottom-0 left-0 w-0 h-[2px] bg-teal-600 transition-all duration-300 group-hover:w-full"></span>
+    </a>
+
+    <!-- Hasil -->
+    <a href="#pelaksanaan" class="group flex items-center space-x-2 text-gray-600 transition-colors relative pb-2">
+        <i data-feather="file-text" class="w-5 h-5 transition-colors group-hover:text-teal-600"></i>
+        <span class="text-sm font-medium transition-colors group-hover:text-teal-600 hidden md:inline">Pelaksanaan Pekerjaan</span>
+        <span class="absolute bottom-0 left-0 w-0 h-[2px] bg-teal-600 transition-all duration-300 group-hover:w-full"></span>
+    </a>
+    </nav>
+
+
+
+
+    <div id="pemeriksaan">
+        @if(in_array($request->status, ['Pending', 'Approved', 'Rejected']))
+            <div class="mt-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 font-semibold rounded-md">
+                ⚠ Belum Dilakukan Pemeriksaan
+            </div>
+        @else
+            <div class="text-sm mb-6 md:mb-8 mt-6">
+                <div class="text-sm mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <div class="text-gray-500 font-medium mb-1">Nama Petugas</div>
+                        <div class="text-gray-800 uppercase">{{ $request->checker->name ?? '-' }}</div>
+                    </div>
+
+                    <div>
+                        <div class="text-gray-500 font-medium mb-1">Tanggal Pemeriksaan</div>
+                        <div class="text-gray-800 uppercase">{{ \Carbon\Carbon::parse($request->checked_at)->format('d-m-Y') }}</div>
+                    </div>
+                </div>
+
+                <div class="text-sm mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <div class="text-gray-500 font-medium mb-1">Hasil Pemeriksaan</div>
+                        <div class="text-gray-800 uppercase">{{ $request->check_result}}</div>
+                    </div>
+
+                    <div>
+                        <div class="text-gray-500 font-medium mb-1">Estimasi Waktu Pengerjaan</div>
+                        <div class="text-gray-800 uppercase">{{ $request->duration_work}} Hari</div>
+                    </div>
+                </div>
+
+                <h4 class="text-gray-700 font-semibold mb-2">Rekomendasi Tindakan</h4>
+                <div class="border border-gray-400 rounded-lg shadow-md p-6 mb-6">
+                    {{$request->recommended_action}}
+                </div>
+
+            <!-- Estimasi Material -->
+    @if($request->materials && $request->materials->count() > 0)
+    <div class="flex flex-col">
+        <h3 class="text-gray-800 font-semibold mb-3 flex items-center gap-2">
+            Estimasi Material
+        </h3>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-700 border-b border-gray-200">
+                        <th class="px-4 py-3 text-left text-sm font-semibold">No</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold">Material</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold">Qty</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold">
+                            {{ empty($material->vendor) ? 'Note' : 'Vendor' }}
+                        </th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold">Satuan</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Subtotal</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-100">
+                    @php $total = 0; @endphp
+                    @foreach($request->materials as $index => $material)
+                        @php $total += $material->subtotal; @endphp
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="px-4 py-3 text-gray-700 text-sm">{{ $index + 1 }}</td>
+                            <td class="px-4 py-3 text-gray-800 font-medium text-sm">{{ $material->material }}</td>
+                            <td class="px-4 py-3 text-gray-600 text-sm">{{ $material->qty }} {{ $material->uom }}</td>
+                            <td class="px-4 py-3 text-gray-600 text-sm">
+                                {{ !empty($material->vendor) ? $material->vendor : 'Pakai Stok Internal' }}
+                            </td>
+                            <td class="px-4 py-3 text-gray-700 text-sm">
+                                Rp {{ number_format($material->price, 0, ',', '.') }}
+                            </td>
+                            <td class="px-4 py-3 text-right text-gray-800 font-semibold text-sm">
+                                Rp {{ number_format($material->subtotal, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+
+                <tfoot>
+                    <tr class="bg-gray-50 border-t border-gray-200">
+                        <td colspan="5" class="px-4 py-3 text-right font-semibold text-gray-700 text-sm">
+                            Estimasi Biaya:
+                        </td>
+                        <td class="px-4 py-3 text-right font-bold text-green-600 text-sm">
+                            Rp {{ number_format($total, 0, ',', '.') }}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    @endif
+
+            </div>
+        @endif
+    </div>
+
+
+    <div id="pelaksanaan">
+
+        @if(!in_array($request->status, ['Done', 'Closed']))
+            <div class="mt-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 font-semibold rounded-md">
+                ⚠ Pekerjaan Masih Dalam Proses
+            </div>
+            @else
+
         <div class="text-sm mb-6 md:mb-8 mt-6">
             <div class="text-sm mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                    <div class="text-gray-500 font-medium mb-1">Nama Petugas</div>
-                    <div class="text-gray-800 uppercase">{{ $request->checker->name ?? '-' }}</div>
-                </div>
-
-                <div>
-                    <div class="text-gray-500 font-medium mb-1">Tanggal Pemeriksaan</div>
-                    <div class="text-gray-800 uppercase">{{ \Carbon\Carbon::parse($request->checked_at)->format('d-m-Y') }}</div>
+                    <div class="text-gray-500 font-medium mb-1">Pelaksana / Vendor</div>
+                    <div class="text-gray-800 uppercase">{{ $request->assigned_by }}</div>
                 </div>
             </div>
 
             <div class="text-sm mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                    <div class="text-gray-500 font-medium mb-1">Hasil Pemeriksaan</div>
-                    <div class="text-gray-800 uppercase">{{ $request->check_result}}</div>
+                    <div class="text-gray-500 font-medium mb-1">Tanggal Mulai</div>
+                    <div class="text-gray-800 uppercase">{{ \Carbon\Carbon::parse($request->work_start)->format('d-m-Y') }}</div>
                 </div>
-
                 <div>
-                    <div class="text-gray-500 font-medium mb-1">Estimasi Waktu Pengerjaan</div>
-                    <div class="text-gray-800 uppercase">{{ $request->duration_work}} Hari</div>
+                    <div class="text-gray-500 font-medium mb-1">Tanggal Selesai</div>
+                    <div class="text-gray-800 uppercase">{{ \Carbon\Carbon::parse($request->work_end)->format('d-m-Y') }}</div>
                 </div>
             </div>
 
-            <h4 class="text-gray-700 font-semibold mb-2">Rekomendasi Tindakan</h4>
+            @php
+                $start = \Carbon\Carbon::parse($request->work_start);
+                $end = \Carbon\Carbon::parse($request->work_end);
+                $actualDays = $start->diffInDays($end) + 1; // termasuk hari pertama
+            @endphp
+
+            @if($actualDays > $request->duration_work)
+                <div class="mt-4 p-4 bg-red-100 border-l-4 border-red-600 text-red-700 font-semibold rounded-md">
+                    ⚠ Peringatan: Durasi aktual pengerjaan <span class="font-bold">{{ $actualDays }} Hari, </span> melebihi estimasi <span class="font-bold">{{ $request->duration_work }} Hari</span>!
+                </div>
+            @endif
+        </div>
+
+        <!-- Catatan Hasil Pekerjaan -->
+        <div class="mb-6">
+            <h4 class="text-gray-700 font-semibold mb-2">Catatan Hasil Pekerjaan:</h4>
             <div class="border border-gray-400 rounded-lg shadow-md p-6 mb-6">
-                {{$request->recommended_action}}
-            </div>
-
-           <!-- Estimasi Material -->
-@if($request->materials && $request->materials->count() > 0)
-<div class="flex flex-col">
-    <h3 class="text-gray-800 font-semibold mb-3 flex items-center gap-2">
-        Estimasi Material
-    </h3>
-
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-            <thead>
-                <tr class="bg-gray-50 text-gray-700 border-b border-gray-200">
-                    <th class="px-4 py-3 text-left text-sm font-semibold">No</th>
-                    <th class="px-4 py-3 text-left text-sm font-semibold">Material</th>
-                    <th class="px-4 py-3 text-left text-sm font-semibold">Qty</th>
-                    <th class="px-4 py-3 text-left text-sm font-semibold">
-                        {{ empty($material->vendor) ? 'Note' : 'Vendor' }}
-                    </th>
-                    <th class="px-4 py-3 text-left text-sm font-semibold">Satuan</th>
-                    <th class="px-4 py-3 text-right text-sm font-semibold">Subtotal</th>
-                </tr>
-            </thead>
-
-            <tbody class="divide-y divide-gray-100">
-                @php $total = 0; @endphp
-                @foreach($request->materials as $index => $material)
-                    @php $total += $material->subtotal; @endphp
-                    <tr class="hover:bg-gray-50 transition-colors duration-200">
-                        <td class="px-4 py-3 text-gray-700 text-sm">{{ $index + 1 }}</td>
-                        <td class="px-4 py-3 text-gray-800 font-medium text-sm">{{ $material->material }}</td>
-                        <td class="px-4 py-3 text-gray-600 text-sm">{{ $material->qty }} {{ $material->uom }}</td>
-                        <td class="px-4 py-3 text-gray-600 text-sm">
-                            {{ !empty($material->vendor) ? $material->vendor : 'Pakai Stok Internal' }}
-                        </td>
-                        <td class="px-4 py-3 text-gray-700 text-sm">
-                            Rp {{ number_format($material->price, 0, ',', '.') }}
-                        </td>
-                        <td class="px-4 py-3 text-right text-gray-800 font-semibold text-sm">
-                            Rp {{ number_format($material->subtotal, 0, ',', '.') }}
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-
-            <tfoot>
-                <tr class="bg-gray-50 border-t border-gray-200">
-                    <td colspan="5" class="px-4 py-3 text-right font-semibold text-gray-700 text-sm">
-                        Estimasi Biaya:
-                    </td>
-                    <td class="px-4 py-3 text-right font-bold text-green-600 text-sm">
-                        Rp {{ number_format($total, 0, ',', '.') }}
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-</div>
-@endif
-
-        </div>
-    @endif
-</div>
-
-
-<div id="pelaksanaan">
-
-    @if(!in_array($request->status, ['Done', 'Closed']))
-        <div class="mt-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 font-semibold rounded-md">
-            ⚠ Pekerjaan Masih Dalam Proses
-        </div>
-         @else
-
-    <div class="text-sm mb-6 md:mb-8 mt-6">
-        <div class="text-sm mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-                <div class="text-gray-500 font-medium mb-1">Pelaksana / Vendor</div>
-                <div class="text-gray-800 uppercase">{{ $request->assigned_by }}</div>
+                {{ $request->note_done ?? '-' }}
             </div>
         </div>
 
-        <div class="text-sm mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-                <div class="text-gray-500 font-medium mb-1">Tanggal Mulai</div>
-                <div class="text-gray-800 uppercase">{{ \Carbon\Carbon::parse($request->work_start)->format('d-m-Y') }}</div>
+        <!-- Foto Before & After -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="flex flex-col">
+                <h4 class="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                    <i data-feather="camera" class="w-4 h-4"></i>
+                    Foto Sebelum
+                </h4>
+                @if($request->evidence_before)
+                    <img src="{{ asset('storage/'.$request->photo_before) }}" 
+                        alt="Foto Sebelum" 
+                        class="rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] transition-transform duration-300">
+                @else
+                    <div class="text-gray-500 text-sm italic">Belum ada foto sebelum</div>
+                @endif
             </div>
-            <div>
-                <div class="text-gray-500 font-medium mb-1">Tanggal Selesai</div>
-                <div class="text-gray-800 uppercase">{{ \Carbon\Carbon::parse($request->work_end)->format('d-m-Y') }}</div>
+
+            <div class="flex flex-col">
+                <h4 class="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                    <i data-feather="camera-off" class="w-4 h-4"></i>
+                    Foto Sesudah
+                </h4>
+                @if($request->evidence_after)
+                    <img src="{{ asset('storage/'.$request->photo_after) }}" 
+                        alt="Foto Sesudah" 
+                        class="rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] transition-transform duration-300">
+                @else
+                    <div class="text-gray-500 text-sm italic">Belum ada foto sesudah</div>
+                @endif
             </div>
         </div>
-
-        @php
-            $start = \Carbon\Carbon::parse($request->work_start);
-            $end = \Carbon\Carbon::parse($request->work_end);
-            $actualDays = $start->diffInDays($end) + 1; // termasuk hari pertama
-        @endphp
-
-        @if($actualDays > $request->duration_work)
-            <div class="mt-4 p-4 bg-red-100 border-l-4 border-red-600 text-red-700 font-semibold rounded-md">
-                ⚠ Peringatan: Durasi aktual <span class="font-bold">{{ $actualDays }} Hari</span> melebihi estimasi <span class="font-bold">{{ $request->duration_work }} Hari</span>!
-            </div>
         @endif
     </div>
+        
 
-    <!-- Catatan Hasil Pekerjaan -->
-    <div class="mb-6">
-        <h4 class="text-gray-700 font-semibold mb-2">Catatan Hasil Pekerjaan:</h4>
-        <div class="border border-gray-400 rounded-lg shadow-md p-6 mb-6">
-            {{ $request->note_done ?? '-' }}
-        </div>
     </div>
 
-    <!-- Foto Before & After -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="flex flex-col">
-            <h4 class="text-gray-700 font-semibold mb-2 flex items-center gap-2">
-                <i data-feather="camera" class="w-4 h-4"></i>
-                Foto Sebelum
-            </h4>
-            @if($request->evidence_before)
-                <img src="{{ asset('storage/'.$request->photo_before) }}" 
-                     alt="Foto Sebelum" 
-                     class="rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] transition-transform duration-300">
-            @else
-                <div class="text-gray-500 text-sm italic">Belum ada foto sebelum</div>
-            @endif
+    <!-- SIDEBAR: Verifikasi & Evaluasi -->
+    <div class="w-full md:w-1/3 bg-white shadow-md border border-gray-200 rounded-xl p-4 md:p-6 mb-6 h-full">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg md:text-xl font-semibold text-gray-700">Verifikasi & Evaluasi</h3>
+            <i data-feather="briefcase" class="text-gray-700 w-5 h-5"></i>
         </div>
 
-        <div class="flex flex-col">
-            <h4 class="text-gray-700 font-semibold mb-2 flex items-center gap-2">
-                <i data-feather="camera-off" class="w-4 h-4"></i>
-                Foto Sesudah
-            </h4>
-            @if($request->evidence_after)
-                <img src="{{ asset('storage/'.$request->photo_after) }}" 
-                     alt="Foto Sesudah" 
-                     class="rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] transition-transform duration-300">
-            @else
-                <div class="text-gray-500 text-sm italic">Belum ada foto sesudah</div>
-            @endif
+        <!-- Kesesuaian Hasil Pengerjaan -->
+        <div class="mb-4">
+            <div class="text-gray-500 font-medium mb-1">Kesesuaian Hasil Pengerjaan</div>
+            <div class="text-gray-800 uppercase">
+                {{ $request->work_verification ?? 'Belum Ditentukan' }}
+            </div>
         </div>
-    </div>
-     @endif
-</div>
-       
-
-  </div>
-
-  <!-- SIDEBAR: Verifikasi & Evaluasi -->
-<div class="w-full md:w-1/3 bg-white shadow-md border border-gray-200 rounded-xl p-4 md:p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg md:text-xl font-semibold text-gray-700">Verifikasi & Evaluasi</h3>
-        <i data-feather="briefcase" class="text-gray-700 w-5 h-5"></i>
-    </div>
-
-    <!-- Kesesuaian Hasil Pengerjaan -->
+    <!-- Persetujuan Hasil Perbaikan -->
     <div class="mb-4">
-        <div class="text-gray-500 font-medium mb-1">Kesesuaian Hasil Pengerjaan</div>
-        <div class="text-gray-800 uppercase">
-            {{ $request->work_verification ?? 'Belum Ditentukan' }}
-        </div>
-    </div>
-<!-- Persetujuan Hasil Perbaikan -->
-<div class="mb-4">
-    <div class="text-gray-500 font-medium mb-1">Persetujuan Hasil Perbaikan</div>
-    <div class="uppercase font-semibold">
-        @if(isset($request->confirmation))
-            @if($request->confirmation == 1)
-                <span class="text-gray-800">Disetujui</span>
-            @elseif($request->confirmation == 0)
-                <span class="text-gray-800">Tidak Disetujui</span>
+        <div class="text-gray-500 font-medium mb-1">Persetujuan Hasil Perbaikan</div>
+        <div class="uppercase font-semibold">
+            @if(isset($request->confirmation))
+                @if($request->confirmation == 1)
+                    <span class="text-gray-800">Disetujui</span>
+                @elseif($request->confirmation == 0)
+                    <span class="text-gray-800">Tidak Disetujui</span>
+                @else
+                    <span class="text-gray-800">Belum Dinilai</span>
+                @endif
             @else
                 <span class="text-gray-800">Belum Dinilai</span>
             @endif
-        @else
-            <span class="text-gray-800">Belum Dinilai</span>
-        @endif
+        </div>
     </div>
-</div>
 
 
-    <!-- Rating Bintang -->
-  <div class="mb-4">
-    <div class="text-gray-500 font-medium mb-1">Rating</div>
+        <!-- Rating Bintang -->
+    <div class="mb-4">
+        <div class="text-gray-500 font-medium mb-1">Rating</div>
 
-    @php
-        $rating = $request->rating ?? 0;
-        $ratingText = [
-            1 => 'Tidak Puas',
-            2 => 'Kurang Puas',
-            3 => 'Cukup Puas',
-            4 => 'Puas',
-            5 => 'Sangat Puas',
-        ];
+        @php
+            $rating = $request->rating ?? 0;
+            $ratingText = [
+                1 => 'Tidak Puas',
+                2 => 'Kurang Puas',
+                3 => 'Cukup Puas',
+                4 => 'Puas',
+                5 => 'Sangat Puas',
+            ];
+        @endphp
+
+        <div class="flex items-center space-x-2 text-yellow-400 text-4xl">
+            @for ($i = 1; $i <= 5; $i++)
+                <div class="relative group">
+                    @if($i <= $rating)
+                        <i class="fas fa-star cursor-pointer"></i>
+                    @else
+                        <i class="far fa-star cursor-pointer text-gray-300"></i>
+                    @endif
+
+                    <!-- Tooltip -->
+                    <div class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                        {{ $ratingText[$i] }}
+                    </div>
+                </div>
+            @endfor
+        </div>
+    </div>
+
+
+
+        <!-- Catatan Evaluasi -->
+        <div>
+            <div class="text-gray-500 font-medium mb-1">Catatan Evaluasi</div>
+            <div class="border border-gray-300 rounded-lg p-3 text-gray-700 text-sm">
+                {{ $request->feedback ?? '-' }}
+            </div>
+        </div>
+
+
+
+
+
+        <hr class="my-4">
+
+        <div class="flex items-center justify-between">
+        <h3 class="text-lg md:text-xl font-semibold text-gray-700">Request Timeline</h3>
+        <i data-feather="clock" class="text-gray-700 w-5 h-5"></i>
+    </div>
+    <hr class="my-4">
+
+        @php
+        $hasTimeline = $request->approved || $request->checked_by || $request->verification_by || $request->authorized_by || $request->done_at || $request->closed_at;
     @endphp
 
-    <div class="flex items-center space-x-2 text-yellow-400 text-4xl">
-        @for ($i = 1; $i <= 5; $i++)
-            <div class="relative group">
-                @if($i <= $rating)
-                    <i class="fas fa-star cursor-pointer"></i>
-                @else
-                    <i class="far fa-star cursor-pointer text-gray-300"></i>
-                @endif
-
-                <!-- Tooltip -->
-                <div class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
-                    {{ $ratingText[$i] }}
+    @if($hasTimeline)
+        {{-- Approved --}}
+        @if($request->approved_by)
+            <div>
+                <div class="text-xs text-yellow-400 uppercase font-semibold mb-1">Approved</div>
+                <div class="flex items-center space-x-2">
+                    <i data-feather="check-circle" class="w-4 h-4 text-yellow-500"></i>
+                    <span>{{ $request->approver->name ?? '-' }} Approved</span>
+                </div>
+                <div class="flex items-center space-x-2 mt-1 mb-4">
+                    <i data-feather="clock" class="w-4 h-4 text-gray-500"></i>
+                    <span>{{ \Carbon\Carbon::parse($request->approved_at)->format('d M Y H:i') }}</span>
                 </div>
             </div>
-        @endfor
-    </div>
-</div>
+        @endif
 
-
-
-    <!-- Catatan Evaluasi -->
-    <div>
-        <div class="text-gray-500 font-medium mb-1">Catatan Evaluasi</div>
-        <div class="border border-gray-300 rounded-lg p-3 text-gray-700 text-sm">
-            {{ $request->feedback ?? '-' }}
-        </div>
-    </div>
-
-
-
-
-
-      <hr class="my-4">
-
-      <div class="flex items-center justify-between">
-    <h3 class="text-lg md:text-xl font-semibold text-gray-700">Request Timeline</h3>
-    <i data-feather="clock" class="text-gray-700 w-5 h-5"></i>
-  </div>
- <hr class="my-4">
-
-    @php
-    $hasTimeline = $request->approved || $request->checked_by || $request->verification_by || $request->authorized_by || $request->done_at || $request->closed_at;
-@endphp
-
-@if($hasTimeline)
-    {{-- Approved --}}
-    @if($request->approved_by)
-        <div>
-            <div class="text-xs text-yellow-400 uppercase font-semibold mb-1">Approved</div>
-            <div class="flex items-center space-x-2">
-                <i data-feather="check-circle" class="w-4 h-4 text-yellow-500"></i>
-                <span>{{ $request->approver->name ?? '-' }} Approved</span>
+        {{-- Checked --}}
+        @if($request->checked_by)
+            <div>
+                <div class="text-xs text-blue-400 uppercase font-semibold mb-1">Checked</div>
+                <div class="flex items-center space-x-2">
+                    <i data-feather="check" class="w-4 h-4 text-blue-500"></i>
+                    <span>{{ $request->checker->name ?? '-' }} Checked</span>
+                </div>
+                <div class="flex items-center space-x-2 mt-1 mb-4">
+                    <i data-feather="clock" class="w-4 h-4 text-gray-500"></i>
+                    <span>{{ \Carbon\Carbon::parse($request->checked_at)->format('d M Y H:i') }}</span>
+                </div>
             </div>
-            <div class="flex items-center space-x-2 mt-1 mb-4">
-                <i data-feather="clock" class="w-4 h-4 text-gray-500"></i>
-                <span>{{ \Carbon\Carbon::parse($request->approved_at)->format('d M Y H:i') }}</span>
-            </div>
-        </div>
-    @endif
+        @endif
 
-    {{-- Checked --}}
-    @if($request->checked_by)
-        <div>
-            <div class="text-xs text-blue-400 uppercase font-semibold mb-1">Checked</div>
-            <div class="flex items-center space-x-2">
-                <i data-feather="check" class="w-4 h-4 text-blue-500"></i>
-                <span>{{ $request->checker->name ?? '-' }} Checked</span>
+        {{-- Authorized --}}
+        @if($request->done_by)
+            <div>
+                <div class="text-xs text-green-400 uppercase font-semibold mb-1">Done</div>
+                <div class="flex items-center space-x-2">
+                    <i data-feather="check-circle" class="w-4 h-4 text-green-500"></i>
+                    <span>{{ $request->finisher->name ?? '-' }} Mark Request as Done</span>
+                </div>
+                <div class="flex items-center space-x-2 mt-1 mb-4">
+                    <i data-feather="clock" class="w-4 h-4 text-gray-500"></i>
+                    <span>{{ \Carbon\Carbon::parse($request->done_at)->format('d M Y H:i') }}</span>
+                </div>
             </div>
-            <div class="flex items-center space-x-2 mt-1 mb-4">
-                <i data-feather="clock" class="w-4 h-4 text-gray-500"></i>
-                <span>{{ \Carbon\Carbon::parse($request->checked_at)->format('d M Y H:i') }}</span>
-            </div>
-        </div>
-    @endif
+        @endif
 
-    {{-- Verification --}}
-    @if($request->verification_by)
-        <div>
-            <div class="text-xs text-orange-400 uppercase font-semibold mb-1">Verification</div>
-            <div class="flex items-center space-x-2">
-                <i data-feather="check-circle" class="w-4 h-4 text-orange-500"></i>
-                <span>{{ $request->verifier->name ?? '-' }} Verified</span>
+        {{-- Closed --}}
+        @if($request->closed_at)
+            <div>
+                <div class="text-xs text-teal-400 uppercase font-semibold mb-1">Closed</div>
+                <div class="flex items-center space-x-2">
+                    <i data-feather="check" class="w-4 h-4 text-teal-400"></i>
+                    <span>{{ $request->closer->name ?? 'Unknown' }} Close Request</span>
+                </div>
+                <div class="flex items-center space-x-2 mb-4 mt-1">
+                    <i data-feather="clock" class="w-4 h-4 text-gray-500"></i>
+                    <span>{{ \Carbon\Carbon::parse($request->closed_at)->format('d M Y H:i') }}</span>
+                </div>
             </div>
-            <div class="flex items-center space-x-2 mt-1 mb-4">
-                <i data-feather="clock" class="w-4 h-4 text-gray-500"></i>
-                <span>{{ \Carbon\Carbon::parse($request->verification_at)->format('d M Y H:i') }}</span>
-            </div>
-        </div>
-    @endif
-
-    {{-- Authorized --}}
-    @if($request->authorized_by)
-        <div>
-            <div class="text-xs text-purple-400 uppercase font-semibold mb-1">Authorized</div>
-            <div class="flex items-center space-x-2">
-                <i data-feather="check-circle" class="w-4 h-4 text-purple-500"></i>
-                <span>{{ $request->authorizer->name ?? '-' }} Authorized</span>
-            </div>
-            <div class="flex items-center space-x-2 mt-1 mb-4">
-                <i data-feather="clock" class="w-4 h-4 text-gray-500"></i>
-                <span>{{ \Carbon\Carbon::parse($request->authorized_at)->format('d M Y H:i') }}</span>
-            </div>
-        </div>
-    @endif
-
-    {{-- Authorized --}}
-    @if($request->done_by)
-        <div>
-            <div class="text-xs text-green-400 uppercase font-semibold mb-1">Done</div>
-            <div class="flex items-center space-x-2">
-                <i data-feather="check-circle" class="w-4 h-4 text-green-500"></i>
-                <span>{{ $request->finisher->name ?? '-' }} Mark Request as Done</span>
-            </div>
-            <div class="flex items-center space-x-2 mt-1 mb-4">
-                <i data-feather="clock" class="w-4 h-4 text-gray-500"></i>
-                <span>{{ \Carbon\Carbon::parse($request->done_at)->format('d M Y H:i') }}</span>
-            </div>
-        </div>
-    @endif
-
-    {{-- Closed --}}
+        @endif
+    {{-- Durasi Ticket --}}
     @if($request->closed_at)
-        <div>
-            <div class="text-xs text-teal-400 uppercase font-semibold mb-1">Closed</div>
+        @php
+            $created = \Carbon\Carbon::parse($request->created_at);
+            $closed = \Carbon\Carbon::parse($request->closed_at);
+            $duration = $created->diffForHumans($closed, [
+                'parts' => 3, // tampilkan maksimal 3 unit (misalnya: "2 hari 3 jam 5 menit")
+                'syntax' => \Carbon\CarbonInterface::DIFF_ABSOLUTE,
+            ]);
+        @endphp
+        <div class="pt-4 p-4 bg-indigo-50 rounded mt-4">
+            <div class="text-xs  text-gray-500 uppercase font-semibold mb-1"> Request Duration</div>
             <div class="flex items-center space-x-2">
-                <i data-feather="check" class="w-4 h-4 text-teal-400"></i>
-                <span>{{ $request->closer->name ?? 'Unknown' }} Close Request</span>
-            </div>
-            <div class="flex items-center space-x-2 mb-4 mt-1">
-                <i data-feather="clock" class="w-4 h-4 text-gray-500"></i>
-                <span>{{ \Carbon\Carbon::parse($request->closed_at)->format('d M Y H:i') }}</span>
+                <i data-feather="clock" class="w-4 h-4 text-gray-400"></i>
+                <span>{{ $duration }}</span>
             </div>
         </div>
     @endif
+    @else
+        {{-- Jika belum ada timeline --}}
+        <div class="text-sm text-gray-500 italic text-center py-6">
+            No Timeline Added Yet
+        </div>
+    @endif
 
-@else
-    {{-- Jika belum ada timeline --}}
-    <div class="text-sm text-gray-500 italic text-center py-6">
-        No Timeline Added Yet
+        
+        
     </div>
-@endif
-
-      
-      
-</div>
-    </div>
+        </div>
 <hr>
   <div class="flex flex-wrap justify-start gap-2 mt-4">
     <a href="{{ route('it.issue.index') }}" 

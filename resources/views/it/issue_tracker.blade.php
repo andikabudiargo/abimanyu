@@ -209,9 +209,7 @@
         <option value="">-- All --</option>
         <option value="Pending">Pending</option>
         <option value="Approved">Approved</option>
-        <option value="Checked">Checked</option>
-        <option value="Verified">Verified</option>
-        <option value="Authorized">Authorized</option>
+        <option value="Work in Progress">Work in Progress</option>
         <option value="Done">Done</option>
         <option value="Closed">Closed</option>
         <option value="Rejected">Rejected</option>
@@ -248,18 +246,14 @@
                     <th class="px-4 py-2">Jenis Fasilitas</th>
                     <th class="px-4 py-2">Lokasi Perbaikan</th>
                     <th class="px-4 py-2 text-center">Urgensi</th>
-                    <th class="px-4 py-2 !text-center">Status</th>
+                    <th class="px-4 py-2 !w-24 !text-center">Status</th>
                     <th class="px-4 py-2">Departemen</th>
                     <th class="px-4 py-2">Pemohon</th>
                     <th class="px-4 py-2">Tanggal Permintaan</th>
                     <th class="px-4 py-2">Disetujui Oleh</th>
                     <th class="px-4 py-2">Tanggal Disetujui</th>
-                    <th class="px-4 py-2">Diperiksa Oleh</th>
-                    <th class="px-4 py-2">Tanggal Diperiksa</th>
                     <th class="px-4 py-2">Diverifikasi Oleh</th>
                     <th class="px-4 py-2">Tanggal Verifikasi</th>
-                    <th class="px-4 py-2">Disahkan Oleh</th>
-                    <th class="px-4 py-2">Tanggal Disahkan</th>
                     <th class="px-4 py-2">Diselesaikan Oleh</th>
                     <th class="px-4 py-2">Tanggal Selesai</th>
                     <th class="px-4 py-2">Dikonfirmasi Oleh</th>
@@ -1137,41 +1131,46 @@ $('#initialCheckForm').on('submit', function (e) {
         }
     });
 
-    // Submit form
-    $('#doneForm').on('submit', function (e) {
-        e.preventDefault();
+    // Submit form Done
+$('#doneForm').on('submit', function (e) {
+    e.preventDefault();
 
-       let form = $(this);
-       let id = $('#done_id').val(); // ambil ID dari hidden input
-       let url = '/it/issue-tracker/' + id + '/done'; // sesuaikan route sesuai controller kamu
-       let data = form.serialize();
+    let form = $(this)[0]; // ambil elemen form
+    let id = $('#done_id').val(); // ambil ID dari hidden input
+    let url = '/it/issue-tracker/' + id + '/done'; // route ke controller kamu
+
+    // Gunakan FormData agar bisa kirim file
+    let formData = new FormData(form);
 
     $.ajax({
         url: url,
         method: 'POST',
-        data: data,
+        data: formData,
+        processData: false,  // penting agar jQuery tidak ubah data
+        contentType: false,  // penting agar header multipart/form-data dikirim
         success: function (res) {
             if (res.success) {
                 showToast('success', res.message);
 
-                // Reload tabel jika pakai DataTable
+                // Reload DataTable kalau ada
                 if ($('#issue-table').length) {
                     $('#issue-table').DataTable().ajax.reload(null, false);
                 }
 
                 // Tutup modal & reset form
-                closeModal('doneForm');
-                form[0].reset();
+                closeModal('doneModal');
+                $('#doneForm')[0].reset();
             } else {
                 showToast('error', res.message || 'Gagal menyimpan data.');
             }
         },
         error: function (xhr) {
             console.error(xhr.responseText);
-            showToast('error', 'Terjadi kesalahan saat menyimpan pengecekan awal.');
+            showToast('error', 'Terjadi kesalahan saat menyimpan data.');
         }
     });
 });
+
 
 
  // Submit form
@@ -1433,10 +1432,6 @@ language: {
         { data: 'approved_at', name: 'approved_at',  className: 'text-center', orderable: false },
         { data: 'checked_by', name: 'checked_by.name', orderable: false },
         { data: 'checked_at', name: 'checked_at',  className: 'text-center', orderable: false },
-        { data: 'verification_by', name: 'verification_by',  className: 'text-center', orderable: false },
-        { data: 'verification_at', name: 'verification_at',  className: 'text-center', orderable: false },
-        { data: 'authorized_by', name: 'authorized_by',  className: 'text-center', orderable: false },
-        { data: 'authorized_at', name: 'authorized_at',  className: 'text-center', orderable: false },
         { data: 'done_by', name: 'done_by',  className: 'text-center', orderable: false },
         { data: 'done_at', name: 'done_at',  className: 'text-center', orderable: false },
         { data: 'closed_by', name: 'closed_by',  className: 'text-center', orderable: false },
