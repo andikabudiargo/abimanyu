@@ -304,7 +304,7 @@
             </div>
         </div>
 
-       <!-- Foto Before & After -->
+        <!-- Foto Before & After -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <!-- Foto Sebelum -->
     <div class="flex flex-col">
@@ -340,9 +340,12 @@
         @endif
     </div>
 </div>
-    </div>
-    </div>
 
+        @endif
+    </div>
+        
+
+    </div>
 
     <!-- SIDEBAR: Verifikasi & Evaluasi -->
     <div class="w-full md:w-1/3 bg-white shadow-md border border-gray-200 rounded-xl p-4 md:p-6 mb-6 h-full">
