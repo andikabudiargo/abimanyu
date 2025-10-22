@@ -163,7 +163,7 @@ $assignTickets = DB::table('tickets')
    if ($request->date) {
     $dates = explode(' to ', $request->date);
 
-    if (count($dates) === 2) {
+    if (count($dates) == 2) {
         $start = Carbon::parse($dates[0])->startOfDay();
         $end   = Carbon::parse($dates[1])->endOfDay();
         $query->whereBetween('created_at', [$start, $end]);
@@ -200,7 +200,7 @@ if (!in_array('Superuser', $userRoles)) {
     $user = Auth::user();
     $userRoles = $user->roles->pluck('name');
     $userDepartments = $user->departments->pluck('name');
-    $isOwner = $row->request_by === Auth::id();
+    $isOwner = $row->request_by == Auth::id();
     $detail_url = route('it.ticket.show', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $edit_url = route('it.ticket.edit', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $ticketNumber = $row->ticket_number ?? 'Unknown';
@@ -225,7 +225,7 @@ $actionButtons = '
 
 
     // Tombol edit + delete default untuk owner jika status Pending
-if ($isOwner && $row->status === 'Pending') {
+if ($isOwner && $row->status == 'Pending') {
     // Jika pengaju BUKAN IT Special Access → tampilkan tombol delete
     if (!$userRoles->contains('IT Special Access')) {
         $actionButtons .= '
@@ -246,7 +246,7 @@ if ($isOwner && $row->status === 'Pending') {
 }
    // Tampilkan tombol Approve/Reject jika status masih Pending dan role & dept cocok
 if (
-    $row->status === 'Pending' && // ✅ tambahkan ini
+    $row->status == 'Pending' && // ✅ tambahkan ini
     $userRoles->contains(function ($role) {
         return in_array($role, ['Supervisor Special Access', 'Manager Special Access']);
     }) &&
@@ -265,7 +265,7 @@ if (
    $categoryDeptName = $row->category->department->name ?? null;
 
 if (
-    $row->status === 'Approved' &&
+    $row->status == 'Approved' &&
     ($userRoles->contains('IT Special Access') || $userRoles->contains('Supervisor Special Access')) &&
     $categoryDeptName &&
     $userDepartments->contains($categoryDeptName)
@@ -289,8 +289,8 @@ if (
 
 
 if (
-    $row->status === 'Work in Progress' &&
-    $row->processed_by === Auth::id()// hanya user yang memproses
+    $row->status == 'Work in Progress' &&
+    $row->processed_by == Auth::id()// hanya user yang memproses
 ) {
     $actionButtons .= '
       <button onclick="openHoldModal(' . $id . ')" class="block w-full text-left px-4 py-2 hover:bg-orange-100 text-orange-700">
@@ -302,8 +302,8 @@ if (
 }
 
 if (
-    $row->status === 'On Hold' &&
-    $row->processed_by === Auth::id()// hanya user yang memproses
+    $row->status == 'On Hold' &&
+    $row->processed_by == Auth::id()// hanya user yang memproses
 ) {
    $actionButtons .= '
   <button onclick="resumeTicket(' . $id . ')" class="block w-full text-left px-4 py-2 hover:bg-teal-100 text-teal-700">
@@ -313,8 +313,8 @@ if (
 }
 
 if (
-    $row->status === 'Done' &&
-    $row->request_by === Auth::id()// hanya user yang memproses
+    $row->status == 'Done' &&
+    $row->request_by == Auth::id()// hanya user yang memproses
 ) {
    $actionButtons .= '
  <button onclick="showCloseModal(' . $id . ')" class="block w-full text-left px-4 py-2 hover:bg-green-100 text-green-700">
@@ -349,7 +349,7 @@ if (
 
 
 ->editColumn('status', function ($row) {
-    if ($row->status === 'On Hold') {
+    if ($row->status == 'On Hold') {
         $lastHold = $row->holds()->latest('start_at')->first();
         $reason = $lastHold ? $lastHold->reason : 'No reason';
         $startAt = $lastHold
@@ -377,32 +377,32 @@ if ($lastHold) {
 
     $commonClasses = 'inline-block w-28 text-center text-gray-100 text-xs font-medium p-1 rounded-xl';
 
-    if ($row->status === 'Pending') {
+    if ($row->status == 'Pending') {
         return '<span class="bg-gray-500 ' . $commonClasses . '">Pending</span>';
-    } elseif ($row->status === 'Approved') {
+    } elseif ($row->status == 'Approved') {
         return '<span class="bg-yellow-500 ' . $commonClasses . '">Approved</span>';
-    } elseif ($row->status === 'Work in Progress') {
+    } elseif ($row->status == 'Work in Progress') {
         return '<span class="bg-blue-500 ' . $commonClasses . '">Work in Progress</span>';
-    } elseif ($row->status === 'Done') {
+    } elseif ($row->status == 'Done') {
         return '<span class="bg-green-500 ' . $commonClasses . '">Done</span>';
-    } elseif ($row->status === 'Closed') {
+    } elseif ($row->status == 'Closed') {
         return '<span class="bg-teal-500 ' . $commonClasses . '">Closed</span>';
-    } elseif ($row->status === 'Rejected') {
+    } elseif ($row->status == 'Rejected') {
         return '<span class="bg-red-500 ' . $commonClasses . '">Rejected</span>';
     }
 })
 ->editColumn('priority', function ($row) {
     $commonClasses = 'inline-block w-24 text-center text-xs font-semibold p-1 rounded-lg';
 
-    if ($row->priority === 'Low') {
+    if ($row->priority == 'Low') {
         return '<span class="text-green-600 ' . $commonClasses . '">Low</span>';
-    } elseif ($row->priority === 'Medium') {
+    } elseif ($row->priority == 'Medium') {
         return '<span class="text-blue-600 ' . $commonClasses . '">Medium</span>';
-    } elseif ($row->priority === 'Urgent') {
+    } elseif ($row->priority == 'Urgent') {
         return '<span class="text-yellow-600 ' . $commonClasses . '">Urgent</span>';
-    } elseif ($row->priority === 'Critical') {
+    } elseif ($row->priority == 'Critical') {
         return '<span class="text-red-600 ' . $commonClasses . '">Critical</span>';
-    } elseif ($row->priority === 'Under Review') {
+    } elseif ($row->priority == 'Under Review') {
         return '<span class="text-gray-600 ' . $commonClasses . '">Under Review</span>';
     }
 
@@ -780,7 +780,7 @@ public function hold(Request $request, $id)
         'custom_hold_reason' => 'nullable|string',
     ]);
 
-    $reason = $request->hold_reason === 'Other' ? $request->custom_hold_reason : $request->hold_reason;
+    $reason = $request->hold_reason == 'Other' ? $request->custom_hold_reason : $request->hold_reason;
 
     // simpan riwayat hold
     $ticket->holds()->create([
@@ -995,7 +995,7 @@ $user = auth()->user();
     $statusOptions = [];
 
     // Hanya user tertentu yang bisa ubah status
-    if ($user->id === $ticket->request_by || $user->id === $ticket->approved_by || $user->id === $ticket->processed_by) {
+    if ($user->id == $ticket->request_by || $user->id == $ticket->approved_by || $user->id == $ticket->processed_by) {
         // Status awal -> bisa diubah ke:
        switch ($ticket->status) {
     case 'Pending':
