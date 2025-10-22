@@ -37,9 +37,13 @@ use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ReceivingController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\IssueTrackerController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\WorkstationController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\PushTestController;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -52,6 +56,11 @@ Route::get('/check-session', function () {
         return response()->json(['message' => 'Unauthenticated'], 401);
     }
     return response()->json(['message' => 'OK'], 200);
+});
+
+Route::post('/save-subscription', function(Request $request){
+    Storage::put('subscription.json', json_encode($request->all()));
+    return response()->json(['success' => true]);
 });
 
 
@@ -110,6 +119,7 @@ Route::prefix('hr')->name('hr.')->group(function () {
     Route::post('/department/store', [DepartmentController::class, 'store'])->name('department.store');
      Route::get('/position/index', [PositionController::class, 'index'])->name('position.index');
       Route::get('/position/create', [PositionController::class, 'create'])->name('position.create');
+       Route::get('/employee/create', [EmployeeController::class, 'index'])->name('employee.create');
 });
 
 Route::prefix('facility')->name('facility.')->group(function () {

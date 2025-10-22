@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="en" data-pc-preset="preset-1" data-pc-sidebar-caption="true" data-pc-direction="ltr" dir="ltr" data-pc-theme="light">
   <head>
-    <title>@yield('title', 'Home') | Abimanyu Internal System</title>
+    <title>@yield('title', 'Home') | Abimanyu Live System</title>
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="description" content="Datta Able dashboard template using Bootstrap 5." />
+    <meta name="description" content="Abimanyu Live System for Internal Program" />
     <meta name="keywords" content="Bootstrap, dashboard, admin, template" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="author" content="CodedThemes" />
@@ -32,6 +32,57 @@
     <link rel="stylesheet" href="{{ asset('template/dist/assets/fonts/fontawesome.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/dist/assets/fonts/material.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/dist/assets/css/style.css') }}" id="main-style-link" />
+    <script>
+(async () => {
+    if (!('serviceWorker' in navigator)) return;
+
+    try {
+        // Daftarkan Service Worker
+        const registration = await navigator.serviceWorker.register('/sw.js');
+
+        // Cek apakah user sudah subscribe
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (!subscription) {
+            // Minta izin notifikasi
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                console.log('User menolak notifikasi');
+                return;
+            }
+
+            // Subscribe ke push service
+            const publicVapidKey = 'BBAfrtprjFligRL4j4i2tVkB6gH2uMA6esnWUBMVgcdByFMCNAQVck1tOd1JwuRtgrb6ndoTYNRM7i2E6dE4ag0';
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+            });
+
+            // Kirim ke server untuk disimpan
+            await fetch('/save-subscription', {
+                method: 'POST',
+                body: JSON.stringify(subscription),
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            console.log('Berhasil subscribe dan disimpan di server');
+        } else {
+            console.log('Sudah pernah subscribe sebelumnya');
+        }
+    } catch (err) {
+        console.error('Gagal subscribe:', err);
+    }
+
+    // Helper untuk convert VAPID key
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+    }
+})();
+</script>
+
 
     @stack('styles')
   <style>
