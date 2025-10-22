@@ -1039,7 +1039,7 @@ public function dailyReport()
     $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
     $drawing->setName('Logo');
     $drawing->setDescription('Company Logo');
-    $drawing->setPath('/home/public_html/img/logo-2.jpg');
+    $drawing->setPath('/home/abimany3/public_html/img/logo-2.jpg');
     $drawing->setCoordinates('A4');  // Posisi kiri atas logo
     $drawing->setHeight(60);
     $sheet->mergeCells('A1:A10');
