@@ -41,13 +41,15 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\IssueTrackerController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\WorkstationController;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Minishlink\WebPush\Subscription;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\PushTestController;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
-use Minishlink\WebPush\WebPush;
-use Minishlink\WebPush\Subscription;
+use Minishlink\WebPush\WebPush; 
 
 // Arahkan root "/" ke login
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->middleware('guest')->name('login');
@@ -60,10 +62,16 @@ Route::get('/check-session', function () {
     return response()->json(['message' => 'OK'], 200);
 });
 
-Route::post('/save-subscription', function (Illuminate\Http\Request $request) {
-    $sub = $request->all();
-    // Simpan ke storage/app/subscription.json atau database
-    Storage::put('subscription.json', json_encode($sub));
+Route::post('/save-subscription', function(Request $request){
+    $userId = Auth::id();
+    $subscription = $request->all();
+    $ipAddress = $request->ip();
+
+    DB::table('subscriptions')->updateOrInsert(
+        ['user_id' => $userId, 'subscription' => json_encode($subscription)],
+        ['ip_address' => $ipAddress, 'updated_at' => now()]
+    );
+
     return response()->json(['success' => true]);
 });
 
@@ -96,7 +104,6 @@ Route::get('/send-push', function () {
 
     return 'Push dikirim!';
 });
-
 
 
 

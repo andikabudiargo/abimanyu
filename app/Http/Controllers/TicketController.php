@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use App\Models\Department;
@@ -20,6 +19,9 @@ use App\Models\Ticket;
 use App\Models\TicketEvidence;
 use App\Models\TicketAttachment;
 use App\Mail\TicketRequestMail;
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
+use App\Models\DeviceSubscription;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
@@ -100,7 +102,7 @@ $assignTickets = DB::table('tickets')
 
 
 
-        return view('it.ticket', compact(
+        return view('maintenance', compact(
             'departments',
         'totalTickets',
         'openTickets',
@@ -152,9 +154,10 @@ $assignTickets = DB::table('tickets')
 
 
 
-    if ($request->category) {
-    $query->where('category_id', $request->category);
+   if ($request->category && is_array($request->category)) {
+    $query->whereIn('category_id', $request->category);
 }
+
 
 
    if ($request->date) {
@@ -193,6 +196,7 @@ if (!in_array('Superuser', $userRoles)) {
    ->addColumn('action', function ($row) {
     $id = $row->id;
     $dropdownId = 'dropdown-' . $row->id;
+
     $user = Auth::user();
     $userRoles = $user->roles->pluck('name');
     $userDepartments = $user->departments->pluck('name');
@@ -221,7 +225,7 @@ $actionButtons = '
 
 
     // Tombol edit + delete default untuk owner jika status Pending
-if ($isOwner && $row->status == 'Pending') {
+if ($isOwner && $row->status === 'Pending') {
     // Jika pengaju BUKAN IT Special Access → tampilkan tombol delete
     if (!$userRoles->contains('IT Special Access')) {
         $actionButtons .= '
@@ -286,7 +290,7 @@ if (
 
 if (
     $row->status === 'Work in Progress' &&
-    $row->processed_by == Auth::id()// hanya user yang memproses
+    $row->processed_by === Auth::id()// hanya user yang memproses
 ) {
     $actionButtons .= '
       <button onclick="openHoldModal(' . $id . ')" class="block w-full text-left px-4 py-2 hover:bg-orange-100 text-orange-700">
@@ -299,7 +303,7 @@ if (
 
 if (
     $row->status === 'On Hold' &&
-    $row->processed_by == Auth::id()// hanya user yang memproses
+    $row->processed_by === Auth::id()// hanya user yang memproses
 ) {
    $actionButtons .= '
   <button onclick="resumeTicket(' . $id . ')" class="block w-full text-left px-4 py-2 hover:bg-teal-100 text-teal-700">
@@ -310,7 +314,7 @@ if (
 
 if (
     $row->status === 'Done' &&
-    $row->request_by == Auth::id()// hanya user yang memproses
+    $row->request_by === Auth::id()// hanya user yang memproses
 ) {
    $actionButtons .= '
  <button onclick="showCloseModal(' . $id . ')" class="block w-full text-left px-4 py-2 hover:bg-green-100 text-green-700">
@@ -443,28 +447,20 @@ if ($lastHold) {
     foreach ($request->file('attachments') as $file) {
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension = $file->getClientOriginalExtension();
-        $storagePath = '/home/abimany3/public_html/tickets'; // GANTI sesuai real path di hosting
+        $storagePath = 'tickets';
         $fullName = $originalName . '.' . $extension;
         $i = 1;
 
-        if (!file_exists($storagePath)) {
-            mkdir($storagePath, 0755, true);
-        }
-
-        while (file_exists($storagePath . '/' . $fullName)) {
+        // Cek apakah file sudah ada di storage
+        while (Storage::disk('public')->exists($storagePath . '/' . $fullName)) {
             $fullName = $originalName . '_' . $i . '.' . $extension;
             $i++;
         }
 
-        // Coba simpan dan tangkap error kalau ada
-        try {
-            $file->move($storagePath, $fullName);
-        } catch (\Exception $e) {
-            \Log::error('Upload gagal: ' . $e->getMessage());
-        }
+        // Simpan file
+        $path = $file->storeAs($storagePath, $fullName, 'public');
 
-        $path = 'tickets/' . $fullName;
-
+        // Simpan ke database
         DB::table('ticket_attachments')->insert([
             'ticket_id' => $ticket->id,
             'path' => $path,
@@ -472,6 +468,42 @@ if ($lastHold) {
         ]);
     }
 }
+
+ // ID user yang ingin dikirimi notifikasi
+$targetUserIds = [2, 9, 39];
+
+// Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->whereIn('user_id', $targetUserIds)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $requestorName = $ticket->requestor->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => 'Abimanyu Live | Helpdesk Ticketing System',
+        'body'  => "$requestorName Request Ticket Baru: $ticket->ticket_number",
+        'url'   => url("/it/tickets/{$ticket->id}")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
 
 
     return response()->json([
@@ -687,6 +719,10 @@ public function resume(Request $request, $id)
         return response()->json(['success' => false, 'message' => 'Ticket is not on hold.']);
     }
 
+    if ($ticket->processed_by !== auth()->id()) {
+        return response()->json(['success' => false, 'message' => 'You are not authorized to resume this ticket.']);
+    }
+
     $lastHold = $ticket->holds()->latest('start_at')->first();
     if ($lastHold && !$lastHold->end_at) {
         $lastHold->end_at = now();
@@ -708,6 +744,10 @@ public function resume(Request $request, $id)
 {
     $ticket = Ticket::findOrFail($id);
 
+    if ($ticket->processed_by !== Auth::id()) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
     $request->validate([
         'corrective_action' => 'nullable|string',
         'evidence' => 'nullable|array', // Bisa banyak file
@@ -719,17 +759,24 @@ public function resume(Request $request, $id)
     $ticket->status = 'Done';
     $ticket->save();
 
-    // Simpan semua evidence ke tabel ticket_evidences
     if ($request->hasFile('evidence')) {
-        foreach ($request->file('evidence') as $file) {
-            $filename = $file->store('evidence', 'public');
+    foreach ($request->file('evidence') as $file) {
+        // Folder tujuan di hosting
+        $destinationPath = '/home/abimany3/public_html/evidence';
 
-            TicketEvidence::create([
-                'ticket_id' => $ticket->id,
-                'path'      => $filename
-            ]);
-        }
+        // Nama file unik supaya tidak overwrite
+        $filename = time() . '_' . $file->getClientOriginalName();
+
+        // Pindahkan file
+        $file->move($destinationPath, $filename);
+
+        TicketEvidence::create([
+            'ticket_id' => $ticket->id,
+            'path'      => 'evidence/' . $filename  // simpan path relatif
+        ]);
     }
+}
+
 
      if (!empty($ticket->requestor->email)) {
     Mail::to($ticket->requestor->email)
@@ -746,6 +793,10 @@ public function resume(Request $request, $id)
    public function close(Request $request, $id)
 {
     $ticket = Ticket::findOrFail($id);
+
+    if ($ticket->request_by !== Auth::id()) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
 
       $request->validate([
             'feedback' => 'nullable|string',
@@ -814,7 +865,7 @@ public function dailyReport()
     $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
     $drawing->setName('Logo');
     $drawing->setDescription('Company Logo');
-   $drawing->setPath('/home/abimany3/public_html/img/logo-2.jpg');
+    $drawing->setPath(public_path('img/logo-2.jpg'));
     $drawing->setCoordinates('A4');  // Posisi kiri atas logo
     $drawing->setHeight(60);
     $sheet->mergeCells('A1:A10');
@@ -1076,3 +1127,4 @@ $sheet->getStyle("A{$startRow}:{$endColumn}{$lastRow}")->applyFromArray([
 
 
 }
+
