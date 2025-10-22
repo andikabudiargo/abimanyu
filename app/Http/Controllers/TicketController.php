@@ -498,7 +498,7 @@ foreach ($subscriptions as $subRow) {
     $webPush->sendOneNotification($sub, json_encode([
         'title' => 'Abimanyu Live | Helpdesk Ticketing System',
         'body'  => "$requestorName Request Ticket Baru: $ticket->ticket_number",
-        'url'   => url("/it/tickets/{$ticket->id}")
+        'url'   => url("/it/ticket/detail/{$ticket->id}")
     ]));
 }
 
@@ -650,7 +650,7 @@ public function approve($id)
 $webPush->sendOneNotification($sub, json_encode([
     'title' => 'Abimanyu Live | Helpdesk Ticketing System',
     'body'  => "Ticket $ticket->ticket_number telah disetujui oleh $approverName, silahkan diproses.",
-    'url'   => url("/it/tickets/detail/{$ticket->id}")
+    'url'   => url("/it/ticket/detail/{$ticket->id}")
 ]));
 
     }
