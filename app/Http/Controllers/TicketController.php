@@ -498,7 +498,7 @@ foreach ($subscriptions as $subRow) {
     $webPush->sendOneNotification($sub, json_encode([
         'title' => '🛠️ Helpdesk Ticketing System | Abimanyu Live',
         'body'  => "$requestorName Request Ticket Baru: $ticket->ticket_number",
-        'url'   => url("/it/tickets/{$ticket->id}")
+        'url'   => url("/it/ticket/{$ticket->id}")
     ]));
 }
 
