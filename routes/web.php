@@ -68,7 +68,8 @@ Route::post('/save-subscription', function (Illuminate\Http\Request $request) {
 });
 
 Route::get('/send-push', function () {
-    $path = storage_path('app/subscription.json');
+    $path = storage_path('app/public/subscription.json'); // path lengkap
+
     if (!file_exists($path)) return '❌ subscription.json tidak ditemukan.';
 
     $subscriptionArray = json_decode(file_get_contents($path), true);
@@ -95,6 +96,7 @@ Route::get('/send-push', function () {
 
     return 'Push dikirim!';
 });
+
 
 
 
