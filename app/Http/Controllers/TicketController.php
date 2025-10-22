@@ -834,11 +834,11 @@ public function resume(Request $request, $id)
 {
     $ticket = Ticket::findOrFail($id);
 
-    if ($ticket->status !== 'On Hold') {
+    if ($ticket->status != 'On Hold') {
         return response()->json(['success' => false, 'message' => 'Ticket is not on hold.']);
     }
 
-    if ($ticket->processed_by !== auth()->id()) {
+    if ($ticket->processed_by != auth()->id()) {
         return response()->json(['success' => false, 'message' => 'You are not authorized to resume this ticket.']);
     }
 
@@ -893,7 +893,7 @@ public function resume(Request $request, $id)
 {
     $ticket = Ticket::findOrFail($id);
 
-    if ($ticket->processed_by !== Auth::id()) {
+    if ($ticket->processed_by != Auth::id()) {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
 
@@ -968,7 +968,7 @@ public function resume(Request $request, $id)
 {
     $ticket = Ticket::findOrFail($id);
 
-    if ($ticket->request_by !== Auth::id()) {
+    if ($ticket->request_by != Auth::id()) {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
 
