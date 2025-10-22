@@ -443,31 +443,38 @@ if ($lastHold) {
         'created_at' => now(),
     ]);
 
-   if ($request->hasFile('attachments')) {
+  if ($request->hasFile('attachments')) {
     foreach ($request->file('attachments') as $file) {
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension = $file->getClientOriginalExtension();
-        $storagePath = 'tickets';
         $fullName = $originalName . '.' . $extension;
         $i = 1;
 
-        // Cek apakah file sudah ada di storage
-        while (Storage::disk('public')->exists($storagePath . '/' . $fullName)) {
+        $destinationPath = '/home/abimany3/public_html/attachment';
+
+        // Pastikan folder tujuan ada
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+
+        // Cek apakah file sudah ada
+        while (file_exists($destinationPath . '/' . $fullName)) {
             $fullName = $originalName . '_' . $i . '.' . $extension;
             $i++;
         }
 
-        // Simpan file
-        $path = $file->storeAs($storagePath, $fullName, 'public');
+        // Simpan file ke folder hosting
+        $file->move($destinationPath, $fullName);
 
-        // Simpan ke database
+        // Simpan ke database (hanya nama file)
         DB::table('ticket_attachments')->insert([
-            'ticket_id' => $ticket->id,
-            'path' => $path,
+            'ticket_id'  => $ticket->id,
+            'path'       => $fullName, // hanya nama file + ekstensi
             'created_at' => now(),
         ]);
     }
 }
+
 
  // ID user yang ingin dikirimi notifikasi
 $targetUserIds = [2, 9, 39];
