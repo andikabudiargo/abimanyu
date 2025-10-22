@@ -625,12 +625,38 @@ public function approve($id)
     $ticket->save();
 
     
-   $emails = [
-    'it@asnusantara.co.id',
-    'it2@asnusantara.co.id'
-];
+    // Ambil subscription untuk user id 2 dan 39
+    $subscriptions = DB::table('subscriptions')
+        ->whereIn('user_id', [2, 39])
+        ->get();
 
-Mail::to($emails)->send(new TicketProcessMail($ticket));
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => 'mailto:it2@asnusantara.co.id',
+            'publicKey' => env('VAPID_PUBLIC_KEY'),
+            'privateKey' => env('VAPID_PRIVATE_KEY'),
+        ],
+        'automaticPadding' => true
+    ]);
+
+    foreach ($subscriptions as $subRow) {
+        $subData = json_decode($subRow->subscription, true);
+        if (!$subData) continue;
+
+        $sub = Subscription::create($subData);
+
+       $approverName = $ticket->approved->name ?? auth()->user()->name ?? 'Manager';
+
+$webPush->sendOneNotification($sub, json_encode([
+    'title' => 'Abimanyu Live | Helpdesk Ticketing System',
+    'body'  => "Ticket $ticket->ticket_number telah disetujui oleh $approverName, silahkan diproses.",
+    'url'   => url("/it/tickets/detail/{$ticket->id}")
+]));
+
+    }
+
+    $webPush->flush();
+
 
 
     return response()->json([
