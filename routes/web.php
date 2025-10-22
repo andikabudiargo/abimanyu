@@ -46,6 +46,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\PushTestController;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
 
 // Arahkan root "/" ke login
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->middleware('guest')->name('login');
@@ -58,10 +60,42 @@ Route::get('/check-session', function () {
     return response()->json(['message' => 'OK'], 200);
 });
 
-Route::post('/save-subscription', function(Request $request){
-    Storage::put('subscription.json', json_encode($request->all()));
+Route::post('/save-subscription', function (Illuminate\Http\Request $request) {
+    $sub = $request->all();
+    // Simpan ke storage/app/subscription.json atau database
+    Storage::put('subscription.json', json_encode($sub));
     return response()->json(['success' => true]);
 });
+
+Route::get('/send-push', function () {
+    $path = storage_path('app/subscription.json');
+    if (!file_exists($path)) return '❌ subscription.json tidak ditemukan.';
+
+    $subscriptionArray = json_decode(file_get_contents($path), true);
+    if (!$subscriptionArray) return '❌ JSON subscription tidak valid.';
+
+    $sub = Subscription::create($subscriptionArray);
+
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => 'mailto:it2@asnusantara.co.id',
+            'publicKey' => env('VAPID_PUBLIC_KEY'),
+            'privateKey' => env('VAPID_PRIVATE_KEY'),
+        ],
+        'automaticPadding' => true
+    ]);
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => 'Test Notification',
+        'body'  => 'Push berjalan di Laravel',
+        'url'   => '/'
+    ]));
+
+    $webPush->flush();
+
+    return 'Push dikirim!';
+});
+
 
 
 Route::get('/dashboard', [DashboardController::class, 'index'])

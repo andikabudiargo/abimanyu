@@ -32,37 +32,29 @@
     <link rel="stylesheet" href="{{ asset('template/dist/assets/fonts/fontawesome.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/dist/assets/fonts/material.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/dist/assets/css/style.css') }}" id="main-style-link" />
-    <script>
+   <script>
 (async () => {
     if (!('serviceWorker' in navigator)) return;
 
     try {
-        // Daftarkan Service Worker
         const registration = await navigator.serviceWorker.register('/sw.js');
 
-        // Cek apakah user sudah subscribe
         let subscription = await registration.pushManager.getSubscription();
 
         if (!subscription) {
-            // Minta izin notifikasi
             const permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-                console.log('User menolak notifikasi');
-                return;
-            }
+            if (permission !== 'granted') return console.log('User menolak notifikasi');
 
-            // Subscribe ke push service
-            const publicVapidKey = 'BBAfrtprjFligRL4j4i2tVkB6gH2uMA6esnWUBMVgcdByFMCNAQVck1tOd1JwuRtgrb6ndoTYNRM7i2E6dE4ag0';
+            const publicVapidKey = '{{ env("VAPID_PUBLIC_KEY") }}';
             subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
             });
 
-            // Kirim ke server untuk disimpan
             await fetch('/save-subscription', {
                 method: 'POST',
-                body: JSON.stringify(subscription),
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify(subscription)
             });
 
             console.log('Berhasil subscribe dan disimpan di server');
@@ -73,11 +65,10 @@
         console.error('Gagal subscribe:', err);
     }
 
-    // Helper untuk convert VAPID key
     function urlBase64ToUint8Array(base64String) {
         const padding = '='.repeat((4 - base64String.length % 4) % 4);
         const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-        const rawData = window.atob(base64);
+        const rawData = atob(base64);
         return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
     }
 })();
