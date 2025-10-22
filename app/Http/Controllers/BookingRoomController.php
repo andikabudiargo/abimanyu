@@ -9,11 +9,13 @@ use App\Mail\BookingRoomRequest;
 use App\Mail\BookingRoomApproved;
 use App\Mail\BookingRoomCancelled;
 use Illuminate\Support\Facades\Mail;
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -158,10 +160,34 @@ public function getUserBookings()
             'cancel_at' => now(),
         ]);
 
-        if (!empty($booking->creator->email)) {
-    Mail::to($booking->creator->email)
-        ->send(new BookingRoomCancelled($booking));
-}
+        // Ambil subscription creator booking
+        $subscriptions = DB::table('subscriptions')
+            ->where('user_id', $booking->created_by)
+            ->get();
+
+        $webPush = new WebPush([
+            'VAPID' => [
+                'subject' => 'mailto:it2@asnusantara.co.id',
+                'publicKey' => env('VAPID_PUBLIC_KEY'),
+                'privateKey' => env('VAPID_PRIVATE_KEY'),
+            ],
+            'automaticPadding' => true
+        ]);
+
+        foreach ($subscriptions as $subRow) {
+            $subData = json_decode($subRow->subscription, true);
+            if (!$subData) continue;
+
+            $sub = Subscription::create($subData);
+
+            $webPush->sendOneNotification($sub, json_encode([
+                'title' => "❌ Booking Cancelled | Abimanyu Live",
+                'body'  => "Booking untuk {$booking->room->name} dibatalkan oleh Admin GA. Alasan: $cancelReason",
+                'url'   => url("/facility/booking-room/index"),
+            ]));
+        }
+
+        $webPush->flush();
 
         return response()->json([
             'message' => 'Booking has been cancelled by Admin GA.'
@@ -175,6 +201,35 @@ public function getUserBookings()
             'cancel_by' => $user->id,
             'cancel_at' => now(),
         ]);
+
+        // Ambil subscription Admin GA (user_id = 45)
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', 45)
+        ->get();
+
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => 'mailto:it2@asnusantara.co.id',
+            'publicKey' => env('VAPID_PUBLIC_KEY'),
+            'privateKey' => env('VAPID_PRIVATE_KEY'),
+        ],
+        'automaticPadding' => true
+    ]);
+ $creatorName = $booking->creator->name ?? 'User';
+    foreach ($subscriptions as $subRow) {
+        $subData = json_decode($subRow->subscription, true);
+        if (!$subData) continue;
+
+        $sub = Subscription::create($subData);
+
+        $webPush->sendOneNotification($sub, json_encode([
+            'title' => "⚠️ Booking Cancelled | Abimanyu Live",
+            'body'  => "Booking untuk {$booking->room->name} dibatalkan oleh {$creatorName}",
+            'url'   => url("/facility/booking-room/index"),
+        ]));
+    }
+
+    $webPush->flush();
 
         return response()->json([
             'message' => 'Booking successfully cancelled.'
@@ -239,13 +294,38 @@ public function getUserBookings()
         'created_by'   => Auth::id(),
     ]);
 
-    // Kirim email notifikasi
-    $bookingEmail = [
-        'admin.generalaffair@asnusantara.co.id',
-        'it2@asnusantara.co.id'
-    ];
+   $subscriptions = DB::table('subscriptions')
+        ->where('user_id', 45)
+        ->get();
 
-    Mail::to($bookingEmail)->send(new BookingRoomRequest($booking));
+    if ($subscriptions->isNotEmpty()) {
+        $webPush = new WebPush([
+            'VAPID' => [
+                'subject' => 'mailto:it2@asnusantara.co.id',
+                'publicKey' => env('VAPID_PUBLIC_KEY'),
+                'privateKey' => env('VAPID_PRIVATE_KEY'),
+            ],
+            'automaticPadding' => true
+        ]);
+
+        foreach ($subscriptions as $subRow) {
+            $subData = json_decode($subRow->subscription, true);
+            if (!$subData) continue;
+
+            $sub = Subscription::create($subData);
+
+             $creatorName = $booking->creator->name ?? 'User';
+    $roomName    = $booking->room->name ?? 'Tidak Diketahui';
+
+         $webPush->sendOneNotification($sub, json_encode([
+        'title' => "📌 Booking Room System | Abimanyu Live",
+        'body'  => "$creatorName mengajukan booking untuk ruangan $roomName",
+        'url'   => url("/facility/booking-room/index")
+    ]));
+}
+
+        $webPush->flush();
+    }
 
     return response()->json([
         'success' => true,
@@ -382,10 +462,39 @@ $sheet->getStyle("A3:{$highestColumn}{$highestRow}")->applyFromArray([
         'approved_by' => auth()->id(),
     ]);
 
-    if (!empty($booking->creator->email)) {
-    Mail::to($booking->creator->email)
-        ->send(new BookingRoomApproved($booking));
-}
+     // Kirim Web Push ke creator
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', $booking->created_by) // hanya ke creator
+        ->get();
+
+    if ($subscriptions->isNotEmpty()) {
+        $webPush = new WebPush([
+            'VAPID' => [
+                'subject' => 'mailto:it2@asnusantara.co.id',
+                'publicKey' => env('VAPID_PUBLIC_KEY'),
+                'privateKey' => env('VAPID_PRIVATE_KEY'),
+            ],
+            'automaticPadding' => true
+        ]);
+
+        foreach ($subscriptions as $subRow) {
+            $subData = json_decode($subRow->subscription, true);
+            if (!$subData) continue;
+
+            $sub = Subscription::create($subData);
+
+            $creatorName = $booking->creator->name ?? 'User';
+            $roomName    = $booking->room->name ?? 'Ruangan';
+
+            $webPush->sendOneNotification($sub, json_encode([
+                'title' => "✅ Booking Room Approved | Abimanyu Live",
+                'body'  => "Halo $creatorName, Booking \"$roomName\" berhasil disetujui oleh Admin GA.",
+                'url'   => url("facility/booking-room/index")
+            ]));
+        }
+
+        $webPush->flush();
+    }
     return response()->json([
         'success' => true, 
         'message' => 'Booking successfully Approved.'

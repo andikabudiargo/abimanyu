@@ -496,9 +496,9 @@ foreach ($subscriptions as $subRow) {
     $requestorName = $ticket->requestor->name ?? 'User'; // fallback jika null
 
     $webPush->sendOneNotification($sub, json_encode([
-        'title' => 'Abimanyu Live | Helpdesk Ticketing System',
+        'title' => '🛠️ Helpdesk Ticketing System | Abimanyu Live',
         'body'  => "$requestorName Request Ticket Baru: $ticket->ticket_number",
-        'url'   => url("/it/ticket/detail/{$ticket->id}")
+        'url'   => url("/it/tickets/{$ticket->id}")
     ]));
 }
 
@@ -648,9 +648,9 @@ public function approve($id)
        $approverName = $ticket->approved->name ?? auth()->user()->name ?? 'Manager';
 
 $webPush->sendOneNotification($sub, json_encode([
-    'title' => 'Abimanyu Live | Helpdesk Ticketing System',
+    'title' => '🛠️ Helpdesk Ticketing System | Abimanyu Live',
     'body'  => "Ticket $ticket->ticket_number telah disetujui oleh $approverName, silahkan diproses.",
-    'url'   => url("/it/ticket/detail/{$ticket->id}")
+    'url'   => url("/it/tickets/detail/{$ticket->id}")
 ]));
 
     }
@@ -679,6 +679,36 @@ public function reject(Request $request, $id)
     $ticket->reject_at = now();
     $ticket->save();
 
+     // Kirim Web Push ke requestor
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', $ticket->request_by)
+        ->get();
+
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => 'mailto:it2@asnusantara.co.id',
+            'publicKey' => env('VAPID_PUBLIC_KEY'),
+            'privateKey' => env('VAPID_PRIVATE_KEY'),
+        ],
+        'automaticPadding' => true
+    ]);
+
+    foreach ($subscriptions as $subRow) {
+        $subData = json_decode($subRow->subscription, true);
+        if (!$subData) continue; // skip jika subscription tidak valid
+
+        $sub = Subscription::create($subData);
+
+
+        $webPush->sendOneNotification($sub, json_encode([
+            'title' => "❌ Ticket Rejected | Abimanyu Live",
+            'body'  => "Ticket {$ticket->ticket_number} ditolak untuk diproses. Alasan: {$ticket->rejected_reason}",
+            'url'   => url("/it/tickets/detail/{$ticket->id}")
+        ]));
+    }
+
+    $webPush->flush();
+
      return response()->json([
         'success' => true,
         'message' => 'Ticket rejected successfully.',
@@ -700,6 +730,39 @@ public function process(Request $request, $id)
     $ticket->processed_by = auth()->id(); // jika ingin mencatat siapa yang proses
     $ticket->processed_at = now();
     $ticket->save();
+
+     // Kirim Web Push ke requestor
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', $ticket->request_by)
+        ->get();
+
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => 'mailto:it2@asnusantara.co.id',
+            'publicKey' => env('VAPID_PUBLIC_KEY'),
+            'privateKey' => env('VAPID_PRIVATE_KEY'),
+        ],
+        'automaticPadding' => true
+    ]);
+
+    foreach ($subscriptions as $subRow) {
+        $subData = json_decode($subRow->subscription, true);
+        if (!$subData) continue; // skip jika subscription tidak valid
+
+        $sub = Subscription::create($subData);
+
+
+       $processorName = $ticket->processor->name ?? 'User'; // fallback jika null
+
+$webPush->sendOneNotification($sub, json_encode([
+    'title' => "⏳ Ticket on Process | Abimanyu Live",
+    'body'  => "Ticket {$ticket->ticket_number} yang anda ajukan akan diproses oleh $processorName",
+    'url'   => url("/it/tickets/detail/{$ticket->id}"),
+]));
+
+    }
+
+    $webPush->flush();
 
     return response()->json([
         'success' => true,
@@ -730,6 +793,36 @@ public function hold(Request $request, $id)
     $ticket->status = 'On Hold';
     $ticket->save();
 
+    // Kirim Web Push ke requestor
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', $ticket->request_by)
+        ->get();
+
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => 'mailto:it2@asnusantara.co.id',
+            'publicKey' => env('VAPID_PUBLIC_KEY'),
+            'privateKey' => env('VAPID_PRIVATE_KEY'),
+        ],
+        'automaticPadding' => true
+    ]);
+
+    foreach ($subscriptions as $subRow) {
+        $subData = json_decode($subRow->subscription, true);
+        if (!$subData) continue; // skip jika subscription tidak valid
+
+        $sub = Subscription::create($subData);
+
+
+        $webPush->sendOneNotification($sub, json_encode([
+            'title' => "🛑 Ticket On Hold | Abimanyu Live",
+            'body'  => "Ticket {$ticket->ticket_number} ditahan sementara. Alasan: {$ticket->hold_reason}",
+            'url'   => url("/it/tickets/detail/{$ticket->id}")
+        ]));
+    }
+
+    $webPush->flush();
+
     return response()->json([
         'success' => true,
         'message' => 'Ticket status set to Waiting.',
@@ -757,6 +850,36 @@ public function resume(Request $request, $id)
 
     $ticket->status = 'Work in Progress';
     $ticket->save();
+
+     // Kirim Web Push ke requestor
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', $ticket->request_by)
+        ->get();
+
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => 'mailto:it2@asnusantara.co.id',
+            'publicKey' => env('VAPID_PUBLIC_KEY'),
+            'privateKey' => env('VAPID_PRIVATE_KEY'),
+        ],
+        'automaticPadding' => true
+    ]);
+
+    foreach ($subscriptions as $subRow) {
+        $subData = json_decode($subRow->subscription, true);
+        if (!$subData) continue; // skip jika subscription tidak valid
+
+        $sub = Subscription::create($subData);
+
+
+        $webPush->sendOneNotification($sub, json_encode([
+            'title' => "▶️ Ticket Resume | Abimanyu Live",
+            'body'  => "Ticket {$ticket->ticket_number} dilanjutkan kembali untuk diproses",
+            'url'   => url("/it/tickets/detail/{$ticket->id}")
+        ]));
+    }
+
+    $webPush->flush();
 
      return response()->json([
         'success' => true,
@@ -804,10 +927,35 @@ public function resume(Request $request, $id)
 }
 
 
-     if (!empty($ticket->requestor->email)) {
-    Mail::to($ticket->requestor->email)
-        ->send(new TicketDoneMail($ticket));
-}
+     // Kirim Web Push ke requestor
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', $ticket->request_by)
+        ->get();
+
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => 'mailto:it2@asnusantara.co.id',
+            'publicKey' => env('VAPID_PUBLIC_KEY'),
+            'privateKey' => env('VAPID_PRIVATE_KEY'),
+        ],
+        'automaticPadding' => true
+    ]);
+
+    foreach ($subscriptions as $subRow) {
+        $subData = json_decode($subRow->subscription, true);
+        if (!$subData) continue; // skip jika subscription tidak valid
+
+        $sub = Subscription::create($subData);
+
+
+        $webPush->sendOneNotification($sub, json_encode([
+            'title' => "✅ Ticket Has Done | Abimanyu Live",
+            'body'  => "Ticket {$ticket->ticket_number} telah selesai, silahkan dicek kembali dan close sesegera mungkin",
+            'url'   => url("/it/tickets/detail/{$ticket->id}")
+        ]));
+    }
+
+    $webPush->flush();
 
     return response()->json([
         'success' => true,
