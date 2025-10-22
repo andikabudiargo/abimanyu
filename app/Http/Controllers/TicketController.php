@@ -1204,7 +1204,7 @@ $sheet->addChart($chart);
 $evidence = $t->evidences->first();
 
 if ($evidence) {
-   $imagePath = '/home/abimany3/public_html/evidence/' . $evidence->path;
+   $imagePath = '/home/abimany3/public_html/' . $evidence->path;
 
     if (file_exists($imagePath)) {
         // Tentukan ukuran gambar
