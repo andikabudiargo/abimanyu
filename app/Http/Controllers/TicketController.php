@@ -102,7 +102,7 @@ $assignTickets = DB::table('tickets')
 
 
 
-        return view('maintenance', compact(
+        return view('it.ticket', compact(
             'departments',
         'totalTickets',
         'openTickets',
