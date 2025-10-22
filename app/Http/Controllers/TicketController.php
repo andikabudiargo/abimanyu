@@ -1039,13 +1039,7 @@ public function dailyReport()
     $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
     $drawing->setName('Logo');
     $drawing->setDescription('Company Logo');
-   $path = public_path('img/logo-2.jpg');
-
-if (!file_exists($path)) {
-    $path = base_path('public_html/img/logo-2.jpg');
-}
-
-$drawing->setPath($path);
+    $drawing->setPath('/home/public_html/img/logo-2.jpg');
     $drawing->setCoordinates('A4');  // Posisi kiri atas logo
     $drawing->setHeight(60);
     $sheet->mergeCells('A1:A10');
