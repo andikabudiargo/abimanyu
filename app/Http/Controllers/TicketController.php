@@ -650,7 +650,7 @@ public function approve($id)
 $webPush->sendOneNotification($sub, json_encode([
     'title' => '🛠️ Helpdesk Ticketing System | Abimanyu Live',
     'body'  => "Ticket $ticket->ticket_number telah disetujui oleh $approverName, silahkan diproses.",
-    'url'   => url("/it/tickets/detail/{$ticket->id}")
+    'url'   => url("/it/ticket/detail/{$ticket->id}")
 ]));
 
     }
@@ -703,7 +703,7 @@ public function reject(Request $request, $id)
         $webPush->sendOneNotification($sub, json_encode([
             'title' => "❌ Ticket Rejected | Abimanyu Live",
             'body'  => "Ticket {$ticket->ticket_number} ditolak untuk diproses. Alasan: {$ticket->rejected_reason}",
-            'url'   => url("/it/tickets/detail/{$ticket->id}")
+            'url'   => url("/it/ticket/detail/{$ticket->id}")
         ]));
     }
 
@@ -757,7 +757,7 @@ public function process(Request $request, $id)
 $webPush->sendOneNotification($sub, json_encode([
     'title' => "⏳ Ticket on Process | Abimanyu Live",
     'body'  => "Ticket {$ticket->ticket_number} yang anda ajukan akan diproses oleh $processorName",
-    'url'   => url("/it/tickets/detail/{$ticket->id}"),
+    'url'   => url("/it/ticket/detail/{$ticket->id}"),
 ]));
 
     }
@@ -817,7 +817,7 @@ public function hold(Request $request, $id)
         $webPush->sendOneNotification($sub, json_encode([
             'title' => "🛑 Ticket On Hold | Abimanyu Live",
             'body'  => "Ticket {$ticket->ticket_number} ditahan sementara. Alasan: {$ticket->hold_reason}",
-            'url'   => url("/it/tickets/detail/{$ticket->id}")
+            'url'   => url("/it/ticket/detail/{$ticket->id}")
         ]));
     }
 
@@ -875,7 +875,7 @@ public function resume(Request $request, $id)
         $webPush->sendOneNotification($sub, json_encode([
             'title' => "▶️ Ticket Resume | Abimanyu Live",
             'body'  => "Ticket {$ticket->ticket_number} dilanjutkan kembali untuk diproses",
-            'url'   => url("/it/tickets/detail/{$ticket->id}")
+            'url'   => url("/it/ticket/detail/{$ticket->id}")
         ]));
     }
 
@@ -951,7 +951,7 @@ public function resume(Request $request, $id)
         $webPush->sendOneNotification($sub, json_encode([
             'title' => "✅ Ticket Has Done | Abimanyu Live",
             'body'  => "Ticket {$ticket->ticket_number} telah selesai, silahkan dicek kembali dan close sesegera mungkin",
-            'url'   => url("/it/tickets/detail/{$ticket->id}")
+            'url'   => url("/it/ticket/detail/{$ticket->id}")
         ]));
     }
 
