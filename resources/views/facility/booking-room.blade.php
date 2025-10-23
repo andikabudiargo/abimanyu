@@ -87,12 +87,6 @@
         </button> -->
 <!-- Divider -->
 
-<!-- Section title sebelum tabel -->
-<div class="flex items-center justify-center gap-3 mb-4">
-    <h4 class="text-lg font-bold text-gray-900">Schedule Meeting Room</h4>
-    <span id="selectedDateText" class="text-sm font-normal text-gray-500"></span>
-</div>
-
 
    <!-- Table -->
    <div class="overflow-x-auto">
