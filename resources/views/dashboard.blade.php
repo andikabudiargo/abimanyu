@@ -358,7 +358,7 @@
         </div>
                 <span class="text-lg font-semibold tracking-wide">
                     {{ $issueSectionTitle }}
-                    (<span class="document-counter">{{ $issueToReview->count() }}</span>)
+                    (<span class="issue-counter">{{ $issueToReview->count() }}</span>)
                 </span>
             </div>
 
@@ -384,7 +384,7 @@
                 </thead>
                 <tbody>
                     @foreach ($issueToReview as $issue)
-                        <tr id="document-row-{{ $doc->id }}" class="border-b hover:bg-gray-50">
+                        <tr id="issue-row-{{ $issue->id }}" class="border-b hover:bg-gray-50">
                             <td class="px-4 py-2">{{ $issue->request_number }}</td>
                             <td class="px-4 py-2">{{ $issue->location_area }}</td>
                              <td class="px-4 py-2">{{ $issue->request_type }}</td>
