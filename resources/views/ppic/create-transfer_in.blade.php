@@ -289,6 +289,7 @@
 
 <!-- Library html5-qrcode -->
 <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+
 <script>
   
   // =====================
