@@ -105,9 +105,13 @@
 
 <!-- QR Scan Modal -->
 <div id="qrModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-lg shadow-lg p-4 w-11/12 md:w-1/2">
-    <div class="flex justify-between items-center mb-2">
-      <h3 class="text-lg font-bold">Scan QR Code</h3>
+<div class="bg-white rounded-lg shadow-lg p-4 w-11/12 md:w-1/2">
+    <div class="flex justify-between items-start mb-2">
+  <div class="flex flex-col">
+    <h2 class="text-2xl font-bold text-gray-900">Scan QR Code</h2>
+    <p class="text-xs text-gray-500 mt-1">Scan QR yang sudah diprint dari Transfer In/Receiving untuk material return</p>
+    <div class="w-14 h-1 bg-teal-600 rounded mt-2"></div>
+  </div>
       <button id="closeQrModal" class="text-red-500 hover:text-red-700 font-bold">X</button>
     </div>
     <div id="qr-reader" style="width:100%;"></div>
@@ -280,6 +284,7 @@
     }
 </style>
 @push('scripts')
+<script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
 <script>
   
   // =====================
@@ -466,7 +471,7 @@ function initQrScanner() {
                 handleScannedCode(decodedText);
                 stopQrScanner();
             },
-            (errorMessage) => { /* optional debug */ }
+            (errorMessage) => { console.log("Scan error:", errorMessage); }
         ).then(() => isScannerRunning = true)
          .catch(err => { console.error("QR Scan start failed:", err); $('#qrModal').addClass('hidden'); });
     });
