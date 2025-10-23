@@ -25,7 +25,7 @@
 
     <div class="relative flex items-center px-6 pb-6">
         <!-- Avatar -->
-        <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}"
+        <img src="{{ Auth::user()->avatar ? asset(Auth::user()->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}"
             class="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg -mt-20" alt="Avatar">
 
         <!-- User Info -->
@@ -789,6 +789,10 @@
          <a href="{{ route('it.ticket.create') }}" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 transition">
         <div class="text-xl sm:text-2xl mb-1">🛠️</div>
       <span class="text-[11px] sm:text-xs font-medium text-gray-700 text-center">Helpdesk</span>
+    </a>
+ <a href="{{ route('it.issue.create') }}" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 transition">
+        <div class="text-xl sm:text-2xl mb-1">🏦</div>
+      <span class="text-[11px] sm:text-xs font-medium text-gray-700 text-center">Perbaikan Fasilitas</span>
     </a>
   </div>
    </div>
