@@ -104,14 +104,16 @@ $colorClass = match($status) {
                         <p class="text-sm font-medium text-gray-800">{{ $filename }}</p>
                         <p class="text-xs text-gray-500">Format: .{{ $extension }}</p>
                     </div>
-                   <div class="flex gap-2 flex-wrap">
-    <a href="{{ url('attachment/' . $attachment->path) }}" 
+                    <div class="flex gap-2 flex-wrap">
+    <!-- Tombol Lihat -->
+    <a href="{{ asset('tickets/'.$attachment->path) }}" 
        target="_blank" 
        class="inline-flex items-center text-blue-600 hover:underline">
         <i data-feather="eye" class="w-4 h-4 mr-1"></i> Watch
     </a>
 
-    <a href="{{ url('attachment/' . $attachment->path) }}" 
+    <!-- Tombol Download -->
+    <a href="{{ asset('tickets/'.$attachment->path) }}" 
        download 
        class="inline-flex items-center text-green-600 hover:underline">
         <i data-feather="download" class="w-4 h-4 mr-1"></i> Download

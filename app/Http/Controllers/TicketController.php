@@ -450,7 +450,7 @@ if ($lastHold) {
         $fullName = $originalName . '.' . $extension;
         $i = 1;
 
-        $destinationPath = '/home/abimany3/public_html/attachment';
+        $destinationPath = '/home/abimany3/public_html/tickets';
 
         // Pastikan folder tujuan ada
         if (!file_exists($destinationPath)) {
