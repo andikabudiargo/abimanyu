@@ -167,7 +167,7 @@
         <option value="Training">Training</option>
         <option value="Recruitment">Recruitment</option>
         <option value="Internal Audit">Internal Audit</option>
-        <option value="Internal External">External Audit</option>
+        <option value="External Audit">External Audit</option>
         <option value="Other">Other</option>
       </select>
     </div>
@@ -218,34 +218,6 @@
               Generate Excel
           </button>
       </div>
-  </div>
-</div>
-
-<!-- Modal Background -->
-<div id="maintenanceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <!-- Modal Container -->
-  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center relative animate-fadeIn">
-    
-    <!-- Close Button -->
-    <button onclick="document.getElementById('maintenanceModal').style.display='none'" 
-            class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
-
-    <!-- Image -->
-    <img src="{{ asset('img/moving.jpg') }}" alt="Maintenance" class="mx-auto mb-6 w-80 h-40">
-
-    <!-- Text Content -->
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">Perhatian!</h2>
-    <p class="text-gray-700 text-lg mb-4">
-      Sistem Booking Meeting Room akan <span class="text-red-600 font-semibold">dipindahkan</span> ke url baru, pada 
-      <span class="font-semibold">Senin, 13 Oktober 2025</span>.
-    </p>
-    <p class="text-gray-800 text-lg font-medium">
-      Silakan kunjungi situs baru di link berikut: 
-      <a href="https://abimanyulive.cloud" target="_blank" 
-         class="text-blue-500 hover:text-blue-600 underline decoration-2 decoration-blue-300 transition">
-        abimanyulive.cloud
-      </a>
-    </p>
   </div>
 </div>
 
@@ -372,23 +344,6 @@ div.dt-button-collection .dt-button:hover {
 
 </style>
 <script>
-      function openModal() {
-  document.getElementById('maintenanceModal').classList.remove('hidden');
-}
-
-function closeModal() {
-  document.getElementById('maintenanceModal').classList.add('hidden');
-}
-
-// Tampilkan modal tiap reload halaman
-window.addEventListener('load', openModal);
-
-// Opsional: klik di luar modal juga menutup
-document.getElementById('maintenanceModal').addEventListener('click', function(e){
-  if(e.target === this){
-    closeModal();
-  }
-});
 
    window.currentUserRoles = @json(Auth::user()->roles->pluck('name')); 
 
