@@ -31,8 +31,8 @@ $colorClass = match($status) {
 
     <!-- Ticket Number -->
     <div class="order-1 md:order-2 mt-0 mb-2 md:mb-0">
-      <span class="inline-block px-2 py-1 rounded mr-2 text-sm md:text-base">
-        #{{ $ticket->ticket_number }}
+      <span class="inline-block rounded text-sm md:text-base">
+        Ticket: #{{ $ticket->ticket_number }}
       </span>
     </div>
 
@@ -119,7 +119,6 @@ $colorClass = match($status) {
         <i data-feather="download" class="w-4 h-4 mr-1"></i> Download
     </a>
 </div>
-
                 </div>
             @endforeach
         @else
@@ -145,7 +144,7 @@ $colorClass = match($status) {
       {{-- Timeline entries --}}
       @foreach ($ticket->holds as $hold)
          <div class="flex flex-col md:flex-row items-start md:items-center space-x-0 md:space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
-              <img src="{{ $ticket->process->avatar ? asset('storage/' . $ticket->process->avatar) : asset('img/avatar-dummy.png') }}" class="w-10 h-10 rounded-full mb-2 md:mb-0" alt="Avatar">
+              <img src="{{ $ticket->process->avatar ? asset($ticket->process->avatar) : asset('img/avatar-dummy.png') }}" class="w-10 h-10 rounded-full mb-2 md:mb-0" alt="Avatar">
               <div>
                   <div class="text-sm font-semibold">{{ $ticket->process->name ?? '-' }}</div>
                   <div class="text-xs text-gray-500">On Hold • {{ \Carbon\Carbon::parse($hold->created_at)->format('d M Y H:i') }}</div>
@@ -159,7 +158,7 @@ $colorClass = match($status) {
     {{-- Done --}}
     @if($ticket->status === 'Done' || $ticket->status === 'Closed' )
        <div class="flex flex-col md:flex-row items-start md:items-center space-x-0 md:space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
-             <img src="{{ $ticket->process->avatar ? asset('storage/' . $ticket->process->avatar) : asset('img/avatar-dummy.png') }}" class="w-10 h-10 rounded-full" alt="Avatar">
+             <img src="{{ $ticket->process->avatar ? asset($ticket->process->avatar) : asset('img/avatar-dummy.png') }}" class="w-10 h-10 rounded-full" alt="Avatar">
             <div>
                 <div class="font-semibold">{{ $ticket->process->name }}</div>
                 <div class="text-xs text-gray-500">Done • {{ \Carbon\Carbon::parse($ticket->done_at)->format('d M Y H:i') }}</div>
@@ -172,8 +171,8 @@ $colorClass = match($status) {
     <div class="mt-2 text-sm text-gray-700"><strong>Evidence:</strong></div>
     <div class="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
         @foreach($ticket->evidences as $evidence)
-            <a href="{{ asset('storage/'.$evidence->path) }}" data-lightbox="evidence">
-                <img src="{{ asset('storage/'.$evidence->path) }}" 
+            <a href="{{ asset($evidence->path) }}" data-lightbox="evidence">
+                <img src="{{ asset($evidence->path) }}" 
                      alt="Evidence Image" 
                      class="max-w-full h-auto rounded shadow border border-gray-200">
             </a>
@@ -188,7 +187,7 @@ $colorClass = match($status) {
 {{-- Closed --}}
     @if($ticket->status === 'Closed')
         <div class="flex flex-col md:flex-row items-start md:items-center space-x-0 md:space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
-             <img src="{{ $ticket->requestor->avatar ? asset('storage/' . $ticket->requestor->avatar) : asset('img/avatar-dummy.png') }}" class="w-10 h-10 rounded-full" alt="Avatar">
+             <img src="{{ $ticket->requestor->avatar ? asset($ticket->requestor->avatar) : asset('img/avatar-dummy.png') }}" class="w-10 h-10 rounded-full" alt="Avatar">
             <div>
                 <div class="font-semibold">{{ $ticket->requestor->name }}</div>
                 <div class="text-xs text-gray-500">Closed • {{ \Carbon\Carbon::parse($ticket->closed_at)->format('d M Y H:i') }}</div>
@@ -204,7 +203,7 @@ $colorClass = match($status) {
     {{-- Reject --}}
     @if($ticket->status === 'Rejected' && $ticket->rejected_reason)
         <div class="flex flex-col md:flex-row items-start md:items-center space-x-0 md:space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
-            <img src="{{ $ticket->reject->avatar ? asset('storage/' . $ticket->process->avatar) : asset('img/avatar-dummy.png') }}" alt="Avatar" class="w-8 h-8 rounded-full">
+            <img src="{{ $ticket->reject->avatar ? asset($ticket->process->avatar) : asset('img/avatar-dummy.png') }}" alt="Avatar" class="w-8 h-8 rounded-full">
             <div>
                 <div class="font-semibold">{{ $ticket->reject->name ?? 'Unknown' }}</div>
                 <div class="text-xs text-gray-500">Rejected • {{ \Carbon\Carbon::parse($ticket->rejected_at)->format('d M Y H:i') }}</div>
@@ -396,7 +395,7 @@ $colorClass = match($status) {
         </button>
     @endif
 
-    @if($ticket->status == 'Work in Progress' && auth()->id() === $ticket->processed_by)
+    @if($ticket->status == 'Work in Progress' && auth()->id() == $ticket->processed_by)
         <button onclick="openHoldModal({{ $ticket->id }})" 
             class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-yellow-600 text-white rounded">
             <i data-feather="pause-circle" class="w-4 h-4 inline"></i> Hold Ticket
@@ -407,14 +406,14 @@ $colorClass = match($status) {
         </button>
     @endif
 
-    @if($ticket->status == 'On Hold' && auth()->id() === $ticket->processed_by)
+    @if($ticket->status == 'On Hold' && auth()->id() == $ticket->processed_by)
         <button onclick="resumeTicket({{ $ticket->id }})" 
             class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-purple-600 text-white rounded">
             <i data-feather="play-circle" class="w-4 h-4 inline"></i> Resume Ticket
         </button>
     @endif
 
-    @if($ticket->status == 'Done' && auth()->id() === $ticket->request_by)
+    @if($ticket->status == 'Done' && auth()->id() == $ticket->request_by)
         <button onclick="showCloseModal({{ $ticket->id }})" 
             class="w-full md:w-auto text-center flex gap-2 items-center px-4 py-2 bg-green-500 text-white rounded">
             <i data-feather="check-circle" class="w-4 h-4 inline"></i> Close Ticket
