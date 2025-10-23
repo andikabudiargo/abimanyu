@@ -373,7 +373,7 @@ if (
             ->margin(10)
             ->build();
            file_put_contents($itemQrPath, $itemQr->getString());
-            $itemQrUrl = asset('qr_code/' . $itemQrPath);
+            $itemQrUrl = asset('qr_code/' . $itemQrFileName);
 
             $article = Article::where('article_code', $item['article_code'])->first();
 
