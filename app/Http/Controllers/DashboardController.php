@@ -105,7 +105,7 @@ if (
 }
 
 // 2️⃣ Staff Level Access + GA → dokumen Approved
-elseif (
+if (
     $userDepartments->contains('General Affair') &&
     $userRoles->contains('Staff Level Access')
 ) {
