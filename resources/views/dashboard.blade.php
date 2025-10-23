@@ -1756,6 +1756,35 @@ function closeRejectModal() {
     });
 }
 
+  function approveRequest(issueId, RequestNumber) {
+    Swal.fire({
+        title: 'Approve Request?',
+        text: "Are you sure you want to approve this issue?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Approve',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#16a34a',
+        cancelButtonColor: '#6b7280'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post(`/it/issue-tracker/${issueId}/approve`, {
+                _token: '{{ csrf_token() }}'
+            }, function (res) {
+                // ✅ res tersedia di sini
+                showToast('success', 'Request has been Approved: ' + res.request_number);
+                // Hapus row sesuai ID
+                $(`#issue-row-${issueId}`).remove();
+                // Update counter
+                updateIssueCounter();
+            }).fail(function (err) {
+                showToast('error', 'Failed to Approve Issue.');
+                console.error(err.responseText);
+            });
+        }
+    });
+}
+
 $('#rejectForm').on('submit', function (e) {
     e.preventDefault();
     let form = $(this);
@@ -1780,6 +1809,12 @@ $('#rejectForm').on('submit', function (e) {
 function updateTicketCounter() {
     let count = $('tbody tr').length;
     $('.ticket-counter').text(count);
+}
+
+// Fungsi untuk update counter setelah row dihapus
+function updateIssueCounter() {
+    let count = $('tbody tr').length;
+    $('.issue-counter').text(count);
 }
 
 
