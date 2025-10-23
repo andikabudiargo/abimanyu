@@ -380,7 +380,7 @@ if (
                // masukkan ke labelData
     $labelData[] = [
         'type' => 'qr_item',
-        'qr_path' => $itemQrPath,
+        'qr_path' => $itemQrUrl,
         'code' => $itemCode,
         'article_code' => $item['article_code'],
         'description' => $item['description'],
