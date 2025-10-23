@@ -453,7 +453,7 @@ foreach ($subscriptions as $subRow) {
 
     $webPush->sendOneNotification($sub, json_encode([
         'title' => '📢 Sistem Pengaduan GA | Abimanyu Live',
-        'body'  => "$requestorName Membuat Pengaduan Baru: $request->request_number",
+        'body'  => "$requestorName Membuat Pengaduan Baru: $requestNumber",
         'url'   => url("/it/issue-tracker/detail/{$request->id}")
     ]));
 }
