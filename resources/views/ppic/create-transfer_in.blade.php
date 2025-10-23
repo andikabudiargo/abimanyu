@@ -694,7 +694,11 @@ function submitForm(e) {
         success: function(response) {
             if (response.status === 'success') {
                 Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Transfer In berhasil disimpan!', timer: 2000, showConfirmButton: false });
-                resetForm();
+  // Cetak QR jika bukan Material Return
+                  if (transferType !== 'Material Return' && response.labels) {
+                      printLabelsDirect(response.labels);
+                  }                
+resetForm();
             } else {
                 Swal.fire({ icon: 'error', title: 'Gagal', text: response.message || 'Terjadi kesalahan saat menyimpan data.' });
             }
