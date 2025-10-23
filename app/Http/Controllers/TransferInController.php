@@ -349,7 +349,7 @@ if (
             'supplier_code' => $request->supplier_code,
             'from_location' => $request->from_location,
             'note' => $request->note,
-            'qr_code_path' => $transferQrUrl, // null kalau Material Return
+            'qr_code_path' => $transferQrFileName, // null kalau Material Return
             'created_at' => now(),
             'created_by' => auth()->id(),
         ]);
@@ -361,7 +361,6 @@ if (
             $itemCode = $code . '-ITEM' . ($index + 1);
             $qty = (int) $item['qty'];
 
-            // Generate QR Item
             // Generate QR Item
             $itemQrFileName = $itemCode . '.png';
             $itemQrPath = '/home/abimany3/public_html/qr_code/' . $itemQrFileName; // path absolut
@@ -381,7 +380,7 @@ if (
                // masukkan ke labelData
     $labelData[] = [
         'type' => 'qr_item',
-        'qr_path' => $itemQrUrl,
+        'qr_path' => $itemQrFileName,
         'code' => $itemCode,
         'article_code' => $item['article_code'],
         'description' => $item['description'],
@@ -406,7 +405,7 @@ if (
                 'balance' => $qty,
                 'expired_date' => $item['expired_date'] ?? null,
                 'destination_id' => $item['destination_id'] ?? null,
-                'qr_path' => $itemQrUrl,
+                'qr_path' => $itemQrFileName,
                 'created_at' => now(),
             ]);
 
