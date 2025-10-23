@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Ticket;
 use App\Models\Todo;
 use App\Models\User;
+use App\Models\IssueTracker;
 use App\Models\BookingRoom;
 use App\Models\CancelBookingRoom;
 use App\Models\Document;
@@ -84,6 +85,37 @@ if($ticketsToClose->count() > 0) {
     $ticketCloseSectionTitle = 'Your Ticket is Done, Please Close Immediately';
 }
 
+$issueToReview = collect();
+$issueSectionTitle = null;
+
+// 1️⃣ Supervisor / Manager Special Access + GA → dokumen Pending
+if (
+    $userDepartments->contains('General Affair') &&
+    (
+        $userRoles->contains('Supervisor Special Access') || 
+        $userRoles->contains('Manager Special Access')
+    )
+) {
+    $issueToReview = IssueTracker::where('status', 'Pending')
+        ->latest('created_at')
+        ->take(10)
+        ->get();
+
+    $issueSectionTitle = 'Issue Need Your Approval';
+}
+
+// 2️⃣ Staff Level Access + GA → dokumen Approved
+elseif (
+    $userDepartments->contains('General Affair') &&
+    $userRoles->contains('Staff Level Access')
+) {
+    $issueToReview = IssueTracker::where('status', 'Approved')
+        ->latest('created_at')
+        ->take(10)
+        ->get();
+
+    $issueSectionTitle = 'Issue Need Your Review';
+}
 
 // ✅ Logika Dokumen
     $documentsToReview = collect();
@@ -181,6 +213,8 @@ $cancelledBookings = BookingRoom::with('room')
     'userRoleLabel',
      'documentsToReview',      // ⬅️ tambahkan ke view
         'documentSectionTitle',   // ⬅️ tambahkan ke view
+         'issueToReview',      // ⬅️ tambahkan ke view
+        'issueSectionTitle',   // ⬅️ tambahkan ke view
     'todos',
     'users',
     'departments',
