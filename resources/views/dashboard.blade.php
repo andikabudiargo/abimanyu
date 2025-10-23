@@ -1355,7 +1355,161 @@
 </div>
 @endif
 
+<!-- Modal Reject -->
+<div id="rejectModalIssue" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl transform transition-all scale-95">
+        
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-5">
+            <div class="p-2 bg-red-100 text-red-600 rounded-full">
+               <i data-feather="alert-triangle"></i>
+            </div>
+            <h2 class="text-xl font-semibold text-gray-800">Reject Request</h2>
+        </div>
 
+        <form id="rejectFormIssue" class="space-y-4">
+            @csrf
+             <input type="hidden" name="request_id" id="reject_request_id">
+            <!-- Reason -->
+            <div>
+                <label for="rejected_reason" class="block text-sm font-medium text-gray-700 mb-1">
+                    Reason for Rejection
+                </label>
+                <textarea 
+                    name="rejected_reason" 
+                    id="rejected_reason" 
+                    rows="4" 
+                    required
+                   placeholder="e.g. Duplicate request, not under IT scope, issue already resolved, invalid request details..."
+                    class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-300 focus:border-red-400 p-3 text-sm resize-y transition"
+                ></textarea>
+                <p class="mt-1 text-xs text-gray-400">Please be specific to help us improve future requests.</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-3 pt-2">
+                <button 
+                    type="button" 
+                    onclick="closeRejectModal()"
+                    class="px-4 py-2 rounded-lg border border-gray-300 text-white hover:bg-gray-100 transition"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit"
+                    class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-sm transition"
+                >
+                    Reject
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Pengecekan Awal -->
+<div id="initialCheckModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-2/3 p-6 overflow-y-auto max-h-[70vh] max-w-3xl">
+       <h3 class="text-lg font-semibold mb-4 flex items-center">
+    <i data-feather="check-circle" class="w-5 h-5 mr-2"></i> Pengecekan Awal
+</h3>
+
+
+        <form id="initialCheckForm">
+            @csrf
+  <input type="hidden" name="request_id" id="checking_request_id">
+            <!-- Diterima Oleh & Tanggal Pemeriksaan -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Diterima Oleh</label>
+                    <input type="text" value="{{ Auth::user()->name }}" readonly
+                           class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pemeriksaan</label>
+                    <input type="text"value="{{ now()->translatedFormat('d F Y') }}" readonly
+                           class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100">
+                </div>
+           
+
+            <!-- Hasil Pemeriksaan -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Hasil Pemeriksaan</label>
+                <select name="check_result" required
+                        class="w-full border border-gray-300 rounded px-3 py-2">
+                    <option value="">-- Pilih Hasil --</option>
+                    <option value="Internal Repair">Internal Repair</option>
+                    <option value="Vendor Luar">Vendor Luar</option>
+                    <option value="Ganti Material">Ganti Material</option>
+                </select>
+            </div>
+              <!-- Durasi Pengerjaan -->
+           <div class="mb-4">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Durasi Pengerjaan</label>
+    <div class="relative w-full">
+        <input type="number" name="duration_work" class="w-full border border-gray-300 rounded px-3 py-2 pr-12" placeholder="0">
+        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">HARI</span>
+    </div>
+</div>
+
+             </div>
+<div class="mb-4">
+    <label class="block text-sm font-medium text-gray-700 mb-2">Estimasi Material</label>
+    <table class="w-full border border-gray-300 rounded mb-2" id="materialTable">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="border px-2 py-1">No</th>
+                <th class="border px-2 py-1">Material</th>
+                <th class="border px-2 py-1">Qty</th>
+                <th class="border px-2 py-1">UOM</th>
+                <th class="border px-2 py-1">Vendor</th>
+                <th class="border px-2 py-1">Harga Satuan</th>
+                <th class="border px-2 py-1">Subtotal</th>
+                <th class="border px-2 py-1">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="border px-2 py-1 text-center">1</td>
+                <td class="border px-2 py-1"><input type="text" name="material[]" class="w-full px-2 py-1 border rounded"></td>
+                <td class="border px-2 py-1"><input type="number" name="qty[]" class="w-full px-2 py-1 border rounded qty" value="0"></td>
+                <td class="border px-2 py-1"><input type="text" name="uom[]" class="w-full px-2 py-1 border rounded"></td>
+                <td class="border px-2 py-1"><input type="text" name="vendor[]" class="w-full px-2 py-1 border rounded"></td>
+                <td class="border px-2 py-1"><input type="number" name="price[]" class="w-full px-2 py-1 border rounded price" value="0"></td>
+                <td class="border px-2 py-1 subtotal text-right">Rp. 0</td>
+                <td class="border px-2 py-1 text-center">
+                    <button type="button" class="removeRow text-red-600 font-bold">×</button>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr class="bg-gray-100 font-semibold">
+                <td colspan="6" class="text-right px-2 py-1">Estimasi Biaya</td>
+                <td id="totalCost" class="text-right px-2 py-1">Rp. 0</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    <button type="button" id="addRowBtn" class="px-3 py-1 bg-blue-600 text-white rounded text-sm">+ Tambah Material</button>
+</div>
+
+
+          
+
+            <!-- Rekomendasi Tindakan -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Rekomendasi Tindakan</label>
+                <textarea name="recommended_action" placeholder="Catatan Teknis GA" rows="4"
+                          class="w-full px-3 py-2 border rounded"></textarea>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-end gap-2 mt-4">
+                <button type="button" onclick="closeModal('initialCheckModal')" class="px-4 py-2 bg-gray-500 text-white rounded">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 @push('scripts')
 <script>
@@ -2352,6 +2506,44 @@ $(document).ready(function () {
       document.getElementById(target).classList.remove("hidden");
     });
   });
+
+  function rejectRequest(ticketId) {
+    $('#reject_request_id').val(ticketId);
+    $('#rejectModalIssue').removeClass('hidden');
+    setTimeout(() => {
+        $('#rejectModalIssue .modal-content').removeClass('scale-95 opacity-0');
+    }, 10);
+}
+
+function closeRejectModal() {
+    $('#rejectModalIssue .modal-content').addClass('scale-95 opacity-0');
+    setTimeout(() => {
+        $('#rejectModalIssue').addClass('hidden');
+    }, 200);
+}
+
+$('#rejectFormIssue').on('submit', function (e) {
+    e.preventDefault();
+    let form = $(this);
+    let issueId = $('#reject_request_id').val();
+    let data = form.serialize();
+
+    $.post(`/it/issue-tracker/${issueId}/reject`, data, function (res) {
+        if (res.success) {
+            showToast('success', res.message);
+           // Hapus row sesuai ID
+                $(`#issue-row-${issueId}`).remove();
+                // Update counter
+                updateIssueCounter();
+            closeRejectModal();
+        } else {
+            showToast('error', "Failed: " + res.message);
+        }
+    }).fail(function (err) {
+        console.error(err.responseText);
+        showToast('error', 'An error occurred.');
+    });
+});
 
 </script>
 @endpush
