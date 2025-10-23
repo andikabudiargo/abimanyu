@@ -400,7 +400,7 @@
                                     Detail
                                 </a>
 
-                                @if($issueSectionTitle === 'Issue Need Your Approval')
+                                @if($issueSectionTitle == 'Issue Need Your Approval')
                                     <button onclick="approveRequest({{ $issue->id }})"
                                             class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700">
                                         Approve
@@ -411,8 +411,8 @@
                                     </button>
                                 @endif
 
-                                @if($issueSectionTitle === 'Issue Need Your Review')
-                                    <button onclick="reviewDOC({{ $doc->id }})"
+                                @if($issueSectionTitle == 'Issue Need Your Review')
+                                    <button onclick="reviewDOC({{ $issue->id }})"
                                             class="px-3 py-1.5 text-xs font-medium text-white bg-yellow-500 rounded hover:bg-yellow-600">
                                         Review
                                     </button>
