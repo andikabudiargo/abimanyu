@@ -706,70 +706,78 @@ function submitForm(e) {
 }
 
 // =====================
-// === PRINT / GENERATE LABEL ===
-// =====================
+  // === CETAK LABEL ===
+  // =====================
 
-// Cetak semua item yang sudah discan
-function printLabels() {
-    const items = Object.values(scannedItems);
-    if (items.length === 0) return Swal.fire({ icon: 'warning', title: 'Belum ada item', text: 'Silakan scan atau pilih item terlebih dahulu.' });
+  // Cetak langsung dari labels server
+  function printLabelsDirect(labels) {
+      const html = generateLabelHTML(labels);
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) return;
 
-    let htmlContent = `<html><head><title>Label Print</title><style>
-        body { font-family: Arial, sans-serif; }
-        .label { border: 1px solid #000; padding: 10px; margin: 5px; display: inline-block; width: 200px; }
-        .label h4 { margin: 0 0 5px 0; font-size: 16px; }
-        .label p { margin: 2px 0; font-size: 14px; }
-    </style></head><body>`;
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
 
-    items.forEach(item => {
-        htmlContent += `<div class="label">
-            <h4>${item.code}</h4>
-            <p>${item.name}</p>
-            <p>Qty: ${item.qty} ${item.uom}</p>
-            ${item.destination_name ? `<p>To: ${item.destination_name}</p>` : ''}
-        </div>`;
-    });
+      printWindow.onload = function() {
+          printWindow.focus();
+          setTimeout(() => printWindow.print(), 500);
+      };
+  }
 
-    htmlContent += `</body></html>`;
+  // Generate HTML label QR
+  function generateLabelHTML(labels, options = ['qr_transfer', 'qr_item']) {
+      if (!labels || !Array.isArray(labels) || labels.length === 0) {
+          return `<html><body><h3>Tidak ada label untuk dicetak</h3></body></html>`;
+      }
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-}
+      let html = `<html><head><title>Cetak Label</title>
+          <style>
+          body { font-family: Arial; padding: 0; margin:0; }
+          .label-container {
+              width: 20mm; height: 20mm; page-break-after: always;
+              text-align: center; box-sizing: border-box;
+              display: flex; flex-direction: column;
+              justify-content: center; align-items: center;
+          }
+          .label-container img { width: 18mm; height: 18mm; }
+          .label-container div { font-size: 4pt; line-height: 1; margin-top: 0.5mm; }
+          @page { size: 20mm 20mm; margin: 0; }
+          </style>
+      </head><body>`;
 
-// Cetak label untuk item tertentu saja
-function printLabelForItem(code) {
-    const item = scannedItems[code];
-    if (!item) return Swal.fire({ icon: 'error', title: 'Item Tidak Ditemukan' });
+      labels.forEach(label => {
+          // QR Transfer
+          if (label.type === 'qr_transfer' && options.includes('qr_transfer')) {
+              html += `<div class="label-container">
+                  <img src="${label.qr_path}" />
+                  <div>${label.reference_number}</div>
+              </div>`;
+          }
 
-    let htmlContent = `<html><head><title>Label Print</title><style>
-        body { font-family: Arial, sans-serif; }
-        .label { border: 1px solid #000; padding: 10px; margin: 5px; display: inline-block; width: 200px; }
-        .label h4 { margin: 0 0 5px 0; font-size: 16px; }
-        .label p { margin: 2px 0; font-size: 14px; }
-    </style></head><body>`;
+          // QR Item (duplikasi sesuai min_package)
+          if (label.type === 'qr_item' && options.includes('qr_item')) {
+              let minPackage = parseInt(label.min_package || 1, 10);
+              let qtyIn = parseInt(label.qty || 0, 10);
+              let numLabels = Math.ceil(qtyIn / minPackage);
 
-    htmlContent += `<div class="label">
-        <h4>${item.code}</h4>
-        <p>${item.name}</p>
-        <p>Qty: ${item.qty} ${item.uom}</p>
-        ${item.destination_name ? `<p>To: ${item.destination_name}</p>` : ''}
-    </div>`;
+              for (let i = 0; i < numLabels; i++) {
+                  html += `<div class="label-container">
+                      <img src="${label.qr_path}" />
+                      <div>${label.code}</div>
+                  </div>`;
+              }
+          }
+      });
 
-    htmlContent += `</body></html>`;
+      html += `</body></html>`;
+      return html;
+  }
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-}
 
-// Contoh penggunaan tombol di HTML
-// <button onclick="printLabels()">Print Semua Label</button>
-// <button onclick="printLabelForItem('ITEM123')">Print ITEM123</button>
+  // Contoh penggunaan tombol di HTML
+  // <button onclick="printLabels()">Print Semua Label</button>
+  // <button onclick="printLabelForItem('ITEM123')">Print ITEM123</button>
 
 </script>
 @endpush
