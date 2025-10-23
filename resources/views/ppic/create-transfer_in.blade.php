@@ -280,6 +280,7 @@
     }
 </style>
 @push('scripts')
+
 <script>
   
   // =====================
@@ -291,6 +292,8 @@ let activeSupplier = null;
 let warehouseNameToId = {};
 let html5QrcodeScanner = null;
 let isScannerRunning = false;
+let qrScanner = null;
+
 
 // =====================
 // === INISIALISASI HALAMAN ===
@@ -452,6 +455,7 @@ function buildGroupedResults(items) {
 // =====================
 // === QR SCANNER ===
 // =====================
+
 function initQrScanner() {
     $('#scanQrBtn').click(function() {
         $('#qrModal').removeClass('hidden');
@@ -459,16 +463,22 @@ function initQrScanner() {
         if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("qr-reader");
 
         const config = { fps: 10, qrbox: 250 };
-        html5QrcodeScanner.start(
-            { facingMode: "environment" },
-            config,
-            (decodedText) => {
-                handleScannedCode(decodedText);
-                stopQrScanner();
-            },
-            (errorMessage) => { /* optional debug */ }
-        ).then(() => isScannerRunning = true)
-         .catch(err => { console.error("QR Scan start failed:", err); $('#qrModal').addClass('hidden'); });
+
+        setTimeout(() => {
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => {
+                    handleScannedCode(decodedText);
+                    stopQrScanner();
+                },
+                (errorMessage) => { console.log("Scan error:", errorMessage); }
+            ).then(() => isScannerRunning = true)
+             .catch(err => {
+                 console.error("QR Scan start failed:", err);
+                 $('#qrModal').addClass('hidden');
+             });
+        }, 300);
     });
 
     $('#closeQrModal').click(stopQrScanner);
@@ -488,6 +498,7 @@ function stopQrScanner() {
         $('#qrModal').addClass('hidden');
     }
 }
+
 
 // =====================
 // === RENDER ITEM TABLE ===
@@ -650,126 +661,175 @@ function resetForm() {
 // =====================
 // === SUBMIT FORM ===
 // =====================
-function submitForm(e) {
-    e.preventDefault();
-    const transferType = $('#transfer_type').val();
-    let supplierCode = $('#supplier_code').val();
+  // === Submit Form dengan jQuery ===
+  function submitForm(e) {
+      e.preventDefault();
 
-    if (transferType === 'Incoming' && !supplierCode) return Swal.fire({ icon: 'warning', title: 'Supplier Belum Dipilih', text: 'Supplier ID tidak ditemukan.' });
+      const transferType = $('#transfer_type').val();
+      let supplierCode = $('#supplier_code').val();
 
-    const items = [];
-    $('#itemList tr').each(function() {
-        const tds = $(this).find('td');
-        const qtyInput = tds.eq(3).find('input');
-        const expInput = tds.eq(6).find('input');
-        const destinationInput = tds.eq(7).find('input.destination-id-hidden');
+      // Validasi hanya untuk Incoming
+      if (transferType === 'Incoming' && !supplierCode) {
+          return Swal.fire({
+              icon: 'warning',
+              title: 'Supplier Belum Dipilih',
+              text: 'Supplier ID tidak ditemukan. Pastikan artikel sudah discan.'
+          });
+      }
 
-        items.push({
-            article_code: tds.eq(1).text().trim(),
-            description: tds.eq(2).text().trim(),
-            qty: qtyInput.val(),
-            expired_date: expInput.val(),
-            destination_id: destinationInput.val(),
-            origin_item_id: $(this).find('input[name$="[origin_item_id]"]').val(),
-            origin_type: $(this).find('input[name$="[origin_type]"]').val()
-        });
-    });
+      // Ambil semua item dari tabel
+      const items = [];
+      $('#itemList tr').each(function() {
+          const tds = $(this).find('td');
+          let qtyInput, expInput, destinationInput;
 
-    const payload = {
-        reference_number: $('#reference_number').val(),
-        date: $('#date').val(),
-        transfer_category: transferType,
-        supplier_code: supplierCode || null,
-        from_location: $('#from_location').val(),
-        note: $('#note').val(),
-        items: items
-    };
+          if (transferType === 'Material Return') {
+              qtyInput = tds.eq(4).find('input');
+              expInput = tds.eq(7).find('input');
+              destinationInput = tds.eq(8).find('input.destination-id-hidden');
+          } else {
+              qtyInput = tds.eq(3).find('input');
+              expInput = tds.eq(6).find('input');
+              destinationInput = tds.eq(7).find('input.destination-id-hidden');
+          }
 
-    $.ajax({
-        url: '/ppic/logistic/transfer_in/store',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(payload),
-        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-        success: function(response) {
-            if (response.status === 'success') {
-                Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Transfer In berhasil disimpan!', timer: 2000, showConfirmButton: false });
-                resetForm();
-            } else {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: response.message || 'Terjadi kesalahan saat menyimpan data.' });
-            }
-        },
-        error: function(xhr) {
-            Swal.fire({ icon: 'error', title: 'Gagal', text: '❌ Gagal menyimpan data transfer.' });
-        }
-    });
-}
+          items.push({
+              article_code: tds.eq(1).text().trim(),
+              description: tds.eq(2).text().trim(),
+              qty: qtyInput.length ? qtyInput.val() : 0,
+              expired_date: expInput.length ? expInput.val() : '',
+              destination_id: destinationInput.length ? destinationInput.val() : null,
+              origin_item_id: $(this).find('input[name$="[origin_item_id]"]').val() || null,
+              origin_type: $(this).find('input[name$="[origin_type]"]').val() || null
+          });
+      });
 
-// =====================
-// === PRINT / GENERATE LABEL ===
-// =====================
+      const payload = {
+          reference_number: $('#reference_number').val(),
+          date: $('#date').val(),
+          transfer_category: transferType,
+          supplier_code: supplierCode || null,
+          from_location: $('#from_location').val(),
+          note: $('#note').val(),
+          items: items
+      };
 
-// Cetak semua item yang sudah discan
-function printLabels() {
-    const items = Object.values(scannedItems);
-    if (items.length === 0) return Swal.fire({ icon: 'warning', title: 'Belum ada item', text: 'Silakan scan atau pilih item terlebih dahulu.' });
+      // AJAX POST
+      $.ajax({
+          url: '/ppic/logistic/transfer_in/store',
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify(payload),
+          headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+          dataType: 'json',
+          success: function(response) {
+              if (response.status === 'success') {
+                  Swal.fire({
+                      icon: 'success',
+                      title: 'Berhasil',
+                      text: 'Transfer In berhasil disimpan!',
+                      timer: 2000,
+                      showConfirmButton: false
+                  });
 
-    let htmlContent = `<html><head><title>Label Print</title><style>
-        body { font-family: Arial, sans-serif; }
-        .label { border: 1px solid #000; padding: 10px; margin: 5px; display: inline-block; width: 200px; }
-        .label h4 { margin: 0 0 5px 0; font-size: 16px; }
-        .label p { margin: 2px 0; font-size: 14px; }
-    </style></head><body>`;
+                  // Cetak QR jika bukan Material Return
+                  if (transferType !== 'Material Return' && response.labels) {
+                      printLabelsDirect(response.labels);
+                  }
 
-    items.forEach(item => {
-        htmlContent += `<div class="label">
-            <h4>${item.code}</h4>
-            <p>${item.name}</p>
-            <p>Qty: ${item.qty} ${item.uom}</p>
-            ${item.destination_name ? `<p>To: ${item.destination_name}</p>` : ''}
-        </div>`;
-    });
+                  // Reset form
+                  resetForm();
+              } else {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Gagal',
+                      text: response.message || 'Terjadi kesalahan saat menyimpan data.'
+                  });
+              }
+          },
+          error: function(xhr) {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Gagal',
+                  text: '❌ Gagal menyimpan data transfer.'
+              });
+          }
+      });
+  }
 
-    htmlContent += `</body></html>`;
+  // =====================
+  // === CETAK LABEL ===
+  // =====================
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-}
+  // Cetak langsung dari labels server
+  function printLabelsDirect(labels) {
+      const html = generateLabelHTML(labels);
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) return;
 
-// Cetak label untuk item tertentu saja
-function printLabelForItem(code) {
-    const item = scannedItems[code];
-    if (!item) return Swal.fire({ icon: 'error', title: 'Item Tidak Ditemukan' });
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
 
-    let htmlContent = `<html><head><title>Label Print</title><style>
-        body { font-family: Arial, sans-serif; }
-        .label { border: 1px solid #000; padding: 10px; margin: 5px; display: inline-block; width: 200px; }
-        .label h4 { margin: 0 0 5px 0; font-size: 16px; }
-        .label p { margin: 2px 0; font-size: 14px; }
-    </style></head><body>`;
+      printWindow.onload = function() {
+          printWindow.focus();
+          setTimeout(() => printWindow.print(), 500);
+      };
+  }
 
-    htmlContent += `<div class="label">
-        <h4>${item.code}</h4>
-        <p>${item.name}</p>
-        <p>Qty: ${item.qty} ${item.uom}</p>
-        ${item.destination_name ? `<p>To: ${item.destination_name}</p>` : ''}
-    </div>`;
+  // Generate HTML label QR
+  function generateLabelHTML(labels, options = ['qr_transfer', 'qr_item']) {
+      if (!labels || !Array.isArray(labels) || labels.length === 0) {
+          return `<html><body><h3>Tidak ada label untuk dicetak</h3></body></html>`;
+      }
 
-    htmlContent += `</body></html>`;
+      let html = `<html><head><title>Cetak Label</title>
+          <style>
+          body { font-family: Arial; padding: 0; margin:0; }
+          .label-container {
+              width: 20mm; height: 20mm; page-break-after: always;
+              text-align: center; box-sizing: border-box;
+              display: flex; flex-direction: column;
+              justify-content: center; align-items: center;
+          }
+          .label-container img { width: 18mm; height: 18mm; }
+          .label-container div { font-size: 4pt; line-height: 1; margin-top: 0.5mm; }
+          @page { size: 20mm 20mm; margin: 0; }
+          </style>
+      </head><body>`;
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-}
+      labels.forEach(label => {
+          // QR Transfer
+          if (label.type === 'qr_transfer' && options.includes('qr_transfer')) {
+              html += `<div class="label-container">
+                  <img src="${label.qr_path}" />
+                  <div>${label.reference_number}</div>
+              </div>`;
+          }
 
-// Contoh penggunaan tombol di HTML
-// <button onclick="printLabels()">Print Semua Label</button>
-// <button onclick="printLabelForItem('ITEM123')">Print ITEM123</button>
+          // QR Item (duplikasi sesuai min_package)
+          if (label.type === 'qr_item' && options.includes('qr_item')) {
+              let minPackage = parseInt(label.min_package || 1, 10);
+              let qtyIn = parseInt(label.qty || 0, 10);
+              let numLabels = Math.ceil(qtyIn / minPackage);
+
+              for (let i = 0; i < numLabels; i++) {
+                  html += `<div class="label-container">
+                      <img src="${label.qr_path}" />
+                      <div>${label.code}</div>
+                  </div>`;
+              }
+          }
+      });
+
+      html += `</body></html>`;
+      return html;
+  }
+
+
+  // Contoh penggunaan tombol di HTML
+  // <button onclick="printLabels()">Print Semua Label</button>
+  // <button onclick="printLabelForItem('ITEM123')">Print ITEM123</button>
 
 </script>
 @endpush
