@@ -313,9 +313,9 @@ if (
             $nomorUrut = str_pad($lastNumber, 4, '0', STR_PAD_LEFT);
             $code = "TRIN-ASN-{$tahun}-{$romawi}-{$nomorUrut}";
 
-            // === Generate QR Transfer In
+             // === Generate QR Transfer In
             $transferQrFileName = $code . '.png';
-            $transferQrPath = 'qrcodes/' . $transferQrFileName;
+            $transferQrPath = '/home/abimany3/public_html/qr_code/' . $transferQrFileName; // path absolut
             $transferQr = Builder::create()
                 ->writer(new PngWriter())
                 ->data($code)
@@ -325,8 +325,9 @@ if (
                 ->margin(10)
                 ->build();
 
-            Storage::disk('public')->put($transferQrPath, $transferQr->getString());
-            $transferQrUrl = asset('storage/' . $transferQrPath);
+            // Simpan file QR code ke folder fisik
+            file_put_contents($transferQrPath, $transferQr->getString());
+            $transferQrUrl = asset('qr_code/' . $transferQrFileName);
         }
 
         // Ambil supplier name
@@ -361,7 +362,9 @@ if (
             $qty = (int) $item['qty'];
 
             // Generate QR Item
-            $itemQrFileName = $itemCode . '.png'; $itemQrPath = 'qrcodes/' . $itemQrFileName;
+            // Generate QR Item
+            $itemQrFileName = $itemCode . '.png';
+            $itemQrPath = '/home/abimany3/public_html/qr_code/' . $itemQrFileName; // path absolut
             $itemQr = Builder::create()
             ->writer(new PngWriter())
             ->data($itemCode)
@@ -370,9 +373,8 @@ if (
             ->size(300)
             ->margin(10)
             ->build();
-            Storage::disk('public')
-            ->put($itemQrPath, $itemQr->getString());
-            $itemQrUrl = asset('storage/' . $itemQrPath);
+           file_put_contents($itemQrPath, $itemQr->getString());
+            $itemQrUrl = asset('qr_code/' . $itemQrPath);
 
             $article = Article::where('article_code', $item['article_code'])->first();
 
