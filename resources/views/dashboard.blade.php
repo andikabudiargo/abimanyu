@@ -343,6 +343,89 @@
     </div>
 @endif
 
+ @if ($issueToReview->count())
+            <div class="mb-6">
+       <button type="button" 
+    onclick="toggleAccordion(this)" 
+    aria-expanded="false"
+    class="w-full text-left flex justify-between items-center px-6 py-4 
+           text-gray-800 font-semibold border bg-teal-600 text-white group">
+
+    <!-- Left Content -->
+    <div class="flex items-center gap-3">
+        <div>
+            <i data-feather="feather" class="w-5 h-5"></i>
+        </div>
+                <span class="text-lg font-semibold tracking-wide">
+                    {{ $issueSectionTitle }}
+                    (<span class="document-counter">{{ $issueToReview->count() }}</span>)
+                </span>
+            </div>
+
+            <svg class="w-5 h-5 transform transition-transform duration-300 group-[.active]:rotate-180" fill="none"
+                 stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 9l-7 7-7-7" />
+            </svg>
+        </button>
+
+        <div class="accordion-content hidden mt-4 max-h-[500px] overflow-y-auto border-t border-gray-200 pt-4">
+            <table class="w-full text-sm text-left text-gray-600">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0">
+                    <tr>
+                        <th class="px-4 py-2">Req Number</th>
+                        <th class="px-4 py-2">Area Perbaikan</th>
+                        <th class="px-4 py-2">Jenis Fasilitas</th>
+                        <th class="px-4 py-2">Created by</th>
+                        <th class="px-4 py-2">Created at</th>
+                        <th class="px-4 py-2">Deskripsi</th>
+                        <th class="px-4 py-2 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($issueToReview as $issue)
+                        <tr id="document-row-{{ $doc->id }}" class="border-b hover:bg-gray-50">
+                            <td class="px-4 py-2">{{ $issue->request_number }}</td>
+                            <td class="px-4 py-2">{{ $issue->location_area }}</td>
+                             <td class="px-4 py-2">{{ $issue->request_type }}</td>
+                            <td class="px-4 py-2">{{ $issue->creator->name}}
+                            </td>
+                            <td class="px-4 py-2">
+                                {{ $issue->created_at }}
+                            </td>
+                             <td class="px-4 py-2">{{ $issue->description }}</td>
+                            <td class="px-4 py-2 text-center flex justify-center gap-2">
+                                <a href="{{ route('it.issue.show', $issue->id) }}"
+                                   class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
+                                    Detail
+                                </a>
+
+                                @if($issueSectionTitle === 'Issue Need Your Approval')
+                                    <button onclick="approveRequest({{ $issue->id }})"
+                                            class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700">
+                                        Approve
+                                    </button>
+                                    <button onclick="rejectRequest({{ $issue->id }})"
+                                            class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700">
+                                        Reject
+                                    </button>
+                                @endif
+
+                                @if($issueSectionTitle === 'Issue Need Your Review')
+                                    <button onclick="reviewDOC({{ $doc->id }})"
+                                            class="px-3 py-1.5 text-xs font-medium text-white bg-yellow-500 rounded hover:bg-yellow-600">
+                                        Review
+                                    </button>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+@endif
+
  <!-- Document Approval -->
         @if ($documentsToReview->count())
             <div class="mb-6">
