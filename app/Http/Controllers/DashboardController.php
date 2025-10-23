@@ -87,6 +87,7 @@ if($ticketsToClose->count() > 0) {
 
 $issueToReview = collect();
 $issueSectionTitle = null;
+$userRoleLabelRequest = null;
 
 // 1️⃣ Supervisor / Manager Special Access + GA → dokumen Pending
 if (
@@ -102,10 +103,11 @@ if (
         ->get();
 
     $issueSectionTitle = 'Issue Need Your Approval';
+    $userRoleLabelRequest  = 'approve';
 }
 
 // 2️⃣ Staff Level Access + GA → dokumen Approved
-if (
+elseif (
     $userDepartments->contains('General Affair') &&
     $userRoles->contains('Staff Level Access')
 ) {
@@ -115,6 +117,7 @@ if (
         ->get();
 
     $issueSectionTitle = 'Issue Need Your Review';
+    $userRoleLabelRequest  = 'review';
 }
 
 // ✅ Logika Dokumen

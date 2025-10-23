@@ -357,8 +357,13 @@
             <i data-feather="feather" class="w-5 h-5"></i>
         </div>
                 <span class="text-lg font-semibold tracking-wide">
-                    {{ $issueSectionTitle }}
-                    (<span class="issue-counter">{{ $issueToReview->count() }}</span>)
+                      @if($userRoleLabelRequest == 'approve')
+                Issue Need Your Approval 
+                (<span class="issue-counter">{{ $issueToReview->count() }}</span>)
+            @elseif($userRoleLabel == 'review')
+                Issue Need to Be Review 
+                (<span class="issue-counter">{{ $issueToReview->count() }}</span>)
+            @endif
                 </span>
             </div>
 
@@ -400,7 +405,7 @@
                                     Detail
                                 </a>
 
-                                @if($issueSectionTitle == 'Issue Need Your Approval')
+                                 @if($userRoleLabelRequest == 'approve')
                                     <button onclick="approveRequest({{ $issue->id }})"
                                             class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700">
                                         Approve
@@ -409,9 +414,7 @@
                                             class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700">
                                         Reject
                                     </button>
-                                @endif
-
-                                @if($issueSectionTitle == 'Issue Need Your Review')
+                                @elseif($userRoleLabelRequest == 'review')
                                     <button onclick="reviewDOC({{ $issue->id }})"
                                             class="px-3 py-1.5 text-xs font-medium text-white bg-yellow-500 rounded hover:bg-yellow-600">
                                         Review
@@ -2542,6 +2545,127 @@ $('#rejectFormIssue').on('submit', function (e) {
     }).fail(function (err) {
         console.error(err.responseText);
         showToast('error', 'An error occurred.');
+    });
+});
+
+  // Tambah Row Material
+$('#addRowBtn').on('click', function() {
+    let tableBody = $('#materialTable tbody');
+    let rowCount = tableBody.children().length + 1;
+    let newRow = `<tr>
+        <td class="border px-2 py-1 text-center">${rowCount}</td>
+        <td class="border px-2 py-1"><input type="text" name="material[]" class="w-full px-2 py-1 border rounded"></td>
+        <td class="border px-2 py-1"><input type="number" name="qty[]" class="w-full px-2 py-1 border rounded qty" value="0"></td>
+        <td class="border px-2 py-1"><input type="text" name="uom[]" class="w-full px-2 py-1 border rounded"></td>
+        <td class="border px-2 py-1"><input type="text" name="vendor[]" class="w-full px-2 py-1 border rounded"></td>
+        <td class="border px-2 py-1"><input type="number" name="price[]" class="w-full px-2 py-1 border rounded price" value="0"></td>
+        <td class="border px-2 py-1 subtotal text-right">Rp 0</td>
+        <td class="border px-2 py-1 text-center">
+            <button type="button" class="removeRow text-red-600 font-bold">×</button>
+        </td>
+    </tr>`;
+    tableBody.append(newRow);
+});
+
+// Hapus baris
+$(document).on('click', '.removeRow', function() {
+    $(this).closest('tr').remove();
+    updateRowNumbers();
+    calculateTotal();
+});
+
+// Update subtotal & total cost
+$(document).on('input', '.qty, .price', function() {
+    let row = $(this).closest('tr');
+    let qty = parseFloat(row.find('.qty').val()) || 0;
+    let price = parseFloat(row.find('.price').val()) || 0;
+    let subtotal = qty * price;
+    row.find('.subtotal').text(formatRupiah(subtotal));
+    calculateTotal();
+});
+
+// Hitung total keseluruhan
+function calculateTotal() {
+    let total = 0;
+    $('#materialTable tbody tr').each(function() {
+        let subtotalText = $(this).find('.subtotal').text().replace(/[^0-9,-]/g, '');
+        let subtotal = parseFloat(subtotalText) || 0;
+        total += subtotal;
+    });
+    $('#totalCost').text(formatRupiah(total));
+}
+
+// Update nomor urut baris
+function updateRowNumbers() {
+    $('#materialTable tbody tr').each(function(index) {
+        $(this).find('td:first').text(index + 1);
+    });
+}
+
+// Format angka ke Rupiah
+function formatRupiah(angka) {
+    return 'Rp ' + angka.toLocaleString('id-ID');
+}
+
+  const $checkResult = $('select[name="check_result"]');
+    const $materialSection = $('#materialTable').closest('div.mb-4'); // ambil wrapper div tabel
+
+    function toggleMaterialTable() {
+        if ($checkResult.val() === 'Internal Repair') {
+            $materialSection.hide();
+        } else {
+            $materialSection.show();
+        }
+    }
+
+    // Jalankan saat pertama kali halaman load (kalau edit data)
+    toggleMaterialTable();
+
+    // Jalankan setiap kali dropdown berubah
+    $checkResult.on('change', toggleMaterialTable);
+
+    function closeModal(id) {
+        $('#' + id).addClass('hidden');
+    }
+function openCheckingModal(requestId) {
+    // Set id request ke input hidden
+    document.getElementById('checking_request_id').value = requestId;
+
+    // Tampilkan modal
+    document.getElementById('initialCheckModal').classList.remove('hidden');
+}
+
+$('#initialCheckForm').on('submit', function (e) {
+    e.preventDefault();
+
+    let form = $(this);
+    let id = $('#checking_request_id').val(); // ambil ID dari hidden input
+    let url = '/it/issue-tracker/' + id + '/checking'; // sesuaikan route sesuai controller kamu
+    let data = form.serialize();
+
+    $.ajax({
+        url: url,
+        method: 'POST',
+        data: data,
+        success: function (res) {
+            if (res.success) {
+                showToast('success', res.message);
+
+
+  $(`#issue-row-${issueId}`).remove();
+                // Update counter
+                updateIssueCounter();
+                // Tutup modal & reset form
+                closeModal('initialCheckModal');
+                form[0].reset();
+            } else {
+                showToast('error', res.message || 'Gagal menyimpan data.');
+            }
+        },
+        error: function (xhr) {
+            console.error(xhr.responseText);
+            showToast('error', 'Terjadi kesalahan saat menyimpan pengecekan awal.');
+        }
     });
 });
 
