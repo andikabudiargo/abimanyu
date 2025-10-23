@@ -36,6 +36,8 @@ use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Borders;
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
 
 class IssueTrackerController extends Controller
 {
@@ -423,6 +425,43 @@ if (
         'created_at'      => now(),
     ]);
 
+    // ID user yang ingin dikirimi notifikasi
+$targetUserIds = [2, 42, 45, 85, 9];
+
+// Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->whereIn('user_id', $targetUserIds)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $requestorName = $request->creator->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '📢 Sistem Pengaduan GA | Abimanyu Live',
+        'body'  => "$requestorName Membuat Pengaduan Baru: $request->request_number",
+        'url'   => url("/it/issue-tracker/detail/{$request->id}")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
+
+
     // ============================
     // 4. Response JSON
     // ============================
@@ -503,6 +542,42 @@ public function approve($id)
     $request->approved_at = now();
     $request->save();
 
+      // ID user yang ingin dikirimi notifikasi
+$targetUserIds = [2, 42, 45, 85, $request->created_by];
+
+// Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->whereIn('user_id', $targetUserIds)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $approverName = $request->approver->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '📢 Sistem Pengaduan GA | Abimanyu Live',
+        'body'  => "$approverName sudah menyetujui untuk menjalankan aduan: $request->request_number",
+        'url'   => url("/it/issue-tracker/detail/{$request->id}")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
+
     return response()->json([
         'success' => true,
         'message' => 'Request Berhasil Disetujui.',
@@ -522,6 +597,42 @@ public function reject(Request $request, $id)
     $issue->rejected_by = auth()->id();
     $issue->rejected_at = now();
     $issue->save();
+
+      // ID user yang ingin dikirimi notifikasi
+$targetUserIds = [2, 42, 45, 85, $issue->created_by];
+
+// Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->whereIn('user_id', $targetUserIds)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $approverName = $request->approver->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '📢 Sistem Pengaduan GA | Abimanyu Live',
+        'body'  => "$approverName tidak menyetujui untuk menjalankan aduan: $issue->request_number",
+        'url'   => url("/it/issue-tracker/detail/{$issue->id}")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
 
      return response()->json([
         'success' => true,
@@ -578,6 +689,39 @@ public function checking(Request $request, $id)
         }
 
         DB::commit();
+
+// Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->where('user_id', $issue->created_by)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $checkName = $issue->checker->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '📢 Sistem Pengaduan GA | Abimanyu Live',
+        'body'  => "Aduan Nomor $issue->request_number sudah diproses oleh $checkName",
+        'url'   => url("/it/issue-tracker/detail/{$issue->id}")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
 
         return response()->json([
             'success' => true,
@@ -664,6 +808,39 @@ public function checking(Request $request, $id)
         'done_at'          => now(),
     ]);
 
+    // Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->where('user_id', $ticket->created_by)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $finishName = $issue->finisher->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '✅ Sistem Pengaduan GA | Abimanyu Live',
+        'body'  => "Aduan Nomor $ticket->request_number sudah diselesaikan oleh $finishName",
+        'url'   => url("/it/issue-tracker/detail/{$ticket->id}")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
+
     return response()->json([
         'success' => true,
         'message' => 'Pekerjaan berhasil diselesaikan!',
@@ -699,6 +876,39 @@ public function checking(Request $request, $id)
             'closed_at'           => now(),
             'status'              => 'Closed',
         ]);
+
+         // Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->where('user_id', $ticket->done_by)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $requestorName = $ticket->creator->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '✅ Sistem Pengaduan GA | Abimanyu Live',
+        'body'  => "Aduan Nomor $ticket->request_number sudah ditutup dan $requestorName sudah memberikan feedback.",
+        'url'   => url("/it/issue-tracker/detail/{$ticket->id}")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
 
         return response()->json([
             'success' => true,

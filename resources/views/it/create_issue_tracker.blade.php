@@ -123,7 +123,7 @@
       </div>
 
       <!-- Upload Foto -->
-      <div class="md:col-span-2">
+      <div>
         <label for="attachment" class="block text-sm font-medium text-gray-700 mb-1">
           Unggah Foto Kerusakan <small class="text-red-600">*</small>
         </label>
