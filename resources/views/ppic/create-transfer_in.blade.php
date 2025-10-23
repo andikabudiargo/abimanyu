@@ -284,6 +284,10 @@
     }
 </style>
 @push('scripts')
+<!-- jQuery dulu (kalau pakai) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Library html5-qrcode -->
 <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
 <script>
   
