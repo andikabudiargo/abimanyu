@@ -8,27 +8,103 @@
 <form id="doc-form" enctype="multipart/form-data">
   @csrf
   <!-- DIV UTAMA CONTAINER -->
-  <div class="bg-white shadow-md rounded-lg p-4 space-y-4">
     
     <!-- Flex container kiri + kanan -->
     <div class="flex flex-col md:flex-row gap-4">
       <!-- LEFT CONTENT (2/3) -->
-      <div class="w-full md:w-2/3 bg-white rounded-xl p-4 space-y-4">
-        <h2 class="text-lg font-semibold text-gray-700">Create New Document</h2>
-        <!-- INPUTS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-            <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Document Type <small class="text-red-600">*</small></label>
-           <select name="document_type" id="document_type" required
-        class="w-full px-3 py-2 border border-gray-300 text-sm p-2 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-  <option value="">-- Choose Type --</option>
-  <option value="Form">Form</option>
-  <option value="Work Instructions">Work Instructions</option>
-  <option value="Standard">Standard</option>
-  <option value="SOP">SOP</option>
-</select>
-            </div>
+      <div class="w-full md:w-2/3 bg-white p-4 space-y-4 border border-gray-800">
+   <div class="w-full bg-white border-b border-gray-800 p-4 flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6">
+  <!-- Logo -->
+  <div class="flex-shrink-0">
+    <img src="{{ asset('img/logo-2.jpg') }}" alt="Company Logo" class="h-12 sm:h-16 w-auto">
+  </div>
 
+  <!-- Divider vertikal untuk desktop -->
+  <div class="hidden sm:block border-l border-gray-300 h-16"></div>
+
+
+  <!-- Judul -->
+  <div class="text-center sm:text-left">
+    <h2 class="text-base sm:text-lg font-semibold text-gray-700">
+      FORM PENGAJUAN PEMBUATAN DAN PERUBAHAN DOKUMEN
+      <span class="hidden sm:block text-sm text-gray-400 italic mt-1">
+        SUBMISSION FORM MAKING AND CHANGING DOCUMENTS
+      </span>
+    </h2>
+  </div>
+</div>
+        <!-- INPUTS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
+
+          <div class="col-span-2">
+  <label class="block text-sm font-medium text-gray-700 mb-2">
+    Jenis Dokumen / Document Type <small class="text-red-600">*</small>
+  </label>
+
+  <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-12">
+    <label class="flex items-center space-x-2 w-full sm:w-auto">
+      <input type="radio" name="document_type" value="Form"
+        class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+      <span class="text-sm text-gray-700">Form</span>
+    </label>
+
+    <label class="flex items-center space-x-2 w-full sm:w-auto">
+      <input type="radio" name="document_type" value="Work Instructions"
+        class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+      <span class="text-sm text-gray-700">Work Instructions</span>
+    </label>
+
+    <label class="flex items-center space-x-2 w-full sm:w-auto">
+      <input type="radio" name="document_type" value="Standard"
+        class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+      <span class="text-sm text-gray-700">Standard</span>
+    </label>
+
+    <label class="flex items-center space-x-2 w-full sm:w-auto">
+      <input type="radio" name="document_type" value="SOP"
+        class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+      <span class="text-sm text-gray-700">SOP</span>
+    </label>
+  </div>
+</div>
+
+<div class="col-span-2">
+  <label class="block text-sm font-medium text-gray-700 mb-2">
+    Jenis Pengajuan / Submission Type <small class="text-red-600">*</small>
+  </label>
+
+  <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-12">
+    <label class="flex items-center space-x-2 w-full sm:w-auto">
+      <input type="radio" name="submission_type" value="New Release"
+        class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+      <span class="text-sm text-gray-700">Baru / New Release</span>
+    </label>
+
+    <label class="flex items-center space-x-2 w-full sm:w-auto">
+      <input type="radio" name="submission_type" value="Revision"
+        class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+      <span class="text-sm text-gray-700">Revisi / Revision</span>
+    </label>
+
+    <label class="flex items-center space-x-2 w-full sm:w-auto">
+      <input type="radio" name="submission_type" value="Obsolete"
+        class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+      <span class="text-sm text-gray-700">Kadaluwarsa / Obsolete</span>
+    </label>
+  </div>
+</div>
+
+
+          <div class="col-span-2">
+            <label for="4m" class="block text-sm font-medium text-gray-700 mb-1">
+             Lampiran 4M / 4M Attachment <small>(Opsional)</small>
+            </label>
+            <input type="file" name="4m" id="4m"
+                   class="w-full border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+            <small>Allowed: PDF, XLSX, Docs. Max total: 5MB/File.</small>
+          </div>
+        </div>
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
 <div class="relative group">
     <label for="document_number" class="block text-sm font-medium text-gray-700 mb-1">
         Document Number <small class="text-red-600">*</small>
@@ -39,31 +115,38 @@
     <small id="lastDocNote" class="text-gray-500 text-xs"></small>
 </div>
 <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Version Number</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Revisi / Version Number</label>
             <input type="text" name="current_version" id="version" placeholder="Default Version 00 if not filled. . ." value="00"
                    class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
           </div>
-          
-           <div>
-            <label for="4m" class="block text-sm font-medium text-gray-700 mb-1">
-              4M Attachment <small>(If Needed)</small>
-            </label>
-            <input type="file" name="4m" id="4m"
-                   class="w-full border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-            <small>Allowed: PDF, XLSX, Docs. Max total: 5MB/File.</small>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+ </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Document Title<small class="text-red-600"> *</small></label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Judul Dokumen / Document Title<small class="text-red-600"> *</small></label>
             <input type="text" name="title" id="title"
                    class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required />
           </div>
           <div class="col-span-2">
-            <label for="reason" class="block text-sm font-medium text-gray-700">Reason For Submission</label>
+            <label for="reason" class="block text-sm font-medium text-gray-700">Alasan Pengajuan / Reason For Submission</label>
             <textarea name="reason" id="reason" rows="5" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
           </div>
+        </div>
+         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  <div class="w-full">
+    <label for="reason_before" class="block text-sm font-medium text-gray-700">
+      Sebelum Perubahan / Before Changes
+    </label>
+    <textarea name="reason_before" id="reason_before" rows="5" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
+  </div>
+
+  <div class="w-full">
+    <label for="reason_after" class="block text-sm font-medium text-gray-700">
+      Setelah Perubahan / After Changes
+    </label>
+    <textarea name="reason_after" id="reason_after" rows="5" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
+  </div>
+</div>
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
           <div class="col-span-2 bg-gray-50 border border-dashed border-gray-300 p-4 rounded mb-4">
    <label for="file" class="block text-sm font-medium text-gray-700 mb-1">
         Document File <small class="text-red-600">*</small>
@@ -77,58 +160,160 @@
       </div>
 
      <!-- RIGHT SIDEBAR (1/3) -->
-<div class="w-full md:w-1/3 bg-white rounded-xl p-4 space-y-4">
-    <h2 class="text-lg font-semibold text-gray-700 text-left">Application for Copies</h2>
+<div class="w-full md:w-1/3 bg-white border border-gray-800 p-4 space-y-4">
+ <div class="flex flex-col sm:flex-row items-center sm:items-start p-4 gap-4 border-b border-gray-800">
+   <!-- Icon besar -->
+  <div class="flex-shrink-0 text-green-600 text-6xl sm:text-5xl">
+    <i class="fa fa-copy"></i>
+  </div>
+  <!-- Teks -->
+  <div class="text-center sm:text-left flex-1">
+    <h2 class="text-base sm:text-lg font-semibold text-gray-700">
+      LEMBAR PERMOHONAN SALINAN
+      <span class="sm:block text-sm text-gray-400 italic mt-1">
+        APPLICATION FOR COPIES
+      </span>
+    </h2>
+  </div>
 
-    <!-- Labels -->
-    <div class="flex gap-2 font-semibold text-gray-700">
-        <span class="flex-1">Department</span>
-        <span class="w-20 text-center">Qty</span>
-        <span class="w-8"></span> <!-- kosong untuk tombol remove -->
-    </div>
-
-    <div id="copies-container" class="space-y-2">
-        <!-- row template -->
-        <div class="flex items-center gap-2" data-row-index="0">
-            <select id="select_dept" name="copies[0][department_id]" class="flex-1 border border-gray-300 rounded px-2 py-1">
-                <option value="">-- Select Department --</option>
-                @foreach($departments as $dept)
-                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
-                @endforeach
-            </select>
-            <input type="number" name="copies[0][qty]" class="w-20 border border-gray-300 rounded px-2 py-1 text-center text-lg" min="0" value="0">
-            <button type="button" class="remove-row text-red-500 px-2 py-1 rounded hover:bg-red-600 hover:text-white">×</button>
-        </div>
-    </div>
-
-    <button type="button" id="add-copy-row" class="mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-        + Add Row
-    </button>
+ 
 </div>
 
-    </div>
-<hr>
-    <!-- TOMBOL di bawah kiri + kanan (MASIH DI DALAM CONTAINER UTAMA) -->
-    <div class="w-full flex justify-start items-center gap-2 mt-4">
-      <a href="{{ route('mr.doc.index') }}" 
-        class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
-        ← Back
-      </a>
-      <button type="submit" id="submitBtn"
-        class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
-        <i data-feather="save" class="h-4 w-4"></i>
-        Submit
-      </button>
-    </div>
 
+
+  <!-- Labels -->
+<div class="flex gap-2 font-semibold text-gray-700 border-b border-gray-300 pb-2 mb-2">
+    <span class="flex-1">Department</span>
+    <span class="w-20 text-center">Qty</span>
+</div>
+
+<!-- Container Departemen -->
+<ul id="copies-container" class="divide-y divide-gray-200 border border-gray-300 rounded overflow-hidden">
+  <!-- Departemen 1 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-bullhorn w-5 text-indigo-500"></i>
+      <span class="flex-1 px-2 py-1">Marketing</span>
+      <input type="number" name="copies[0][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 2 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-shopping-cart w-5 text-green-500"></i>
+      <span class="flex-1 px-2 py-1">Purchasing</span>
+      <input type="number" name="copies[1][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 3 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-lightbulb w-5 text-yellow-500"></i>
+      <span class="flex-1 px-2 py-1">Improvement</span>
+      <input type="number" name="copies[2][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 4 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-cogs w-5 text-purple-500"></i>
+      <span class="flex-1 px-2 py-1">Engineering New Product</span>
+      <input type="number" name="copies[3][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 5 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-industry w-5 text-red-500"></i>
+      <span class="flex-1 px-2 py-1">Engineering Production</span>
+      <input type="number" name="copies[4][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 6 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-truck w-5 text-blue-500"></i>
+      <span class="flex-1 px-2 py-1">Produksi</span>
+      <input type="number" name="copies[5][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 7 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-check-circle w-5 text-green-700"></i>
+      <span class="flex-1 px-2 py-1">Quality</span>
+      <input type="number" name="copies[6][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 8 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-users-cog w-5 text-teal-500"></i>
+      <span class="flex-1 px-2 py-1">HRGA & IT</span>
+      <input type="number" name="copies[7][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 9 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-project-diagram w-5 text-orange-500"></i>
+      <span class="flex-1 px-2 py-1">PPIC</span>
+      <input type="number" name="copies[8][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 10 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-shield-alt w-5 text-gray-600"></i>
+      <span class="flex-1 px-2 py-1">HSE</span>
+      <input type="number" name="copies[9][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 11 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-tools w-5 text-indigo-700"></i>
+      <span class="flex-1 px-2 py-1">Maintenance</span>
+      <input type="number" name="copies[10][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 12 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-file-alt w-5 text-purple-700"></i>
+      <span class="flex-1 px-2 py-1">Management System</span>
+      <input type="number" name="copies[11][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+
+  <!-- Departemen 13 -->
+  <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
+      <i class="fas fa-coins w-5 text-yellow-700"></i>
+      <span class="flex-1 px-2 py-1">Finance & Accounting</span>
+      <input type="number" name="copies[12][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+  </li>
+</ul>
+
+ <div class="col-span-2 bg-gray-50 border border-dashed border-gray-300 p-4 rounded mb-4">
+  <h3 class="font-semibold mb-2">Catatan :</h3>
+  <ul class="list-none space-y-1 mb-4">
+    <li>* Draft Dokumen yang dibuat user dilampirkan Soft Copy 
+   Dokumen melalui Email ke DCC.</li>
+    <li>* Proses TTD Dokumen harus sudah selesai dan kembali  
+   ke DCC Paling Lambat H+3.</li>
+  </ul>
+  <h3 class="font-semibold mb-2 italic">Note :</h3>
+  <ul class="list-none space-y-1 italic">
+    <li>* Draft Documents created by the user are attached with
+  Soft Copy Documents via Email to DCC.</li>
+    <li>* Document approval process must be completed and
+  returned to DCC not more than 3 day.</li>
+  </ul>
+</div>
   </div>
+    </div>
+    <!-- DIV TOMBOL DI BAWAH KEDUA FORM -->
+<div class="w-full flex justify-start items-center p-4 bg-white border-l border-r border-b border-gray-800 gap-2">
+  <a href="{{ route('mr.doc.index') }}" 
+     class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
+    ← Back
+  </a>
+  <button type="submit" id="submitBtn"
+     class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
+    <i data-feather="save" class="h-4 w-4"></i>
+    Submit
+  </button>
+</div>
+
+  
 </form>
-
-
-          
-
-   
-
 
 <style>
     /* Supaya select2 full width */
