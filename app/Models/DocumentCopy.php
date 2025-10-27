@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DocumentCopy extends Model
 {
-    protected $fillable = ['document_id', 'department_id', 'qty', 'document_revision_id'];
+    protected $fillable = ['document_id', 'department_name', 'qty', 'document_revision_id'];
 
     public function document()
     {

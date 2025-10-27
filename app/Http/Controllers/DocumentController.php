@@ -350,8 +350,12 @@ if (
         return '<span class="text-lime-500 ' . $commonClasses . '">Work Instructions</span>';
     } elseif ($row->document_type === 'Form') {
         return '<span class="text-rose-600 ' . $commonClasses . '">Form</span>';
+    } else {
+        // Untuk Other atau tipe custom
+        return '<span class="text-gray-600 ' . $commonClasses . '">' . e($row->document_type) . '</span>';
     }
 })
+
 
 ->editColumn('remark', function ($row) {
     $commonClasses = 'inline-block text-center text-xs font-semibold p-1 rounded-lg';
@@ -394,12 +398,14 @@ if (
 ->addColumn('file', function ($row) {
     $revision = $row->revisions->last(); // ambil revisi terbaru
     if ($revision && $revision->file) {
-        $fileUrl = asset('storage/' . $revision->file);
+        // File URL sesuai folder baru
+        $fileUrl = asset('document/' . $revision->file);
         $extension = strtolower(pathinfo($revision->file, PATHINFO_EXTENSION));
 
-        // ✅ tambahkan current_version ke nama file download
+        // Tambahkan current_version ke nama file download
         $downloadName = $row->document_number . '-' . $revision->version . '.' . $extension;
 
+        // Pilih icon sesuai extension
         $icon = match($extension) {
             'pdf' => '<i class="fas fa-file-pdf text-red-600 text-2xl"></i>',
             'doc', 'docx' => '<i class="fas fa-file-word text-blue-600 text-2xl"></i>',
@@ -414,13 +420,14 @@ if (
                 <div class="flex flex-col text-left">
                     <span class="text-sm font-semibold text-gray-800">'
                         . $row->document_number . '-' . $revision->version . '</span> 
-                    <span class="text-xs text-gray-500">' . $row->document_type . '</span>
+                    <span class="text-xs text-gray-500">' . strtoupper($row->document_type) . '</span>
                 </div>
             </a>
         ';
     }
     return '-';
 })
+
 
 
 ->editColumn('created_at', function ($row) {
@@ -454,73 +461,89 @@ public function store(Request $request)
     $request->validate([
         'document_number' => 'required|string|max:100|unique:documents,document_number',
         'document_type'   => 'required|string',
+        'otherInput'      => 'nullable|string|max:255',
+        'remark'          => 'required|string',
         'title'           => 'required|string|max:255',
         'file'            => 'required|file|mimes:pdf,doc,docx,xlsx|max:5120',
         '4m'              => 'nullable|file|mimes:pdf,doc,docx,xlsx|max:5120',
-        'current_version' => 'nullable|string|max:2', // ✅ tambahin ini
+        'current_version' => 'nullable|string|max:2',
         'reason'          => 'nullable|string',
         'copies'          => 'nullable|array',
-        'copies.*.department_id' => 'nullable|integer',
+        'copies.*.department_name' => 'nullable|string',
         'copies.*.qty'    => 'nullable|integer|min:0'
     ]);
 
     DB::beginTransaction();
-    try {
-        // === Upload file utama ===
-     $filePath = null;
-if ($request->hasFile('file')) {
-    $extension = $request->file('file')->getClientOriginalExtension(); 
-    
-    // pastikan ada current_version di request
-    $version   = str_pad($request->current_version ?? '00', 2, '0', STR_PAD_LEFT);
-    
-    // gabungkan document_number + current_version
-    $fileName  = $request->document_number . '-' . $version . '.' . $extension; 
-    
-    // simpan di storage/app/public/documents
-    $filePath  = $request->file('file')->storeAs('documents', $fileName, 'public');
-}
 
-        // === Upload file 4M ===
-        $file4mPath = null;
+    try {
+        // ===== Handle document_type "Other" =====
+        $documentType = $request->document_type === 'other' 
+            ? $request->otherInput 
+            : $request->document_type;
+
+        // ===== Path tujuan upload =====
+        $destinationPath = '/home/abimany3/public_html/document';
+        $destination4M   = $destinationPath . '/4m';
+
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0775, true);
+        }
+        if (!file_exists($destination4M)) {
+            mkdir($destination4M, 0775, true);
+        }
+
+        // ===== Upload file utama =====
+        $fileName = null;
+        if ($request->hasFile('file')) {
+            $extension = $request->file('file')->getClientOriginalExtension(); 
+            $version   = str_pad($request->current_version ?? '00', 2, '0', STR_PAD_LEFT);
+            $fileName  = $request->document_number . '-' . $version . '.' . $extension; 
+
+            $request->file('file')->move($destinationPath, $fileName);
+        }
+
+        // ===== Upload file 4M (opsional) =====
+        $fileName4m = null;
         if ($request->hasFile('4m')) {
             $extension4m = $request->file('4m')->getClientOriginalExtension();
             $fileName4m  = $request->document_number . '_4M_Attachment.' . $extension4m;
-            $file4mPath  = $request->file('4m')->storeAs('documents/4m', $fileName4m, 'public');
+
+            $request->file('4m')->move($destination4M, $fileName4m);
         }
 
-        // Tentukan versi awal
-$initialVersion = $request->filled('current_version') 
-    ? str_pad($request->current_version, 2, '0', STR_PAD_LEFT)  // pakai input user jika ada
-    : '00';  // default
+        $initialVersion = str_pad($request->current_version ?? '00', 2, '0', STR_PAD_LEFT);
 
-        // === Simpan ke documents (master) ===
+        // ===== Simpan ke tabel documents =====
         $document = Document::create([
             'document_number'  => $request->document_number,
-            'document_type'    => $request->document_type,
+            'document_type'    => $documentType,
+            'remark'           => $request->remark,
             'title'            => $request->title,
             'reason'           => $request->reason,
             'current_version'  => $initialVersion,
         ]);
 
-        // === Simpan ke document_revisions (initial version) ===
+        // ===== Simpan ke tabel document_revisions =====
         $revision = $document->revisions()->create([
             'version'          => $initialVersion,
-            'file'             => $filePath,
-            'file_4m'          => $file4mPath,
+            'file'             => $fileName,      // ✅ hanya nama file
+            'file_4m'          => $fileName4m,    // ✅ hanya nama file
+            'remark'           => $request->remark,
+            'reason_before'    => $request->reason_before,
+            'reason_after'     => $request->reason_after,
             'created_by'       => Auth::id(),
             'created_at'       => now()
         ]);
 
-        // === Simpan copies kalau ada ===
+        // ===== Simpan copies =====
         if ($request->has('copies')) {
             foreach ($request->copies as $copy) {
-                if ($copy['qty'] > 0) {
+                if (!empty($copy['department_name']) && $copy['qty'] > 0) {
                     DocumentCopy::create([
-                        'document_id'   => $document->id,
-                        'department_id' => $copy['department_id'],
-                        'qty'           => $copy['qty'],
-                        'document_revision_id' => $revision->id, // default ke revision awal
+                        'document_id'          => $document->id,
+                        'department_name'      => $copy['department_name'],
+                        'qty'                  => $copy['qty'],
+                        'document_revision_id' => $revision->id,
                     ]);
                 }
             }
@@ -545,6 +568,9 @@ $initialVersion = $request->filled('current_version')
         ], 500);
     }
 }
+
+
+
 
 public function storeRevision(Request $request, $id)
 {

@@ -10,7 +10,7 @@
   <!-- DIV UTAMA CONTAINER -->
     
     <!-- Flex container kiri + kanan -->
-    <div class="flex flex-col md:flex-row gap-4">
+    <div class="flex flex-col md:flex-row">
       <!-- LEFT CONTENT (2/3) -->
       <div class="w-full md:w-2/3 bg-white p-4 space-y-4 border border-gray-800">
    <div class="w-full bg-white border-b border-gray-800 p-4 flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6">
@@ -65,6 +65,18 @@
         class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
       <span class="text-sm text-gray-700">SOP</span>
     </label>
+
+    <label class="flex items-center space-x-2 w-full sm:w-auto">
+  <input type="radio" name="document_type" value="other" id="otherRadio"
+         class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+  <span class="text-sm text-gray-700">Other</span>
+</label>
+
+<!-- Input untuk ketik sendiri, default disembunyikan -->
+<input type="text" name="otherInput" id="otherInput" placeholder="Ketik tipe dokumen"
+       class="border-b border-gray-300 rounded w-full sm:w-auto hidden
+              focus:outline-none focus:ring-0">
+
   </div>
 </div>
 
@@ -75,19 +87,19 @@
 
   <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-12">
     <label class="flex items-center space-x-2 w-full sm:w-auto">
-      <input type="radio" name="submission_type" value="New Release"
+      <input type="radio" name="remark" value="New Release"
         class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
       <span class="text-sm text-gray-700">Baru / New Release</span>
     </label>
 
     <label class="flex items-center space-x-2 w-full sm:w-auto">
-      <input type="radio" name="submission_type" value="Revision"
+      <input type="radio" name="remark" value="Revision"
         class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
       <span class="text-sm text-gray-700">Revisi / Revision</span>
     </label>
 
     <label class="flex items-center space-x-2 w-full sm:w-auto">
-      <input type="radio" name="submission_type" value="Obsolete"
+      <input type="radio" name="remark" value="Obsolete"
         class="text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
       <span class="text-sm text-gray-700">Kadaluwarsa / Obsolete</span>
     </label>
@@ -152,9 +164,7 @@
         Document File <small class="text-red-600">*</small>
     </label>
       <input type="file" name="file" id="file" accept=".xlsx" class="w-full border border-gray-300 rounded shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-    <p class="text-xs text-gray-500 mt-1">Allowed: PDF, XLSX, DOCX. Max total: 5MB/File. <a id="templateLink" href="#" class="text-blue-600 underline hidden" download>
-  Download Template
-</a></p>
+    <p class="text-xs text-gray-500 mt-1">Allowed: PDF, XLSX, DOCX. Max total: 5MB/File.</p>
   </div>
         </div>
       </div>
@@ -163,7 +173,7 @@
 <div class="w-full md:w-1/3 bg-white border border-gray-800 p-4 space-y-4">
  <div class="flex flex-col sm:flex-row items-center sm:items-start p-4 gap-4 border-b border-gray-800">
    <!-- Icon besar -->
-  <div class="flex-shrink-0 text-green-600 text-6xl sm:text-5xl">
+  <div class="flex-shrink-0 text-green-600 text-6xl sm:text-4xl">
     <i class="fa fa-copy"></i>
   </div>
   <!-- Teks -->
@@ -189,11 +199,13 @@
 
 <!-- Container Departemen -->
 <ul id="copies-container" class="divide-y divide-gray-200 border border-gray-300 rounded overflow-hidden">
+
   <!-- Departemen 1 -->
   <li class="flex items-center gap-2 p-2 bg-gray-50 even:bg-white hover:bg-gray-100 transition">
       <i class="fas fa-bullhorn w-5 text-indigo-500"></i>
       <span class="flex-1 px-2 py-1">Marketing</span>
       <input type="number" name="copies[0][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[0][department_name]" value="Marketing">
   </li>
 
   <!-- Departemen 2 -->
@@ -201,6 +213,7 @@
       <i class="fas fa-shopping-cart w-5 text-green-500"></i>
       <span class="flex-1 px-2 py-1">Purchasing</span>
       <input type="number" name="copies[1][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[1][department_name]" value="Purchasing">
   </li>
 
   <!-- Departemen 3 -->
@@ -208,6 +221,7 @@
       <i class="fas fa-lightbulb w-5 text-yellow-500"></i>
       <span class="flex-1 px-2 py-1">Improvement</span>
       <input type="number" name="copies[2][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[2][department_name]" value="Improvement">
   </li>
 
   <!-- Departemen 4 -->
@@ -215,6 +229,7 @@
       <i class="fas fa-cogs w-5 text-purple-500"></i>
       <span class="flex-1 px-2 py-1">Engineering New Product</span>
       <input type="number" name="copies[3][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[3][department_name]" value="Engineering New Product">
   </li>
 
   <!-- Departemen 5 -->
@@ -222,6 +237,7 @@
       <i class="fas fa-industry w-5 text-red-500"></i>
       <span class="flex-1 px-2 py-1">Engineering Production</span>
       <input type="number" name="copies[4][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[4][department_name]" value="Engineering Production">
   </li>
 
   <!-- Departemen 6 -->
@@ -229,6 +245,7 @@
       <i class="fas fa-truck w-5 text-blue-500"></i>
       <span class="flex-1 px-2 py-1">Produksi</span>
       <input type="number" name="copies[5][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[5][department_name]" value="Produksi">
   </li>
 
   <!-- Departemen 7 -->
@@ -236,6 +253,7 @@
       <i class="fas fa-check-circle w-5 text-green-700"></i>
       <span class="flex-1 px-2 py-1">Quality</span>
       <input type="number" name="copies[6][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[6][department_name]" value="Quality">
   </li>
 
   <!-- Departemen 8 -->
@@ -243,6 +261,7 @@
       <i class="fas fa-users-cog w-5 text-teal-500"></i>
       <span class="flex-1 px-2 py-1">HRGA & IT</span>
       <input type="number" name="copies[7][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[7][department_name]" value="HRGA & IT">
   </li>
 
   <!-- Departemen 9 -->
@@ -250,6 +269,7 @@
       <i class="fas fa-project-diagram w-5 text-orange-500"></i>
       <span class="flex-1 px-2 py-1">PPIC</span>
       <input type="number" name="copies[8][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[8][department_name]" value="PPIC">
   </li>
 
   <!-- Departemen 10 -->
@@ -257,6 +277,7 @@
       <i class="fas fa-shield-alt w-5 text-gray-600"></i>
       <span class="flex-1 px-2 py-1">HSE</span>
       <input type="number" name="copies[9][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[9][department_name]" value="HSE">
   </li>
 
   <!-- Departemen 11 -->
@@ -264,6 +285,7 @@
       <i class="fas fa-tools w-5 text-indigo-700"></i>
       <span class="flex-1 px-2 py-1">Maintenance</span>
       <input type="number" name="copies[10][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[10][department_name]" value="Maintenance">
   </li>
 
   <!-- Departemen 12 -->
@@ -271,6 +293,7 @@
       <i class="fas fa-file-alt w-5 text-purple-700"></i>
       <span class="flex-1 px-2 py-1">Management System</span>
       <input type="number" name="copies[11][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[11][department_name]" value="Management System">
   </li>
 
   <!-- Departemen 13 -->
@@ -278,29 +301,24 @@
       <i class="fas fa-coins w-5 text-yellow-700"></i>
       <span class="flex-1 px-2 py-1">Finance & Accounting</span>
       <input type="number" name="copies[12][qty]" class="w-20 text-center border border-gray-300 rounded px-2 py-1 text-lg" min="0" value="0">
+      <input type="hidden" name="copies[12][department_name]" value="Finance & Accounting">
   </li>
+
 </ul>
 
+
  <div class="col-span-2 bg-gray-50 border border-dashed border-gray-300 p-4 rounded mb-4">
-  <h3 class="font-semibold mb-2">Catatan :</h3>
+  <h3 class="font-semibold mb-2">Download Template Dokumen :</h3>
   <ul class="list-none space-y-1 mb-4">
-    <li>* Draft Dokumen yang dibuat user dilampirkan Soft Copy 
-   Dokumen melalui Email ke DCC.</li>
-    <li>* Proses TTD Dokumen harus sudah selesai dan kembali  
-   ke DCC Paling Lambat H+3.</li>
-  </ul>
-  <h3 class="font-semibold mb-2 italic">Note :</h3>
-  <ul class="list-none space-y-1 italic">
-    <li>* Draft Documents created by the user are attached with
-  Soft Copy Documents via Email to DCC.</li>
-    <li>* Document approval process must be completed and
-  returned to DCC not more than 3 day.</li>
+    <li>* Download Template Form.</li>
+    <li>* Download Template Instruksi Kerja.</li>
+    <li>* Download Template SOP.</li>
   </ul>
 </div>
   </div>
     </div>
     <!-- DIV TOMBOL DI BAWAH KEDUA FORM -->
-<div class="w-full flex justify-start items-center p-4 bg-white border-l border-r border-b border-gray-800 gap-2">
+<div class="w-full flex justify-start items-center p-4 bg-white border border-gray-800 gap-2">
   <a href="{{ route('mr.doc.index') }}" 
      class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
     ← Back
@@ -355,6 +373,20 @@
 </style>
 @push('scripts')
 <script>
+    const otherRadio = document.getElementById('otherRadio');
+  const otherInput = document.getElementById('otherInput');
+
+  // Toggle input text ketika opsi Other dipilih atau tidak
+  document.querySelectorAll('input[name="document_type"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      if (otherRadio.checked) {
+        otherInput.classList.remove('hidden');
+      } else {
+        otherInput.classList.add('hidden');
+      }
+    });
+  });
+
     document.addEventListener('DOMContentLoaded', function () {
   $(document).ready(function () {
     $('#select_dept').select2({
@@ -500,6 +532,8 @@ $('#document_type').on('change', function() {
 });
 
 });
+
+
 
 </script>
 

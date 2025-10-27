@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
-    protected $fillable = ['document_number', 'document_type', 'title', 'reason', 'current_version'];
+    protected $fillable = ['document_number', 'document_type', 'title', 'reason', 'current_version', 'remark'];
 
      public $timestamps = false; // 🚀 ini wajib kalau tidak ada created_at / updated_at
 

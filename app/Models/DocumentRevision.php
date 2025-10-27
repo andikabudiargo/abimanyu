@@ -16,6 +16,8 @@ class DocumentRevision extends Model
         'file',
         'file_4m',
         'remark',
+        'reason_before',
+        'reason_after',
         'created_by',
         'review_by',
         'review_at'

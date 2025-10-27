@@ -71,7 +71,7 @@ $revisions = $document->revisions->sortBy('version');
         @php
             $copiesJson = $rev->copies->map(function($c) use ($rev) {
                 return [
-                    'department' => $c->department->name ?? '-',
+                    'department' => $c->department_name ?? '-',
                     'qty' => $c->qty,
                     'date' => $c->date ? \Carbon\Carbon::parse($c->date)->format('d-m-Y') : null,
                     'socialized' => $c->socialized->name ?? 'Not yet Socialized',
@@ -199,7 +199,10 @@ $revisions = $document->revisions->sortBy('version');
         <p class="text-xs text-gray-500">Format: .<span id="documentFileExt">{{ $extension }}</span></p>
     </div>
     <div class="flex gap-2">
-        <a id="documentFileLink" href="{{ asset('storage/' . ($latest->file ?? $document->file)) }}" download class="inline-flex items-center text-green-600 hover:underline">
+        <a id="documentFileLink" 
+           href="{{ asset('document/' . ($latest->file ?? $document->file)) }}" 
+           download 
+           class="inline-flex items-center text-green-600 hover:underline">
             <i data-feather="download" class="w-4 h-4 mr-1"></i> Download
         </a>
     </div>
@@ -213,7 +216,10 @@ $revisions = $document->revisions->sortBy('version');
         <p class="text-xs text-gray-500">Format: .<span id="documentFile4MExt">{{ $extension4m }}</span></p>
     </div>
     <div class="flex gap-2">
-        <a id="documentFile4MLink" href="{{ asset('storage/' . ($latest->file_4m ?? $document->file_4m)) }}" download class="inline-flex items-center text-green-600 hover:underline">
+        <a id="documentFile4MLink" 
+           href="{{ asset('document/4m/' . ($latest->file_4m ?? $document->file_4m)) }}" 
+           download 
+           class="inline-flex items-center text-green-600 hover:underline">
             <i data-feather="download" class="w-4 h-4 mr-1"></i> Download
         </a>
     </div>
@@ -273,7 +279,7 @@ $revisions = $document->revisions->sortBy('version');
     <tbody>
       @forelse($copiesToShow as $copy)
         <tr class="copy-row" data-version="{{ $copy->document_revision_id ?? 'original' }}">
-          <td class="p-2 border">{{ $copy->department->name ?? '-' }}</td>
+          <td class="p-2 border">{{ $copy->department_name ?? '-' }}</td>
           <td class="p-2 border text-center">{{ $copy->qty }} Sheet</td>
           <td class="p-2 border">
             {{ optional($copy->date ? \Carbon\Carbon::parse($copy->date) : null)->format('d-m-Y') ?? 'Not yet socialized' }}
