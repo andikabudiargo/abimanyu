@@ -310,9 +310,24 @@
  <div class="col-span-2 bg-gray-50 border border-dashed border-gray-300 p-4 rounded mb-4">
   <h3 class="font-semibold mb-2">Download Template Dokumen :</h3>
   <ul class="list-none space-y-1 mb-4">
-    <li>* Download Template Form.</li>
-    <li>* Download Template Instruksi Kerja.</li>
-    <li>* Download Template SOP.</li>
+    <li>
+        * Download Template Form: 
+        <a href="{{ asset('blank/BLANK FORM.xlsx') }}" download class="text-blue-600 hover:underline">
+            BLANK FORM.xlsx
+        </a>
+    </li>
+    <li>
+        * Download Template Instruksi Kerja: 
+        <a href="{{ asset('blank/BLANK IK.xlsx') }}" download class="text-blue-600 hover:underline">
+            BLANK IK.xlsx
+        </a>
+    </li>
+    <li>
+        * Download Template SOP: 
+        <a href="{{ asset('blank/BLANK SOP.xlsx') }}" download class="text-blue-600 hover:underline">
+            BLANK SOP.xlsx
+        </a>
+    </li>
   </ul>
 </div>
   </div>
