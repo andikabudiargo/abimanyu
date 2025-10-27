@@ -358,10 +358,10 @@
         </div>
                 <span class="text-lg font-semibold tracking-wide">
                       @if($userRoleLabelRequest == 'approve')
-                Issue Need Your Approval 
+                Facility Issue Repairs Need Your Approval 
                 (<span class="issue-counter">{{ $issueToReview->count() }}</span>)
             @elseif($userRoleLabel == 'review')
-                Issue Need to Be Review 
+               Facility Issue Repairs Need to Be Review 
                 (<span class="issue-counter">{{ $issueToReview->count() }}</span>)
             @endif
                 </span>

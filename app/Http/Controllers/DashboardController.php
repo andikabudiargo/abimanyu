@@ -102,7 +102,7 @@ if (
         ->take(10)
         ->get();
 
-    $issueSectionTitle = 'Issue Need Your Approval';
+    $issueSectionTitle = 'Facility Issue Repairs Need Your Approval';
     $userRoleLabelRequest  = 'approve';
 }
 
@@ -116,7 +116,7 @@ elseif (
         ->take(10)
         ->get();
 
-    $issueSectionTitle = 'Issue Need Your Review';
+    $issueSectionTitle = 'Facility Issue Repairs Need to Be Review ';
     $userRoleLabelRequest  = 'review';
 }
 
