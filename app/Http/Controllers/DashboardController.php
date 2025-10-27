@@ -214,6 +214,7 @@ $cancelledBookings = BookingRoom::with('room')
     'ticketsToClose',
     'ticketCloseSectionTitle',
     'userRoleLabel',
+    'userRoleLabelRequest',
      'documentsToReview',      // ⬅️ tambahkan ke view
         'documentSectionTitle',   // ⬅️ tambahkan ke view
          'issueToReview',      // ⬅️ tambahkan ke view
