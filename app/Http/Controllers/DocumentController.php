@@ -17,6 +17,8 @@ use Carbon\CarbonInterval;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
 
 class DocumentController extends Controller
 {
@@ -374,6 +376,12 @@ if (
     }
 })
 
+->editColumn('title', function ($row) {
+
+    return '<span>' . strtoupper(e($row->title)) . '</span>';
+})
+
+
 
 ->editColumn('status', function ($row) {
     $status = $row->status ?? 'Draft'; // fallback Draft kalau null
@@ -452,7 +460,7 @@ if (
 })
 
 
-        ->rawColumns(['action', 'status','file', 'remark', 'document_type'])
+        ->rawColumns(['action', 'status','file', 'title', 'remark', 'document_type'])
         ->make(true);
 }
 
@@ -550,6 +558,55 @@ public function store(Request $request)
         }
 
         DB::commit();
+
+      // Ambil objek user pembuat
+$requestor = $document->requestor;
+
+// Ambil ID departemen user pembuat
+$ownerDepartmentIds = optional($requestor?->departments)->pluck('id') ?? collect();
+
+// Ambil user yang punya departemen sama dengan pembuat dan role tertentu
+$targetUsers = User::whereHas('departments', function($q) use ($ownerDepartmentIds) {
+        $q->whereIn('departments.id', $ownerDepartmentIds);
+    })
+    ->whereHas('roles', function($q) {
+        $q->whereIn('roles.name', ['Supervisor Special Access', 'Manager Special Access']);
+    })
+    ->get();
+
+// Setup WebPush
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+// Kirim notifikasi ke tiap user
+foreach ($targetUsers as $user) {
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', $user->id)
+        ->get();
+
+    foreach ($subscriptions as $subRow) {
+        $subData = json_decode($subRow->subscription, true);
+        if (!$subData) continue;
+
+        $sub = Subscription::create($subData);
+
+        $webPush->sendOneNotification($sub, json_encode([
+            'title' => "📃 Pengajuan Dokumen Baru | Abimanyu Live",
+            'body'  => "{$requestor->name} membuat dokumen baru: {$document->document_number}",
+            'url'   => url("/mr/document/{$document->id}/detail")
+        ]));
+    }
+}
+
+// Flush push
+$webPush->flush();
+
 
         return response()->json([
             'success' => true,
@@ -729,6 +786,42 @@ public function approve($id)
         ]);
     }
 
+    // ID user yang ingin dikirimi notifikasi
+$targetUserIds = [2, 49, 72];
+
+// Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->whereIn('user_id', $targetUserIds)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $requestorName = $doc->requestor->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '📃 Pengajuan Dokumen Baru | Abimanyu Live',
+        'body'  => "$requestorName Mengajukan Dokumen Baru dan telah disetujui kepala departemennya: $doc->document_number",
+        'url'   => url("/mr/document/{$doc->id}/detail")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
+
     return response()->json([
         'success' => true,
         'message' => 'Document Approved.',
@@ -749,6 +842,39 @@ public function reject(Request $request, $id)
     $doc->rejected_by = auth()->id();
     $doc->rejected_at = now();
     $doc->save();
+
+    // Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->whereIn('user_id', $doc->created_by)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $rejectName = $doc->reject->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '❌ Pengajuan Dokumen Ditolak | Abimanyu Live',
+        'body'  => "Pengajuan Dokumen Anda Ditolak Oleh {$rejectName} Dengan Alasan {$doc->rejected_reason}",
+        'url'   => url("/mr/document/{$doc->id}/detail")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
 
      return response()->json([
         'success' => true,
@@ -810,6 +936,39 @@ public function review($id)
         ]);
     }
 
+     // Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->whereIn('user_id', $doc->created_by)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $reviewName = $doc->review->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '📑 Dokumen Sedang Direview | Abimanyu Live',
+        'body'  => "Dokumen Anda Dengan Nomor {$doc->document_number} sedang direview oleh {$reviewName}",
+        'url'   => url("/mr/document/{$doc->id}/detail")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
+
     return response()->json([
         'success' => true,
         'message' => 'Document set to be Under Review.',
@@ -836,6 +995,39 @@ public function authorized($id)
             'authorized_at' => now(),
         ]);
     }
+
+      // Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->whereIn('user_id', $doc->created_by)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $authName = $doc->authorized->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '📝 Dokumen Sedang Direview | Abimanyu Live',
+        'body'  => "Selamat Dokumen Anda Dengan Nomor {$doc->document_number} telah diterbitkan oleh {$authName}, silahkan secepatnya disosialisasikan.",
+        'url'   => url("/mr/document/{$doc->id}/detail")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
 
     return response()->json([
         'success' => true,
