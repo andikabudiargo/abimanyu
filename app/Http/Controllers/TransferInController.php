@@ -385,6 +385,17 @@ foreach ($request->items as $index => $item) {
         $itemQrUrl = asset('qr_code/' . $itemQrFileName);
     }
 
+    $article = Article::where('article_code', $item['article_code'])->first();
+    // masukkan ke labelData
+    $labelData[] = [
+        'type' => 'qr_item',
+        'qr_path' => $itemQrUrl,
+        'code' => $itemCode,
+        'article_code' => $item['article_code'],
+        'description' => $item['description'],
+        'qty' => $qty,
+        'min_package' => $article->min_package ?? 1, // ambil dari DB
+        ];
     // Jika Material Return, tetap pakai qty untuk update qty_return
     if ($request->transfer_category === 'Material Return') {
         $qtyReturn = (int) $item['qty']; 
