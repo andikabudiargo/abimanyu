@@ -318,26 +318,24 @@ public function search(Request $request)
             ->get(['article_code', 'description']);
     }
 
-   public function find($code)
+  public function find($code)
 {
     // === Transfer In ===
     $transfer = TransferIn::with(['supplier', 'items.article'])
     ->where('code', $code)
     ->first();
 
+ 
 if ($transfer) {
     return response()->json([
         'type' => 'transfer_in',
         'code' => $transfer->code,
         'supplier_name' => optional($transfer->supplier)->name,
         'supplier_code' => $transfer->supplier_code,
-        'items' => $transfer->items->map(function ($item) use ($transfer) {
+        'items' => $transfer->items->map(function ($item) {
             $articleCode = $item->article->article_code;
-             // Ambil transfer out terakhir untuk item ini
-    $lastTransferOut = \App\Models\TransferOutItem::where('transfer_in_code', $transfer->code)
-                        ->orderBy('created_at', 'desc')
-                        ->first();
-            
+
+            $qtyOut = max(0, $item->qty_used - $item->qty_return);
 
             return [
                 'id'              => $item->id,
@@ -345,10 +343,10 @@ if ($transfer) {
                 'description'     => $item->article->description,
                 'uom'             => $item->article->unit,
                 'min_package'     => $item->article->min_package,
-               'qty' => max(0, ($item->qty + $item->qty_return) - $item->qty_used),
+                'qty'             => max(0, ($item->qty + $item->qty_return) - $item->qty_used),
                 'destination_id'  => $item->article->type->warehouse_id ?? null,
                 'destination_name'=> optional($item->article->type->warehouse)->name,
-                'qty_used'         => $lastTransferOut ? $lastTransferOut->qty : 0, // <-- last qty used
+                'qty_out'         => $qtyOut,
             ];
         }),
     ]);
@@ -358,35 +356,32 @@ $item = TransferInItems::with(['article', 'transferIn'])
     ->where('code', $code) // code dari transfer_in_items
     ->first();
 
-$lastQtyOut = null;
+ if ($item && $item->transferIn) {
+        $transferOutItems = \App\Models\TransferOutItem::where('transfer_in_code', $item->transferIn->code)
+            ->where('article_code', $item->article_code)
+            ->get();
 
-if ($item && $item->transferIn) {
-    $lastQtyOut = \App\Models\TransferOutItem::where('transfer_in_code', $item->transferIn->code)
-                    ->where('article_code', $item->article_code)
-                    ->orderBy('created_at', 'desc')
-                    ->first();
-}
+        $totalOut = $transferOutItems->sum('qty');
+        $totalReturn = $transferOutItems->sum('qty_return');
 
-if ($item) {
-    return response()->json([
-        'type'           => 'transfer_in_item',
-        'code'           => $item->code, // code item, bukan header
-        'transfer_in_code'  => optional($item->transferIn)->code, // <<== tambahkan ini
-        'supplier_name'  => optional($item->article->supplier)->name,
-        'supplier_code'  => optional($item->transferIn)->supplier_code,
-        'article_code'   => $item->article->article_code,
-        'description'    => $item->article->description,
-        'uom'            => $item->article->unit,
-        'min_package'    => $item->article->min_package,
-        'qty'            => $item->qty - $item->qty_used, // sisa stok
-        'destination_id' => $item->article->type->warehouse_id ?? null,
-        'destination_name' => optional($item->article->type->warehouse)->name,
-        'qty_used'         => $lastQtyOut ? $lastQtyOut->qty : 0, // <-- last qty used per article
-    ]);
-}
+        $qtyOut = max(0, $totalOut - $totalReturn);
 
-
-
+        return response()->json([
+            'type'             => 'transfer_in_item',
+            'code'             => $item->code,
+            'transfer_in_code' => optional($item->transferIn)->code,
+            'supplier_name'    => optional($item->article->supplier)->name,
+            'supplier_code'    => optional($item->transferIn)->supplier_code,
+            'article_code'     => $item->article->article_code,
+            'description'      => $item->article->description,
+            'uom'              => $item->article->unit,
+            'min_package'      => $item->article->min_package,
+            'qty'              => max(0, ($item->qty + $item->qty_return) - $item->qty_used),
+            'destination_id'   => $item->article->type->warehouse_id ?? null,
+            'destination_name' => optional($item->article->type->warehouse)->name,
+            'qty_out'          => $qtyOut,
+        ]);
+    }
 
     // === LPB ===
     $lpb = Receiving::with(['supplier', 'items.article'])
@@ -401,17 +396,22 @@ if ($item) {
             'supplier_code' => $lpb->supplier_code,
             'items' => $lpb->items->map(function ($item) use ($lpb) {
                 $articleCode = $item->article->article_code;
-              
+
+                $totalOut = $item->qty_used; // untuk LPB, qty_used sudah mencerminkan keluar
+                $totalReturn = $item->qty_return ?? 0; // jika ada return
+
+                $qtyOut = max(0, $totalOut - $totalReturn);
+
                 return [
-                    'id'            => $item->id, // ✅ kirim id asli dari DB
-                    'article_code' => $articleCode,
-                    'description'  => $item->article->description,
-                    'uom'          => $item->article->unit,
-                    'min_package'  => $item->article->min_package,
-                    'qty'          => $item->qty_received - $item->qty_used,
+                    'id'              => $item->id,
+                    'article_code'    => $articleCode,
+                    'description'     => $item->article->description,
+                    'uom'             => $item->article->unit,
+                    'min_package'     => $item->article->min_package,
+                    'qty'             => max(0, ($item->qty_received + ($item->qty_return ?? 0)) - $item->qty_used),
                     'destination_id'   => $item->article->type->warehouse_id ?? null,
                     'destination_name' => optional($item->article->type->warehouse)->name,
-                    'qty_out'          => $item->qty_used   ,
+                    'qty_out'          => $qtyOut,
                 ];
             }),
         ]);

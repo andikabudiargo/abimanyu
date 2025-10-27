@@ -284,6 +284,8 @@
     }
 </style>
 @push('scripts')
+
+
 <script>
   
   // =====================
@@ -393,12 +395,20 @@ function initEventListeners() {
 // === INIT SELECT2 SEARCH ===
 // =====================
 function initSelect2Search() {
-    const types = ['article', 'transfer', 'receiving'];
+    let types = ['article', 'transfer', 'receiving']; // default
     let currentTypeIndex = 0;
     let loadedItems = [];
 
+    function resetSelect2() {
+        currentTypeIndex = 0;
+        loadedItems = [];
+        $('#selectArticle').val(null).trigger('change');
+        $('#selectArticle').select2('close');
+    }
+
+    // Inisialisasi Select2
     $('#selectArticle').select2({
-        placeholder: "Pilih article atau Transfer Number...",
+        placeholder: "Pilih Article / Transfer Number / Receiving...",
         allowClear: true,
         width: '100%',
         ajax: {
@@ -409,13 +419,15 @@ function initSelect2Search() {
                 return {
                     q: params.term || '',
                     page: params.page || 1,
-                    type: types[currentTypeIndex]
+                    type: types[currentTypeIndex],
+                    transfer_category: $('#transfer_type').val() || '' // kirim kategori ke backend
                 };
             },
             processResults: function(data, params) {
                 params.page = params.page || 1;
                 loadedItems = loadedItems.concat(data.results);
 
+                // Jika halaman habis tapi masih ada tipe berikutnya, lanjut ke tipe selanjutnya
                 if (!data.pagination.more && currentTypeIndex < types.length - 1) {
                     currentTypeIndex++;
                 }
@@ -430,16 +442,43 @@ function initSelect2Search() {
         minimumInputLength: 0
     });
 
+    // 🔁 Jika user ganti transfer type, ubah daftar tipe yang dicari
+    $('#transfer_type').on('change', function() {
+        const val = $(this).val();
+
+        if (val === 'Material Return') {
+            types = ['transfer', 'receiving']; // hanya 2 tipe
+        } else {
+            types = ['article']; // default
+        }
+
+        // reset select2 agar hasil lama tidak nyangkut
+        resetSelect2();
+    });
+
+    // Saat user memilih item dari dropdown
     $('#selectArticle').on('select2:select', function(e) {
         const data = e.params.data;
-        if (!data || !data.code) {
-            Swal.fire({ icon: 'error', title: 'Data tidak valid', text: 'Tidak ada kode yang dipilih.' });
+        if (!data || (!data.code && !data.id)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Data tidak valid',
+                text: 'Tidak ada kode yang dipilih.'
+            });
             return;
         }
-        handleScannedCode(data.code);
+
+        // Gunakan kode tergantung tipenya
+        const selectedCode = data.code || data.id;
+         // ======== MATERIAL RETURN: isi reference_number otomatis ========
+    if ($('#transfer_type').val() === 'Material Return') {
+        $('#reference_number').val(selectedCode);
+    }
+        handleScannedCode(selectedCode);
         $(this).val(null).trigger('change');
     });
 }
+
 
 function buildGroupedResults(items) {
     const grouped = {};
@@ -505,27 +544,39 @@ function renderItemTable() {
 
     for (const code in scannedItems) {
         const item = scannedItems[code];
-        let row = `<tr>
-            <td class="border p-2 text-center">${itemIndex++}</td>
-            <td class="border p-2">${item.code}</td>
-            <td class="border p-2">${item.name}</td>`;
-        if (isMaterialReturn) row += `<td class="border p-2 text-center">${item.qty_out}</td>`;
-        row += `<td class="border p-2 text-center">
-            <input type="number" min="1" value="${item.qty}" class="w-20 text-center border rounded px-2 py-1 qty-input" data-code="${item.code}" data-qty-out="${item.qty_out}">
-        </td>
-        <td class="border p-2 text-center">${item.uom}</td>
-        <td class="border p-2 text-center">${item.min_package}</td>
-        <td class="border p-2 text-center"><input type="date" class="w-full border rounded px-2 py-1" min="<?= date('Y-m-d') ?>" /></td>
-        <td class="border p-2 text-center">
-            ${item.destination_name}
-            <input type="hidden" class="destination-id-hidden" value="${item.destination_id}" />
-            <input type="hidden" class="origin-item-id" name="items[${itemIndex}][origin_item_id]" value="${item.origin_item_id ?? ''}">
-            <input type="hidden" class="origin-type" name="items[${itemIndex}][origin_type]" value="${item.origin_type ?? ''}">
-        </td>
-        <td class="border p-2 text-center">
-            <button type="button" onclick="removeItem('${item.code}')" class="text-red-500 hover:text-red-700 font-semibold">X</button>
-        </td>
-        </tr>`;
+      let row = `
+<tr class="item-row">
+  <td class="border p-2 text-center item-index">${itemIndex++}</td>
+  <td class="border p-2 article-code">${item.code}</td>
+  <td class="border p-2 description">${item.name}</td>
+  ${isMaterialReturn ? `<td class="border p-2 text-center qty-out">${item.qty_out}</td>` : ''}
+  <td class="border p-2 text-center">
+    <input type="number" min="1" value="${item.qty}" 
+      class="w-20 text-center border rounded px-2 py-1 qty-input" 
+      data-code="${item.code}" 
+      data-qty-out="${item.qty_out}">
+  </td>
+  <td class="border p-2 text-center uom">${item.uom}</td>
+  <td class="border p-2 text-center min-package">${item.min_package}</td>
+  <td class="border p-2 text-center">
+    <input type="date" 
+      class="w-full border rounded px-2 py-1 exp-input" 
+      min="<?= date('Y-m-d') ?>">
+  </td>
+  <td class="border p-2 text-center destination">
+    ${item.destination_name}
+    <input type="hidden" class="destination-id-hidden" value="${item.destination_id}">
+    <input type="hidden" class="origin-item-id" name="items[${itemIndex}][origin_item_id]" value="${item.origin_item_id ?? ''}">
+    <input type="hidden" class="origin-type" name="items[${itemIndex}][origin_type]" value="${item.origin_type ?? ''}">
+  </td>
+  <td class="border p-2 text-center">
+    <button type="button" onclick="removeItem('${item.code}')" 
+      class="text-red-500 hover:text-red-700 font-semibold">
+      X
+    </button>
+  </td>
+</tr>`;
+
 
         $itemList.append(row);
     }
@@ -612,6 +663,13 @@ function addItemToScanned(item, transferType) {
             origin_type: item.origin_type || null
         };
 
+       if (transferType === 'Material Return') {
+    scannedItems[code].origin_item_id = item.id || item.origin_item_id || null;
+    scannedItems[code].origin_type = item.origin_type || 'transfer_in'; // fallback jika kosong
+    scannedItems[code].qty_out = item.qty_out || item.qty;
+}
+
+
     Swal.fire({
         icon: 'success',
         title: 'Article Succesfully Scan!',
@@ -662,22 +720,19 @@ function submitForm(e) {
     if (transferType === 'Incoming' && !supplierCode) return Swal.fire({ icon: 'warning', title: 'Supplier Belum Dipilih', text: 'Supplier ID tidak ditemukan.' });
 
     const items = [];
-    $('#itemList tr').each(function() {
-        const tds = $(this).find('td');
-        const qtyInput = tds.eq(3).find('input');
-        const expInput = tds.eq(6).find('input');
-        const destinationInput = tds.eq(7).find('input.destination-id-hidden');
+$('#itemList tr.item-row').each(function() {
+  items.push({
+    article_code: $(this).find('.article-code').text().trim(),
+    description: $(this).find('.description').text().trim(),
+    qty: $(this).find('.qty-input').val(),
+    expired_date: $(this).find('.exp-input').val(),
+    destination_id: $(this).find('.destination-id-hidden').val(),
+    origin_item_id: $(this).find('.origin-item-id').val(),
+    origin_type: $(this).find('.origin-type').val(),
+    qty_out: $(this).find('.qty-out').text().trim() || 0
+  });
+});
 
-        items.push({
-            article_code: tds.eq(1).text().trim(),
-            description: tds.eq(2).text().trim(),
-            qty: qtyInput.val(),
-            expired_date: expInput.val(),
-            destination_id: destinationInput.val(),
-            origin_item_id: $(this).find('input[name$="[origin_item_id]"]').val(),
-            origin_type: $(this).find('input[name$="[origin_type]"]').val()
-        });
-    });
 
     const payload = {
         reference_number: $('#reference_number').val(),

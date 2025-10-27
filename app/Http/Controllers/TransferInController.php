@@ -266,6 +266,9 @@ if (
     try {
         $code = null;
         $labelData = [];
+         // Inisialisasi agar tidak undefined
+    $transferQrFileName = null;
+    $transferQrUrl = null;
 
         // ==========================
         // Jika Material Return
@@ -282,7 +285,9 @@ if (
             $code = $baseCode . '-R' . $nextReturn;
 
             // QR tidak digenerate lagi → ambil null
-            $transferQrUrl = null;
+              // Tidak generate QR baru
+        $transferQrUrl = null;
+        $transferQrFileName = null; // <-- tambahkan ini agar aman
 
         } else {
             // ==========================
@@ -313,7 +318,7 @@ if (
             $nomorUrut = str_pad($lastNumber, 4, '0', STR_PAD_LEFT);
             $code = "TRIN-ASN-{$tahun}-{$romawi}-{$nomorUrut}";
 
-             // === Generate QR Transfer In
+            // === Generate QR Transfer In
             $transferQrFileName = $code . '.png';
             $transferQrPath = '/home/abimany3/public_html/qr_code/' . $transferQrFileName; // path absolut
             $transferQr = Builder::create()
@@ -349,22 +354,26 @@ if (
             'supplier_code' => $request->supplier_code,
             'from_location' => $request->from_location,
             'note' => $request->note,
-            'qr_code_path' => $transferQrPath, // null kalau Material Return
+            'qr_code_path' => $transferQrFileName, // null kalau Material Return
             'created_at' => now(),
             'created_by' => auth()->id(),
         ]);
 
-        // ==========================
-        // Simpan Items
-        // ==========================
-        foreach ($request->items as $index => $item) {
-            $itemCode = $code . '-ITEM' . ($index + 1);
-            $qty = (int) $item['qty'];
+       // ==========================
+// Simpan Items
+// ==========================
+foreach ($request->items as $index => $item) {
+    $itemCode = $code . '-ITEM' . ($index + 1);
+    $qty = (int) $item['qty'];
 
-            // Generate QR Item
-            $itemQrFileName = $itemCode . '.png';
-            $itemQrPath = '/home/abimany3/public_html/qr_code/' . $itemQrFileName; // path absolut
-            $itemQr = Builder::create()
+    $itemQrFileName = null;
+    $itemQrUrl = null;
+
+    // Hanya generate QR jika bukan Material Return
+    if ($request->transfer_category !== 'Material Return') {
+        $itemQrFileName = $itemCode . '.png';
+        $itemQrPath = '/home/abimany3/public_html/qr_code/' . $itemQrFileName;
+        $itemQr = Builder::create()
             ->writer(new PngWriter())
             ->data($itemCode)
             ->encoding(new Encoding('UTF-8'))
@@ -372,70 +381,55 @@ if (
             ->size(300)
             ->margin(10)
             ->build();
-           file_put_contents($itemQrPath, $itemQr->getString());
-            $itemQrUrl = asset('qr_code/' . $itemQrFileName);
+        file_put_contents($itemQrPath, $itemQr->getString());
+        $itemQrUrl = asset('qr_code/' . $itemQrFileName);
+    }
 
-            $article = Article::where('article_code', $item['article_code'])->first();
+    // Jika Material Return, tetap pakai qty untuk update qty_return
+    if ($request->transfer_category === 'Material Return') {
+        $qtyReturn = (int) $item['qty']; 
+        $qty = $qtyReturn;
+    }
 
-               // masukkan ke labelData
-    $labelData[] = [
-        'type' => 'qr_item',
-        'qr_path' => $itemQrUrl,
+    // Simpan ke DB
+    DB::table('transfer_in_items')->insert([
+        'transfer_in_id' => $transferId,
         'code' => $itemCode,
         'article_code' => $item['article_code'],
         'description' => $item['description'],
         'qty' => $qty,
-        'min_package' => $article->min_package ?? 1, // ambil dari DB
-    ];
+        'qty_used' => 0,
+        'balance' => $qty,
+        'expired_date' => $item['expired_date'] ?? null,
+        'destination_id' => $item['destination_id'] ?? null,
+        'qr_path' => $itemQrUrl, // null kalau Material Return
+        'created_at' => now(),
+    ]);
 
-     if ($request->transfer_category === 'Material Return') {
-        $qtyReturn = (int) $item['qty']; 
-        $qty = $qtyReturn; // tetap pakai $qty supaya tidak pecah di insert
-    } else {
-        $qty = (int) $item['qty'];
-    }
-
-            DB::table('transfer_in_items')->insert([
-                'transfer_in_id' => $transferId,
-                'code' => $itemCode,
-                'article_code' => $item['article_code'],
-                'description' => $item['description'],
-                'qty' => $qty,
-                'qty_used' => 0,
-                'balance' => $qty,
-                'expired_date' => $item['expired_date'] ?? null,
-                'destination_id' => $item['destination_id'] ?? null,
-                'qr_path' => $itemQrPath,
-                'created_at' => now(),
-            ]);
-
-            // === Update Stock jika bukan Material Return ===
-            if ($request->transfer_category !== 'Material Return') {
-                $article = \App\Models\Article::where('article_code', $item['article_code'])->first();
-                if ($article && in_array($article->article_type ?? '', ['RMP', 'RMNP', 'CM1', 'CM2'])) {
-                    $warehouseId = $item['destination_id'] ?? null;
-                    $articleCode = $item['article_code'];
-
-                    if ($warehouseId) {
-                        $existingStock = \App\Models\Stock::where('article_code', $articleCode)
-                            ->where('warehouse_id', $warehouseId)
-                            ->first();
-
-                        if ($existingStock) {
-                            $existingStock->qty += $qty;
-                            $existingStock->save();
-                        } else {
-                            \App\Models\Stock::create([
-                                'article_code' => $articleCode,
-                                'qty' => $qty,
-                                'warehouse_id' => $warehouseId,
-                            ]);
-                        }
-                    }
+    // === Update Stock jika bukan Material Return ===
+    if ($request->transfer_category !== 'Material Return') {
+        $article = \App\Models\Article::where('article_code', $item['article_code'])->first();
+        if ($article && in_array($article->article_type ?? '', ['RMP', 'RMNP', 'CM1', 'CM2'])) {
+            $warehouseId = $item['destination_id'] ?? null;
+            if ($warehouseId) {
+                $existingStock = \App\Models\Stock::where('article_code', $item['article_code'])
+                    ->where('warehouse_id', $warehouseId)
+                    ->first();
+                if ($existingStock) {
+                    $existingStock->qty += $qty;
+                    $existingStock->save();
+                } else {
+                    \App\Models\Stock::create([
+                        'article_code' => $item['article_code'],
+                        'qty' => $qty,
+                        'warehouse_id' => $warehouseId,
+                    ]);
                 }
             }
+        }
+    }
 
-       // === Update qty_return asal barang (khusus Material Return)
+    // === Update qty_return asal barang (khusus Material Return)
     if ($request->transfer_category === 'Material Return' && isset($item['origin_item_id'], $item['origin_type'])) {
         if ($item['origin_type'] === 'transfer_in') {
             DB::table('transfer_in_items')
@@ -446,28 +440,27 @@ if (
                 ->where('id', $item['origin_item_id'])
                 ->increment('qty_return', $qtyReturn);
         }
-        // === Update stock utama per warehouse
-    $warehouseId = $item['destination_id'] ?? null;
-    $articleCode = $item['article_code'];
 
-    if ($warehouseId) {
-        $existingStock = \App\Models\Stock::where('article_code', $articleCode)
-            ->where('warehouse_id', $warehouseId)
-            ->first();
-
-        if ($existingStock) {
-            $existingStock->qty += $qtyReturn;
-            $existingStock->save();
-        } else {
-            \App\Models\Stock::create([
-                'article_code' => $articleCode,
-                'qty'          => $qtyReturn,
-                'warehouse_id' => $warehouseId,
-            ]);
+        // Update stock utama per warehouse
+        $warehouseId = $item['destination_id'] ?? null;
+        if ($warehouseId) {
+            $existingStock = \App\Models\Stock::where('article_code', $item['article_code'])
+                ->where('warehouse_id', $warehouseId)
+                ->first();
+            if ($existingStock) {
+                $existingStock->qty += $qtyReturn;
+                $existingStock->save();
+            } else {
+                \App\Models\Stock::create([
+                    'article_code' => $item['article_code'],
+                    'qty'          => $qtyReturn,
+                    'warehouse_id' => $warehouseId,
+                ]);
+            }
         }
     }
 }
-}
+
 
         // Label Transfer In QR
         $labelData[] = [
@@ -659,12 +652,13 @@ public function searchAll(Request $request)
     $perPage = 20;
     $q = $request->query('q', '');
     $type = $request->query('type', 'article'); // tipe untuk lazy load
+    $transferCategory = $request->query('transfer_category', ''); // ambil kategori transfer
 
     $mapResults = function($items, $idField, $textCallback, $typeLabel) {
         return $items->map(fn($item) => [
             'id' => $item->{$idField},
             'text' => $textCallback($item),
-            'type' => $typeLabel, // tipe ini akan dipakai frontend buat optgroup
+            'type' => $typeLabel,
             'data' => $item
         ]);
     };
@@ -672,48 +666,86 @@ public function searchAll(Request $request)
     $results = collect();
     $hasMore = false;
 
+    // === Tambahan logika utama ===
+    // Jika transfer_category = Material Return,
+    // maka abaikan selain transfer & receiving
+    if ($transferCategory === 'Material Return' && !in_array($type, ['transfer', 'receiving'])) {
+        return response()->json([
+            'results' => [],
+            'pagination' => ['more' => false]
+        ]);
+    }
+
     switch($type) {
         case 'article':
             $query = Article::with('supplier')
                 ->whereNotIn('article_type', ['FG','GA','PT']);
+
             if($q){
                 $query->where(fn($sub)=>$sub
                     ->where('article_code','LIKE',"%{$q}%")
                     ->orWhere('description','LIKE',"%{$q}%")
                 );
             }
+
             $total = $query->count();
             $items = $query->skip(($page-1)*$perPage)->take($perPage)->get();
-            $results = $mapResults($items, 'article_code', fn($a)=> "{$a->article_code} - {$a->description} (" . (optional($a->supplier)->name ?? '-') . ")", 'Article');
+
+            $results = $mapResults(
+                $items,
+                'article_code',
+                fn($a)=> "{$a->article_code} - {$a->description} (" . (optional($a->supplier)->name ?? '-') . ")",
+                'Article'
+            );
+
             $hasMore = ($page * $perPage) < $total;
             break;
 
         case 'transfer':
             $query = TransferIn::with(['supplier','items'])
                 ->whereHas('items', fn($q)=>$q->whereRaw('(qty_used - qty_return) > 0'));
+
             if($q) $query->where('code','LIKE',"%{$q}%");
+
             $total = $query->count();
             $items = $query->skip(($page-1)*$perPage)->take($perPage)->get();
-            $results = $mapResults($items, 'code', fn($t)=> "{$t->code} (" . (optional($t->supplier)->name ?? '-') . ")", 'Transfer In');
+
+            $results = $mapResults(
+                $items,
+                'code',
+                fn($t)=> "{$t->code} (" . (optional($t->supplier)->name ?? '-') . ")",
+                'Transfer In'
+            );
+
             $hasMore = ($page * $perPage) < $total;
             break;
 
         case 'receiving':
             $query = Receiving::with(['supplier','items'])
                 ->whereHas('items', fn($q)=>$q->whereRaw('(qty_used - qty_return) > 0'));
+
             if($q) $query->where('receiving_number','LIKE',"%{$q}%");
+
             $total = $query->count();
             $items = $query->skip(($page-1)*$perPage)->take($perPage)->get();
-            $results = $mapResults($items, 'receiving_number', fn($r)=> "{$r->receiving_number} (" . (optional($r->supplier)->name ?? '-') . ")", 'Receiving');
+
+            $results = $mapResults(
+                $items,
+                'receiving_number',
+                fn($r)=> "{$r->receiving_number} (" . (optional($r->supplier)->name ?? '-') . ")",
+                'Receiving'
+            );
+
             $hasMore = ($page * $perPage) < $total;
             break;
     }
 
     return response()->json([
-        'results' => $results, // flat array, tidak ada header
+        'results' => $results,
         'pagination' => ['more' => $hasMore]
     ]);
 }
+
 
 
 
