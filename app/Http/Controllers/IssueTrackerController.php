@@ -277,7 +277,7 @@ if (
 
 ->editColumn('status', function ($row) {
 
-    $commonClasses = 'inline-block text-center w-24 text-gray-100 text-xs font-medium p-1 rounded-xl';
+    $commonClasses = 'inline-block text-center w-28 text-gray-100 text-xs font-medium p-1 rounded-xl';
 
     if ($row->status === 'Pending') {
         return '<span class="bg-gray-500 ' . $commonClasses . '">Pending</span>';
