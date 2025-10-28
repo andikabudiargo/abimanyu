@@ -77,8 +77,10 @@ $deptTickets = DB::table('tickets')
             ->groupBy('department_user.user_id');
     }, 'user_dept', 'users.id', '=', 'user_dept.user_id')
     ->selectRaw('COALESCE(user_dept.department_name, "Unknown") as department_name, COUNT(DISTINCT tickets.id) as total')
+    ->where('user_dept.department_name', '<>', 'Information & Technology') // <-- ini kecualikan
     ->groupBy('user_dept.department_name')
     ->get();
+
     $processedTickets = Ticket::with('process')
     ->get()
     ->groupBy(fn($ticket) => $ticket->process->name ?? 'Not Assign')  // group berdasarkan nama user
