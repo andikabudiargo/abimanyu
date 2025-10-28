@@ -292,8 +292,7 @@ if (
 
 
 if (
-    ($row->status === 'Published' || $row->status === 'Partially Socialized') &&
-    $userDepartments->contains('Management Representative')
+    $isOwner && ($row->status == 'Published' || $row->status == 'Partially Socialized')
 ) {
 
         $actionButtons .= '
@@ -734,12 +733,11 @@ $file4MPath = $request->hasFile('4m')
 public function getCopies($document_id)
 {
     $copies = DB::table('document_copies as dc')
-        ->join('departments as d', 'dc.department_id', '=', 'd.id')
         ->where('dc.document_id', $document_id)
         ->whereNull('dc.date') // hanya ambil yang date masih null
         ->select(
             'dc.id',
-            'd.name as department_name', // ambil nama department
+            'dc.department_name', // ambil nama department
             'dc.qty',
             'dc.date'
         )
