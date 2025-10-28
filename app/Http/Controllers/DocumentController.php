@@ -844,7 +844,7 @@ foreach ($subscriptions as $subRow) {
 
     $webPush->sendOneNotification($sub, json_encode([
         'title' => '📃 Pengajuan Dokumen Baru | Abimanyu Live',
-        'body'  => "$requestorName Mengajukan Dokumen Baru dan telah disetujui kepala departemennya: $doc->document_number",
+        'body'  => "{$requestorName} Mengajukan Dokumen Baru dan telah disetujui kepala departemennya: {$doc->document_number}",
         'url'   => url("/mr/document/{$doc->id}/detail")
     ]));
 }
@@ -968,7 +968,7 @@ public function review($id)
 
      // Ambil semua subscription dari user yang ditargetkan
 $subscriptions = DB::table('subscriptions')
-    ->whereIn('user_id', $doc->created_by)
+    ->where('user_id', $doc->created_by)
     ->get();
 
 $webPush = new WebPush([
