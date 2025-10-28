@@ -783,8 +783,8 @@ function updateDOC(documentId) {
                 Upload Bukti Sosialisasi <small class="text-red-600">*</small>
             </label>
             <input type="file" name="photos[${item.id}]" accept="image/*" required
-                class="w-full text-sm text-gray-700 border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded">
-            <small class="text-gray-500 text-xs">Unggah bukti untuk ${item.department_name}.</small>
+                class="border rounded-lg px-3 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-400 mb-1">
+            <small class="text-gray-500 text-xs">Wajib unggah bukti sosialisasi.</small>
         </div>
     `;
 });
