@@ -252,13 +252,21 @@
     </div>
 
     <!-- Form -->
-    <form id="socializeForm" class="space-y-4">
+    <form id="socializeForm" class="space-y-4" enctype="multipart/form-data">
          @csrf
       <input type="hidden" name="document_id" id="document_id">
 
       <!-- Container untuk data department & qty -->
       <div id="docCopiesContainer" class="space-y-3">
         <!-- Data akan di-render di sini -->
+      </div>
+
+      <!-- Kolom upload foto wajib -->
+      <div class="space-y-1">
+        <label for="photo" class="block text-sm font-medium text-gray-700">Upload Bukti Sosialisasi <small class="text-red-600">*</small></label>
+        <input type="file" name="photo" id="photo" accept="image/*" required
+               class="w-full text-sm text-gray-700 border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded">
+        <small class="text-gray-500 text-xs">Wajib unggah bukti sosialisasi.</small>
       </div>
 
       <!-- Footer -->
@@ -269,6 +277,7 @@
     </form>
   </div>
 </div>
+
 {{-- SCRIPT --}}
 @push('scripts')
 <style>
