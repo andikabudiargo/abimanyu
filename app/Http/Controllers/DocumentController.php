@@ -468,7 +468,7 @@ public function store(Request $request)
 {
 
     $request->validate([
-        'document_number' => 'required|string|max:100|unique:documents,document_number',
+        'document_number' => 'required|string|max:100',
         'document_type'   => 'required|string',
         'otherInput'      => 'nullable|string|max:255',
         'remark'          => 'required|string',
