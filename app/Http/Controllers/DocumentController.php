@@ -466,6 +466,7 @@ if (
 
 public function store(Request $request)
 {
+
     $request->validate([
         'document_number' => 'required|string|max:100|unique:documents,document_number',
         'document_type'   => 'required|string',
@@ -489,11 +490,27 @@ public function store(Request $request)
             ? $request->otherInput 
             : $request->document_type;
 
-             // ✅ Ubah "N/A" atau kosong menjadi NULL agar tidak bentrok dengan unique constraint
-        $documentNumber = trim($request->document_number);
-        if ($documentNumber == '' || strcasecmp($documentNumber, 'N/A') == 0) {
-            $documentNumber = null;
-        }
+            // Ambil document_number dari request
+$documentNumber = trim($request->document_number);
+
+// Jika N/A atau kosong → buat versi unik otomatis
+if ($documentNumber == '' || strcasecmp($documentNumber, 'N/A') == 0) {
+    // Cari document_number terakhir yang diawali N/A-
+    $lastNA = Document::where('document_number', 'like', 'N/A-%')
+                      ->orderBy('document_number', 'desc')
+                      ->first();
+
+    if ($lastNA) {
+        $parts = explode('-', $lastNA->document_number);
+        $lastNum = (int) end($parts);
+        $newNum  = str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+    } else {
+        $newNum = '0001';
+    }
+
+    $documentNumber = 'N/A-' . $newNum;
+}
+
 
         // ===== Path tujuan upload =====
         $destinationPath = '/home/abimany3/public_html/document';
