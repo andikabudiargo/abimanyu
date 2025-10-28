@@ -782,7 +782,7 @@ function updateDOC(documentId) {
             <label class="block text-sm font-medium text-gray-700 mb-1">
                 Upload Bukti Sosialisasi <small class="text-red-600">*</small>
             </label>
-            <input type="file" name="photos[${item.id}]" accept="image/*" required
+            <input type="file" name="photos[${item.id}]" accept="image/*"
                 class="border rounded-lg px-3 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-400 mb-1">
             <small class="text-gray-500 text-xs">Wajib unggah bukti sosialisasi.</small>
         </div>
