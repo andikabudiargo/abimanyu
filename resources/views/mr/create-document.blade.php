@@ -73,9 +73,11 @@
 </label>
 
 <!-- Input untuk ketik sendiri, default disembunyikan -->
-<input type="text" name="otherInput" id="otherInput" placeholder="Ketik tipe dokumen"
-       class="border-b border-gray-300 rounded w-full sm:w-auto hidden
-              focus:outline-none focus:ring-0">
+<input type="text" name="otherInput" id="otherInput" placeholder="Tentukan sendiri Jenis Dokumen / Document Type"
+       class="hidden transition-all duration-300 px-2 py-2 border-0 border-b border-gray-400 text-sm
+              focus:border-indigo-500 focus:ring-0 focus:outline-none
+              placeholder-gray-400 w-full sm:w-full">
+
 
   </div>
 </div>
@@ -123,8 +125,8 @@
     </label>
     <input type="text" name="document_number" id="document_number"
            class="w-full px-3 py-2 border border-gray-300 text-sm p-2 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-
     <small id="lastDocNote" class="text-gray-500 text-xs"></small>
+    <small id="otherDocNote" class="text-gray-500 text-xs hidden">Jika tidak ada dokumen, tulis N/A</small>
 </div>
 <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Revisi / Version Number</label>
@@ -317,15 +319,22 @@
         </a>
     </li>
     <li>
-        * Download Template Instruksi Kerja: 
+        * Download Template SOP: 
+        <a href="{{ asset('blank/BLANK SOP.xlsx') }}" download class="text-blue-600 hover:underline">
+            BLANK SOP.xlsx
+        </a>
+    </li>
+     <li>
+        * Download Template Instruksi Kerja General: 
         <a href="{{ asset('blank/BLANK IK.xlsx') }}" download class="text-blue-600 hover:underline">
             BLANK IK.xlsx
         </a>
     </li>
-    <li>
-        * Download Template SOP: 
-        <a href="{{ asset('blank/BLANK SOP.xlsx') }}" download class="text-blue-600 hover:underline">
-            BLANK SOP.xlsx
+
+     <li>
+        * Download Template Instruksi Kerja Produksi / Quality: 
+        <a href="{{ asset('blank/BLANK IK FOR PRODUKSI DAN QUALITY.xlsx') }}" download class="text-blue-600 hover:underline">
+            BLANK IK PRODUKSI / QUALITY.xlsx
         </a>
     </li>
   </ul>
@@ -390,13 +399,16 @@
 <script>
     const otherRadio = document.getElementById('otherRadio');
   const otherInput = document.getElementById('otherInput');
+  const otherDocNote = document.getElementById('otherDocNote')
 
   // Toggle input text ketika opsi Other dipilih atau tidak
   document.querySelectorAll('input[name="document_type"]').forEach(radio => {
     radio.addEventListener('change', () => {
       if (otherRadio.checked) {
+        otherDocNote.classList.remove('hidden');
         otherInput.classList.remove('hidden');
       } else {
+        otherDocNote.classList.add('hidden');
         otherInput.classList.add('hidden');
       }
     });

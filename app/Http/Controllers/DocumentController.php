@@ -502,22 +502,29 @@ public function store(Request $request)
 
         // ===== Upload file utama =====
         $fileName = null;
-        if ($request->hasFile('file')) {
-            $extension = $request->file('file')->getClientOriginalExtension(); 
-            $version   = str_pad($request->current_version ?? '00', 2, '0', STR_PAD_LEFT);
-            $fileName  = $request->document_number . '-' . $version . '.' . $extension; 
+       if ($request->hasFile('file')) {
+    $extension = $request->file('file')->getClientOriginalExtension(); 
+    $version   = str_pad($request->current_version ?? '00', 2, '0', STR_PAD_LEFT);
 
-            $request->file('file')->move($destinationPath, $fileName);
-        }
+    // ✅ Sanitize document number agar tidak mengandung karakter ilegal seperti /
+    $safeDocNumber = preg_replace('/[\/\\\\:*?"<>|]/', '-', $request->document_number);
+
+    $fileName  = $safeDocNumber . '-' . $version . '.' . $extension; 
+    $request->file('file')->move($destinationPath, $fileName);
+}
+
 
         // ===== Upload file 4M (opsional) =====
         $fileName4m = null;
         if ($request->hasFile('4m')) {
-            $extension4m = $request->file('4m')->getClientOriginalExtension();
-            $fileName4m  = $request->document_number . '_4M_Attachment.' . $extension4m;
+    $extension4m = $request->file('4m')->getClientOriginalExtension();
 
-            $request->file('4m')->move($destination4M, $fileName4m);
-        }
+    $safeDocNumber = preg_replace('/[\/\\\\:*?"<>|]/', '-', $request->document_number);
+
+    $fileName4m  = $safeDocNumber . '_4M_Attachment.' . $extension4m;
+    $request->file('4m')->move($destination4M, $fileName4m);
+}
+
 
         $initialVersion = str_pad($request->current_version ?? '00', 2, '0', STR_PAD_LEFT);
 
