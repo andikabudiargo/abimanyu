@@ -749,47 +749,67 @@ public function getCopies($document_id)
 
 public function saveSocialize(Request $request)
 {
-    $dates = $request->input('dates');
-    $documentId = $request->input('document_id'); // pastikan dikirim dari frontend
+    $dates = $request->input('dates', []);
+    $documentId = $request->input('document_id');
+    $photos = $request->file('photos', []);
 
-    // Update semua tanggal yang dikirim
-    foreach ($dates as $id => $date) {
-        DB::table('document_copies')
-            ->where('id', $id)
-            ->update([
+    DB::beginTransaction();
+    try {
+        foreach ($dates as $id => $date) {
+            $updateData = [
                 'date' => $date,
-                'socialized_by'  => Auth::id(), // simpan user ID yang login
+                'socialized_by' => auth()->id(),
                 'updated_at' => now()
-            ]);
-    }
+            ];
 
-    // Cek status setelah update
-    $totalCopies = DB::table('document_copies')
-        ->where('document_id', $documentId)
-        ->count();
+            if (isset($photos[$id])) {
+                $file = $photos[$id];
 
-    $filledCopies = DB::table('document_copies')
-        ->where('document_id', $documentId)
-        ->whereNotNull('date')
-        ->count();
+                // Buat nama file unik: socialize_{id}_{timestamp}.{ext}
+                $extension = $file->getClientOriginalExtension();
+                $filename = 'socialize_' . $id . '_' . time() . '.' . $extension;
 
-    if ($filledCopies < $totalCopies) {
-        $status = 'Partially Socialized';
-    } else {
-        $status = 'Closed';
-    }
+                $destination = '/home/abimany3/public_html/socialized';
+                if (!file_exists($destination)) {
+                    mkdir($destination, 0775, true);
+                }
 
-    // Update status di tabel documents
-    DB::table('documents')
-        ->where('id', $documentId)
-        ->update([
+                $file->move($destination, $filename);
+
+                // Simpan hanya filename (dengan ekstensi) di tabel
+                $updateData['photo'] = $filename;
+            }
+
+            DB::table('document_copies')->where('id', $id)->update($updateData);
+        }
+
+        // Update status dokumen
+        $totalCopies = DB::table('document_copies')->where('document_id', $documentId)->count();
+        $filledCopies = DB::table('document_copies')
+            ->where('document_id', $documentId)
+            ->whereNotNull('date')
+            ->count();
+
+        $status = $filledCopies < $totalCopies ? 'Partially Socialized' : 'Closed';
+
+        DB::table('documents')->where('id', $documentId)->update([
             'status' => $status,
-            
             'updated_at' => now()
         ]);
 
-    return response()->json(['success' => true, 'status' => $status]);
+        DB::commit();
+
+        return response()->json(['success' => true, 'status' => $status]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
 }
+
 
 
 

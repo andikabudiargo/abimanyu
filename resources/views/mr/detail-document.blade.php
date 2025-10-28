@@ -574,32 +574,41 @@ $currentRevision = $document->revisions->where('version', $document->current_ver
     </form>
   </div>
 </div>
-
 <div id="socializeModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 " id="modalContent">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-4 border-b pb-2">
-      <h2 class="text-xl font-semibold text-gray-700 flex items-center gap-2">
-        <i data-feather="calendar"></i>
-        Socialize Document
-      </h2>
-      <button type="button" onclick="closeModal()" class="text-gray-500 hover:text-gray-700 transition">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[70vh] flex flex-col" id="modalContent">
+    
+   <!-- Header -->
+<div class="relative p-4 bg-blue-500 rounded-t-2xl flex flex-col items-center justify-center">
+    
+    <!-- Tombol close tetap di pojok kanan -->
+    <button type="button" onclick="closeModal()" 
+            class="absolute top-3 right-3 text-white hover:text-red-400 transition text-lg font-bold">
         ✕
-      </button>
-    </div>
+    </button>
 
+    <!-- Icon besar -->
+    <i data-feather="calendar" class="text-white" style="width:48px; height:48px;"></i>
+
+    <!-- Teks utama -->
+    <h2 class="mt-2 text-white text-2xl font-semibold text-center">Socialize Document</h2>
+
+    <!-- Teks tambahan kecil -->
+    <p class="text-white text-sm mt-1 text-center italic">Please input socialized date and evidence</p>
+</div>
+
+<div class="overflow-y-auto">
     <!-- Form -->
-    <form id="socializeForm" class="space-y-4">
+    <form id="socializeForm" class="flex-1 flex flex-col space-y-4  p-4" enctype="multipart/form-data">
          @csrf
       <input type="hidden" name="document_id" id="document_id">
 
-      <!-- Container untuk data department & qty -->
-      <div id="docCopiesContainer" class="space-y-3">
+      <!-- Container untuk data department & qty, scrollable -->
+      <div id="docCopiesContainer" class="flex-1 space-y-3">
         <!-- Data akan di-render di sini -->
       </div>
-
+ </div>
       <!-- Footer -->
-      <div class="flex justify-end gap-3 pt-4 border-t">
+      <div class="flex justify-end gap-3 p-4 border-t mt-2">
         <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition">Cancel</button>
         <button type="submit" class="px-5 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition">Save</button>
       </div>
@@ -1089,6 +1098,7 @@ function reviewDOC(id, docNumber) {
     }, 200);
   }
 
+// Open modal dan ambil data dari backend
 function updateDOC(documentId) {
     $('#document_id').val(documentId);
     $('#docCopiesContainer').html('<div class="text-center text-gray-500">Loading...</div>');
@@ -1099,19 +1109,27 @@ function updateDOC(documentId) {
             return;
         }
 
-        let html = '';
-        data.forEach(item => {
-            html += `
-                <div class="p-3 border rounded-lg bg-gray-50 mb-3">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-medium text-gray-700">${item.department_name}</span>
-                        <span class="text-sm text-gray-500">Qty: ${item.qty}</span>
-                    </div>
-                    <input type="date" name="dates[${item.id}]" value="${item.date ? item.date : ''}" 
-                        class="border rounded-lg px-3 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-400" />
-                </div>
-            `;
-        });
+      let html = '';
+data.forEach(item => {
+    html += `
+    <div class="p-4 bg-white rounded-xl bg-blue-50 shadow-sm mb-3 border border-blue-100">
+        <div class="flex justify-between items-center mb-2">
+            <span class="font-semibold text-gray-800">${item.department_name}</span>
+            <span class="text-sm text-gray-500 underline">${item.qty} Salinan</span>
+        </div>
+
+        <!-- Input tanggal -->
+        <input type="date" name="dates[${item.id}]" value="${item.date ? item.date : ''}" 
+               class="w-full px-3 py-2 mb-3 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+        <!-- Input file bukti -->
+        <input type="file" name="photos[${item.id}]" accept="image/*"
+               class="w-full px-3 py-2 mb-1 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <p class="text-xs text-gray-400 italic">Wajib unggah bukti sosialisasi.</p>
+    </div>
+    `;
+});
+
 
         $('#docCopiesContainer').html(html);
         openModal(); // gunakan animasi modal yang sebelumnya kita buat
@@ -1129,21 +1147,30 @@ function closeModal() {
     }, 200);
 }
 
-// Submit form untuk menyimpan tanggal socialize
 $('#socializeForm').on('submit', function (e) {
     e.preventDefault();
-    const formData = $(this).serialize();
 
-    $.post('/mr/document/save-socialize', formData, function (res) {
-        if (res.success) {
-            showToast('success', 'Socialization dates saved successfully!');
-            closeModal();
-            setTimeout(() => location.reload(), 1200);
-        } else {
-            showToast('error', res.message || 'Failed to save socialize dates.');
+    // Gunakan FormData agar file bisa dikirim
+    const formData = new FormData(this);
+
+    $.ajax({
+        url: '/mr/document/save-socialize',
+        type: 'POST',
+        data: formData,
+        processData: false,  // penting agar jQuery tidak mengubah data
+        contentType: false,  // penting agar header multipart/form-data otomatis
+        success: function(res) {
+            if (res.success) {
+                showToast('success', 'Socialization dates saved successfully!');
+                closeModal();
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showToast('error', res.message || 'Failed to save socialize dates.');
+            }
+        },
+        error: function() {
+            showToast('error', 'Server error while saving dates.');
         }
-    }).fail(() => {
-        showToast('error', 'Server error while saving dates.');
     });
 });
 
