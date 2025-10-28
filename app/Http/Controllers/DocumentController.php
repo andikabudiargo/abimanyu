@@ -1174,7 +1174,7 @@ foreach ($subscriptions as $subRow) {
 
     $sub = Subscription::create($subData);
 
-    $requestorName = $doc->requestor->name ?? 'User'; // fallback jika null
+    $requestorName = $document->requestor->name ?? 'User'; // fallback jika null
 
     $webPush->sendOneNotification($sub, json_encode([
         'title' => '📃 Submit Ulang Dokumen | Abimanyu Live',
