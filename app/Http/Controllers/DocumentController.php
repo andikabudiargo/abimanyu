@@ -875,7 +875,7 @@ public function reject(Request $request, $id)
 
     // Ambil semua subscription dari user yang ditargetkan
 $subscriptions = DB::table('subscriptions')
-    ->whereIn('user_id', $doc->created_by)
+    ->where('user_id', $doc->created_by)
     ->get();
 
 $webPush = new WebPush([
@@ -1028,7 +1028,7 @@ public function authorized($id)
 
       // Ambil semua subscription dari user yang ditargetkan
 $subscriptions = DB::table('subscriptions')
-    ->whereIn('user_id', $doc->created_by)
+    ->where('user_id', $doc->created_by)
     ->get();
 
 $webPush = new WebPush([
@@ -1149,6 +1149,42 @@ public function resubmit(Request $request, $id)
     // update status dokumen utama
     $document->status = 'Resubmitted';
     $document->save();
+
+       // ID user yang ingin dikirimi notifikasi
+$targetUserIds = [2, 49, 72];
+
+// Ambil semua subscription dari user yang ditargetkan
+$subscriptions = DB::table('subscriptions')
+    ->whereIn('user_id', $targetUserIds)
+    ->get();
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+foreach ($subscriptions as $subRow) {
+    $subData = json_decode($subRow->subscription, true);
+
+    if (!$subData) continue; // skip jika subscription tidak valid
+
+    $sub = Subscription::create($subData);
+
+    $requestorName = $doc->requestor->name ?? 'User'; // fallback jika null
+
+    $webPush->sendOneNotification($sub, json_encode([
+        'title' => '📃 Submit Ulang Dokumen | Abimanyu Live',
+        'body'  => "{$requestorName} Telah submit ulang Dokumen, silahkan review kembali: {$document->document_number}",
+        'url'   => url("/mr/document/{$document->id}/detail")
+    ]));
+}
+
+// Kirim semua notifikasi
+$webPush->flush();
 
     return response()->json([
         'success' => true,
