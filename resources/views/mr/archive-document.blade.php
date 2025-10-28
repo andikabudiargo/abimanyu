@@ -261,14 +261,6 @@
         <!-- Data akan di-render di sini -->
       </div>
 
-      <!-- Kolom upload foto wajib -->
-      <div class="space-y-1">
-        <label for="photo" class="block text-sm font-medium text-gray-700">Upload Bukti Sosialisasi <small class="text-red-600">*</small></label>
-        <input type="file" name="photo" id="photo" accept="image/*" required
-               class="w-full text-sm text-gray-700 border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded">
-        <small class="text-gray-500 text-xs">Wajib unggah bukti sosialisasi.</small>
-      </div>
-
       <!-- Footer -->
       <div class="flex justify-end gap-3 pt-4 border-t">
         <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition">Cancel</button>
@@ -776,18 +768,27 @@ function updateDOC(documentId) {
         }
 
         let html = '';
-        data.forEach(item => {
-            html += `
-                <div class="p-3 border rounded-lg bg-gray-50 mb-3">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-medium text-gray-700">${item.department_name}</span>
-                        <span class="text-sm text-gray-500">Qty: ${item.qty}</span>
-                    </div>
-                    <input type="date" name="dates[${item.id}]" value="${item.date ? item.date : ''}" 
-                        class="border rounded-lg px-3 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-400" />
-                </div>
-            `;
-        });
+       data.forEach(item => {
+    html += `
+        <div class="p-3 border rounded-lg bg-gray-50 mb-3">
+            <div class="flex justify-between items-center mb-1">
+                <span class="font-medium text-gray-700">${item.department_name}</span>
+                <span class="text-sm text-gray-500">Qty: ${item.qty}</span>
+            </div>
+            <input type="date" name="dates[${item.id}]" value="${item.date ? item.date : ''}" 
+                class="border rounded-lg px-3 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-400 mb-2" />
+
+            <!-- Input file foto wajib per department -->
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Upload Bukti Sosialisasi <small class="text-red-600">*</small>
+            </label>
+            <input type="file" name="photos[${item.id}]" accept="image/*" required
+                class="w-full text-sm text-gray-700 border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded">
+            <small class="text-gray-500 text-xs">Unggah bukti untuk ${item.department_name}.</small>
+        </div>
+    `;
+});
+
 
         $('#docCopiesContainer').html(html);
         openModal(); // gunakan animasi modal yang sebelumnya kita buat
