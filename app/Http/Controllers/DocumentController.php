@@ -489,6 +489,12 @@ public function store(Request $request)
             ? $request->otherInput 
             : $request->document_type;
 
+             // ✅ Ubah "N/A" atau kosong menjadi NULL agar tidak bentrok dengan unique constraint
+        $documentNumber = trim($request->document_number);
+        if ($documentNumber == '' || strcasecmp($documentNumber, 'N/A') == 0) {
+            $documentNumber = null;
+        }
+
         // ===== Path tujuan upload =====
         $destinationPath = '/home/abimany3/public_html/document';
         $destination4M   = $destinationPath . '/4m';
@@ -530,7 +536,7 @@ public function store(Request $request)
 
         // ===== Simpan ke tabel documents =====
         $document = Document::create([
-            'document_number'  => $request->document_number,
+            'document_number'  => $documentNumber,
             'document_type'    => $documentType,
             'remark'           => $request->remark,
             'title'            => $request->title,
