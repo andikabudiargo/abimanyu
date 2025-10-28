@@ -267,13 +267,14 @@ $revisions = $document->revisions->sortBy('version');
     });
   @endphp
 
-  <table id="copiesTable" class="w-full text-left border-collapse">
+<table id="copiesTable" class="w-full text-left border-collapse">
     <thead>
       <tr class="bg-blue-500 text-white">
         <th class="p-2 border">Department</th>
         <th class="p-2 border text-center">Qty</th>
         <th class="p-2 border">Socialization Date</th>
-        <th class="p-2 border">Socialize by</th>
+        <th class="p-2 border">Socialized by</th>
+        <th class="p-2 border">Evidence</th>
       </tr>
     </thead>
     <tbody>
@@ -284,13 +285,24 @@ $revisions = $document->revisions->sortBy('version');
           <td class="p-2 border">
             {{ optional($copy->date ? \Carbon\Carbon::parse($copy->date) : null)->format('d-m-Y') ?? 'Not yet socialized' }}
           </td>
-          <td class="p-2 border">{{ $copy->socialized->name ?? 'Not yet Socialized' }}</td>
+          <td class="p-2 border">{{ $copy->socializedBy->name ?? 'Not yet Socialized' }}</td>
+          <td class="p-2 border text-center">
+            @if($copy->photo)
+              <a href="{{ asset('socialized/' . $copy->photo) }}" target="_blank" class="inline-block">
+                <img src="{{ asset('socialized/' . $copy->photo) }}" alt="Evidence" 
+                     class="w-12 h-12 object-cover rounded border hover:scale-105 transition">
+              </a>
+            @else
+              <span class="text-gray-400 text-sm italic">No evidence</span>
+            @endif
+          </td>
         </tr>
       @empty
-        <tr><td colspan="4" class="text-gray-500 p-2 text-center">No copies distributed.</td></tr>
+        <tr><td colspan="5" class="text-gray-500 p-2 text-center">No copies distributed.</td></tr>
       @endforelse
     </tbody>
-  </table>
+</table>
+
 @else
   <p class="text-gray-500 mt-3">No copies distributed.</p>
 @endif
