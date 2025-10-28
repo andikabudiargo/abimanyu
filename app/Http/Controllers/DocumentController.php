@@ -530,7 +530,7 @@ if ($documentNumber == '' || strcasecmp($documentNumber, 'N/A') == 0) {
     $version   = str_pad($request->current_version ?? '00', 2, '0', STR_PAD_LEFT);
 
     // ✅ Sanitize document number agar tidak mengandung karakter ilegal seperti /
-    $safeDocNumber = preg_replace('/[\/\\\\:*?"<>|]/', '-', $request->document_number);
+    $safeDocNumber = preg_replace('/[\/\\\\:*?"<>|]/', '-', $documentNumber);
 
     $fileName  = $safeDocNumber . '-' . $version . '.' . $extension; 
     $request->file('file')->move($destinationPath, $fileName);
@@ -542,7 +542,7 @@ if ($documentNumber == '' || strcasecmp($documentNumber, 'N/A') == 0) {
         if ($request->hasFile('4m')) {
     $extension4m = $request->file('4m')->getClientOriginalExtension();
 
-    $safeDocNumber = preg_replace('/[\/\\\\:*?"<>|]/', '-', $request->document_number);
+    $safeDocNumber = preg_replace('/[\/\\\\:*?"<>|]/', '-', $documentNumber);
 
     $fileName4m  = $safeDocNumber . '_4M_Attachment.' . $extension4m;
     $request->file('4m')->move($destination4M, $fileName4m);
@@ -628,7 +628,7 @@ foreach ($targetUsers as $user) {
 
         $webPush->sendOneNotification($sub, json_encode([
             'title' => "📃 Pengajuan Dokumen Baru | Abimanyu Live",
-            'body'  => "{$requestor->name} membuat dokumen baru: {$document->document_number}",
+            'body'  => "{$requestor->name} membuat dokumen baru: {$documentNumber}",
             'url'   => url("/mr/document/{$document->id}/detail")
         ]));
     }
