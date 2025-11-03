@@ -395,9 +395,10 @@ function initEventListeners() {
 // === INIT SELECT2 SEARCH ===
 // =====================
 function initSelect2Search() {
-    let types = ['article', 'transfer', 'transfer_item','receiving']; // default
+    let types = ['article', 'transfer', 'transfer_item', 'receiving'];
     let currentTypeIndex = 0;
     let loadedItems = [];
+    let lastSearchTerm = '';
 
     function resetSelect2() {
         currentTypeIndex = 0;
@@ -406,30 +407,54 @@ function initSelect2Search() {
         $('#selectArticle').select2('close');
     }
 
-    // Inisialisasi Select2
-    $('#selectArticle').select2({
+     $('#selectArticle').select2({
         placeholder: "Pilih Article / Transfer Number / Receiving...",
         allowClear: true,
         width: '100%',
         ajax: {
             url: '/ppic/logistic/transfer_in/search_all',
             dataType: 'json',
-            delay: 250,
-            data: function(params) {
+            delay: 300,
+            data: function (params) {
+
+               const transferCategory = $('#transfer_type').val() || '';
+
+                // 🔧 Atur jenis data yang diambil berdasarkan kategori
+                if (transferCategory === 'Material Return') {
+                    types = ['transfer', 'transfer_item', 'receiving']; // Hanya ini
+                } else {
+                    types = ['article']; // Default
+                }
+
+                // Reset jika kata pencarian berubah
+                if (params.term !== lastSearchTerm) {
+                    currentTypeIndex = 0;
+                    loadedItems = [];
+                    lastSearchTerm = params.term;
+                }
+
                 return {
                     q: params.term || '',
                     page: params.page || 1,
                     type: types[currentTypeIndex],
-                    transfer_category: $('#transfer_type').val() || '' // kirim kategori ke backend
+                    transfer_category: transferCategory
                 };
             },
-            processResults: function(data, params) {
+            processResults: function (data, params) {
                 params.page = params.page || 1;
-                loadedItems = loadedItems.concat(data.results);
 
-                // Jika halaman habis tapi masih ada tipe berikutnya, lanjut ke tipe selanjutnya
+                // Tambahkan hasil baru
+                if (data.results && data.results.length > 0) {
+                    loadedItems = loadedItems.concat(data.results);
+                }
+
+                // Kalau tidak ada halaman lanjut tapi masih ada type berikutnya, lanjut ke type berikut
                 if (!data.pagination.more && currentTypeIndex < types.length - 1) {
                     currentTypeIndex++;
+                    return {
+                        results: [],
+                        pagination: { more: true } // supaya tetap lanjut load type berikut
+                    };
                 }
 
                 return {
@@ -437,7 +462,7 @@ function initSelect2Search() {
                     pagination: { more: data.pagination.more || currentTypeIndex < types.length - 1 }
                 };
             },
-            cache: true
+            cache: false
         },
         minimumInputLength: 0
     });
@@ -582,19 +607,25 @@ function renderItemTable() {
     }
 
     // Validasi qty input
-    $itemList.off('change', '.qty-input').on('change', '.qty-input', function() {
-        const val = parseInt($(this).val(), 10);
-        const maxQty = parseInt($(this).data('qty-out') || '0', 10);
-        const code = $(this).data('code');
+$itemList.off('change', '.qty-input').on('change', '.qty-input', function() {
+    const val = parseFloat($(this).val()); // ✅ pakai parseFloat, bukan parseInt
+    const maxQty = parseFloat($(this).data('qty-out') || '0'); // ✅ juga parseFloat
+    const code = $(this).data('code');
 
-        if (isMaterialReturn && val > maxQty) {
-            Swal.fire({ icon: 'warning', title: 'Qty Melebihi Batas!', text: `Qty tidak boleh lebih besar dari Qty Out (${maxQty})`, confirmButtonText: 'OK' });
-            $(this).val(maxQty);
-            scannedItems[code].qty = maxQty;
-        } else if (scannedItems[code]) {
-            scannedItems[code].qty = val;
-        }
-    });
+    if (isMaterialReturn && val > maxQty) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Qty Melebihi Batas!',
+            text: `Qty tidak boleh lebih besar dari Qty Out (${maxQty})`,
+            confirmButtonText: 'OK'
+        });
+        $(this).val(maxQty);
+        scannedItems[code].qty = maxQty;
+    } else if (scannedItems[code]) {
+        scannedItems[code].qty = val;
+    }
+});
+
 }
 
 // =====================
