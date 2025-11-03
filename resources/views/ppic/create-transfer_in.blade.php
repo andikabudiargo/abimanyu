@@ -724,7 +724,7 @@ $('#itemList tr.item-row').each(function() {
   items.push({
     article_code: $(this).find('.article-code').text().trim(),
     description: $(this).find('.description').text().trim(),
-    qty: $(this).find('.qty-input').val(),
+    qty: parseFloat($(this).find('.qty-input').val()) || 0,
     expired_date: $(this).find('.exp-input').val(),
     destination_id: $(this).find('.destination-id-hidden').val(),
     origin_item_id: $(this).find('.origin-item-id').val(),
