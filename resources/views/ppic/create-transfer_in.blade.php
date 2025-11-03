@@ -395,7 +395,7 @@ function initEventListeners() {
 // === INIT SELECT2 SEARCH ===
 // =====================
 function initSelect2Search() {
-    let types = ['article', 'transfer', 'receiving']; // default
+    let types = ['article', 'transfer', 'transfer_item','receiving']; // default
     let currentTypeIndex = 0;
     let loadedItems = [];
 
@@ -447,7 +447,7 @@ function initSelect2Search() {
         const val = $(this).val();
 
         if (val === 'Material Return') {
-            types = ['transfer', 'receiving']; // hanya 2 tipe
+            types = ['transfer', 'transfer_item', 'receiving']; // hanya 2 tipe
         } else {
             types = ['article']; // default
         }
@@ -551,7 +551,7 @@ function renderItemTable() {
   <td class="border p-2 description">${item.name}</td>
   ${isMaterialReturn ? `<td class="border p-2 text-center qty-out">${item.qty_out}</td>` : ''}
   <td class="border p-2 text-center">
-    <input type="number" min="1" value="${item.qty}" 
+    <input type="number" min="1" step="any" value="${item.qty}" 
       class="w-20 text-center border rounded px-2 py-1 qty-input" 
       data-code="${item.code}" 
       data-qty-out="${item.qty_out}">
