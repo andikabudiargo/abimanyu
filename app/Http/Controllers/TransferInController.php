@@ -364,7 +364,7 @@ if (
 // ==========================
 foreach ($request->items as $index => $item) {
     $itemCode = $code . '-ITEM' . ($index + 1);
-    $qty = (int) $item['qty'];
+    $qty = (float) $item['qty'];
 
     $itemQrFileName = null;
     $itemQrUrl = null;
@@ -398,7 +398,7 @@ foreach ($request->items as $index => $item) {
         ];
     // Jika Material Return, tetap pakai qty untuk update qty_return
     if ($request->transfer_category === 'Material Return') {
-        $qtyReturn = (int) $item['qty']; 
+        $qtyReturn = (float) $item['qty']; 
         $qty = $qtyReturn;
     }
 
@@ -680,7 +680,7 @@ public function searchAll(Request $request)
     // === Tambahan logika utama ===
     // Jika transfer_category = Material Return,
     // maka abaikan selain transfer & receiving
-    if ($transferCategory === 'Material Return' && !in_array($type, ['transfer', 'receiving'])) {
+    if ($transferCategory === 'Material Return' && !in_array($type, ['transfer', 'transfer_item', 'receiving'])) {
         return response()->json([
             'results' => [],
             'pagination' => ['more' => false]
@@ -730,6 +730,44 @@ public function searchAll(Request $request)
 
             $hasMore = ($page * $perPage) < $total;
             break;
+
+            case 'transfer_item':
+    $query = \App\Models\TransferInItems::with(['transferIn.supplier', 'article'])
+        ->whereRaw('(qty_used - qty_return) > 0'); // hanya item yang masih ada sisa
+
+    if ($q) {
+        $query->where(function($sub) use ($q) {
+            $sub->where('code', 'LIKE', "%{$q}%")
+                ->orWhereHas('article', fn($a) => 
+                    $a->where('description', 'LIKE', "%{$q}%")
+                      ->orWhere('article_code', 'LIKE', "%{$q}%")
+                );
+        });
+    }
+
+    $total = $query->count();
+    $items = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+    $results = $items->map(function($item) {
+        $supplierName = optional(optional($item->transferIn)->supplier)->name ?? '-';
+        $article = $item->article;
+        $articleText = $article 
+            ? "{$article->article_code} - {$article->description}" 
+            : 'Artikel tidak ditemukan';
+
+        $sisa = ($item->qty_used ?? 0) - ($item->qty_return ?? 0);
+
+        return [
+            'id' => $item->code, // ID pakai kode item
+            'text' => "{$item->code} ({$articleText}) - {$supplierName} | Sisa: {$sisa}",
+            'type' => 'Transfer In Item',
+            'data' => $item
+        ];
+    });
+
+    $hasMore = ($page * $perPage) < $total;
+    break;
+
 
         case 'receiving':
             $query = Receiving::with(['supplier','items'])
