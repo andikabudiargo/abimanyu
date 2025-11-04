@@ -410,7 +410,7 @@ Route::prefix('it')->name('it.')->group(function () {
 
     });
 
-   Route::prefix('fa')->name('fa.')->group(function () {  
+  Route::prefix('fa')->name('fa.')->group(function () {  
     Route::get('calculator-bom', [CalculatorBOMController::class, 'index'])->name('cabom.index');
     Route::post('excel/uploadBOM', [CalculatorBOMController::class, 'upload'])->name('cabom.upload');
     Route::get('data/fg', [CalculatorBOMController::class, 'getFinishGoods'])->name('cabom.fg');
@@ -427,7 +427,11 @@ Route::prefix('it')->name('it.')->group(function () {
     Route::get('/excel/fg', [CalculatorBOMController::class, 'getFG']);
     Route::get('/excel/export-cm-fg', [CalculatorBOMController::class, 'exportCMFG'])->name('cmbom.export');
     Route::get('/excel/export-cm-summary', [CalculatorBOMController::class, 'exportChemicalSummaryFull'])->name('cabom.export');
-});
+    Route::get('calculator-fuel', [CalculatorFuelController::class, 'index'])->name('bbm.index');
+    Route::post('/bbm/store', [CalculatorFuelController::class, 'storeBBM'])->name('bbm.store');
+    Route::post('/armada/store', [CalculatorFuelController::class, 'storeArmada'])->name('armada.store');
+    });
+
 
 
     Route::prefix('cooperative')->name('cooperative.')->group(function () {
