@@ -274,7 +274,7 @@
           <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="credit-card"></i> </span><span
               class="pc-mtext">Supporting Tools</span><span class="pc-arrow"></i><i class="ti ti-chevron-right"></i></span></a>
                <ul class="pc-submenu">
-            <li class="pc-item"><a href="{{ route('purchasing.po.index') }}" class="pc-link">Fuel Calculator</a></li>
+            <li class="pc-item"><a href="{{ route('fa.bbm.index') }}" class="pc-link">Fuel Calculator</a></li>
             <li class="pc-item"><a href="{{ route('purchasing.po.index') }}" class="pc-link">VAT Calculator</a></li>
             <li class="pc-item"><a href="{{ route('fa.cabom.index') }}" class="pc-link">BOM Calculator</a></li>
             <li class="pc-item"><a href="{{ route('fa.cmbom.index') }}" class="pc-link">Chemical Traceability</a></li>
