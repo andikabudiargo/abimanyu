@@ -11,6 +11,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ArticleTypeController;
 use App\Http\Controllers\AssetLoanController;
 use App\Http\Controllers\CalculatorBOMController;
+use App\Http\Controllers\CalculatorFuelController;
 use App\Http\Controllers\DefectController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\DocumentController;
