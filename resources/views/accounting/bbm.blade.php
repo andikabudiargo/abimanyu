@@ -10,82 +10,74 @@
 <div class="flex flex-col md:flex-row gap-2 bg-gray-100">
 
   <!-- === CARD ARMADA === -->
-  <div class="md:w-3/5 w-full bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 overflow-x-auto">
+<div class="md:w-3/5 w-full bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
   <div class="mb-6">
-  <!-- Bagian Header -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <!-- Kiri: Icon besar + Judul -->
-    <div class="flex items-center gap-4">
-      <div class="bg-blue-100 p-4 rounded-2xl flex items-center justify-center">
-        <i class="fa-solid fa-truck text-4xl text-blue-600"></i>
+    <!-- Bagian Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <!-- Kiri: Icon besar + Judul -->
+      <div class="flex items-center gap-4">
+        <div class="bg-blue-100 p-4 rounded-2xl flex items-center justify-center">
+          <i class="fa-solid fa-truck text-4xl text-blue-600"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">Data Armada</h2>
+          <p class="text-sm text-gray-500">Kelola daftar armada yang tersedia</p>
+          <div class="w-20 h-1 bg-blue-600 rounded mt-2"></div>
+        </div>
       </div>
-      <div>
-        <h2 class="text-2xl font-bold text-gray-900">Data Armada</h2>
-        <p class="text-sm text-gray-500">Kelola daftar armada yang tersedia</p>
-        <div class="w-20 h-1 bg-blue-600 rounded mt-2"></div>
-      </div>
-    </div>
 
-    <!-- Tombol responsif -->
-   <button onclick="openModal()"
-  class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 flex items-center justify-center gap-2 shadow-md transition"
->
-  <i class="fa-solid fa-plus"></i>
-  <span class="hidden md:inline-block font-medium text-sm">Tambah Armada</span>
-</button>
+      <!-- Tombol responsif -->
+      <button onclick="openModal()"
+        class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 flex items-center justify-center gap-2 shadow-md transition">
+        <i class="fa-solid fa-plus"></i>
+        <span class="hidden md:inline-block font-medium text-sm">Tambah Armada</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- === LIST ARMADA SCROLLABLE === -->
+  <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto pr-2">
+    @forelse($armadas as $armada)
+      <div class="py-4 px-3 flex justify-between items-center rounded-xl transition even:bg-gray-50 odd:bg-white hover:bg-blue-50">
+        <!-- Kiri: Icon + Info Armada -->
+        <div class="flex items-center gap-3">
+          <div class="bg-blue-100 p-3 rounded-xl shadow-sm">
+            <i class="fa-solid {{ $armada->icon ?? 'fa-truck' }} text-blue-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-800 text-sm md:text-base">
+              {{ $armada->nama_armada }}
+            </p>
+            <p class="text-xs text-gray-500">
+              {{ $armada->rasio }} • {{ $armada->nama_bbm ?? '-' }}
+            </p>
+            <p class="text-xs text-gray-600 mt-1">
+              <i class="fa-solid fa-money-bill-1-wave mr-1 text-blue-500"></i>
+              Spare:
+              <span class="font-semibold">
+                Rp {{ number_format($armada->spare, 0, ',', '.') }}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Kanan: Tombol Aksi -->
+        <div class="flex gap-3">
+          <button class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <div class="w-px h-8 bg-gray-300"></div>
+          <button class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    @empty
+      <p class="text-center text-gray-500 py-4">Belum ada data armada.</p>
+    @endforelse
   </div>
 </div>
 
-
-
-
-
-    <div class="divide-y divide-gray-100">
-    @forelse($armadas as $armada)
-    <div class="py-4 px-3 flex justify-between items-center rounded-xl transition 
-                even:bg-gray-50 odd:bg-white hover:bg-blue-50">
-
-      <!-- Kiri: Icon + Info Armada -->
-      <div class="flex items-center gap-3">
-        <div class="bg-blue-100 p-3 rounded-xl shadow-sm">
-          <i class="fa-solid {{ $armada->icon ?? 'fa-truck' }} text-blue-600 text-xl"></i>
-        </div>
-
-        <div>
-          <p class="font-semibold text-gray-800 text-sm md:text-base">
-            {{ $armada->nama_armada }}
-          </p>
-
-          <p class="text-xs text-gray-500">
-            {{ $armada->rasio }} • {{ $armada->nama_bbm ?? '-' }}
-          </p>
-
-          <p class="text-xs text-gray-600 mt-1">
-            <i class="fa-solid fa-tools mr-1 text-blue-500"></i>
-            Spare:
-            <span class="font-semibold">
-              Rp {{ number_format($armada->spare, 0, ',', '.') }}
-            </span>
-          </p>
-        </div>
-      </div>
-
-      <!-- Kanan: Tombol Aksi -->
-      <div class="flex gap-3">
-        <button class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50">
-          <i class="fa-solid fa-pen-to-square"></i>
-        </button>
-        <div class="w-px h-8 bg-gray-300"></div>
-        <button class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </div>
-    </div>
-  @empty
-    <p class="text-center text-gray-500 py-4">Belum ada data armada.</p>
-  @endforelse
-</div>
-</div>
 
   <!-- === CARD BBM === -->
   <div class="md:w-2/5 w-full bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
@@ -161,9 +153,16 @@
 
 <!-- === FORM PERHITUNGAN === -->
 <div class="mt-4 bg-white rounded-3xl shadow-xl p-6 md:p-8 hover:shadow-2xl transition-all duration-300">
-  <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800 mb-6 md:mb-8 flex items-center gap-3">
-    <i class="fa-solid fa-calculator"></i> Perhitungan Biaya Operasional
-  </h2>
+   <div class="flex items-center gap-4 mb-6">
+      <div class="bg-red-100 p-4 rounded-2xl flex items-center justify-center">
+        <i class="fa-solid fa-calculator text-4xl text-red-600"></i>
+      </div>
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900">Kalkulator BBM</h2>
+        <p class="text-sm text-gray-500">Hitung Biaya Operasional Kendaraan</p>
+        <div class="w-20 h-1 bg-red-600 rounded mt-2"></div>
+      </div>
+    </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
@@ -191,7 +190,7 @@
 <div class="space-y-3 mt-4">
   <div class="flex items-center gap-3">
     <div class="w-10 h-10 flex items-center justify-center bg-blue-50 rounded-xl shadow-sm">
-      <i id="armadaIcon" class="fa-solid fa-truck text-blue-600 text-xl"></i>
+      <i class="fa-solid fa-gas-pump text-blue-600 text-xl"></i>
     </div>
     <div class="flex-1">
       <p class="text-gray-500 text-xs">Jenis BBM</p>
@@ -218,7 +217,7 @@
   </div>
   <div class="flex items-center gap-3">
     <div class="w-10 h-10 flex items-center justify-center bg-red-50 rounded-xl shadow-sm">
-      <i class="fa-solid fa-tools text-red-600 text-xl"></i>
+      <i class="fa-solid fa-money-bill-1-wave text-red-600 text-xl"></i>
     </div>
     <div class="flex-1">
       <p class="text-gray-500 text-xs">Spare (Rp)</p>
@@ -234,7 +233,7 @@
       <input id="jarakInput" type="number" placeholder="Masukkan jarak (km)" class="w-full rounded-xl p-3 border border-gray-200 focus:ring-2 focus:ring-purple-300 bg-white shadow-sm hover:shadow-md transition">
 
       <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm space-y-2">
-        <p class="text-gray-500 text-xs font-medium">Total Biaya (BBM) <span class="text-gray-400 text-xs">(sebelum spare)</span></p>
+        <p class="text-gray-500 text-xs font-medium">Total Biaya <span class="text-gray-400 text-xs">(sebelum spare)</span></p>
         <h3 id="totalBBMOutput" class="text-xl md:text-2xl font-bold text-blue-600">Rp 0</h3>
 
         <p class="text-gray-500 text-xs font-medium">Total Biaya + Spare</p>
