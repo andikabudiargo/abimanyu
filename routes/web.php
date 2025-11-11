@@ -431,6 +431,10 @@ Route::prefix('it')->name('it.')->group(function () {
     Route::get('calculator-fuel', [CalculatorFuelController::class, 'index'])->name('bbm.index');
     Route::post('/bbm/store', [CalculatorFuelController::class, 'storeBBM'])->name('bbm.store');
     Route::post('/armada/store', [CalculatorFuelController::class, 'storeArmada'])->name('armada.store');
+    Route::put('/bbm/update/{id}', [CalculatorFuelController::class, 'updateBBM'])->name('bbm.update');
+    Route::put('/armada/update/{id}', [CalculatorFuelController::class, 'updateArmada'])->name('armada.update');
+    Route::delete('/armada/delete/{id}', [CalculatorFuelController::class, 'destroyArmada']);
+    Route::delete('/bbm/delete/{id}', [CalculatorFuelController::class, 'destroyBBM']);
     });
 
 

@@ -27,10 +27,10 @@
       </div>
 
       <!-- Tombol responsif -->
-      <button onclick="openModal()"
+      <button onclick="openArmadaModal()"
         class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 flex items-center justify-center gap-2 shadow-md transition">
         <i class="fa-solid fa-plus"></i>
-        <span class="hidden md:inline-block font-medium text-sm">Tambah Armada</span>
+        <span class="inline-block font-medium text-sm">Tambah Armada</span>
       </button>
     </div>
   </div>
@@ -63,11 +63,21 @@
 
         <!-- Kanan: Tombol Aksi -->
         <div class="flex gap-3">
-          <button class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50">
-            <i class="fa-solid fa-pen-to-square"></i>
-          </button>
+          <button 
+  class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50"
+  onclick="openEditArmadaModal(
+    {{ $armada->id }},
+    '{{ $armada->icon }}',
+    '{{ addslashes($armada->nama_armada) }}',
+    '{{ $armada->bbm_id }}',
+    '{{ $armada->rasio }}',
+    '{{ $armada->spare }}'
+  )">
+  <i class="fa-solid fa-pen-to-square"></i>
+</button>
+
           <div class="w-px h-8 bg-gray-300"></div>
-          <button class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50">
+          <button onclick="deleteArmada({{ $armada->id }})" class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50">
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>
@@ -97,9 +107,7 @@
 
     <!-- Tombol responsif -->
     <button onclick="openBbmModal()"
-      class="bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-3 flex items-center justify-center gap-2 shadow-md transition duration-200
-             w-full md:w-auto"
-    >
+      class="bg-green-600 hover:bg-green-700 text-white rounded-lg px-3 py-2 flex items-center justify-center gap-2 shadow-md transition duration-200">
       <i class="fa-solid fa-plus text-lg"></i>
       <span class="font-medium text-sm md:hidden">Tambah BBM</span>
     </button>
@@ -124,16 +132,17 @@
 
     <!-- Kanan: Tombol Aksi -->
     <div class="flex items-center gap-3">
-      <button
-        class="text-blue-600 hover:text-white hover:bg-blue-600 p-2 rounded-full transition-colors duration-200"
-        title="Edit BBM"
-      >
-        <i class="fa-solid fa-pen-to-square"></i>
-      </button>
+     <button 
+  class="text-green-600 hover:text-green-800 p-2 rounded-full hover:bg-green-50"
+  onclick="openEditBbmModal({{ $bbm->id }}, '{{ $bbm->nama_bbm }}', '{{ $bbm->harga_bbm }}')">
+  <i class="fa-solid fa-pen-to-square"></i>
+</button>
+
 
       <div class="w-px h-6 bg-gray-300"></div>
 
       <button
+        onclick="deleteBBM({{ $bbm->id }})"
         class="text-red-600 hover:text-white hover:bg-red-600 p-2 rounded-full transition-colors duration-200"
         title="Hapus BBM"
       >
@@ -277,15 +286,32 @@
 
       <!-- Daftar Icon Armada -->
       <div class="grid grid-cols-6 sm:grid-cols-8 gap-3 max-h-36 overflow-y-auto p-3 border border-gray-200 rounded-xl shadow-inner bg-gray-50">
-        <button onclick="setIcon('fa-car')" class="p-2 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-car text-xl"></i></button>
-        <button onclick="setIcon('fa-truck')" class="p-2 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-truck text-xl"></i></button>
-        <button onclick="setIcon('fa-truck-pickup')" class="p-2 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-truck-pickup text-xl"></i></button>
-        <button onclick="setIcon('fa-truck-monster')" class="p-2 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-truck-monster text-xl"></i></button>
-        <button onclick="setIcon('fa-shuttle-van')" class="p-2 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-shuttle-van text-xl"></i></button>
-        <button onclick="setIcon('fa-bus')" class="p-2 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-bus text-xl"></i></button>
-        <button onclick="setIcon('fa-motorcycle')" class="p-2 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-motorcycle text-xl"></i></button>
-        <button onclick="setIcon('fa-bicycle')" class="p-2 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-bicycle text-xl"></i></button>
-      </div>
+  <button type="button" class="icon-option p-2 rounded-lg hover:bg-blue-100 transition" data-icon="fa-car">
+    <i class="fa-solid fa-car text-xl"></i>
+  </button>
+  <button type="button" class="icon-option p-2 rounded-lg hover:bg-blue-100 transition" data-icon="fa-truck">
+    <i class="fa-solid fa-truck text-xl"></i>
+  </button>
+  <button type="button" class="icon-option p-2 rounded-lg hover:bg-blue-100 transition" data-icon="fa-truck-pickup">
+    <i class="fa-solid fa-truck-pickup text-xl"></i>
+  </button>
+  <button type="button" class="icon-option p-2 rounded-lg hover:bg-blue-100 transition" data-icon="fa-truck-monster">
+    <i class="fa-solid fa-truck-monster text-xl"></i>
+  </button>
+  <button type="button" class="icon-option p-2 rounded-lg hover:bg-blue-100 transition" data-icon="fa-shuttle-van">
+    <i class="fa-solid fa-shuttle-van text-xl"></i>
+  </button>
+  <button type="button" class="icon-option p-2 rounded-lg hover:bg-blue-100 transition" data-icon="fa-bus">
+    <i class="fa-solid fa-bus text-xl"></i>
+  </button>
+  <button type="button" class="icon-option p-2 rounded-lg hover:bg-blue-100 transition" data-icon="fa-motorcycle">
+    <i class="fa-solid fa-motorcycle text-xl"></i>
+  </button>
+  <button type="button" class="icon-option p-2 rounded-lg hover:bg-blue-100 transition" data-icon="fa-bicycle">
+    <i class="fa-solid fa-bicycle text-xl"></i>
+  </button>
+</div>
+
 
       <!-- Form Input -->
      <form id="formArmada" class="space-y-4 text-sm">
@@ -349,7 +375,7 @@
     <div class="p-6 border-b border-gray-200 relative">
       <h2 class="text-2xl font-bold text-gray-900">Tambah Jenis BBM</h2>
       <p class="text-sm text-gray-500 mt-1">Masukkan nama dan harga BBM yang ingin ditambahkan</p>
-      <div class="w-20 h-1 bg-blue-600 rounded mt-3"></div>
+      <div class="w-20 h-1 bg-green-600 rounded mt-3"></div>
 
       <!-- Tombol Tutup -->
       <button onclick="closeBbmModal()" class="absolute top-5 right-6 text-red-500 hover:text-red-700 transition">
@@ -388,12 +414,14 @@
       <button type="button" onclick="closeBbmModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg">
         Batal
       </button>
-      <button type="submit" form="formBBM" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+      <button type="submit" form="formBBM" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow">
         Simpan
       </button>
     </div>
   </div>
 </div>
+
+
 
 <style>
   @keyframes fadeIn {
@@ -406,239 +434,297 @@
 </style>
 @push('scripts')
 <script>
-const armadaSelect = document.getElementById('armadaSelect');
-const bbmInfo = document.getElementById('bbmInfo');
-const hargaInfo = document.getElementById('hargaInfo');
-const rasioInfo = document.getElementById('rasioInfo');
-const spareInfo = document.getElementById('spareInfo');
-const jarakInput = document.getElementById('jarakInput');
-const totalBBMOutput = document.getElementById('totalBBMOutput');
-const totalAllOutput = document.getElementById('totalAllOutput');
-const clearBtn = document.getElementById('clearBtn');
-  const iconButtons = document.querySelectorAll(".icon-option");
-  const selectedIcon = document.getElementById("selectedIcon");
-  const previewIcon = document.getElementById("previewIcon");
-  const previewIconContainer = document.getElementById("previewIconContainer");
+$(document).ready(function () {
 
-  function openModal() {
-  document.getElementById("armadaModal").classList.remove("hidden");
-  document.getElementById("armadaModal").classList.add("flex");
-}
-
-function closeModal() {
-  document.getElementById("armadaModal").classList.add("hidden");
-  document.getElementById("armadaModal").classList.remove("flex");
-}
-
-  function openBbmModal() {
-    document.getElementById('bbmModal').classList.remove('hidden');
-    document.getElementById('bbmModal').classList.add('flex');
+  // ==========================
+  // 🔹 Utility
+  // ==========================
+  function formatRupiah(angka) {
+    return 'Rp ' + parseFloat(angka || 0).toLocaleString('id-ID', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   }
 
-  function closeBbmModal() {
-    document.getElementById('bbmModal').classList.add('hidden');
-    document.getElementById('bbmModal').classList.remove('flex');
+  function toggleModal(modalId, show = true) {
+    const modal = $(`#${modalId}`);
+    modal.toggleClass('hidden', !show).toggleClass('flex', show);
   }
 
-function setIcon(icon) {
-  const preview = document.getElementById("previewIcon");
-  preview.className = `fa-solid ${icon} text-5xl text-blue-600 transition-all`;
-}
+  // ==========================
+  // 🔹 Kalkulasi BBM
+  // ==========================
+  function hitungTotal() {
+    const selected = $('#armadaSelect option:selected');
+    const jarak = parseFloat($('#jarakInput').val()) || 0;
+    const rasioStr = selected.data('rasio') || '0';
+    const harga = parseFloat(selected.data('harga')) || 0;
+    const spare = parseFloat(selected.data('spare')) || 0;
+
+    let rasioDesimal = rasioStr.includes('/') 
+      ? parseFloat(rasioStr.split('/')[0]) / parseFloat(rasioStr.split('/')[1])
+      : parseFloat(rasioStr);
+
+    if (rasioDesimal && harga && jarak) {
+      const totalBBM = parseFloat((rasioDesimal * jarak * harga).toFixed(2));
+      const totalAll = parseFloat((totalBBM + spare).toFixed(2));
+      $('#totalBBMOutput').text(formatRupiah(totalBBM));
+      $('#totalAllOutput').text(formatRupiah(totalAll));
+    } else {
+      $('#totalBBMOutput, #totalAllOutput').text('Rp 0');
+    }
+  }
+
+  $('#armadaSelect').on('change', function () {
+    const opt = $(this).find(':selected');
+    $('#bbmInfo').text(opt.data('bbm') || '-');
+    $('#rasioInfo').text(opt.data('rasio') || '-');
+    $('#spareInfo').text(opt.data('spare') ? formatRupiah(opt.data('spare')) : '-');
+    $('#hargaInfo').text(opt.data('harga') ? formatRupiah(opt.data('harga')) : '-');
+    hitungTotal();
+  });
+
+  $('#jarakInput').on('input', hitungTotal);
+
+  $('#clearBtn').on('click', function () {
+    $('#armadaSelect').val('');
+    $('#bbmInfo, #rasioInfo, #spareInfo, #hargaInfo').text('-');
+    $('#jarakInput').val('');
+    $('#totalBBMOutput, #totalAllOutput').text('Rp 0');
+  });
+
+  // ==========================
+  // 🔹 Icon Picker
+  // ==========================
+  $('.icon-option').on('click', function () {
+  $('.icon-option').removeClass('ring-2 ring-blue-500 bg-blue-50');
+  $(this).addClass('ring-2 ring-blue-500 bg-blue-50');
+
+  const icon = $(this).data('icon');
+  $('#selectedIcon').val(icon);
+  $('#previewIcon')
+    .attr('class', `fa-solid ${icon} text-blue-600 text-5xl transition-all duration-300 transform scale-110`);
+  $('#previewIconContainer')
+    .addClass('bg-blue-100')
+    .delay(500)
+    .queue(function (next) {
+      $(this).removeClass('bg-blue-100');
+      next();
+    });
+});
 
 
-  // === Pilih Icon ===
-  iconButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      iconButtons.forEach((b) => b.classList.remove("ring-2", "ring-blue-500", "bg-blue-50"));
-      btn.classList.add("ring-2", "ring-blue-500", "bg-blue-50");
+  // ==========================
+  // 🔹 BBM: Tambah, Edit & Delete
+  // ==========================
+  let editBbmMode = false;
+  let editBbmId = null;
 
-      const icon = btn.dataset.icon;
-      selectedIcon.value = icon;
+  window.openBbmModal = function () {
+    $('#formBBM')[0].reset();
+    $('#bbmModal h2').text('Tambah Jenis BBM');
+    $('#bbmModal p').text('Masukkan nama dan harga BBM yang ingin ditambahkan');
+    $('#formBBM button[type="submit"]').text('Simpan');
+    editBbmMode = false;
+    editBbmId = null;
+    toggleModal('bbmModal', true);
+  };
 
-      // Ubah icon preview
-      previewIcon.className = `fa-solid ${icon} text-blue-600 text-5xl transition-all duration-300 transform scale-110`;
-      previewIconContainer.classList.add("bg-blue-100");
-      setTimeout(() => previewIconContainer.classList.remove("bg-blue-100"), 500);
+  window.openEditBbmModal = function (id, nama, harga) {
+    $('#formBBM')[0].reset();
+    $('#bbmModal h2').text('Edit Jenis BBM');
+    $('#bbmModal p').text('Ubah data BBM yang dipilih');
+    $('#formBBM button[type="submit"]').text('Update');
+    $('[name="nama_bbm"]').val(nama);
+    $('[name="harga_bbm"]').val(harga);
+    editBbmMode = true;
+    editBbmId = id;
+    toggleModal('bbmModal', true);
+  };
+
+  window.closeBbmModal = function () {
+    toggleModal('bbmModal', false);
+  };
+
+  $('#formBBM').on('submit', function (e) {
+    e.preventDefault();
+    const url = editBbmMode ? `/fa/bbm/update/${editBbmId}` : '/fa/bbm/store';
+    const method = editBbmMode ? 'PUT' : 'POST';
+    const data = $(this).serialize();
+
+    $.ajax({
+      url,
+      type: method,
+      data,
+      headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+      success: function (res) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: res.message,
+          showConfirmButton: false,
+          timer: 1500
+        }).then(() => location.reload());
+      },
+      error: function (xhr) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: xhr.responseJSON?.message || 'Terjadi kesalahan pada server.'
+        });
+      }
     });
   });
 
-
-function hitungTotal() {
-  const selected = armadaSelect.options[armadaSelect.selectedIndex];
-  const jarak = parseFloat(jarakInput.value) || 0;
-  const rasioStr = selected.dataset.rasio || "0";
-  const harga = parseFloat(selected.dataset.harga) || 0;
-  const spare = parseFloat(selected.dataset.spare) || 0;
-
-  // parsing rasio "1/11" => 1 ÷ 11
-  let rasioDesimal = 0;
-  if (rasioStr.includes('/')) {
-    const [num, den] = rasioStr.split('/').map(Number);
-    rasioDesimal = num / den;
-  } else {
-    rasioDesimal = parseFloat(rasioStr);
-  }
-
-  if (rasioDesimal && harga && jarak) {
-    // hitung dan bulatkan 2 angka di belakang koma
-    const totalBBM = parseFloat((rasioDesimal * jarak * harga).toFixed(2));
-    const totalAll = parseFloat((totalBBM + spare).toFixed(2));
-
-    totalBBMOutput.textContent = formatRupiah(totalBBM);
-    totalAllOutput.textContent = formatRupiah(totalAll);
-  } else {
-    totalBBMOutput.textContent = 'Rp 0';
-    totalAllOutput.textContent = 'Rp 0';
-  }
-}
-
-// update info armada
-armadaSelect.addEventListener('change', () => {
-  const selected = armadaSelect.options[armadaSelect.selectedIndex];
-
-  bbmInfo.textContent = selected.dataset.bbm || '-';
-  rasioInfo.textContent = selected.dataset.rasio || '-';
-  spareInfo.textContent = selected.dataset.spare ? formatRupiah(selected.dataset.spare) : '-';
-  hargaInfo.textContent = selected.dataset.harga ? formatRupiah(selected.dataset.harga) : '-';
-
-  hitungTotal();
-});
-
-// hitung saat input jarak berubah
-jarakInput.addEventListener('input', hitungTotal);
-
-// tombol clear
-clearBtn.addEventListener('click', () => {
-  armadaSelect.value = '';
-  bbmInfo.textContent = '-';
-  rasioInfo.textContent = '-';
-  spareInfo.textContent = '-';
-  hargaInfo.textContent = '-';
-  jarakInput.value = '';
-  totalBBMOutput.textContent = 'Rp 0';
-  totalAllOutput.textContent = 'Rp 0';
-});
-
-// format rupiah helper (tanpa desimal Rupiah, hanya integer)
-function formatRupiah(angka) {
-  return 'Rp ' + angka.toLocaleString('id-ID', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+  window.deleteBBM = function (id) {
+  Swal.fire({
+    title: "Yakin hapus BBM ini?",
+    text: "Data yang sudah dihapus tidak bisa dikembalikan.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#5cd630ff",
+    confirmButtonText: "Ya, hapus!",
+    cancelButtonText: "Batal"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: "/fa/bbm/delete/" + id,
+        type: "DELETE",
+        data: {
+          _token: "{{ csrf_token() }}"
+        },
+        success: function (response) {
+          Swal.fire({
+            title: "Berhasil!",
+            text: response.message,
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false
+          });
+          setTimeout(() => location.reload(), 1500);
+        },
+        error: function (xhr) {
+          Swal.fire({
+            title: "Gagal!",
+            text: "Terjadi kesalahan saat menghapus data.",
+            icon: "error"
+          });
+        }
+      });
+    }
   });
 }
 
+  // ==========================
+  // 🔹 Armada: Tambah, Edit & Delete
+  // ==========================
+  let editArmadaMode = false;
+  let editArmadaId = null;
 
+  window.openArmadaModal = function () {
+    $('#formArmada')[0].reset();
+    $('#armadaModal h2').text('Tambah Data Armada');
+    $('#armadaModal p').text('Lengkapi form di bawah ini untuk menambah data armada');
+    $('#formArmada button[type="submit"]').text('Simpan');
+    $('#previewIcon').attr('class', 'fa-solid fa-truck text-blue-600 text-5xl');
+    $('#selectedIcon').val('fa-truck');
+    editArmadaMode = false;
+    editArmadaId = null;
+    toggleModal('armadaModal', true);
+  };
 
- function setIcon(iconClass) {
-      // Update hidden input agar ikut dikirim ke backend
-      $('#selectedIcon').val(iconClass);
+  window.openEditArmadaModal = function (id, icon, nama, bbm_id, rasio, spare) {
+    $('#armadaModal h2').text('Edit Data Armada');
+    $('#armadaModal p').text('Ubah data armada yang dipilih');
+    $('#formArmada button[type="submit"]').text('Update');
+    $('[name="nama_armada"]').val(nama);
+    $('[name="bbm_id"]').val(bbm_id);
+    $('[name="rasio"]').val(rasio);
+    $('[name="spare"]').val(spare);
+    $('#selectedIcon').val(icon);
+    $('#previewIcon').attr('class', `fa-solid ${icon} text-blue-600 text-5xl`);
+    editArmadaMode = true;
+    editArmadaId = id;
+    toggleModal('armadaModal', true);
+  };
 
-      // Update tampilan preview icon
-      $('#previewIcon')
-        .removeClass() // hapus semua class sebelumnya
-        .addClass('fa-solid ' + iconClass + ' text-blue-600 text-5xl');
+  window.closeModal = function () {
+    toggleModal('armadaModal', false);
+  };
 
-      // Animasi kecil untuk efek visual
-      $('#previewIconContainer')
-        .addClass('ring-2 ring-blue-400')
-        .delay(300)
-        .queue(function(next) {
-          $(this).removeClass('ring-2 ring-blue-400');
-          next();
+  $('#formArmada').on('submit', function (e) {
+    e.preventDefault();
+    const url = editArmadaMode ? `/fa/armada/update/${editArmadaId}` : '/fa/armada/store';
+    const method = editArmadaMode ? 'PUT' : 'POST';
+    const data = $(this).serialize();
+
+    $.ajax({
+      url,
+      type: method,
+      data,
+      headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+      success: function (res) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: res.message,
+          showConfirmButton: false,
+          timer: 1500
+        }).then(() => location.reload());
+      },
+      error: function (xhr) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: xhr.responseJSON?.message || 'Terjadi kesalahan pada server.'
         });
-  }
-
-$(document).ready(function() {
-
-    // === FORM TAMBAH BBM ===
-    $('#formBBM').on('submit', function(e) {
-        e.preventDefault();
-
-        $.ajax({
-            url: "{{ route('fa.bbm.store') }}",
-            type: "POST",
-            data: $(this).serialize(),
-            headers: {
-                'X-CSRF-TOKEN': "{{ csrf_token() }}"
-            },
-            success: function(response) {
-                if (response.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: response.message,
-                        showConfirmButton: false,
-                        timer: 1500
-                    }).then(() => {
-                        $('#bbmModal').addClass('hidden');
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: response.message || 'Terjadi kesalahan saat menyimpan data BBM.'
-                    });
-                }
-            },
-            error: function(xhr) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: xhr.responseJSON?.message || 'Terjadi kesalahan pada server.'
-                });
-            }
-        });
+      }
     });
+  });
 
-
-    // === FORM TAMBAH ARMADA ===
-    $('#formArmada').on('submit', function(e) {
-        e.preventDefault();
-
-        // Kirim seluruh form termasuk file/icon
-        var formData = new FormData(this);
-
-        $.ajax({
-            url: "{{ route('fa.armada.store') }}",
-            type: "POST",
-            data: formData,
-            contentType: false,
-            processData: false,
-            headers: {
-                'X-CSRF-TOKEN': "{{ csrf_token() }}"
-            },
-            success: function(response) {
-                if (response.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: response.message,
-                        showConfirmButton: false,
-                        timer: 1500
-                    }).then(() => {
-                        $('#armadaModal').addClass('hidden');
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: response.message || 'Terjadi kesalahan saat menyimpan data Armada.'
-                    });
-                }
-            },
-            error: function(xhr) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: xhr.responseJSON?.message || 'Terjadi kesalahan pada server.'
-                });
-            }
-        });
-    });
+  window.deleteArmada = function (id) {
+  Swal.fire({
+    title: "Yakin hapus armada ini?",
+    text: "Data yang sudah dihapus tidak bisa dikembalikan.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Ya, hapus!",
+    cancelButtonText: "Batal"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: "/fa/armada/delete/" + id,
+        type: "DELETE",
+        data: {
+          _token: "{{ csrf_token() }}"
+        },
+        success: function (response) {
+          Swal.fire({
+            title: "Berhasil!",
+            text: response.message,
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false
+          });
+          setTimeout(() => location.reload(), 1500);
+        },
+        error: function (xhr) {
+          Swal.fire({
+            title: "Gagal!",
+            text: "Terjadi kesalahan saat menghapus data.",
+            icon: "error"
+          });
+        }
+      });
+    }
+  });
+}
 
 });
 </script>
+
 @endpush
 @endsection
