@@ -40,6 +40,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\IssueTrackerController;
+use App\Http\Controllers\RemoteAccessController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\WorkstationController;
 use Illuminate\Support\Facades\DB;
