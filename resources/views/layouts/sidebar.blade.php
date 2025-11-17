@@ -329,7 +329,7 @@
   </a>
   <ul class="pc-submenu">
     <li class="pc-item">
-      <a class="pc-link" href="{{ route('facility.apd.index') }}">APD Management</a>
+      <a class="pc-link" href="#">APD Management</a>
     </li>
   </ul>
 </li>
