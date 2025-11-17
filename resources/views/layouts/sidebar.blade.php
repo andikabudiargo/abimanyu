@@ -533,7 +533,7 @@
               class="pc-mtext">IT Network & Access</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span></a>
           <ul class="pc-submenu">
             <li class="pc-item"><a class="pc-link" href="#!">Network Monitoring</a></li>
-            <li class="pc-item"><a href="#" class="pc-link">Remote Access Panel</a></li>
+            <li class="pc-item"><a href="{{ route('it.remote.index') }}" class="pc-link">Remote Access Panel</a></li>
              </ul>
             </li>
             <li class="pc-item pc-hasmenu">

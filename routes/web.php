@@ -383,6 +383,7 @@ Route::prefix('it')->name('it.')->group(function () {
     Route::put('/issue-tracker/{id}/update', [IssueTrackerController::class, 'update'])->name('issue.update');
     Route::delete('/issue-tracker/{id}/destroy', [IssueTrackerController::class, 'destroy'])->name('issue.destroy');
      Route::get('/issue-tracker/monthly_report', [IssueTrackerController::class, 'monthlyReport'])->name('issue.monthly');
+Route::get('/remote-access/index', [RemoteAccessController::class, 'index'])->name('remote.index');
     });
 
     Route::prefix('qc')->name('qc.')->group(function () {  
