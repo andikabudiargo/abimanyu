@@ -387,7 +387,7 @@
               class="pc-mtext">Attendances Managament</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span></a>
           <ul class="pc-submenu">
             <li class="pc-item"><a class="pc-link" href="#!">Machines Management</a></li>
-            <li class="pc-item"><a href="{{ route('hr.attendance.index') }}" class="pc-link">Presences Managament</a></li>
+            <li class="pc-item"><a href="#" class="pc-link">Presences Managament</a></li>
              </ul>
             </li>
 
