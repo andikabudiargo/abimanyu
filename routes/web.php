@@ -6,6 +6,7 @@ use App\Http\Controllers\BookingRoomController;
 use App\Http\Controllers\MaterialMovementController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\APDController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ArticleTypeController;
@@ -39,8 +40,8 @@ use App\Http\Controllers\ReceivingController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\BackupMonitorController;
 use App\Http\Controllers\IssueTrackerController;
-use App\Http\Controllers\RemoteAccessController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\WorkstationController;
 use Illuminate\Support\Facades\DB;
@@ -49,6 +50,9 @@ use Illuminate\Support\Facades\Auth;
 use Minishlink\WebPush\Subscription;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\PushTestController;
+use App\Http\Controllers\SecurityController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\RemoteAccessController;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 use Minishlink\WebPush\WebPush; 
@@ -122,6 +126,11 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ];
 })->middleware('auth');
 
+Route::get('/security', [SecurityController::class, 'index'])
+    ->name('security');
+    Route::get('/security/catering', [SecurityController::class, 'getDataCatering'])->name('security.catering');
+    Route::post('/security/catering/broadcast', [SecurityController::class, 'broadcastNewCatering']);
+
 
 
 Route::middleware('auth')->group(function () {
@@ -153,8 +162,6 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::get('/group-of-material/data', [GroupMaterialController::class, 'data'])->name('gom.data');
     Route::get('/group-of-material/select', [GroupMaterialController::class, 'select'])->name('gom.select');
     Route::post('/group-of-material/store', [GroupMaterialController::class, 'store'])->name('gom.store');
-
-    
 });
 
 Route::prefix('hr')->name('hr.')->group(function () {
@@ -164,7 +171,10 @@ Route::prefix('hr')->name('hr.')->group(function () {
     Route::post('/department/store', [DepartmentController::class, 'store'])->name('department.store');
      Route::get('/position/index', [PositionController::class, 'index'])->name('position.index');
       Route::get('/position/create', [PositionController::class, 'create'])->name('position.create');
-       Route::get('/employee/create', [EmployeeController::class, 'index'])->name('employee.create');
+      Route::get('/employee/dashboard', [EmployeeController::class, 'index'])->name('employee.index');
+       Route::get('/employee/create', [EmployeeController::class, 'create'])->name('employee.create');
+       Route::get('/employee/contract', [EmployeeController::class, 'createContract'])->name('contract.create');
+       Route::get('/attendance/index', [AttendanceController::class, 'index'])->name('attendance.index');
 });
 
 Route::prefix('facility')->name('facility.')->group(function () {
@@ -193,9 +203,14 @@ Route::prefix('facility')->name('facility.')->group(function () {
     Route::post('/assets-loan/return', [AssetLoanController::class, 'returnLoan'])->name('alo.return');
     Route::delete('/assets-loan/{loan}', [AssetLoanController::class, 'cancel'])->name('alo.cancel');
     Route::post('/assets-loan/condition', [AssetLoanController::class, 'confirmCondition'])->name('alo.condition');
-
-
-
+    Route::get('/facility/apd', [APDController::class, 'index'])->name('apd.index');
+    Route::post('/facility/adjustment/store', [APDController::class, 'storeAdjustment'])->name('adjustment.store');
+    Route::get('/facility/apd/stock/{id}', [APDController::class, 'getApdStock'])->name('apd.stock');
+    Route::get('/apd/movement/{id}', [APDController::class, 'movement']);
+    Route::post('/apd-distribution/store', [APDController::class, 'storeDistribution'])->name('distribution.store');
+    Route::post('/apd/store', [APDController::class, 'store'])->name('apd.store');
+    Route::post('/apd/update/{id}', [APDController::class, 'update']);
+    Route::delete('/apd/delete/{id}', [ApdController::class, 'destroy']);
 });
 
 Route::prefix('mr')->name('mr.')->group(function () {
@@ -384,7 +399,10 @@ Route::prefix('it')->name('it.')->group(function () {
     Route::put('/issue-tracker/{id}/update', [IssueTrackerController::class, 'update'])->name('issue.update');
     Route::delete('/issue-tracker/{id}/destroy', [IssueTrackerController::class, 'destroy'])->name('issue.destroy');
      Route::get('/issue-tracker/monthly_report', [IssueTrackerController::class, 'monthlyReport'])->name('issue.monthly');
-Route::get('/remote-access/index', [RemoteAccessController::class, 'index'])->name('remote.index');
+     Route::get('/backup-monitor', [BackupMonitorController::class, 'index'])->name('backup.monitor');
+     Route::get('/backup-data', [BackupMonitorController::class, 'getBackupData']);
+    Route::post('/backup-monitor/check', [BackupMonitorController::class, 'checkNow'])->name('backup.check');
+     Route::get('/remote-access/index', [RemoteAccessController::class, 'index'])->name('remote.index');
     });
 
     Route::prefix('qc')->name('qc.')->group(function () {  
@@ -413,7 +431,7 @@ Route::get('/remote-access/index', [RemoteAccessController::class, 'index'])->na
 
     });
 
-  Route::prefix('fa')->name('fa.')->group(function () {  
+   Route::prefix('fa')->name('fa.')->group(function () {  
     Route::get('calculator-bom', [CalculatorBOMController::class, 'index'])->name('cabom.index');
     Route::post('excel/uploadBOM', [CalculatorBOMController::class, 'upload'])->name('cabom.upload');
     Route::get('data/fg', [CalculatorBOMController::class, 'getFinishGoods'])->name('cabom.fg');
@@ -437,8 +455,8 @@ Route::get('/remote-access/index', [RemoteAccessController::class, 'index'])->na
     Route::put('/armada/update/{id}', [CalculatorFuelController::class, 'updateArmada'])->name('armada.update');
     Route::delete('/armada/delete/{id}', [CalculatorFuelController::class, 'destroyArmada']);
     Route::delete('/bbm/delete/{id}', [CalculatorFuelController::class, 'destroyBBM']);
-    });
 
+    });
 
 
     Route::prefix('cooperative')->name('cooperative.')->group(function () {
