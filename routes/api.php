@@ -1,6 +1,8 @@
 <?php
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Cache;
+use App\Http\Controllers\BackupMonitorController;
+use App\Http\Controllers\Api\FingerLogController;
 use Illuminate\Http\Request;
 
 Route::post('/scanner/store', function (Request $request) {
@@ -22,3 +24,7 @@ Route::post('/scanner/reset', function () {
     return response()->json(['status' => 'reset']);
 });
 
+Route::post('/backup-status', [BackupMonitorController::class, 'updateStatus']);
+Route::get('/backup-data', [BackupMonitorController::class, 'getBackupData']);
+
+Route::post('/finger/receive', [FingerLogController::class, 'receive']);
