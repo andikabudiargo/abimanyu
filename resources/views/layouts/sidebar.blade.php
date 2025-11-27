@@ -329,7 +329,7 @@
   </a>
   <ul class="pc-submenu">
     <li class="pc-item">
-      <a class="pc-link" href="#">APD Management</a>
+      <a class="pc-link" href="{{ route('facility.apd.index') }}">APD Management</a>
     </li>
   </ul>
 </li>
@@ -387,7 +387,7 @@
               class="pc-mtext">Attendances Managament</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span></a>
           <ul class="pc-submenu">
             <li class="pc-item"><a class="pc-link" href="#!">Machines Management</a></li>
-            <li class="pc-item"><a href="#" class="pc-link">Presences Managament</a></li>
+            <li class="pc-item"><a href="{{ route('hr.attendance.index') }}" class="pc-link">Presences Managament</a></li>
              </ul>
             </li>
 
@@ -397,7 +397,7 @@
           <ul class="pc-submenu">
             <li class="pc-item"><a class="pc-link" href="{{ route('hr.department.index') }}">Department Management</a></li>
             <li class="pc-item"><a href="{{ route('hr.position.index') }}" class="pc-link">Position Managament</a></li>
-            <li class="pc-item"><a href="{{ route('hr.employee.create') }}" class="pc-link">Employees Managament</a></li>
+            <li class="pc-item"><a href="{{ route('hr.employee.index') }}" class="pc-link">Employees Managament</a></li>
              </ul>
             </li>
             <li class="pc-item pc-hasmenu">
@@ -521,7 +521,7 @@
           <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="hard-drive"></i> </span><span
               class="pc-mtext">IT Backup Management</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span></a>
           <ul class="pc-submenu">
-            <li class="pc-item"><a class="pc-link" href="#">Backup Monitoring</a></li>
+            <li class="pc-item"><a class="pc-link" href="{{ route('it.backup.monitor') }}">Backup Monitoring</a></li>
             <li class="pc-item"><a class="pc-link" href="{{ route('it.backup.index') }}">Backup Log</a></li>
             <li class="pc-item"><a class="pc-link" href="{{ route('it.backup-schedule.index') }}">Backup Schedule Plan</a></li>
              <li class="pc-item"><a class="pc-link" href="{{ route('it.storage.index') }}">Storage Management</a></li>
