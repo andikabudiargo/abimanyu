@@ -261,7 +261,7 @@
 <!-- Select Finish Goods -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
   <!-- FG Selection -->
- <div class="bg-white shadow-md border-l-4 border-indigo-500 rounded-xl p-6 space-y-4">
+<div class="bg-white shadow-md border-l-4 border-indigo-500 rounded-xl p-6 space-y-4">
 
   <!-- Select Chemical -->
   <div>
@@ -275,46 +275,69 @@
     </select>
   </div>
 
-  <!-- Select Periode + Tahun -->
-  <div class="flex flex-col sm:flex-row gap-4">
-    <!-- Periode -->
-    <div class="w-full sm:w-1/2">
-      <label for="periode_chemical" class="block text-sm font-medium text-gray-900 font-bold mb-2">
-        Select Periode
-      </label>
-      <select id="periode_chemical"
-        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
-        <option value="">-- Choose Periode --</option>
-        <option value="1">Januari</option>
-        <option value="2">Februari</option>
-        <option value="3">Maret</option>
-        <option value="4">April</option>
-        <option value="5">Mei</option>
-        <option value="6">Juni</option>
-        <option value="7">Juli</option>
-        <option value="8">Agustus</option>
-        <option value="9">September</option>
-        <option value="10">Oktober</option>
-        <option value="11">November</option>
-        <option value="12">Desember</option>
-      </select>
-    </div>
+  <!-- Periode Awal & Akhir -->
+  <div>
+    <label class="block text-sm font-medium text-gray-900 font-bold mb-2">
+      Select Periode
+    </label>
+    <div class="flex flex-col sm:flex-row gap-4">
+      <!-- Periode Awal -->
+      <div class="w-full sm:w-1/2">
+        <select id="periode_awal"
+          class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+          <option value="">-- Periode Awal --</option>
+          <option value="1">Januari</option>
+          <option value="2">Februari</option>
+          <option value="3">Maret</option>
+          <option value="4">April</option>
+          <option value="5">Mei</option>
+          <option value="6">Juni</option>
+          <option value="7">Juli</option>
+          <option value="8">Agustus</option>
+          <option value="9">September</option>
+          <option value="10">Oktober</option>
+          <option value="11">November</option>
+          <option value="12">Desember</option>
+        </select>
+      </div>
 
-    <!-- Tahun -->
-    <div class="w-full sm:w-1/2">
-      <label for="tahun_chemical" class="block text-sm font-medium text-gray-900 font-bold mb-2">
-        Select Tahun
-      </label>
-      <select id="tahun_chemical"
-        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
-        <option value="">-- Choose Tahun --</option>
-        <option value="2024">2024</option>
-        <option value="2025">2025</option>
-      </select>
+      <!-- Periode Akhir -->
+      <div class="w-full sm:w-1/2">
+        <select id="periode_akhir"
+          class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+          <option value="">-- Periode Akhir --</option>
+          <option value="1">Januari</option>
+          <option value="2">Februari</option>
+          <option value="3">Maret</option>
+          <option value="4">April</option>
+          <option value="5">Mei</option>
+          <option value="6">Juni</option>
+          <option value="7">Juli</option>
+          <option value="8">Agustus</option>
+          <option value="9">September</option>
+          <option value="10">Oktober</option>
+          <option value="11">November</option>
+          <option value="12">Desember</option>
+        </select>
+      </div>
     </div>
   </div>
 
+  <!-- Select Tahun -->
+  <div>
+    <label for="tahun_chemical" class="block text-sm font-medium text-gray-900 font-bold mb-2">
+      Select Tahun
+    </label>
+    <select id="tahun_chemical"
+      class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+      <option value="">-- Choose Tahun --</option>
+      <option value="2024">2024</option>
+      <option value="2025">2025</option>
+    </select>
+  </div>
+
 </div>
+
 
 
 
@@ -345,20 +368,47 @@
 
  <!-- Raw Material Table -->
 <div id="fg_table" class="mt-8">
-   <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-    <!-- Judul kiri -->
-    <h3 class="text-lg font-semibold text-gray-800 mb-2 md:mb-0">
-      Finish Goods Consumption
-    </h3>
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+  <!-- Judul kiri -->
+  <h3 class="text-lg font-semibold text-gray-800 mb-2 md:mb-0">
+    Finish Goods Consumption
+  </h3>
 
-    <!-- Tombol kanan -->
-    <a href="{{ route('fa.cabom.export') }}" 
-       class="inline-flex items-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors duration-200"
-       target="_blank">
-       <span class="mr-2">Export Excel</span>
-       <i data-feather="download"></i>
-    </a>
+  <!-- Filter + Export kanan -->
+  <div class="flex items-center gap-3">
+    <!-- Checkbox Filter -->
+    <label class="inline-flex items-center space-x-1 text-gray-700 cursor-pointer">
+      <!-- Icon filter (Heroicons) -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V20l-4-2v-7a1 1 0 00-.293-.707L3.293 6.707A1 1 0 013 6V4z" />
+      </svg>
+      <input type="checkbox" id="hide_zero_sales" class="form-checkbox h-4 w-4">
+      <span class="text-sm">Hide Data with Zero Qty Sales</span>
+      
+    </label>
+
+    <div class="relative inline-block text-left">
+  <!-- Trigger Dropdown -->
+  <button type="button"
+          class="inline-flex justify-center items-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors duration-200"
+          id="exportDropdownButton">
+    <span>Export</span>
+    <svg class="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+    </svg>
+  </button>
+
+  <!-- Dropdown Menu -->
+  <div id="exportDropdownMenu" class="hidden origin-top-right absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+    <div class="py-1">
+      <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" onclick="exportTable('excel')">Export Excel</a>
+      <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" onclick="exportTable('pdf')">Export PDF</a>
+    </div>
   </div>
+</div>
+  </div>
+</div>
+
 
   <div class="overflow-x-auto shadow rounded-xl border border-gray-200">
     <table id="fg_table_inner" class="min-w-full text-sm text-gray-700">
@@ -386,7 +436,7 @@
     <td id="total_buy" class="px-4 py-3 text-right text-indigo-600 font-bold">0</td>
   </tr>
   <tr>
-    <td colspan="6" class="px-4 py-3 text-right font-semibold text-gray-900">CONTROL (Consumption - Pembelian)</td>
+    <td colspan="6" class="px-4 py-3 text-right font-semibold text-gray-900">CONTROL</td>
     <td id="total_diff" class="px-4 py-3 text-right text-red-600 font-bold">0</td>
   </tr>
   <tr>
@@ -407,14 +457,53 @@
 
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
+   // Toggle dropdown
+  document.getElementById('exportDropdownButton').addEventListener('click', function() {
+      const menu = document.getElementById('exportDropdownMenu');
+      menu.classList.toggle('hidden');
+  });
+
+  // Export function
+  function exportTable(type) {
+    const table = document.getElementById('fg_table_inner'); 
+    if (!table) return;
+
+    // --- Clone table & ganti konten cell dengan data-value untuk export ---
+    const clone = table.cloneNode(true);
+    clone.querySelectorAll('td').forEach(td => {
+        const val = td.getAttribute('data-value');
+        if(val !== null) td.textContent = val; // gunakan angka murni
+    });
+
+    if(type === 'excel') {
+        let wb = XLSX.utils.table_to_book(clone, {sheet: "Sheet1"});
+        XLSX.writeFile(wb, "cm_consumption.xlsx");
+    } else if(type === 'pdf') {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'pt', 'a4');
+        doc.html(clone, {
+            callback: function(doc) {
+                doc.save('cm_consumption.pdf');
+            },
+            x: 10,
+            y: 10,
+            html2canvas: { scale: 0.5 }
+        });
+    }
+
+    document.getElementById('exportDropdownMenu').classList.add('hidden');
+}
+
  function showTab(tab) {
   const fgTab = document.getElementById('tab-fg');
   const cmTab = document.getElementById('tab-cm');
   const fgContent = document.getElementById('content-fg');
   const cmContent = document.getElementById('content-cm');
 
-  if(tab === 'fg') {
+  if(tab == 'fg') {
     fgContent.classList.remove('hidden');
     cmContent.classList.add('hidden');
 
@@ -478,7 +567,7 @@
             $('#excel-file').val('');
 
             // kalau Select2 perlu di-refresh
-            if (typeof initSelect2 === 'function') {
+            if (typeof initSelect2 == 'function') {
                 initSelect2();
             }
         },
@@ -507,6 +596,7 @@
 function initSelect2() {
     $('#fg_code').select2({
         placeholder: '-- Choose Finish Goods --',
+        allowClear: true,
         width: '100%',
         ajax: {
             url: "{{ route('fa.cabom.fg') }}",
@@ -531,6 +621,7 @@ function initSelect2() {
     });
      $('#cm_code').select2({
         placeholder: '-- Choose Chemical --',
+        allowClear: true,
         width: '100%',
         ajax: {
             url: "{{ route('fa.cabom.select-cm') }}",
@@ -557,16 +648,25 @@ function initSelect2() {
 
 $('#periode_chemical').select2({
    placeholder: "-- Choose Periode --",
+   allowClear: true,
    width: '100%',
    });
 
    $('#tahun_chemical').select2({
    placeholder: "-- Choose Tahun --",
+   allowClear: true,
    width: '100%',
    });
 
    $('#periode_fg').select2({
    placeholder: "-- Choose Periode --",
+   allowClear: true,
+   width: '100%',
+   });
+
+     $('#tahun_fg').select2({
+   placeholder: "-- Choose Tahun --",
+   allowClear: true,
    width: '100%',
    });
 
@@ -607,12 +707,22 @@ function loadFGData(fgCode) {
     if (data) {
         $("#fg_customer").text(data.customer || "-");
         $("#fg_bom_number").text(data.bom_number || "-");
-        $("#fg_price").text(data.latest_price 
-            ? `Rp ${Number(data.latest_price).toLocaleString('id-ID')}` 
-            : "-");
-        $("#avg_fg").text(data.avg_price 
-            ? `Rp ${Number(data.avg_price).toLocaleString('id-ID')}` 
-            : "-");
+       $("#fg_price").text(data.latest_price
+    ? `Rp ${Number(data.latest_price).toLocaleString('id-ID', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+    })}`
+    : "-"
+);
+
+$("#avg_fg").text(data.avg_price
+    ? `Rp ${Number(data.avg_price).toLocaleString('id-ID', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+    })}`
+    : "-"
+);
+
     }
 });
 
@@ -726,12 +836,34 @@ function updateSummary(subtotalRM, subtotalCM, consRM, consCM) {
     document.getElementById('summary_grand_total').textContent = formatRp(grandTotal);
 }
 
-// --- Set default tahun berjalan ---
+// --- Set default tahun berjalan (opsional) ---
 const currentYear = new Date().getFullYear();
-$('#tahun_chemical').val(currentYear); // jika pakai <select> atau <input>
+if ($('#tahun_chemical option[value="' + currentYear + '"]').length > 0) {
+    $('#tahun_chemical').val(currentYear).trigger('change');
+}
+
+// --- Select2 individual placeholders ---
+$('#periode_awal').select2({
+    placeholder: "-- Choose Periode Awal --",
+    allowClear: true,
+    width: '100%'
+});
+
+$('#periode_akhir').select2({
+    placeholder: "-- Choose Periode Akhir --",
+    allowClear: true,
+    width: '100%'
+});
+
+$('#tahun_chemical').select2({
+    placeholder: "-- Choose Tahun --",
+    allowClear: true,
+    width: '100%'
+});
+
 
 // Saat user memilih Chemical
-$('#cm_code').on('select2:select', function(e) {
+$('#cm_code').on('select2:select', function() {
     const cmCode = $(this).val();
     if (!cmCode) {
         resetChemicalInfo();
@@ -740,10 +872,27 @@ $('#cm_code').on('select2:select', function(e) {
     loadChemicalData(cmCode);
 });
 
-// Saat user memilih periode (bulan)
-$('#periode_chemical').on('change', function() {
+$('#hide_zero_sales').on('change', function() {
     const cmCode = $('#cm_code').val();
     if (cmCode) {
+        loadChemicalData(cmCode); // reload tabel dengan filter terbaru
+    }
+});
+
+
+// Saat user memilih periode awal atau akhir
+$('#periode_awal, #periode_akhir').on('change', function() {
+    const cmCode = $('#cm_code').val();
+    if (cmCode) {
+        const awal = parseInt($('#periode_awal').val());
+        const akhir = parseInt($('#periode_akhir').val());
+
+        // Validasi sederhana
+        if (awal && akhir && akhir < awal) {
+            alert('Periode akhir tidak boleh lebih kecil dari periode awal.');
+            $('#periode_akhir').val('').trigger('change');
+            return;
+        }
         loadChemicalData(cmCode);
     }
 });
@@ -751,84 +900,116 @@ $('#periode_chemical').on('change', function() {
 // Saat user memilih tahun
 $('#tahun_chemical').on('change', function() {
     const cmCode = $('#cm_code').val();
-    if (cmCode) {
-        loadChemicalData(cmCode);
-    }
+    if (cmCode) loadChemicalData(cmCode);
 });
 
-// --- Fungsi utama untuk load data berdasarkan CM, periode, & tahun ---
 function loadChemicalData(cmCode) {
-    const periode = $('#periode_chemical').val(); // misal "1" untuk Januari
-    const tahun = $('#tahun_chemical').val();     // tahun dipilih
+    // --- Ambil filter dari UI ---
+    let periodeAwal = $('#periode_awal').val();
+    let periodeAkhir = $('#periode_akhir').val();
+    const tahun = $('#tahun_chemical').val();
+    const hideZeroSales = $('#hide_zero_sales').is(':checked');
+
+    // --- Jika hanya salah satu periode dipilih, gunakan nilai itu untuk keduanya ---
+    if (periodeAwal && !periodeAkhir) periodeAkhir = periodeAwal;
+    if (!periodeAwal && periodeAkhir) periodeAwal = periodeAkhir;
+
+    // --- Debug: pastikan nilai dikirim benar ---
+    console.log('Load CM Data:', { cmCode, periodeAwal, periodeAkhir, tahun, hideZeroSales });
 
     // --- Get CM Info ---
-    $.get("{{ route('fa.cabom.get-cm-info') }}", 
-        { cm_code: cmCode, periode: periode, tahun: tahun }, 
-        function(data) {
-            if (data && data.cm_code) {
-                $("#cm_customer").text(data.customer || "-");
-                $("#cm_name").text(data.cm_name || "-");
-                $("#cm_price").text(data.latest_price ? `Rp ${Number(data.latest_price).toLocaleString('id-ID')}` : "-");
-                $("#cm_avg_price").text(data.avg_price ? `Rp ${Number(data.avg_price).toLocaleString('id-ID')}` : "-");
-            } else {
-                $("#cm_customer, #cm_name, #cm_price, #cm_avg_price").text("-");
-            }
-        }
+    $.get("{{ route('fa.cabom.get-cm-info') }}", {
+        cm_code: cmCode,
+        periode_awal: periodeAwal,
+        periode_akhir: periodeAkhir,
+        tahun: tahun
+    }, function(data) {
+        if (data && data.cm_code) {
+            $("#cm_customer").text(data.customer || "-");
+            $("#cm_name").text(data.cm_name || "-");
+          $("#cm_price").text(
+        data.latest_price
+            ? `Rp ${Number(data.latest_price).toLocaleString('id-ID', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+            })}`
+            : "-"
     );
+
+    $("#cm_avg_price").text(
+        data.avg_price
+            ? `Rp ${Number(data.avg_price).toLocaleString('id-ID', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+            })}`
+            : "-"
+    );
+} else {
+    $("#cm_customer, #cm_name, #cm_price, #cm_avg_price").text("-");
+}
+    });
 
     // --- Get Consumption & Table ---
-    $.get("{{ route('fa.cabom.cm-table') }}", 
-        { cm_code: cmCode, periode: periode, tahun: tahun }, 
-        function(res) {
-            const data = res.data || [];
-            const tbody = $("#fg_table_inner tbody").empty();
-            let subtotalCMConsumption = 0;
+    $.get("{{ route('fa.cabom.cm-table') }}", {
+        cm_code: cmCode,
+        periode_awal: periodeAwal,
+        periode_akhir: periodeAkhir,
+        tahun: tahun
+    }, function(res) {
+        const data = res.data || [];
+        const tbody = $("#fg_table_inner tbody").empty();
 
-            data.forEach(row => {
-                const total = Number(row.total) || 0;
-                tbody.append(`
-                    <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <td class="px-4 py-2 text-left">${row.fg_code}</td>
-                        <td class="px-4 py-2 text-left">${row.fg_name}</td>
-                        <td class="px-4 py-2 text-center">${row.qty_bom}</td>
-                        <td class="px-4 py-2 text-center">${row.uom}</td>
-                        <td class="px-4 py-2 text-right">${formatPrice(row.consumption)}</td>
-                        <td class="px-4 py-2 text-right">${row.qty_sales}</td>
-                        <td class="px-4 py-2 text-right font-semibold">${formatPrice(row.total)}</td>
-                    </tr>
-                `);
-                subtotalCMConsumption += total;
-            });
+        // --- Filter hide zero sales jika diaktifkan ---
+        const filteredData = hideZeroSales ? data.filter(row => Number(row.qty_sales) !== 0) : data;
 
-            $("#total_consumption").html(formatPrice(subtotalCMConsumption));
+        let subtotalCMConsumption = 0;
 
-            // --- Get Total Buy ---
-            $.get("{{ route('fa.cabom.get-cm-total-buy') }}", 
-                { cm_code: cmCode, periode: periode, tahun: tahun }, 
-                function(res2) {
-                    const totalBuy = Number(res2.total_buy) || 0;
-                    $("#total_buy").html(formatPrice(totalBuy));
+        filteredData.forEach(row => {
+            const total = Number(row.total) || 0;
 
-                    const diff = subtotalCMConsumption - totalBuy;
-                    const percentage = subtotalCMConsumption > 0
-                        ? ((totalBuy / subtotalCMConsumption) * 100).toFixed(2)
-                        : 0;
+            tbody.append(`
+                <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <td class="px-4 py-2 text-left">${row.fg_code}</td>
+                    <td class="px-4 py-2 text-left">${row.fg_name}</td>
+                    <td class="px-4 py-2 text-center">${row.qty_bom}</td>
+                    <td class="px-4 py-2 text-center">${row.uom}</td>
+                    <td class="px-4 py-2 text-right"data-value="${row.consumption}">${formatPrice(row.consumption)}</td>
+                    <td class="px-4 py-2 text-right">${row.qty_sales}</td>
+                    <td class="px-4 py-2 text-right font-semibold" data-value="${row.total}">${formatPrice(row.total)}</td>
+                </tr>
+            `);
 
-                    $("#total_diff").html(formatPrice(diff));
-                    $("#total_percentage").html(percentage + " %");
-                }
-            );
-        }
-    );
+            subtotalCMConsumption += total;
+        });
+
+        $("#total_consumption").html(formatPrice(subtotalCMConsumption));
+
+        // --- Total Buy & Sisa ---
+        $.get("{{ route('fa.cabom.get-cm-total-buy') }}", {
+            cm_code: cmCode,
+            periode_awal: periodeAwal,
+            periode_akhir: periodeAkhir,
+            tahun: tahun
+        }, function(res2) {
+            const totalBuy = Number(res2.total_buy) || 0;
+            const diff = totalBuy - subtotalCMConsumption;
+            const percentage = totalBuy > 0 ? ((diff / totalBuy) * 100).toFixed(2) : 0;
+
+            $("#total_buy").html(formatPrice(totalBuy));
+            $("#total_diff").html(formatPrice(diff));
+            $("#total_percentage").html(percentage + " %");
+        });
+    });
 }
+
+
+
 
 
 // --- Fungsi format harga ---
 function formatPrice(num) {
     return num ? Number(num).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00";
 }
-
-
 
 initSelect2()
 });
