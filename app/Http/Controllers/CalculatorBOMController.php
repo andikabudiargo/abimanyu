@@ -53,59 +53,48 @@ class CalculatorBOMController extends Controller
         ]);
     }
 
-     public function getCM()
+   public function getCM()
 {
-    $rows = Cache::get('cm_data', []);
-
-    $cmList = collect($rows)
-        ->skip(1) // lewati header
-        ->map(function($row) {
-            return [
-                'code' => $row[2] ?? null, // kolom kode CM
-                'name' => $row[3] ?? null  // kolom nama CM
-            ];
-        })
-        ->filter(function($item) {
-            // buang yang kosong
-            return $item['code'] && $item['name'];
-        })
-        ->unique(function($item) {
-            // unik berdasarkan kode + nama
-            return $item['code'] . '|' . $item['name'];
-        })
-        ->values();
+    $cmList = DB::table('boms')
+        ->select('article_cm as code', 'article_cm_desc as name')
+        ->whereNotNull('article_cm')
+        ->where('article_cm', '!=', '')
+        ->whereNotNull('article_cm_desc')
+        ->where('article_cm_desc', '!=', '')
+        ->groupBy('article_cm', 'article_cm_desc') // unik
+        ->orderBy('article_cm')
+        ->get();
 
     return response()->json($cmList);
 }
 
 
-     public function getFG(Request $request)
+
+    public function getFG(Request $request)
 {
     $cmCode = $request->query('cm');
 
-    $rows = Cache::get('cm_data', []);
+    if (!$cmCode) {
+        return response()->json([]);
+    }
 
-    $fgList = collect($rows)
-        ->skip(1)
-        ->filter(function($row) use ($cmCode){
-            return isset($row[2]) && $row[2] == $cmCode; // kolom kode CM
-        })
-        ->map(function($row){
-            return [
-                'code' => $row[0] ?? null, // kolom FG code
-                'name' => $row[1] ?? null  // kolom FG name
-            ];
-        })
-        ->filter(function($item){
-            return $item['code'] && $item['name'];
-        })
-        ->unique(function($item){
-            return $item['code'] . '|' . $item['name'];
-        })
-        ->values();
+    $fgList = DB::table('boms')
+        ->select(
+            'article_fg as code',
+            'article_fg_desc as name'
+        )
+        ->where('article_cm', $cmCode)
+        ->whereNotNull('article_fg')
+        ->where('article_fg', '!=', '')
+        ->whereNotNull('article_fg_desc')
+        ->where('article_fg_desc', '!=', '')
+        ->groupBy('article_fg', 'article_fg_desc') // pastikan unik
+        ->orderBy('article_fg')
+        ->get();
 
     return response()->json($fgList);
 }
+
 
 public function exportCMFG()
 {
@@ -190,125 +179,137 @@ foreach(range('A','F') as $col){
 }
 
 
-public function upload(Request $request)
-{
-    $request->validate([
-        'file' => 'required|file|mimes:xlsx,xls'
-    ]);
+    public function upload(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls'
+        ]);
 
-    $file = $request->file('file');
+        $file = $request->file('file');
 
-    // Load Excel
-    $spreadsheet = IOFactory::load($file->getPathname());
+        // Load Excel
+        $spreadsheet = IOFactory::load($file->getPathname());
 
-    $cacheData = [];
+        $cacheData = [];
 
-    // Ambil semua sheet
-    foreach ($spreadsheet->getWorksheetIterator() as $worksheet) {
-        $sheetName = $worksheet->getTitle();
-        $rows = $worksheet->toArray();
-        $cacheData[$sheetName] = $rows;
+        // Ambil semua sheet
+        foreach ($spreadsheet->getWorksheetIterator() as $worksheet) {
+            $sheetName = $worksheet->getTitle();
+            $rows = $worksheet->toArray();
+            $cacheData[$sheetName] = $rows;
+        }
+
+        // Simpan semua sheet ke cache selama 1 jam
+    Cache::forever('bom_data', $cacheData);
+
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'File berhasil diupload dan semua sheet disimpan di cache',
+        ]);
     }
-
-    // Simpan semua sheet ke cache selama 1 jam
-   Cache::forever('bom_data', $cacheData);
-
-
-    return response()->json([
-        'status' => 'success',
-        'message' => 'File berhasil diupload dan semua sheet disimpan di cache',
-    ]);
-}
 
 
 public function getFinishGoods(Request $request)
 {
-    $term  = $request->query('term', '');
+    $term  = trim($request->query('term', ''));
     $page  = max(1, (int) $request->query('page', 1));
     $limit = 20;
+    $offset = ($page - 1) * $limit;
 
-    // Ambil semua sheet dari cache
-    $cacheData = Cache::get('bom_data', []);
-    $bomSheet  = $cacheData['BOM'] ?? [];
+    // Query untuk mengambil FG unik
+    $query = DB::table('boms')
+        ->select(
+            'article_fg as id',
+            DB::raw("CONCAT(article_fg, ' - ', article_fg_desc) as text")
+        )
+        ->whereNotNull('article_fg')
+        ->where('article_fg', '!=', '');
 
-    // Gunakan associative array untuk key unik agar tidak duplikat
-    $fgListAssoc = [];
-    foreach ($bomSheet as $i => $row) {
-        if ($i === 0) continue; // skip header
-        $fgCode = trim($row[1] ?? '');
-        $fgName = trim($row[2] ?? '');
-        if ($fgCode && $fgName) {
-            $fgListAssoc[$fgCode] = [
-                'id'   => $fgCode,
-                'text' => $fgCode . ' - ' . $fgName
-            ];
-        }
-    }
-
-    // Ubah ke numerik array
-    $fgList = array_values($fgListAssoc);
-
-    // Filter berdasarkan term
-    if ($term) {
-        $fgList = array_filter($fgList, function($item) use ($term) {
-            return stripos($item['id'], $term) !== false || stripos($item['text'], $term) !== false;
+    // Filter search
+    if ($term !== '') {
+        $query->where(function($q) use ($term) {
+            $q->where('article_fg', 'LIKE', "%{$term}%")
+              ->orWhere('article_fg_desc', 'LIKE', "%{$term}%");
         });
     }
 
-    // Pagination
-    $offset = ($page - 1) * $limit;
-    $items  = array_slice($fgList, $offset, $limit);
-    $more   = ($offset + $limit) < count($fgList);
+    // === FIX: Hitung total FG unik tanpa limit, tanpa offset ===
+    $total = DB::table('boms')
+        ->select('article_fg')
+        ->whereNotNull('article_fg')
+        ->where('article_fg', '!=', '')
+        ->when($term !== '', function($q) use ($term) {
+            $q->where(function($q2) use ($term) {
+                $q2->where('article_fg', 'LIKE', "%{$term}%")
+                   ->orWhere('article_fg_desc', 'LIKE', "%{$term}%");
+            });
+        })
+        ->distinct()
+        ->count('article_fg');
+
+    // Ambil data unik per halaman
+    $results = $query
+        ->groupBy('article_fg', 'article_fg_desc')
+        ->orderBy('article_fg')
+        ->offset($offset)
+        ->limit($limit)
+        ->get();
 
     return response()->json([
-        'results'    => array_values($items),
-        'pagination' => ['more' => $more]
+        'results' => $results,
+        'pagination' => [
+            'more' => ($offset + $limit) < $total
+        ]
     ]);
 }
 
 
+
+
 public function getChemical(Request $request)
 {
-    $term  = $request->query('term', '');
+    $term  = trim($request->query('term', ''));
     $page  = max(1, (int) $request->query('page', 1));
     $limit = 20;
+    $offset = ($page - 1) * $limit;
 
-    // Ambil semua sheet dari cache
-    $cacheData = Cache::get('bom_data', []);
-    $bomSheet  = $cacheData['BOM'] ?? [];
+    // Query dasar: ambil CM unik
+    $query = DB::table('boms')
+        ->select(
+            'article_cm as id',
+            DB::raw("CONCAT(article_cm, ' - ', article_cm_desc) as text")
+        )
+        ->whereNotNull('article_cm')
+        ->where('article_cm', '!=', '')
+        ->whereNotNull('article_cm_desc')
+        ->where('article_cm_desc', '!=', '')
+        ->groupBy('article_cm', 'article_cm_desc');
 
-    // Gunakan associative array untuk key unik agar tidak duplikat
-    $cmListAssoc = [];
-    foreach ($bomSheet as $i => $row) {
-        if ($i === 0) continue; // skip header
-        $cmCode = trim($row[5] ?? '');
-        $cmName = trim($row[6] ?? '');
-        if ($cmCode && $cmName) {
-            $cmListAssoc[$cmCode] = [
-                'id'   => $cmCode,
-                'text' => $cmCode . ' - ' . $cmName
-            ];
-        }
-    }
-
-    // Ubah ke numerik array
-    $cmList = array_values($cmListAssoc);
-
-    // Filter berdasarkan term
-    if ($term) {
-        $cmList = array_filter($cmList, function($item) use ($term) {
-            return stripos($item['id'], $term) !== false || stripos($item['text'], $term) !== false;
+    // Filter by term
+    if ($term !== '') {
+        $query->where(function($q) use ($term) {
+            $q->where('article_cm', 'LIKE', "%{$term}%")
+              ->orWhere('article_cm_desc', 'LIKE', "%{$term}%");
         });
     }
 
-    // Pagination
-    $offset = ($page - 1) * $limit;
-    $items  = array_slice($cmList, $offset, $limit);
-    $more   = ($offset + $limit) < count($cmList);
+    // Hitung total untuk pagination
+    $total = $query->count();
 
+    // Ambil data berdasarkan limit & offset
+    $results = $query
+        ->orderBy('article_cm')
+        ->offset($offset)
+        ->limit($limit)
+        ->get();
+
+    // Return response format Select2
     return response()->json([
-        'results'    => array_values($items),
-        'pagination' => ['more' => $more]
+        'results' => $results,
+        'pagination' => [
+            'more' => ($offset + $limit) < $total
+        ]
     ]);
 }
 
@@ -316,33 +317,33 @@ public function getChemical(Request $request)
 public function getRMByFG(Request $request)
 {
     $fgCode = $request->query('fg_code');
-    $periodeSelected = $request->query('periode'); // misal 1-12
+    $periodeSelected = $request->query('periode'); // bulan 1–12
+
     if (!$fgCode) {
         return response()->json(['data' => []]);
     }
 
-    $cacheData = Cache::get('bom_data', []);
-    $bomSheet = $cacheData['BOM'] ?? [];
-    $lpbSheet = $cacheData['LPB'] ?? [];
-    $sjSheet  = $cacheData['SJ'] ?? [];
+    // ================================
+    // 1. AMBIL RM DARI TABEL BOM
+    // ================================
+    $bomRows = DB::table('boms')
+        ->where('fg_code', $fgCode)
+        ->get();
+
+    if ($bomRows->isEmpty()) {
+        return response()->json(['data' => []]);
+    }
 
     $rmList = [];
-
-    // Ambil RM dari BOM sesuai FG
-    foreach ($bomSheet as $i => $row) {
-        if ($i == 0) continue;
-        $bomFGCode = trim($row[1] ?? '');
-        if ($bomFGCode !== $fgCode) continue;
-
-        $rmCode = trim($row[3] ?? '');
-        if (!$rmCode) continue;
+    foreach ($bomRows as $row) {
+        $rmCode = trim($row->rm_code);
 
         if (!isset($rmList[$rmCode])) {
             $rmList[$rmCode] = [
                 'article_rm' => $rmCode,
-                'name_rm'    => trim($row[4] ?? ''),
-                'qty_bom'    => 1,
-                'uom'        => 'PCS',
+                'name_rm'    => $row->rm_name,
+                'qty_bom'    => (float)$row->qty_bom,
+                'uom'        => $row->uom ?? 'PCS',
                 'price'      => 0,
                 'consumption'=> 0,
                 'qty_sales'  => 0,
@@ -351,75 +352,67 @@ public function getRMByFG(Request $request)
         }
     }
 
-    if (empty($rmList)) return response()->json(['data' => []]);
+    // ================================
+    // 2. AMBIL PRICE DARI LPB
+    // ================================
+    $lpbQuery = DB::table('lpb_temporary')
+        ->whereIn('rm_code', array_keys($rmList));
 
-    // Ambil price dari LPB (filter periode jika ada)
+    if ($periodeSelected) {
+        $lpbQuery->whereMonth('tanggal', $periodeSelected);
+    }
+
+    // Ambil harga terakhir dari LPB
+    $lpbRows = $lpbQuery
+        ->orderBy('tanggal', 'desc')
+        ->get();
+
     $lpbData = [];
-    for ($i = count($lpbSheet) - 1; $i >= 1; $i--) {
-        $row = $lpbSheet[$i];
-        $code = trim($row[1] ?? '');
-        if (!isset($rmList[$code])) continue;
-
-        $tanggal = trim($row[0] ?? '');
-        $bulanData = null;
-
-        if (preg_match('/\d{2}-\d{2}-\d{4}/', $tanggal)) {
-            $parts = explode('-', $tanggal);
-            $bulanData = (int) $parts[1];
-        } elseif (preg_match('/\d{4}-\d{2}-\d{2}/', $tanggal)) {
-            $bulanData = (int) date('n', strtotime($tanggal));
-        } elseif (preg_match('/\d{2}-[A-Za-z]{3}-\d{2}/', $tanggal)) {
-            $bulanData = (int) date('n', strtotime($tanggal));
+    foreach ($lpbRows as $row) {
+        if (!isset($lpbData[$row->rm_code])) {
+            $lpbData[$row->rm_code] = (float)$row->price;
         }
-
-        if ($periodeSelected && $bulanData != (int)$periodeSelected) continue;
-
-        $priceStr = trim($row[3] ?? '0');
-        $priceNumeric = (float) str_replace(',', '.', str_replace('.', '', $priceStr));
-
-        if (!isset($lpbData[$code])) {
-            $lpbData[$code] = $priceNumeric;
-        }
-        if (count($lpbData) === count($rmList)) break;
     }
 
     // Hitung consumption
     foreach ($rmList as &$rm) {
-        $code = $rm['article_rm'];
-        $qtyBOMFloat = (float) str_replace(',', '.', $rm['qty_bom']);
-        $price = $lpbData[$code] ?? 0;
+        $price = $lpbData[$rm['article_rm']] ?? 0;
         $rm['price'] = $price;
-        $rm['consumption'] = round($qtyBOMFloat * $price, 2);
+
+        $rm['consumption'] = round($rm['qty_bom'] * $price, 2);
+        $rm['consumption'] = number_format($rm['consumption'], 2, ',', '.'); // tampilan 2 digit koma
     }
     unset($rm);
 
-    // Hitung qty sales dari SJ (filter periode)
-    foreach ($sjSheet as $i => $row) {
-        if ($i == 0) continue;
-        if (trim($row[2] ?? '') !== $fgCode) continue;
+    // ================================
+    // 3. AMBIL QTY SALES DARI SJ
+    // ================================
+    $sjQuery = DB::table('sj_temporary')
+        ->where('fg_code', $fgCode);
 
-        $tanggal = trim($row[0] ?? '');
-        $bulanData = null;
+    if ($periodeSelected) {
+        $sjQuery->whereMonth('tanggal', $periodeSelected);
+    }
 
-        if (preg_match('/\d{2}-\d{2}-\d{4}/', $tanggal)) {
-            $parts = explode('-', $tanggal);
-            $bulanData = (int) $parts[1];
-        } elseif (preg_match('/\d{4}-\d{2}-\d{2}/', $tanggal)) {
-            $bulanData = (int) date('n', strtotime($tanggal));
-        } elseif (preg_match('/\d{2}-[A-Za-z]{3}-\d{2}/', $tanggal)) {
-            $bulanData = (int) date('n', strtotime($tanggal));
-        }
+    $sjRows = $sjQuery->get();
 
-        if ($periodeSelected && $bulanData != (int)$periodeSelected) continue;
-
-        $qtyStrRaw = trim($row[4] ?? '0');
-        $qty = (float) str_replace(',', '', $qtyStrRaw);
+    foreach ($sjRows as $row) {
+        $qty = (float)$row->qty;
 
         foreach ($rmList as &$rm) {
             $rm['qty_sales'] += $qty;
-            $rm['total'] = round($rm['consumption'] * $rm['qty_sales'], 2);
+            $total = $rm['qty_sales'] * (float)str_replace(',', '.', $rm['consumption']);
+            $rm['total'] = number_format($total, 2, ',', '.');
         }
         unset($rm);
+    }
+
+    // ================================
+    // FORMAT PRICE & QTY JUGA 2 ANGKA DI BELAKANG KOMA
+    // ================================
+    foreach ($rmList as &$rm) {
+        $rm['price'] = number_format($rm['price'], 2, ',', '.');
+        $rm['qty_sales'] = number_format($rm['qty_sales'], 2, ',', '.');
     }
 
     return response()->json(['data' => array_values($rmList)]);
@@ -428,32 +421,35 @@ public function getRMByFG(Request $request)
 
 
 
+
 public function getChemicalByFG(Request $request)
 {
     $fgCode = $request->query('fg_code');
-    $periodeSelected = $request->query('periode'); // misal 1-12
-    if (!$fgCode) return response()->json(['data' => []]);
+    $periodeSelected = $request->query('periode'); // bulan 1–12
 
-    $cacheData = Cache::get('bom_data', []);
-    $bomSheet = $cacheData['BOM'] ?? [];
-    $lpbSheet = $cacheData['LPB'] ?? [];
-    $sjSheet  = $cacheData['SJ'] ?? [];
+    if (!$fgCode) {
+        return response()->json(['data' => []]);
+    }
+
+    // ========================================
+    // 1. Ambil chemical dari BOM berdasarkan FG
+    // ========================================
+    $bomRows = DB::table('boms')
+        ->where('fg_code', $fgCode)
+        ->whereNotNull('cm_code')
+        ->get();
+
+    if ($bomRows->isEmpty()) {
+        return response()->json(['data' => []]);
+    }
 
     $chemList = [];
-
-    // Ambil chemical dari BOM sesuai FG
-    foreach ($bomSheet as $i => $row) {
-        if ($i == 0) continue;
-        if (trim($row[1] ?? '') !== $fgCode) continue;
-
-        $cmCode = trim($row[5] ?? '');
-        if (!$cmCode) continue;
-
-        $chemList[] = [
-            'article_cm' => $cmCode,
-            'name_cm'    => trim($row[6] ?? ''),
-            'qty_bom'    => trim($row[7] ?? 0),
-            'uom'        => trim($row[8] ?? ''),
+    foreach ($bomRows as $row) {
+        $chemList[$row->cm_code] = [
+            'article_cm' => $row->cm_code,
+            'name_cm'    => $row->cm_name,
+            'qty_bom'    => (float)$row->qty_bom,
+            'uom'        => $row->uom,
             'price'      => 0,
             'consumption'=> 0,
             'qty_sales'  => 0,
@@ -461,208 +457,232 @@ public function getChemicalByFG(Request $request)
         ];
     }
 
-    // Ambil price dari LPB (filter periode)
-    $lpbData = [];
-    for ($i = count($lpbSheet) - 1; $i >= 1; $i--) {
-        $row = $lpbSheet[$i];
-        $code = trim($row[1] ?? '');
-        if (!in_array($code, array_column($chemList, 'article_cm'))) continue;
+    $cmCodes = array_keys($chemList);
 
-        $tanggal = trim($row[0] ?? '');
-        $bulanData = null;
+    // ========================================
+    // 2. Ambil price dari LPB (last price)
+    // ========================================
+    $lpbQuery = DB::table('lpb_temporary')
+        ->whereIn('rm_code', $cmCodes);
 
-        if (preg_match('/\d{2}-\d{2}-\d{4}/', $tanggal)) {
-            $parts = explode('-', $tanggal);
-            $bulanData = (int)$parts[1];
-        } elseif (preg_match('/\d{4}-\d{2}-\d{2}/', $tanggal)) {
-            $bulanData = (int) date('n', strtotime($tanggal));
-        } elseif (preg_match('/\d{2}-[A-Za-z]{3}-\d{2}/', $tanggal)) {
-            $bulanData = (int) date('n', strtotime($tanggal));
-        }
-
-        if ($periodeSelected && $bulanData != (int)$periodeSelected) continue;
-
-        if (!isset($lpbData[$code])) {
-            $priceStr = trim($row[3] ?? '0');
-            $lpbData[$code] = (float) str_replace(',', '.', str_replace('.', '', $priceStr));
-        }
-        if (count($lpbData) === count($chemList)) break;
+    if ($periodeSelected) {
+        $lpbQuery->whereMonth('tanggal', $periodeSelected);
     }
 
+    $lpbRows = $lpbQuery
+        ->orderBy('tanggal', 'desc')
+        ->get();
+
+    $lpbData = [];
+    foreach ($lpbRows as $row) {
+        if (!isset($lpbData[$row->rm_code])) {
+            $lpbData[$row->rm_code] = (float)$row->price;
+        }
+    }
+
+    // Hitung consumption
     foreach ($chemList as &$chem) {
-        $code = $chem['article_cm'];
-        $qtyBOMFloat = (float) str_replace(',', '.', $chem['qty_bom']);
+        $code  = $chem['article_cm'];
         $price = $lpbData[$code] ?? 0;
+
         $chem['price'] = $price;
-        $chem['consumption'] = round($qtyBOMFloat * $price, 2);
+        $chem['consumption'] = $chem['qty_bom'] * $price;
+
+        // format 2 digit
+        $chem['price']       = number_format($chem['price'], 2, ',', '.');
+        $chem['consumption'] = number_format($chem['consumption'], 2, ',', '.');
     }
     unset($chem);
 
-    // Hitung qty sales dari SJ (filter periode)
-    foreach ($sjSheet as $i => $row) {
-        if ($i == 0) continue;
-        if (trim($row[2] ?? '') !== $fgCode) continue;
+    // ========================================
+    // 3. Ambil qty sales dari SJ
+    // ========================================
+    $sjQuery = DB::table('sj_temporary')
+        ->where('fg_code', $fgCode);
 
-        $tanggal = trim($row[0] ?? '');
-        $bulanData = null;
+    if ($periodeSelected) {
+        $sjQuery->whereMonth('tanggal', $periodeSelected);
+    }
 
-        if (preg_match('/\d{2}-\d{2}-\d{4}/', $tanggal)) {
-            $parts = explode('-', $tanggal);
-            $bulanData = (int)$parts[1];
-        } elseif (preg_match('/\d{4}-\d{2}-\d{2}/', $tanggal)) {
-            $bulanData = (int) date('n', strtotime($tanggal));
-        } elseif (preg_match('/\d{2}-[A-Za-z]{3}-\d{2}/', $tanggal)) {
-            $bulanData = (int) date('n', strtotime($tanggal));
-        }
+    $sjRows = $sjQuery->get();
 
-        if ($periodeSelected && $bulanData != (int)$periodeSelected) continue;
-
-        $qtyStrRaw = trim($row[4] ?? '0');
-        $qty = (float) str_replace(',', '', $qtyStrRaw);
+    foreach ($sjRows as $row) {
+        $qty = (float)$row->qty;
 
         foreach ($chemList as &$chem) {
             $chem['qty_sales'] += $qty;
-            $chem['total'] = round($chem['consumption'] * $chem['qty_sales'], 2);
+
+            // hitung total (consumption × qty_sales)
+            $cons = (float) str_replace(',', '.', str_replace('.', '', $chem['consumption']));
+            $chem['total'] = $cons * $chem['qty_sales'];
+
+            // Format 2 digit koma
+            $chem['qty_sales'] = number_format($chem['qty_sales'], 2, ',', '.');
+            $chem['total']     = number_format($chem['total'], 2, ',', '.');
         }
         unset($chem);
     }
 
-    return response()->json(['data' => $chemList]);
+    return response()->json(['data' => array_values($chemList)]);
 }
 
 
 public function getFGbyChemical(Request $request)
 {
-    $cmCodeSelected = $request->query('cm_code');
-    $periodeSelected = $request->query('periode'); // 1-12 atau kosong
-    $tahunSelected = $request->query('tahun');     // Tahun, misal 2025
+    $cmCodeSelected   = $request->query('cm_code');
+    $periodeAwal      = $request->query('periode_awal');
+    $periodeAkhir     = $request->query('periode_akhir');
+    $tahunSelected    = $request->query('tahun');
 
-    if (!$cmCodeSelected) return response()->json(['data' => []]);
+    if (!$cmCodeSelected) {
+        return response()->json(['data' => []]);
+    }
 
-    $cacheData = Cache::get('bom_data', []);
-    $bomSheet = $cacheData['BOM'] ?? [];
-    $lpbSheet = $cacheData['LPB'] ?? [];
-    $sjSheet  = $cacheData['SJ'] ?? [];
+    // ================================
+    // 1. AMBIL DATA BOM (FG yang memakai CM ini)
+    // ================================
+    $bomRows = DB::table('boms')
+        ->where('article_cm', $cmCodeSelected)
+        ->get();
 
     $chemList = [];
 
-    // --- Ambil semua FG yang pakai CM ---
-    foreach ($bomSheet as $i => $row) {
-        if ($i == 0) continue;
-        $cmCode = trim($row[5] ?? '');
-        if ($cmCode !== $cmCodeSelected) continue;
-
-        $fgCode = trim($row[1] ?? '');
-        $fgName = trim($row[2] ?? '');
-        $cmName = trim($row[6] ?? '');
-        $qtyBOM = floatval(str_replace(',', '.', $row[7] ?? 0));
-        $uom = trim($row[8] ?? ''); 
+    foreach ($bomRows as $row) {
+        $fgCode = trim($row->article_fg);
 
         if (isset($chemList[$fgCode])) {
-            $chemList[$fgCode]['qty_bom'] += $qtyBOM;
+            $chemList[$fgCode]['qty_bom'] += (float)$row->qty;
         } else {
             $chemList[$fgCode] = [
-                'fg_code' => $fgCode,
-                'fg_name' => $fgName,
-                'cm_code' => $cmCode,
-                'cm_name' => $cmName,
-                'qty_bom' => $qtyBOM,
-                'uom'        => $uom,
-                'price' => 0,
+                'fg_code'     => $fgCode,
+                'fg_name'     => trim($row->article_fg_desc),
+                'cm_code'     => trim($row->article_cm),
+                'cm_name'     => trim($row->article_cm_desc),
+                'qty_bom'     => (float)$row->qty,
+                'uom'         => trim($row->uom),
+                'price'       => 0,
                 'consumption' => 0,
-                'qty_sales' => 0,
-                'total' => 0
+                'qty_sales'   => 0,
+                'total'       => 0
             ];
         }
     }
 
+    foreach ($chemList as &$c) {
+        $c['qty_bom'] = round($c['qty_bom'], 4);
+    }
+    unset($c);
+
+    if (empty($chemList)) {
+        return response()->json(['data' => []]);
+    }
+
+    // ================================
+    // RANGE BULAN
+    // ================================
+    $bulanAwal  = $periodeAwal ? (int)$periodeAwal : 1;
+    $bulanAkhir = $periodeAkhir ? (int)$periodeAkhir : 12;
+    if ($bulanAwal > $bulanAkhir) [$bulanAwal, $bulanAkhir] = [$bulanAkhir, $bulanAwal];
+
+    // ================================
+    // 2. AMBIL DATA LPB UNTUK CM INI
+    // ================================
+    $cmCodes = array_map(fn($x) => $x['cm_code'], $chemList);
+
+    $lpbRows = DB::table('lpb_temporary')
+        ->whereIn('article_code', $cmCodes)
+        ->get();
+
+    $cmPrices = [];
+    foreach ($lpbRows as $row) {
+        $date = Carbon::parse($row->do_date);
+
+        $cmPrices[$row->article_code][] = [
+            'date'  => $date,
+            'price' => (float)$row->price
+        ];
+    }
+
+    // ================================
+    // 3. HITUNG AVG PRICE
+    // ================================
+    $avgPrices = [];
+
+    foreach ($chemList as $chem) {
+        $cm = $chem['cm_code'];
+        $avgPrices[$cm] = 0;
+
+        if (!isset($cmPrices[$cm])) continue;
+
+        $pricesInRange = [];
+
+        foreach ($cmPrices[$cm] as $item) {
+            $bulan = (int)$item['date']->format('n');
+            $tahun = (int)$item['date']->format('Y');
+
+            if ($tahunSelected && $tahun != $tahunSelected) continue;
+            if ($bulan < $bulanAwal || $bulan > $bulanAkhir) continue;
+
+            $pricesInRange[] = $item['price'];
+        }
+
+        if (!empty($pricesInRange)) {
+            $avgPrices[$cm] = array_sum($pricesInRange) / count($pricesInRange);
+        } else {
+            // fallback nearest price
+            $targetDate = Carbon::createFromDate($tahunSelected ?? now()->year, $bulanAwal, 1);
+
+            $closestPrice = null;
+            $closestDiff = PHP_INT_MAX;
+
+            foreach ($cmPrices[$cm] as $item) {
+                $diff = abs($targetDate->diffInDays($item['date'], false));
+                if ($diff < $closestDiff) {
+                    $closestDiff = $diff;
+                    $closestPrice = $item['price'];
+                }
+            }
+
+            $avgPrices[$cm] = $closestPrice ?? 0;
+        }
+    }
+
+    // ================================
+    // 4. HITUNG CONSUMPTION
+    // ================================
     foreach ($chemList as &$chem) {
-        $chem['qty_bom'] = round($chem['qty_bom'], 4);
+        $cm = $chem['cm_code'];
+        $chem['price'] = $avgPrices[$cm] ?? 0;
+        $chem['consumption'] = round($chem['qty_bom'] * $chem['price'], 2);
     }
     unset($chem);
 
-// --- Hitung average price per CM (filter periode & tahun) ---
-$cmPrices = [];
+    // ================================
+    // 5. HITUNG SALES (SJ)
+    // ================================
+    $sjRows = DB::table('sj_temporary')
+        ->when($tahunSelected, fn($q) => $q->whereYear('delivery_date', $tahunSelected))
+        ->whereBetween(DB::raw('MONTH(delivery_date)'), [$bulanAwal, $bulanAkhir])
+        ->get();
 
-for ($i = 1; $i < count($lpbSheet); $i++) {
-    $row = $lpbSheet[$i];
-    $tanggal = trim($row[0] ?? '');
+    foreach ($sjRows as $sj) {
+        $fg = trim($sj->article_code);
 
-    // --- Parse tanggal
-    try {
-        $tanggalObj = Carbon::createFromFormat('d/m/Y', $tanggal);
-    } catch (\Exception $e) {
-        $tanggalObj = Carbon::parse($tanggal); // otomatis baca "30 September 2025"
-    }
+        if (!isset($chemList[$fg])) continue;
 
-    $bulanData = (int) $tanggalObj->format('n');
-    $tahunData = (int) $tanggalObj->format('Y');
+        $qty = (float)$sj->delivery_qty;
+        $chemList[$fg]['qty_sales'] += $qty;
 
-    // Filter periode & tahun
-    if ($periodeSelected && $bulanData != (int) $periodeSelected) continue;
-    if ($tahunSelected && $tahunData != (int) $tahunSelected) continue;
-
-    $cmCode = trim($row[1] ?? '');
-    if (!in_array($cmCode, array_column($chemList, 'cm_code'))) continue;
-
-    // Ambil price langsung, sudah numeric
-    $priceNumeric = isset($row[3]) ? (float)$row[3] : 0;
-    $cmPrices[$cmCode][] = $priceNumeric;
-
-    // Simpan tanggal formatted
-    $row[0] = $tanggalObj->format('d F Y'); // misal "30 September 2025"
-}
-
-// Hitung average price per CM
-$avgPrices = [];
-foreach ($cmPrices as $cmCode => $prices) {
-    $avgPrices[$cmCode] = count($prices) ? array_sum($prices) / count($prices) : 0;
-}
-
-// --- Hitung consumption pakai average price ---
-foreach ($chemList as &$chem) {
-    $cmCode = $chem['cm_code'];
-    $qtyBOMFloat = (float) ($chem['qty_bom'] ?? 0); // langsung cast float
-
-    $chem['price'] = $avgPrices[$cmCode] ?? 0;
-    $chem['consumption'] = round($qtyBOMFloat * $chem['price'], 2);
-}
-unset($chem);
-
-
-    // --- Hitung qty sales dari SJ (filter periode & tahun) ---
-    foreach ($sjSheet as $i => $row) {
-        if ($i == 0) continue;
-
-        $tanggal = trim($row[0] ?? '');
-
-        try {
-            $tanggalObj = Carbon::createFromFormat('d/m/Y', $tanggal);
-        } catch (\Exception $e) {
-            $tanggalObj = Carbon::parse($tanggal);
-        }
-
-        $bulanData = (int) $tanggalObj->format('n');
-        $tahunData = (int) $tanggalObj->format('Y');
-
-        if ($periodeSelected && $bulanData != (int) $periodeSelected) continue;
-        if ($tahunSelected && $tahunData != (int) $tahunSelected) continue;
-
-        $sjFGCode = trim($row[2] ?? '');
-        if (!isset($chemList[$sjFGCode])) continue;
-
-        $qty = (float) str_replace(',', '', trim($row[4] ?? '0'));
-        $chemList[$sjFGCode]['qty_sales'] += $qty;
-        $chemList[$sjFGCode]['total'] = round($chemList[$sjFGCode]['consumption'] * $chemList[$sjFGCode]['qty_sales'], 2);
+        $chemList[$fg]['total'] =
+            round($chemList[$fg]['qty_sales'] * $chemList[$fg]['consumption'], 2);
     }
 
     ksort($chemList);
-    return response()->json(['data' => array_values($chemList)]);
+
+    return response()->json([
+        'data' => array_values($chemList)
+    ]);
 }
-
-
-
-
 
 
 
@@ -670,178 +690,154 @@ unset($chem);
 public function getFGInfo(Request $request)
 {
     $fgCode = $request->query('fg_code');
-    if (!$fgCode) return response()->json(['data' => null]);
+    if (!$fgCode) {
+        return response()->json(['data' => null]);
+    }
 
-    $cacheData = Cache::get('bom_data', []);
-    $bomSheet  = $cacheData['BOM'] ?? [];
-    $sjSheet   = $cacheData['SJ'] ?? [];
+    // =========================================
+    // 1️⃣ AMBIL BOM NUMBER DARI TABEL BOM
+    // =========================================
+    $bomRow = DB::table('boms')
+        ->where('article_fg', $fgCode)
+        ->first();
 
-    $bomNumber   = null;
+    $bomNumber = $bomRow->code ?? null;
+
+    // =========================================
+    // 2️⃣ AMBIL DATA SJ UNTUK FG INI
+    // =========================================
+    $sjRows = DB::table('sj_temporary')
+        ->where('article_code', $fgCode)
+        ->orderBy('delivery_date')
+        ->get();
+
     $customer    = null;
     $latestPrice = 0;
     $avgPrice    = 0;
+    $prices      = [];
 
-    // 1️⃣ Ambil BOM number dari BOM sheet
-    foreach ($bomSheet as $i => $row) {
-        if ($i == 0) continue;
-        if (trim($row[1] ?? '') === $fgCode) { // kolom 2 = FG code
-            $bomNumber = trim($row[0] ?? ''); // kolom 1 = BOM number
-            break;
+    foreach ($sjRows as $row) {
+
+        // Ambil customer dari SJ pertama
+        if (!$customer) {
+            $customer = $row->customer;
         }
-    }
 
-    // 2️⃣ Ambil semua harga dari SJ untuk hitung rata-rata
-    $prices = [];
-    foreach ($sjSheet as $i => $row) {
-        if ($i == 0) continue; // skip header
-        if (trim($row[2] ?? '') === $fgCode) { // kolom 3 = FG code
-            // customer dari SJ (ambil dari row pertama yang cocok)
-            if (!$customer) {
-                $customer = trim($row[1] ?? ''); // kolom 2 = customer
-            }
-
-            $val5 = (float) str_replace(',', '', trim($row[5] ?? '0'));
-            $val6 = (float) str_replace(',', '', trim($row[6] ?? '0'));
-            $prices[] = $val5 + $val6;
-        }
+        // Hitung total price per row
+        $price = (float) $row->price + (float) $row->service_price;
+        $prices[] = $price;
     }
 
     if (!empty($prices)) {
-        $latestPrice = end($prices); // price terbaru
+        $latestPrice = end($prices);
         $avgPrice    = array_sum($prices) / count($prices);
     }
 
     return response()->json([
         'bom_number'  => $bomNumber,
         'customer'    => $customer,
-        'latest_price'=> $latestPrice,
-        'avg_price'   => $avgPrice
+        'latest_price'=> number_format($latestPrice, 2, '.', ''),
+        'avg_price'   => number_format($avgPrice, 2, '.', '')
     ]);
 }
+
 
 
 public function getCMInfo(Request $request)
 {
     $cmCodeSelected = $request->query('cm_code');
-    if (!$cmCodeSelected) return response()->json(['data' => null]);
+    if (!$cmCodeSelected) {
+        return response()->json(['data' => null]);
+    }
 
-    $cacheData = Cache::get('bom_data', []);
-    $bomSheet = $cacheData['BOM'] ?? [];
-    $lpbSheet = $cacheData['LPB'] ?? [];
-    $cmCode   = null;
-    $cmName   = null;
-    $customer = null;
+    // 1️⃣ AMBIL CM NAME DARI TABEL BOM
+    $bom = DB::table('boms')
+        ->select('article_cm', 'article_cm_desc')
+        ->where('article_cm', $cmCodeSelected)
+        ->first();
+
+    $cmCode = $bom->article_cm ?? null;
+    $cmName = $bom->article_cm_desc ?? null;
+
+    // 2️⃣ AMBIL HARGA TERBARU & AVERAGE DARI LPB
+    $lpbData = DB::table('lpb_temporary')
+        ->select('price', 'supplier_name')
+        ->where('article_code', $cmCodeSelected)
+        ->orderBy('do_date', 'desc')
+        ->get();
+
     $latestPrice = 0;
-    $avgPrice = 0;
+    $avgPrice    = 0;
+    $customer    = null;
 
-    // 1️⃣ Ambil CM Name dari BOM
-    foreach ($bomSheet as $i => $row) {
-        if ($i == 0) continue; // skip header
-        if (trim($row[5] ?? '') === $cmCodeSelected) { // kolom 6 = CM code
-            $cmCode = trim($row[5] ?? '');
-            $cmName = trim($row[6] ?? '');
-            break; // cukup ambil 1
-        }
-    }
+    if ($lpbData->count() > 0) {
 
-    // 2️⃣ Ambil semua harga dari LPB untuk hitung average
-    $prices = [];
-    $latestPriceSet = false;
+        // harga terbaru
+        $latestPrice = (float) $lpbData->first()->price;
 
-    for ($i = 1; $i < count($lpbSheet); $i++) {
-        $row = $lpbSheet[$i];
-        $code = strtolower(trim($row[1] ?? '')); // kolom 2 = CM code
-        if ($code === strtolower($cmCodeSelected)) {
+        // customer dari baris terbaru
+        $customer = $lpbData->first()->supplier_name;
 
-            // Ambil harga langsung dari Excel, sudah numeric
-            $priceNum = isset($row[3]) ? (float)$row[3] : 0;
-            $prices[] = $priceNum;
+        // list harga
+        $prices = $lpbData->pluck('price')->map(fn($p) => (float)$p)->toArray();
 
-            // Ambil price terbaru dari baris pertama yang ditemukan
-            if (!$latestPriceSet) {
-                $latestPrice = $priceNum;
-                $latestPriceSet = true;
-            }
-        }
-    }
-
-    if (!empty($prices)) {
-        $avgPrice = array_sum($prices) / count($prices); // hitung rata-rata
-    }
-
-    // 3️⃣ Ambil customer dari LPB
-    for ($i = 1; $i < count($lpbSheet); $i++) {
-        $row = $lpbSheet[$i];
-        $code = strtolower(trim($row[1] ?? '')); 
-        if ($code === strtolower($cmCodeSelected)) {
-            $customer = trim($row[5] ?? ''); // kolom 6 = customer
-            break;
-        }
+        // average price
+        $avgPrice = array_sum($prices) / count($prices);
     }
 
     return response()->json([
-        'cm_code'     => $cmCode,
-        'cm_name'     => $cmName,
-        'customer'    => $customer,
-        'latest_price'=> $latestPrice,
-        'avg_price'   => $avgPrice
+        'cm_code'      => $cmCode,
+        'cm_name'      => $cmName,
+        'customer'     => $customer,
+        'latest_price' => number_format((float)$latestPrice, 2, '.', ''), // selalu 2 decimal
+        'avg_price'    => number_format((float)$avgPrice, 2, '.', '')     // selalu 2 decimal
     ]);
 }
-
-
 
 public function getCmTotalBuy(Request $request)
 {
-    $cmCodeSelected = strtolower(trim($request->get('cm_code')));
-    $periodeSelected = $request->get('periode'); // 1-12 atau kosong
-    $tahunSelected   = $request->get('tahun');   // Tahun, misal 2025
+    $cmCodeSelected  = strtolower(trim($request->get('cm_code')));
+    $periodeSelected = $request->get('periode'); // 1 - 12
+    $tahunSelected   = $request->get('tahun');   // contoh: 2025
 
-    $cacheData = Cache::get('bom_data', []);
-    $lpbSheet = $cacheData['LPB'] ?? [];
-
-    $totalBuy = 0;
-    $matchedRows = 0;
-
-    foreach ($lpbSheet as $i => $row) {
-        if ($i === 0) continue; // skip header
-
-        $code = strtolower(trim($row[1] ?? ''));
-        if ($code !== $cmCodeSelected) continue;
-
-        $tanggal = trim($row[0] ?? ''); // misal "30 September 2025"
-
-        // --- Ambil bulan & tahun dari string Excel ---
-        try {
-            $tanggalObj = Carbon::parse($tanggal); // otomatis membaca "30 September 2025"
-            $bulanData = (int)$tanggalObj->format('n'); // 1–12
-            $tahunData = (int)$tanggalObj->format('Y');
-        } catch (\Exception $e) {
-            continue; // skip jika gagal parse
-        }
-
-        // Filter periode dan tahun dari dropdown
-        if ($periodeSelected && $bulanData != (int)$periodeSelected) continue;
-        if ($tahunSelected && $tahunData != (int)$tahunSelected) continue;
-
-        $matchedRows++;
-
-        // Ambil harga langsung, sudah numeric
-        $price = (float) ($row[6] ?? 0);
-        $totalBuy += $price;
+    if (!$cmCodeSelected) {
+        return response()->json([
+            'cm_code'    => null,
+            'total_buy'  => number_format(0, 2, '.', ''),
+            'rows_count' => 0
+        ]);
     }
 
+    // 1️⃣ Query dasar
+    $query = DB::table('lpb_temporary')
+        ->whereRaw('LOWER(article_code) = ?', [$cmCodeSelected]);
+
+    // 2️⃣ Filter bulan (periode)
+    if (!empty($periodeSelected)) {
+        $query->whereMonth('do_date', (int)$periodeSelected);
+    }
+
+    // 3️⃣ Filter tahun
+    if (!empty($tahunSelected)) {
+        $query->whereYear('do_date', (int)$tahunSelected);
+    }
+
+    // 4️⃣ Ambil data
+    $lpbData = $query->select('total_tanpa_ppn')->get();
+
+    $matchedRows = $lpbData->count();
+
+    // 5️⃣ Hitung total buy
+    $totalBuy = $lpbData->sum(function ($row) {
+        return (float)$row->total_tanpa_ppn;
+    });
+
     return response()->json([
-        'cm_code' => $cmCodeSelected,
-        'total_buy' => $totalBuy,
+        'cm_code'    => $cmCodeSelected,
+        'total_buy'  => number_format($totalBuy, 2, '.', ''), // selalu 2 decimal
         'rows_count' => $matchedRows
     ]);
 }
-
-
-
-
-
-
 
 
 
