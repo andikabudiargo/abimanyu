@@ -31,29 +31,31 @@ class SecurityController extends Controller
     $start = $request->start;
     $end   = $request->end;
 
-    // Ambil data jam masuk (status 0)
-    $raw = DB::table('finger_logs as f_in')
-        ->leftJoin('employees', 'employees.nik', '=', 'f_in.nik')
-        ->leftJoin('finger_logs as f_out', function($join) use ($date) {
-            $join->on('f_out.nik', '=', 'f_in.nik')
-                 ->where('f_out.status', 1)
-                 ->whereDate('f_out.timestamp', $date);
-        })
-        ->select(
-            DB::raw("COALESCE(employees.name, 'Nama Belum Terdaftar di Abimanyulive') as name"),
-            DB::raw("COALESCE(employees.nik, f_in.nik) as nik"),
-            'f_in.timestamp as in_timestamp',
-            DB::raw('TIME(f_in.timestamp) as in_time'),
-            'f_out.timestamp as out_timestamp',
-            DB::raw('TIME(f_out.timestamp) as out_time')
-        )
-        ->where('f_in.status', 0)
-        ->whereDate('f_in.timestamp', $date)
-        ->whereTime('f_in.timestamp', '>=', $start)
-        ->whereTime('f_in.timestamp', '<=', $end)
-         ->where('employees.eat', 1)   // ← FILTER EAT
-        ->orderBy('f_in.timestamp', 'asc')
-        ->get();
+   $raw = DB::table('finger_logs as f_in')
+    ->leftJoin('employees', function($join) {
+        $join->on('employees.nik', '=', 'f_in.nik')
+             ->where('employees.eat', 1);   // ← pindahkan ke sini
+    })
+    ->leftJoin('finger_logs as f_out', function($join) use ($date) {
+        $join->on('f_out.nik', '=', 'f_in.nik')
+             ->where('f_out.status', 1)
+             ->whereDate('f_out.timestamp', $date);
+    })
+    ->select(
+        DB::raw("COALESCE(employees.name, 'Nama Belum Terdaftar di Abimanyulive') as name"),
+        DB::raw("COALESCE(employees.nik, f_in.nik) as nik"),
+        'f_in.timestamp as in_timestamp',
+        DB::raw('TIME(f_in.timestamp) as in_time'),
+        'f_out.timestamp as out_timestamp',
+        DB::raw('TIME(f_out.timestamp) as out_time')
+    )
+    ->where('f_in.status', 0)
+    ->whereDate('f_in.timestamp', $date)
+    ->whereTime('f_in.timestamp', '>=', $start)
+    ->whereTime('f_in.timestamp', '<=', $end)
+    ->orderBy('f_in.timestamp', 'asc')
+    ->get();
+
 
 
     // -----------------------------------------
