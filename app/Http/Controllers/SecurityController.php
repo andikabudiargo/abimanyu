@@ -31,18 +31,21 @@ class SecurityController extends Controller
     $start = $request->start;
     $end   = $request->end;
 
-   $raw = DB::table('finger_logs as f_in')
-    ->leftJoin('employees', function($join) {
-        $join->on('employees.nik', '=', 'f_in.nik')
-             ->where('employees.eat', 1);   // ← pindahkan ke sini
-    })
+  $raw = DB::table('finger_logs as f_in')
+    ->leftJoin('employees', 'employees.nik', '=', 'f_in.nik')
     ->leftJoin('finger_logs as f_out', function($join) use ($date) {
         $join->on('f_out.nik', '=', 'f_in.nik')
              ->where('f_out.status', 1)
              ->whereDate('f_out.timestamp', $date);
     })
     ->select(
-        DB::raw("COALESCE(employees.name, 'Nama Belum Terdaftar di Abimanyulive') as name"),
+        DB::raw("
+            CASE 
+                WHEN employees.id IS NULL 
+                    THEN 'Nama Belum Terdaftar di Abimanyulive'
+                ELSE employees.name
+            END AS name
+        "),
         DB::raw("COALESCE(employees.nik, f_in.nik) as nik"),
         'f_in.timestamp as in_timestamp',
         DB::raw('TIME(f_in.timestamp) as in_time'),
@@ -53,8 +56,20 @@ class SecurityController extends Controller
     ->whereDate('f_in.timestamp', $date)
     ->whereTime('f_in.timestamp', '>=', $start)
     ->whereTime('f_in.timestamp', '<=', $end)
+
+    // ======== FILTER PENTING ========
+    // Tampilkan jika:
+    // 1. Employee tidak ditemukan (NULL), atau
+    // 2. eat = 1
+    ->where(function($q) {
+        $q->whereNull('employees.id')      // nik tidak ada → tampil
+          ->orWhere('employees.eat', 1);   // eat=1 → tampil
+    })
+    // =================================
+
     ->orderBy('f_in.timestamp', 'asc')
     ->get();
+
 
 
 
