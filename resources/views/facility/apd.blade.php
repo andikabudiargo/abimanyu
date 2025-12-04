@@ -509,26 +509,41 @@ foreach ($distributions as $item) {
         return ($distItem->qty - ($distItem->qty_return ?? 0)) > 0;
     });
 @endphp
-
 @forelse ($activeDistributions as $distItem)
-    @php
-        $replaceDate = isset($distItem->distribution->distribution_date, $distItem->apd->lifetime)
-            ? \Carbon\Carbon::parse($distItem->distribution->distribution_date)->addMonths($distItem->apd->lifetime)
-            : null;
+ @php
+    $replaceDate = null;
 
-        $today = \Carbon\Carbon::now();
-        $bgColor = 'bg-white'; // default
+    // cek ada tanggal distribusi & lifetime valid
+    if (!empty($distItem->distribution->distribution_date) 
+        && isset($distItem->apd->lifetime) 
+        && is_numeric($distItem->apd->lifetime)) {
 
-        if ($replaceDate) {
-            $diffMonths = $today->diffInMonths($replaceDate, false);
-
-            if ($replaceDate->isPast()) {
-                $bgColor = 'bg-red-100'; // lewat → merah muda
-            } elseif ($diffMonths <= 2) {
-                $bgColor = 'bg-yellow-100'; // 2 bulan sebelum → kuning
+        $lifetime = (int) $distItem->apd->lifetime; // pastikan int
+        if ($lifetime > 0) {
+            try {
+                $distDate = \Carbon\Carbon::parse($distItem->distribution->distribution_date);
+                $replaceDate = $distDate->copy()->addMonths($lifetime); // gunakan copy() agar aman
+            } catch (\Exception $e) {
+                $replaceDate = null;
             }
         }
-    @endphp
+    }
+
+    $today = \Carbon\Carbon::now();
+    $bgColor = 'bg-white';
+
+    if ($replaceDate) {
+        $diffMonths = $today->diffInMonths($replaceDate, false);
+
+        if ($replaceDate->isPast()) {
+            $bgColor = 'bg-red-100';
+        } elseif ($diffMonths <= 2) {
+            $bgColor = 'bg-yellow-100';
+        }
+    }
+@endphp
+
+
           <div
             class="flex flex-wrap items-center justify-between {{ $bgColor }} border border-gray-200 rounded-2xl px-5 py-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-300">
             
