@@ -119,21 +119,34 @@ $warnings = [];
 foreach ($employees as $emp) {
     foreach ($emp->distributions as $item) {
 
-        // skip jika distribusi atau APD tidak lengkap
-        if (!isset($item->distribution->distribution_date, $item->apd->lifetime)) {
+        // Pastikan distribusi dan APD lengkap
+        if (!isset($item->distribution, $item->apd, $item->apd->lifetime)) {
             continue;
         }
 
+        $distDateRaw = $item->distribution->distribution_date;
+
+        // Lewati jika tanggal distribusi kosong atau format tidak valid
+        try {
+            $distDate = \Carbon\Carbon::parse($distDateRaw);
+        } catch (\Exception $e) {
+            continue; // skip data invalid
+        }
+
+        // Pastikan lifetime integer
+        $lifetime = intval($item->apd->lifetime);
+
+        // hitung tanggal penggantian
+        $replaceDate = $distDate->copy()->addMonths($lifetime);
+
         // hitung sisa qty
         $sisaQty = ($item->qty ?? 0) - ($item->qty_return ?? 0);
-
         if ($sisaQty <= 0) continue; // sudah direturn semua → skip
 
-        $distDate = \Carbon\Carbon::parse($item->distribution->distribution_date);
-        $replaceDate = $distDate->copy()->addMonths($item->apd->lifetime);
-
+        // hitung selisih bulan ke tanggal replace
         $diffMonths = now()->diffInMonths($replaceDate, false);
 
+        // cek warning: expired atau mendekati expired (<= 2 bulan)
         if ($replaceDate->isPast() || $diffMonths <= 2) {
             $warnings[] = [
                 'employee'    => $emp,
@@ -141,13 +154,15 @@ foreach ($employees as $emp) {
                 'code'        => $item->apd->code,
                 'apd'         => $item->apd,
                 'qty'         => $sisaQty, // gunakan sisa qty
-                'uom'         => $item->apd->uom,
+                'uom'         => $item->apd->uom ?? '-',
                 'replaceDate' => $replaceDate->format('d M Y'),
-                'isExpired'   => $replaceDate->isPast()
+                'isExpired'   => $replaceDate->isPast(),
+                'distribution_date' => $distDate->format('d M Y'),
             ];
         }
     }
 }
+
 
 // ========== STEP 2: GROUP BY APD ==========
 
