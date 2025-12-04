@@ -291,7 +291,7 @@ $day   = $due_date ? $due_date->format('d') : null;
 
 
 
-        $full_date = $due_date->format('Y-m-d'); // format YYYY-MM-DD
+       $full_date = $due_date ? $due_date->format('Y-m-d') : null;
          // Hitung sisa APD
         $remaining = $item->qty - ($item->qty_return ?? 0);
 
