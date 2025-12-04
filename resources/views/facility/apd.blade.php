@@ -583,11 +583,16 @@ foreach ($distributions as $item) {
 
             <!-- Kanan -->
             <div class="flex flex-col text-sm w-full md:w-1/3 text-right">
-              @php
-                $replaceDate = isset($distItem->distribution->distribution_date, $distItem->apd->lifetime)
-                    ? \Carbon\Carbon::parse($distItem->distribution->distribution_date)->addMonths($distItem->apd->lifetime)
-                    : null;
-              @endphp
+            @php
+    $replaceDate = null;
+
+    if (!empty($distItem->distribution->distribution_date) && !empty($distItem->apd->lifetime) && is_numeric($distItem->apd->lifetime)) {
+        $replaceDate = \Carbon\Carbon::parse($distItem->distribution->distribution_date)
+                        ->copy()
+                        ->addMonths((int) $distItem->apd->lifetime);
+    }
+@endphp
+
               @if ($replaceDate)
                 <span class="text-red-600 font-semibold">
                   <i class="fa-solid fa-repeat mr-1"></i>
