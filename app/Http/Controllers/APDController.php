@@ -276,9 +276,15 @@ public function getAPDReminder()
         // Ambil lifetime APD (bulan)
         $lifetime = $item->apd->lifetime ?? 6;
 
-        // Due date = tanggal distribusi + lifetime
-        $due_date = \Carbon\Carbon::parse($item->distribution->distribution_date)
-            ->addMonths($lifetime);
+       $due_date = null;
+
+if (!empty($item->distribution->distribution_date) && !empty($item->apd->lifetime) && is_numeric($item->apd->lifetime)) {
+    $lifetime = (int) $item->apd->lifetime; // pastikan int
+    $due_date = \Carbon\Carbon::parse($item->distribution->distribution_date)
+                 ->copy() // jangan ubah tanggal asli
+                 ->addMonths($lifetime);
+}
+
 
         $year  = $due_date->format('Y');
         $month = $due_date->format('m'); // 01, 02, ...
