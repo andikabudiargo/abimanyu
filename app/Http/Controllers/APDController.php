@@ -286,9 +286,16 @@ if (!empty($item->distribution->distribution_date) && !empty($item->apd->lifetim
 }
 
 
-        $year  = $due_date->format('Y');
-        $month = $due_date->format('m'); // 01, 02, ...
-        $day   = $due_date->format('d');
+     if ($due_date) {
+    $year  = $due_date->format('Y');
+    $month = $due_date->format('m');
+    $day   = $due_date->format('d');
+} else {
+    $year  = null;
+    $month = null;
+    $day   = null;
+}
+
 
         $full_date = $due_date->format('Y-m-d'); // format YYYY-MM-DD
          // Hitung sisa APD
