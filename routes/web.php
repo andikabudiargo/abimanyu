@@ -177,6 +177,7 @@ Route::prefix('hr')->name('hr.')->group(function () {
        Route::get('/attendance/index', [AttendanceController::class, 'index'])->name('attendance.index');
 });
 
+
 Route::prefix('facility')->name('facility.')->group(function () {
     Route::get('/booking-room/index', [BookingRoomController::class, 'index'])->name('booking-room.index');
      Route::get('/booking-room/history', [BookingRoomController::class, 'history'])->name('booking-room.history');
@@ -211,6 +212,18 @@ Route::prefix('facility')->name('facility.')->group(function () {
     Route::post('/apd/store', [APDController::class, 'store'])->name('apd.store');
     Route::post('/apd/update/{id}', [APDController::class, 'update']);
     Route::delete('/apd/delete/{id}', [ApdController::class, 'destroy']);
+    Route::get('/api/distributions/{employee}', [ApdController::class, 'getEmployeeAPD']);
+    Route::get('/apd/chart/years', [APDController::class, 'getAvailableYears']);
+    Route::get('/apd/chart/yearly', [ApdController::class, 'yearlyChart']);
+    Route::get('/apd/reminder', [APDController::class, 'getAPDReminder']);
+    Route::get('/apd/recommendation', [APDController::class, 'getAPDRecommendation']);
+Route::get('/apd/{id}/globalMovement', [APDController::class, 'globalMovement']);
+
+     Route::post('/apd-return/store', [APDController::class, 'storeReturn'])->name('return.store');
+     Route::get('/apd/reminder-email', [APDController::class, 'sendAPDReminderEmail']);
+
+     
+
 });
 
 Route::prefix('mr')->name('mr.')->group(function () {
