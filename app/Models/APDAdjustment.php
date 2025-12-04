@@ -24,8 +24,5 @@ class APDAdjustment extends Model
         return $this->hasMany(APDAdjustmentItem::class, 'adjustment_id');
     }
 
-     public function apd()
-    {
-        return $this->belongsTo(Apd::class, 'apd_id');
-    }
+    
 }

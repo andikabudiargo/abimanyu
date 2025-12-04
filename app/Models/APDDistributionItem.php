@@ -27,7 +27,7 @@ class APDDistributionItem extends Model
     // Relasi ke distribusi induk
     public function distribution()
     {
-        return $this->belongsTo(ApdDistribution::class, 'apd_distribution_id');
+        return $this->belongsTo(APDDistribution::class, 'apd_distribution_id');
     }
 
     // Relasi ke data APD
@@ -39,6 +39,6 @@ class APDDistributionItem extends Model
     // Relasi ke penerima (user)
     public function receiverUser()
     {
-        return $this->belongsTo(User::class, 'receiver');
+        return $this->belongsTo(Employee::class, 'receiver');
     }
 }
