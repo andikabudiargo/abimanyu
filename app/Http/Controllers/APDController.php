@@ -11,7 +11,7 @@
     use App\Models\Department;
     use App\Models\APDAdjustmentItem;
     use App\Models\APDDistribution;
-    use App\Models\APDDistributionitem;
+    use App\Models\APDDistributionItem;
     use Carbon\Carbon;
 use App\Mail\APDReminderMail;
 use Illuminate\Support\Facades\Mail;
