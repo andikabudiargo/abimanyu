@@ -450,121 +450,152 @@ function getInspectionIds() {
   });
 }
       
-
     function renderInspectionTable(data) {
-      const dates = [...new Set(data.map(item => {
-          const d = new Date(item.inspection_date);
-          return d.getDate(); 
-      }))].sort((a, b) => a - b);
 
-      const itemLabels = [
-          'Total Received',
-          'Total Check',
-          'Total OK',
-          'Total NG',
-          'Total OK Repair',
-          'Pass Rate (%)',
-          'Performa (%)',
-          '100% (A)/Sampling (S)'
-      ];
+    // Helper untuk memastikan angka selalu Number
+    const toNum = (v) => Number(v) || 0;
 
-      const grouped = {};
-      dates.forEach(date => {
-          grouped[date] = data.filter(item => {
-              const d = new Date(item.inspection_date);
-              return d.getDate() === date;
-          });
-      });
+    // Ambil semua tanggal unik
+    const dates = [...new Set(data.map(item => {
+        const d = new Date(item.inspection_date);
+        return d.getDate();
+    }))].sort((a, b) => a - b);
 
-      const rows = {};
-      itemLabels.forEach(label => {
-          rows[label] = dates.map(date => {
-              const items = grouped[date] || [];
+    // Label row
+    const itemLabels = [
+        'Total Received',
+        'Total Check',
+        'Total OK',
+        'Total NG',
+        'Total OK Repair',
+        'Pass Rate (%)',
+        'Performa (%)',
+        '100% (A)/Sampling (S)'
+    ];
 
-              switch (label) {
-                 case 'Total Received':
-                      return items.reduce((sum, i) => sum + (i.qty_received || 0), 0);
-                  case 'Total Check':
-                      return items.reduce((sum, i) => sum + (i.total_check || 0), 0);
-                  case 'Total OK':
-                      return items.reduce((sum, i) => sum + (i.total_ok || 0), 0);
-                  case 'Total NG':
-                      return items.reduce((sum, i) => sum + (i.total_ng || 0), 0);
-                  case 'Total OK Repair':
-                      return items.reduce((sum, i) => sum + (i.total_ok_repair || 0), 0);
-                  case 'Pass Rate (%)':
-                      const ok = items.reduce((sum, i) => sum + (i.total_ok || 0), 0);
-                      const check = items.reduce((sum, i) => sum + (i.total_check || 0), 0);
-                      return check > 0 ? Math.round((ok / check) * 100) + '%' : '0%';
-                  case 'Performa (%)':
-                      const totalOk = items.reduce((sum, i) => sum + (i.total_ok || 0), 0);
-                      const totalOkRepair = items.reduce((sum, i) => sum + (i.total_ok_repair || 0), 0);
-                      const totalCheck = items.reduce((sum, i) => sum + (i.total_check || 0), 0);
-                      return totalCheck > 0 ? Math.round(((totalOk - totalOkRepair) / totalCheck) * 100) + '%' : '-';
-                  default:
-                      return '-';
-              }
-          });
-      });
+    // Grouping data berdasarkan tanggal
+    const grouped = {};
+    dates.forEach(date => {
+        grouped[date] = data.filter(item => {
+            const d = new Date(item.inspection_date);
+            return d.getDate() === date;
+        });
+    });
 
-      // Render header
-      const headerRow = document.getElementById('headerRow');
-      headerRow.innerHTML = `<th class="p-2 border text-left">Item</th>`;
-      dates.forEach(date => {
-          headerRow.innerHTML += `<th class="p-2 border">${date}</th>`;
-      });
-      headerRow.innerHTML += `<th class="p-2 border">Total</th>`;
+    // Hitung nilai untuk setiap label
+    const rows = {};
+    itemLabels.forEach(label => {
+        rows[label] = dates.map(date => {
+            const items = grouped[date] || [];
 
-      // Render body + hitung total summary
-      const tbody = document.getElementById('itemList');
-      tbody.innerHTML = '';
+            switch (label) {
+                case 'Total Received':
+                    return items.reduce((sum, i) => sum + toNum(i.qty_received), 0);
 
-      let totalCheck = 0;
-      let totalOk = 0;
-      let totalNg = 0;
-      let totalOkRepair = 0;
+                case 'Total Check':
+                    return items.reduce((sum, i) => sum + toNum(i.total_check), 0);
 
-      itemLabels.forEach(label => {
-          const values = rows[label];
-          let rowHTML = `<tr><th class="p-2 border text-left">${label}</th>`;
-          values.forEach(val => {
-              rowHTML += `<td class="p-2 border text-center">${val}</td>`;
-          });
+                case 'Total OK':
+                    return items.reduce((sum, i) => sum + toNum(i.total_ok), 0);
 
-          let total = 0;
-          if (label.includes('Performa') || label.includes('Pass Rate')) {
-              const numericValues = values
-                  .map(v => parseFloat(v.toString().replace('%', '')))
-                  .filter(v => !isNaN(v));
-              total = numericValues.reduce((sum, v) => sum + v, 0);
-              const avg = numericValues.length ? Math.round(total / numericValues.length) + '%' : '-';
-              rowHTML += `<td class="p-2 border text-center">${avg}</td>`;
-          } else if (label === '100% (A)/Sampling (S)') {
-              rowHTML += `<td class="p-2 border text-center">-</td>`;
-          } else {
-              total = values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
-              rowHTML += `<td class="p-2 border text-center">${Math.round(total)}</td>`;
+                case 'Total NG':
+                    return items.reduce((sum, i) => sum + toNum(i.total_ng), 0);
 
-             if (label.includes('Total OK Repair')) totalOkRepair += total;
-if (label.includes('Total OK')) totalOk += total - totalOkRepair;
-if (label.includes('Total NG')) totalNg += total;
-if (label.includes('Total Check')) totalCheck += total;
+                case 'Total OK Repair':
+                    return items.reduce((sum, i) => sum + toNum(i.total_ok_repair), 0);
 
-          }
+                case 'Pass Rate (%)': {
+                    const ok = items.reduce((sum, i) => sum + toNum(i.total_ok), 0);
+                    const check = items.reduce((sum, i) => sum + toNum(i.total_check), 0);
+                    return check > 0 ? Math.round((ok / check) * 100) + '%' : '0%';
+                }
 
-          rowHTML += `</tr>`;
-          tbody.innerHTML += rowHTML;
-      });
+                case 'Performa (%)': {
+                    const ok = items.reduce((sum, i) => sum + toNum(i.total_ok), 0);
+                    const repair = items.reduce((sum, i) => sum + toNum(i.total_ok_repair), 0);
+                    const check = items.reduce((sum, i) => sum + toNum(i.total_check), 0);
+                    return check > 0 ? Math.round(((ok - repair) / check) * 100) + '%' : '-';
+                }
 
-      // Render ringkasan persentase
-      const formatPercent = (value) => {
-          return totalCheck ? `${Math.round((value / totalCheck) * 100)}%` : '0%';
-      };
+                default:
+                    return '-';
+            }
+        });
+    });
 
-      document.getElementById('summary-ok').textContent = formatPercent(totalOk);
-      document.getElementById('summary-ng').textContent = formatPercent(totalNg);
-      document.getElementById('summary-ok-repair').textContent = formatPercent(totalOkRepair);
-  }
+    // Render header
+    const headerRow = document.getElementById('headerRow');
+    headerRow.innerHTML = `<th class="p-2 border text-left">Item</th>`;
+    dates.forEach(date => {
+        headerRow.innerHTML += `<th class="p-2 border">${date}</th>`;
+    });
+    headerRow.innerHTML += `<th class="p-2 border">Total</th>`;
+
+    // Render body
+    const tbody = document.getElementById('itemList');
+    tbody.innerHTML = '';
+
+    let totalCheck = 0;
+    let totalOk = 0;
+    let totalNg = 0;
+    let totalOkRepair = 0;
+
+    itemLabels.forEach(label => {
+
+        const values = rows[label];
+        let rowHTML = `<tr><th class="p-2 border text-left">${label}</th>`;
+
+        // Tampilkan nilai harian — selalu konversi ke Number agar tidak leading zero
+        values.forEach(val => {
+            if (typeof val === 'string' && val.includes('%')) {
+                rowHTML += `<td class="p-2 border text-center">${val}</td>`;
+            } else {
+                rowHTML += `<td class="p-2 border text-center">${toNum(val)}</td>`;
+            }
+        });
+
+        let total = 0;
+
+        if (label.includes('Pass Rate') || label.includes('Performa')) {
+            // Rata-rata persentase
+            const numericValues = values
+                .map(v => parseFloat(v.toString().replace('%', '')))
+                .filter(v => !isNaN(v));
+
+            const avg = numericValues.length
+                ? Math.round(numericValues.reduce((s, v) => s + v, 0) / numericValues.length) + '%'
+                : '-';
+
+            rowHTML += `<td class="p-2 border text-center">${avg}</td>`;
+
+        } else if (label === '100% (A)/Sampling (S)') {
+            rowHTML += `<td class="p-2 border text-center">-</td>`;
+
+        } else {
+            // Total angka
+            total = values.reduce((sum, v) => sum + toNum(v), 0);
+            rowHTML += `<td class="p-2 border text-center">${toNum(total)}</td>`;
+
+            // Hitung summary terakhir
+            if (label === 'Total OK Repair') totalOkRepair += total;
+            if (label === 'Total OK') totalOk += total - totalOkRepair;
+            if (label === 'Total NG') totalNg += total;
+            if (label === 'Total Check') totalCheck += total;
+        }
+
+        rowHTML += `</tr>`;
+        tbody.innerHTML += rowHTML;
+    });
+
+    // Ringkasan persentase di bawah tabel
+    const formatPercent = (value) =>
+        totalCheck ? `${Math.round((value / totalCheck) * 100)}%` : '0%';
+
+    document.getElementById('summary-ok').textContent = formatPercent(totalOk);
+    document.getElementById('summary-ng').textContent = formatPercent(totalNg);
+    document.getElementById('summary-ok-repair').textContent = formatPercent(totalOkRepair);
+}
+
 
 
 function renderDefectTable(data) {
