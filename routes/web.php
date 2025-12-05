@@ -175,8 +175,8 @@ Route::prefix('hr')->name('hr.')->group(function () {
        Route::get('/employee/create', [EmployeeController::class, 'create'])->name('employee.create');
        Route::get('/employee/contract', [EmployeeController::class, 'createContract'])->name('contract.create');
        Route::get('/attendance/index', [AttendanceController::class, 'index'])->name('attendance.index');
+       Route::get('/attendance/data', [AttendanceController::class, 'getDataAttendance'])->name('attendance.data');
 });
-
 
 Route::prefix('facility')->name('facility.')->group(function () {
     Route::get('/booking-room/index', [BookingRoomController::class, 'index'])->name('booking-room.index');
@@ -221,6 +221,7 @@ Route::get('/apd/{id}/globalMovement', [APDController::class, 'globalMovement'])
 
      Route::post('/apd-return/store', [APDController::class, 'storeReturn'])->name('return.store');
      Route::get('/apd/reminder-email', [APDController::class, 'sendAPDReminderEmail']);
+Route::get('/apd/transactions/data', [APDController::class, 'data'])->name('apd.transactions.data');
 
      
 

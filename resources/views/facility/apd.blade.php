@@ -43,17 +43,27 @@
         <!-- === CARD CHART (2 kolom) === -->
         <div class="md:col-span-2 bg-white p-4 rounded-lg shadow-md border">
             
-            <!-- Header Chart + Filter Tahun -->
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-semibold text-gray-700">Distribusi & Pengembalian APD (Tahunan)</h3>
+          <!-- Header Chart + Filter Tahun -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 p-2 bg-white">
+    
+    <!-- Judul dan Deskripsi -->
+    <div class="flex flex-col mb-4 md:mb-0">
+        <h2 class="text-lg font-bold text-gray-900">Grafik Distribusi & Pengembalian APD</h2>
+        <p class="text-sm text-gray-500 mt-1">Cek Trend Distribusi dan Pengembalian APD (Tahunan)</p>
+        <div class="w-24 h-1 bg-teal-500 rounded mt-2"></div>
+    </div>
 
-                <select id="filterYearChart" 
-                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-400 focus:outline-none">
-                    <option value="2025">2025</option>
-                    <option value="2024">2024</option>
-                    <option value="2023">2023</option>
-                </select>
-            </div>
+    <!-- Filter Tahun -->
+    <div class="flex flex-col md:flex-row md:items-center">
+        <label for="filterYearChart" class="mr-2 text-sm font-medium text-gray-700 mb-1 md:mb-0">Tahun:</label>
+        <select id="filterYearChart" 
+                class="w-full md:w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-400 focus:outline-none">
+            
+        </select>
+    </div>
+
+</div>
+
 
             <canvas id="yearlyAPDChart" height="120"></canvas>
         </div>
@@ -78,9 +88,7 @@
             <div class="grid grid-cols-2 gap-2 mb-4">
                 <select id="filterYearEmployee"
                         class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-400 focus:outline-none">
-                    <option value="2025">2025</option>
-                    <option value="2024">2024</option>
-                    <option value="2023">2023</option>
+                   
                 </select>
 
                 <select id="filterMonthEmployee"
@@ -109,7 +117,32 @@
 
     </div>
 
+ {{-- 📄 TABEL --}}
+<div class="table-responsive mb-2">
+   <div class="flex flex-col bg-white">
+        <div class="flex justify-between items-center">
+            <div class="flex flex-col">
+                <h2 class="text-lg font-bold text-gray-900">List Transaksi APD</h2>
+                <p class="text-sm text-gray-500 mt-1">Cek Transaksi APD yang Pernah Dibuat</p>
+            </div>
+        </div>
+        <div class="w-24 h-1 bg-teal-500 rounded mt-3"></div>
+    </div>
 
+    <table id="apd-table" class="w-full text-sm text-left">
+        <thead class="bg-blue-500 text-white uppercase text-xs font-bold tracking-wider">
+            <tr>
+                <th class="px-4 py-2">Action</th>
+                <th class="px-4 py-2">Tanggal</th>
+                <th class="px-4 py-2">Jenis Transaksi</th>
+                <th class="px-4 py-2">Source</th>
+                <th class="px-4 py-2">No. Transaksi</th>
+                <th class="px-4 py-2">Catatan</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
     
 </div>
 
@@ -646,63 +679,73 @@ foreach ($distributions as $item) {
       </button>
     </div>
   </div>
+@php
+$total = count($apds);
+$safe = $critical = $empty = $bekas = $rusak = 0;
 
-  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 mt-4">
+foreach ($apds as $apd) {
+    if ($apd->conditions === 'Rusak') $rusak++;
+    elseif ($apd->conditions === 'Bekas') $bekas++;
+    elseif ($apd->balance == 0) $empty++;
+    elseif ($apd->balance < $apd->min_stock) $critical++;
+    else $safe++;
+}
 
-    <!-- CARD TEMPLATE -->
-    <div class="bg-white rounded-xl p-4 border border-teal-700 shadow hover:shadow-md transition">
+// Hitung persentase
+$percentSafe = $total ? round(($safe / $total) * 100) : 0;
+$percentCritical = $total ? round(($critical / $total) * 100) : 0;
+$percentEmpty = $total ? round(($empty / $total) * 100) : 0;
+$percentBekas = $total ? round(($bekas / $total) * 100) : 0;
+$percentRusak = $total ? round(($rusak / $total) * 100) : 0;
+@endphp
+
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 mt-4">
+    <div class="bg-white rounded-xl p-4 border border-teal-500 shadow hover:shadow-md transition">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-xs font-bold text-green-500 uppercase tracking-wide">SAFE</h2>
             <i class="fa-solid fa-shield-heart text-green-500 text-xl"></i>
         </div>
-        <p id="cardSafe" class="text-3xl font-extrabold text-gray-800">0</p>
-
-        <div class="flex items-center mt-1 text-sm" id="safeTrend">
-            <!-- Auto isi via JS -->
-        </div>
+        <p id="cardSafe" data-value="{{ $percentSafe }}" class="text-3xl font-extrabold text-gray-800">{{ $safe }} APD</p>
+        <div class="flex items-center mt-1 text-sm" id="safeTrend"></div>
     </div>
 
-    <div class="bg-white rounded-xl p-4 border border-teal-700 shadow hover:shadow-md transition">
+    <div class="bg-white rounded-xl p-4 border border-teal-500 shadow hover:shadow-md transition">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-xs font-bold text-yellow-500 uppercase tracking-wide">CRITICAL</h2>
             <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-xl"></i>
         </div>
-        <p id="cardCritical" class="text-3xl font-extrabold text-gray-800">0</p>
-
+        <p id="cardCritical" data-value="{{ $percentCritical }}" class="text-3xl font-extrabold text-gray-800">{{ $critical }} APD</p>
         <div class="flex items-center mt-1 text-sm" id="criticalTrend"></div>
     </div>
 
-    <div class="bg-white rounded-xl p-4 border border-teal-700 shadow hover:shadow-md transition">
+    <div class="bg-white rounded-xl p-4 border border-teal-500 shadow hover:shadow-md transition">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wide">EMPTY</h2>
             <i class="fa-solid fa-box-open text-gray-500 text-xl"></i>
         </div>
-        <p id="cardEmpty" class="text-3xl font-extrabold text-gray-800">0</p>
-
+        <p id="cardEmpty" data-value="{{ $percentEmpty }}" class="text-3xl font-extrabold text-gray-800">{{ $empty }} APD</p>
         <div class="flex items-center mt-1 text-sm" id="emptyTrend"></div>
     </div>
 
-    <div class="bg-white rounded-xl p-4 border border-teal-700 shadow hover:shadow-md transition">
+    <div class="bg-white rounded-xl p-4 border border-teal-500 shadow hover:shadow-md transition">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-xs font-bold text-blue-500 uppercase tracking-wide">SECONDHAND</h2>
             <i class="fa-solid fa-recycle text-blue-500 text-xl"></i>
         </div>
-        <p id="cardBekas" class="text-3xl font-extrabold text-gray-800">0</p>
-
+        <p id="cardBekas" data-value="{{ $percentBekas }}" class="text-3xl font-extrabold text-gray-800">{{ $bekas }} APD</p>
         <div class="flex items-center mt-1 text-sm" id="bekasTrend"></div>
     </div>
 
-    <div class="bg-white rounded-xl p-4 border border-teal-700 shadow hover:shadow-md transition">
+    <div class="bg-white rounded-xl p-4 border border-teal-500 shadow hover:shadow-md transition">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-xs font-bold text-red-500 uppercase tracking-wide">BROKEN</h2>
             <i class="fa-solid fa-explosion text-red-500 text-xl"></i>
         </div>
-        <p id="cardRusak" class="text-3xl font-extrabold text-gray-800">0</p>
-
+        <p id="cardRusak" data-value="{{ $percentRusak }}" class="text-3xl font-extrabold text-gray-800">{{ $rusak }} APD</p>
         <div class="flex items-center mt-1 text-sm" id="rusakTrend"></div>
     </div>
-
 </div>
+
 
 
 
@@ -717,7 +760,7 @@ foreach ($distributions as $item) {
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
     <!-- Search -->
-    <div class="col-span-4">
+    <div class="relative col-span-4">
       <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400"></i>
       <input type="text" id="searchAPD"
         placeholder="Search APD Name / Code..."
@@ -752,14 +795,44 @@ foreach ($distributions as $item) {
     </div>
 <!-- Filter Tahun -->
     <div>
-        <select id="filterTahun"
-            class="rounded-lg border border-gray-300 text-gray-700 px-3 py-2 w-full 
-                   focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <option value="">-- Semua Tahun --</option>
-            @for ($y = 2023; $y <= now()->year; $y++)
-                <option value="{{ $y }}">{{ $y }}</option>
-            @endfor
-        </select>
+       @php
+// Ambil tahun dari adjustment IN & OUT
+$adjustmentYears = \App\Models\APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
+    ->pluck('apd_adjustments.adjustment_date')
+    ->map(fn($d) => date('Y', strtotime($d)))
+    ->unique()
+    ->toArray();
+
+// Ambil tahun dari return
+$returnYears = \App\Models\APDReturnItem::join('apd_returns','apd_return_items.apd_return_id','=','apd_returns.id')
+    ->pluck('apd_returns.return_date')
+    ->map(fn($d) => date('Y', strtotime($d)))
+    ->unique()
+    ->toArray();
+
+// Ambil tahun dari distribution
+$distributionYears = \App\Models\APDDistributionItem::join('apd_distributions','apd_distribution_items.apd_distribution_id','=','apd_distributions.id')
+    ->pluck('apd_distributions.distribution_date')
+    ->map(fn($d) => date('Y', strtotime($d)))
+    ->unique()
+    ->toArray();
+
+// Gabungkan semua tahun, hapus duplikat, urutkan
+$years = collect(array_merge($adjustmentYears, $returnYears, $distributionYears))
+    ->unique()
+    ->sort()
+    ->values();
+@endphp
+
+<select id="filterTahun"
+        class="rounded-lg border border-gray-300 text-gray-700 px-3 py-2 w-full 
+               focus:outline-none focus:ring-2 focus:ring-blue-400">
+    <option value="">-- Semua Tahun --</option>
+    @foreach($years as $y)
+        <option value="{{ $y }}">{{ $y }}</option>
+    @endforeach
+</select>
+
     </div>
 
     <!-- Filter Bulan -->
@@ -858,7 +931,10 @@ foreach ($distributions as $item) {
 
 
           <td class="px-4 py-3 text-center font-semibold">{{ $apd->min_stock ?? '-' }}</td>
-          <td class="px-4 py-3 text-center font-semibold">{{ $apd->initial_stock ?? '-' }}</td>
+         <td class="px-4 py-3 text-center font-semibold">
+    {{ $apd->initial_stock_filtered ?? 0 }}
+</td>
+
          <td class="px-4 py-3 text-center text-green-500">
       {{ ($apd->total_in ?? 0) + ($apd->total_return ?? 0 ) }}
   </td>
@@ -1603,6 +1679,186 @@ foreach ($distributions as $item) {
    z-index: 9999;
 }
 
+/* Ubah warna baris even dan odd */
+#apd-table tbody tr:nth-child(even) {
+     background-color: #f3f4f6; /* lebih gelap: tailwind slate-100 */
+}
+#apd-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* Non-Tailwind CSS */
+#apd-table td,
+#apd-table th {
+    white-space: nowrap;
+}
+
+/* Pastikan pembungkus utama flex */
+.mobile-flex-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem; /* jarak antar elemen */
+}
+
+/* Search filter tetap auto width */
+.dataTables_filter {
+  width: auto !important;
+  display: flex !important;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+/* 🎯 Fine-tuning posisi sejajar Search dan Export */
+@media (max-width: 768px) {
+  .dataTables_filter {
+    align-items: center !important;
+  }
+
+  .dataTables_filter input {
+    height: 38px !important;
+    margin-top: 2px; /* sedikit naik agar sejajar */
+  }
+
+  .dt-buttons .dt-button {
+     height: 38px !important;
+  line-height: 38px;
+    padding-top: 0;
+    padding-bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* 🔍 Extra tuning khusus layar sempit banget (≤414px, iPhone XR/SE) */
+@media (max-width: 414px) {
+  .dataTables_filter input {
+    max-width: 120px;
+  }
+
+  .dt-buttons .dt-button {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.75rem;
+  }
+}
+
+
+/* Input search */
+.dataTables_filter input {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-left: 10px;
+  width: 150px; /* sesuaikan */
+   margin-top: 2px; /* sedikit naik agar sejajar */
+}
+
+/* Tombol export */
+.dt-buttons {
+  display: flex !important;
+  align-items: center;
+  width: auto !important;
+  position: relative;
+  z-index: 1;
+  margin-left: 10px;
+}
+
+/* 📱 Mobile adjustment */
+@media (max-width: 768px) {
+  .mobile-flex-wrapper {
+    flex-wrap: nowrap; /* biar sejajar */
+    justify-content: space-between;
+  }
+
+  .dataTables_filter,
+  .dt-buttons {
+    flex: 1 1 auto;
+    display: flex !important;
+    width: auto !important;
+  }
+
+  /* Ratakan tinggi dan sejajarkan posisi vertikal */
+.dataTables_filter label {
+  display: flex;
+  align-items: center; /* ini penting agar sejajar vertikal */
+  margin-bottom: 0 !important; /* hilangkan margin default */
+}
+
+.dataTables_filter input {
+  height: 38px; /* samakan tinggi dengan tombol Export */
+  margin: 0 0 0 8px; /* jarak kiri sedikit */
+  line-height: 1.2;
+}
+
+.dt-buttons .dt-button {
+  height: 38px; /* samakan tinggi dengan input */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+  .dataTables_filter label span {
+    display: none; /* hilangkan teks Search */
+  }
+
+  .dt-buttons {
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+}
+
+/* Ukuran tombol collection (export) */
+.dt-button.buttons-collection {
+    font-size: 0.875rem; /* text-sm */
+    padding: 0.4rem 1rem;
+}
+
+.dt-button-down-arrow {
+    display: none !important;
+}
+
+div.dt-button-collection {
+    top: 100% !important;
+    margin-top: 0.5rem !important; /* Jarak dari tombol */
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: 9999 !important;
+}
+
+
+/* Dropdown Export agar tampil di bawah */
+div.dt-button-collection {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    margin-top: 0.5rem;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    z-index: 10000;
+}
+
+/* Item dropdown */
+div.dt-button-collection .dt-button {
+    color: #1f2937;
+    padding: 0.5rem 1rem;
+    text-align: left;
+    width: 100%;
+}
+
+div.dt-button-collection .dt-button:hover {
+    background-color: #dfe0e0ff;
+}
+
+
+/* 🧭 Spacing */
+#apd-table_wrapper {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
   
 </style>
 
@@ -2300,50 +2556,56 @@ qtyInput.off('input').on('input', function () {
     closeModalAddAPD();
   });
     
-  document.addEventListener("DOMContentLoaded", function () {
-  const tabBtns = document.querySelectorAll(".tab-btn");
-  const stockPanel = document.getElementById("stockPanel");
-  const distributionPanel = document.getElementById("distributionPanel");
-  const dashboardPanel = document.getElementById("dashboardPanel");
+  $(document).ready(function () {
+    const $tabBtns = $(".tab-btn");
+    const $stockPanel = $("#stockPanel");
+    const $distributionPanel = $("#distributionPanel");
+    const $dashboardPanel = $("#dashboardPanel");
 
-  tabBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      
-      // Reset semua tab
-      tabBtns.forEach(b => {
-        b.classList.remove("active-tab", "text-blue-600");
-      });
+    function resetTabs() {
+        $tabBtns.removeClass("active-tab text-blue-600");
+        $stockPanel.addClass("hidden");
+        $distributionPanel.addClass("hidden");
+        $dashboardPanel.addClass("hidden");
+    }
 
-      // Sembunyikan semua panel
-      stockPanel.classList.add("hidden");
-      distributionPanel.classList.add("hidden");
-      dashboardPanel.classList.add("hidden");
-
-      // Aktifkan panel sesuai tombol
-      if (btn.id === "tab-stock") {
-        stockPanel.classList.remove("hidden");
-      } 
-      else if (btn.id === "tab-distribution") {
-        distributionPanel.classList.remove("hidden");
-      }
-      else if (btn.id === "tab-dashboard") {
-        dashboardPanel.classList.remove("hidden");
-      }
-
-      // Tandai tab aktif
-      btn.classList.add("active-tab", "text-blue-600");
+    // klik tab
+    $tabBtns.on("click", function () {
+        resetTabs();
+        const id = $(this).attr("id");
+        if (id === "tab-stock") $stockPanel.removeClass("hidden");
+        else if (id === "tab-distribution") $distributionPanel.removeClass("hidden");
+        else $dashboardPanel.removeClass("hidden");
+        $(this).addClass("active-tab text-blue-600");
     });
-  });
 
-  // ===========================
-  // DEFAULT TAB = DASHBOARD
-  // ===========================
-  document.getElementById("tab-dashboard")
-    .classList.add("active-tab", "text-blue-600");
+    // === Set default tab ===
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromDropdown = urlParams.get("fromDropdown");
+    const activeTab = urlParams.get("activeTab");
 
-  dashboardPanel.classList.remove("hidden");
-  stockPanel.classList.add("hidden");
-  distributionPanel.classList.add("hidden");
+    resetTabs();
+
+    if (fromDropdown && activeTab === "distribution") {
+        // Dari dropdown distribution → buka tab-distribution
+        $("#tab-distribution").addClass("active-tab text-blue-600");
+        $distributionPanel.removeClass("hidden");
+    } else if (fromDropdown && activeTab === "stock") {
+        // Dari filter tahun/bulan → buka tab-stock
+        $("#tab-stock").addClass("active-tab text-blue-600");
+        $stockPanel.removeClass("hidden");
+    } else {
+        // Default → tab-dashboard
+        $("#tab-dashboard").addClass("active-tab text-blue-600");
+        $dashboardPanel.removeClass("hidden");
+    }
+
+    // Hapus parameter agar reload manual berikutnya kembali ke default
+    if (fromDropdown) {
+        urlParams.delete("activeTab");
+        urlParams.delete("fromDropdown");
+        history.replaceState(null, '', `${location.pathname}?${urlParams.toString()}`);
+    }
 });
 
 
@@ -2968,20 +3230,7 @@ function filterTableStock() {
     });
 }
 
-$('#filterTypeEmployee').on('change', function () {
-    let type = $(this).val();
 
-    // buat ulang URL dengan parameter baru
-    let url = new URL(window.location.href);
-
-    if (type) {
-        url.searchParams.set('typeEmployee', type);
-    } else {
-        url.searchParams.delete('typeEmployee'); // hapus kalau pilih "All"
-    }
- updateEmployeeCount();
-    window.location.href = url.toString();
-});
 
 $('#filterStatusAPD').on('change', function () {
     let value = $(this).val(); // safe, warning, critical, atau ""
@@ -3024,46 +3273,51 @@ let apdReminder = {}; // global
 
     const ctx = $("#yearlyAPDChart")[0].getContext("2d");
 
-    // === Chart Kosong saat awal ===
     let chart = new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: months,
-            datasets: [
-                {
-                    label: "APD Didistribusikan",
-                    data: Array(12).fill(0),
-                    backgroundColor: "rgba(54,162,235,0.8)"
-                },
-                {
-                    label: "APD Dikembalikan",
-                    data: Array(12).fill(0),
-                    backgroundColor: "rgba(255,159,64,0.8)"
-                }
-            ]
+    type: "bar",
+    data: {
+        labels: months,
+        datasets: [
+            {
+                label: "APD Didistribusikan",
+                data: Array(12).fill(0),
+                backgroundColor: "rgba(54,162,235,0.8)"
+            },
+            {
+                label: "APD Dikembalikan",
+                data: Array(12).fill(0),
+                backgroundColor: "rgba(255,159,64,0.8)"
+            },
+            {
+                label: "APD Belum Dikembalikan (Overdue)",
+                data: Array(12).fill(0),
+                backgroundColor: "rgba(255,99,132,0.8)"
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+function loadChart(year) {
+    $.ajax({
+        url: "/facility/apd/chart/yearly",
+        method: "GET",
+        data: { year: year },
+        success: function (res) {
+            chart.data.datasets[0].data = res.distributed;
+            chart.data.datasets[1].data = res.returned;
+            chart.data.datasets[2].data = res.overdue; // dataset baru
+            chart.update();
         },
-        options: {
-            responsive: true,
-            scales: { y: { beginAtZero: true } }
+        error: function () {
+            console.error("Gagal memuat data chart");
         }
     });
+}
 
-    // === Fungsi load data chart dari controller ===
-    function loadChart(year) {
-        $.ajax({
-            url: "/facility/apd/chart/yearly", // GANTI ke route milikmu
-            method: "GET",
-            data: { year: year },
-            success: function (res) {
-                chart.data.datasets[0].data = res.distributed;
-                chart.data.datasets[1].data = res.returned;
-                chart.update();
-            },
-            error: function () {
-                console.error("Gagal memuat data chart");
-            }
-        });
-    }
 
     // === Load data default (misal tahun 2025) ===
     loadChart($("#filterYearChart").val());
@@ -3224,55 +3478,38 @@ $(document).ready(function () {
 
 });
 
-$(document).ready(function () {
-
-    let apdId = "{{ $apd->id }}"; // atau ambil dari URL
-
-    $('#apdMovementTable').DataTable({
+$(document).ready(function() {
+    $('#apd-table').DataTable({
         processing: true,
         serverSide: true,
-        ajax: {
-            url: `/facility/apd/${apdId}/globalMovement`,
-            data: function (d) {
-                d.start = $('#filterStart').val();
-                d.end = $('#filterEnd').val();
-                d.type = $('#filterType').val();
-            }
-        },
+        ajax: "{{ route('facility.apd.transactions.data') }}",
         columns: [
-            {
-                data: null,
-                className: "sticky left-0 bg-white z-30",
-                render: function(row) {
-                    return `
-                        <button class="px-2 py-1 text-xs bg-yellow-400 text-white rounded"
-                            onclick="editMovement('${row.source}', ${row.item_id})">EDIT</button>
-                        
-                        <button class="px-2 py-1 text-xs bg-red-500 text-white rounded"
-                            onclick="deleteMovement('${row.source}', ${row.item_id})">DELETE</button>
-                    `;
-                }
-            },
-            { data: 'type', className: "text-left" },
-            { data: 'source', className: "text-left" },
-           
-            { data: 'initial_stock', className: "text-center" },
-            { data: 'qty', className: "text-center" },
-            { data: 'balance', className: "text-center" },
-            { data: 'giver', className: "text-center" },
-            { data: 'receiver', className: "text-center" },
-            { data: 'note', className: "text-center" },
+            { data: 'action', name: 'action', orderable: false, searchable: false },
+            { data: 'date', name: 'date' },
+            { data: 'type', name: 'type' },
+            { data: 'source', name: 'source' },
+            { data: 'transaction_number', name: 'transaction_number' },
+            { data: 'note', name: 'note' },
         ],
-        order: [[1, 'asc']]
-    });
+         dom:
+        "<'flex justify-between mb-4'lf>" + // l = length, f = filter
+        "rt" +                             // r = processing, t = table
+        "<'mt-4'p>",                        // p = pagination, beri margin top
 
+        drawCallback: function(settings) {
+            // ini yang penting supaya feather icon muncul
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+    });
 });
+
+
 
 function setTrend(elementId, value) {
     const el = document.getElementById(elementId);
-
-    // Tentukan trend
-    let icon = "";
+    let icon = '';
     if (value >= 50) {
         icon = `<i class="fa-solid fa-arrow-trend-up text-green-600 mr-1"></i>
                 <span class="text-green-600 font-semibold">${value}%</span>`;
@@ -3280,63 +3517,75 @@ function setTrend(elementId, value) {
         icon = `<i class="fa-solid fa-arrow-trend-down text-red-600 mr-1"></i>
                 <span class="text-red-600 font-semibold">${value}%</span>`;
     }
-
     el.innerHTML = icon;
 }
 
-// ========================================
-// Contoh nilai (isi pakai backend kamu)
-// ========================================
+// Ambil nilai dari data-value
+['Safe','Critical','Empty','Bekas','Rusak'].forEach(status => {
+    const value = parseInt(document.getElementById('card' + status).dataset.value);
+    setTrend(status.toLowerCase() + 'Trend', value);
+});
 
-// Misal data diambil dari controller (Laravel Blade):
 
+$(document).ready(function () {
 
-let safe = 70;      // contoh >50 → naik
-let critical = 30;  // contoh <50 → turun
-let empty = 55;
-let bekas = 20;
-let rusak = 65;
+    // Ambil nilai bulan & tahun dari query string (Blade)
+    const currentYear  = "{{ request('tahun') }}";
+    const currentMonth = "{{ request('bulan') }}";
 
-// ========================================
-// Isi nilai card + trend arrow
-// ========================================
-document.getElementById("cardSafe").innerText = safe;
-document.getElementById("cardCritical").innerText = critical;
-document.getElementById("cardEmpty").innerText = empty;
-document.getElementById("cardBekas").innerText = bekas;
-document.getElementById("cardRusak").innerText = rusak;
+    // Set default value di dropdown
+    if (currentYear)  $("#filterTahun").val(currentYear);
+    if (currentMonth) $("#filterBulan").val(currentMonth);
 
-setTrend("safeTrend", safe);
-setTrend("criticalTrend", critical);
-setTrend("emptyTrend", empty);
-setTrend("bekasTrend", bekas);
-setTrend("rusakTrend", rusak);
-$(document).ready(function() {
-    // Ambil nilai dari server (Blade)
-    var currentYear = "{{ request('tahun', date('Y')) }}";   // default current year
-    var currentMonth = "{{ request('bulan', date('m')) }}";   // default current month
+    // Jika tahun kosong tetapi bulan ada → kosongkan bulan secara otomatis
+    if (!currentYear) $("#filterBulan").val("");
 
-    // Set default selected di dropdown
-    $('#filterTahun').val(currentYear);
-    $('#filterBulan').val(currentMonth);
+    // Event change untuk dropdown tahun/bulan (tab-stock)
+    $("#filterTahun, #filterBulan").on("change", function () {
+        let tahun = $("#filterTahun").val();
+        let bulan = $("#filterBulan").val();
 
-    // Event listener untuk filter
-    $('#filterTahun, #filterBulan').on('change', function() {
-        var tahun = $('#filterTahun').val();
-        var bulan = $('#filterBulan').val();
+        // Jika tahun dihapus → bulan wajib ikut kosong
+        if (!tahun) bulan = "";
 
-        var params = {};
+        let url = new URL(window.location.href);
 
-        if (tahun) params['tahun'] = tahun;
-        if (bulan) params['bulan'] = bulan;
+        // Update query string
+        if (tahun) url.searchParams.set('tahun', tahun);
+        else url.searchParams.delete('tahun');
 
-        // Build query string
-        var queryString = $.param(params);
+        if (bulan) url.searchParams.set('bulan', bulan);
+        else url.searchParams.delete('bulan');
 
-        // Reload halaman dengan query string
-        window.location.href = '?' + queryString;
+        // Tandai agar tab-stock dibuka
+        url.searchParams.set('activeTab', 'stock');
+        url.searchParams.set('fromDropdown', '1');
+
+        window.location.href = url.toString();
+    });
+
+    // Event change untuk dropdown distribution (contoh)
+    $('#filterTypeEmployee').on('change', function () {
+        let type = $(this).val();
+        let url = new URL(window.location.href);
+
+        if (type) {
+            url.searchParams.set('typeEmployee', type);
+        } else {
+            url.searchParams.delete('typeEmployee');
+        }
+
+        // Tandai bahwa reload ini berasal dari dropdown distribution
+        url.searchParams.set('activeTab', 'distribution');
+        url.searchParams.set('fromDropdown', '1');
+
+        updateEmployeeCount();
+
+        window.location.href = url.toString();
     });
 });
+
+
 </script>
 @endpush
 

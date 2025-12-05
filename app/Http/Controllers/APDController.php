@@ -9,11 +9,13 @@
     use App\Models\APDReturn;
     use App\Models\APDReturnItem;
     use App\Models\Department;
+     use App\Models\APDAdjustment;
     use App\Models\APDAdjustmentItem;
     use App\Models\APDDistribution;
     use App\Models\APDDistributionItem;
     use Carbon\Carbon;
 use App\Mail\APDReminderMail;
+use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Mail;
     use Illuminate\Support\Facades\DB;
     use Illuminate\Support\Facades\Auth;
@@ -41,10 +43,9 @@ class APDController extends Controller
 
             $departments = Department::orderBy('id', 'asc')->get();
 
-$filterYear = $request->input('tahun');     // ex: 2025
-$filterMonth = $request->input('bulan');   // ex: 12
+      $filterYear  = $request->input('tahun');
+$filterMonth = $request->input('bulan');
 
-// Tanggal awal & akhir
 if ($filterYear && $filterMonth) {
     $startDate = "{$filterYear}-{$filterMonth}-01";
     $endDate   = date("Y-m-t", strtotime($startDate));
@@ -56,61 +57,104 @@ if ($filterYear && $filterMonth) {
     $endDate   = null;
 }
 
-           $apds = Apd::select('apds.*')
-  ->addSelect([
-    // ========= TOTAL IN (ADJUSTMENT IN) =========
-    'total_in' => APDAdjustmentItem::select(DB::raw('COALESCE(SUM(qty),0)'))
-        ->join('apd_adjustments', 'apd_adjustment_items.apd_adjustment_id', '=', 'apd_adjustments.id')
-        ->whereColumn('apd_adjustment_items.apd_id', 'apds.id')
-        ->where('apd_adjustments.adjustment_type', 'IN')
-        ->when($startDate, fn($q) => $q->whereBetween('apd_adjustments.adjustment_date', [$startDate, $endDate])),
+$apds = Apd::orderByRaw("
+        CASE
+            WHEN conditions = 'Baru' THEN 1
+            WHEN conditions = 'Bekas' THEN 2
+            WHEN conditions = 'Rusak' THEN 3
+            ELSE 4
+        END
+    ")
+    ->orderBy('name','asc')
+    ->get();
+$apds = $apds->map(function($apd) use ($startDate, $endDate, $filterYear, $filterMonth) {
 
-    // ========= TOTAL OUT (ADJUSTMENT OUT) =========
-    'total_out' => APDAdjustmentItem::select(DB::raw('COALESCE(SUM(qty),0)'))
-        ->join('apd_adjustments', 'apd_adjustment_items.apd_adjustment_id', '=', 'apd_adjustments.id')
-        ->whereColumn('apd_adjustment_items.apd_id', 'apds.id')
-        ->where('apd_adjustments.adjustment_type', 'OUT')
-        ->when($startDate, fn($q) => $q->whereBetween('apd_adjustments.adjustment_date', [$startDate, $endDate])),
+    // --- Tentukan awal & akhir data APD untuk loop ---
+    $firstDate = $apd->created_at 
+        ?? APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
+            ->where('apd_adjustment_items.apd_id', $apd->id)
+            ->min('apd_adjustments.adjustment_date');
 
-    // ========= TOTAL DISTRIBUTION =========
-    'total_distribution' => APDDistributionItem::select(DB::raw('COALESCE(SUM(qty),0)'))
-        ->whereColumn('apd_distribution_items.apd_id', 'apds.id')
-        ->when($startDate, fn($q) =>
-            $q->join('apd_distributions','apd_distribution_items.apd_distribution_id','=','apd_distributions.id')
-              ->whereBetween('apd_distributions.distribution_date', [$startDate, $endDate])
-        ),
+    $lastDate = $endDate ?? now()->format('Y-m-d');
 
-    // ========= TOTAL RETURN =========
-    'total_return' => APDReturnItem::select(DB::raw('COALESCE(SUM(apd_return_items.qty),0)'))
-        ->join('apd_returns', 'apd_return_items.apd_return_id', '=', 'apd_returns.id')
-        ->join('apds as orig', 'apd_return_items.apd_id', '=', 'orig.id')
-        ->whereColumn('orig.name', 'apds.name')
-        ->whereColumn('apd_return_items.conditions', 'apds.conditions')
-        ->when($startDate, fn($q) => 
-            $q->whereBetween('apd_returns.return_date', [$startDate, $endDate])
-        ),
-])
+    // --- Hitung initial_stock_filtered sebelum filter ---
+    if ($filterYear && $filterMonth) {
+        $filterStart = date('Y-m-01', strtotime($startDate));
+    } elseif ($filterYear && !$filterMonth) {
+        $filterStart = date('Y-m-01', strtotime("$filterYear-01-01"));
+    } else {
+        $filterStart = $firstDate; // semua tahun → awal APD
+    }
 
-    ->orderByRaw("CASE 
-        WHEN conditions = 'Baru' THEN 1
-        WHEN conditions = 'Bekas' THEN 2
-        WHEN conditions = 'Rusak' THEN 3
-        ELSE 4
-    END")
-    ->orderBy('name', 'asc')
-    ->get()
-    ->map(function ($apd) {
-        // Rumus lengkap balance:
-        // (stok awal + total IN + total RETURN) - (total OUT + total DISTRIBUSI)
-        $apd->balance = 
-            (($apd->initial_stock ?? 0)
-            + ($apd->total_in ?? 0)
-            + ($apd->total_return ?? 0))
-            - (($apd->total_out ?? 0)
-            + ($apd->total_distribution ?? 0));
+    $totalInBefore  = APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
+        ->where('apd_adjustment_items.apd_id', $apd->id)
+        ->where('apd_adjustments.adjustment_type','IN')
+        ->where('apd_adjustments.adjustment_date','<',$filterStart)
+        ->sum('apd_adjustment_items.qty');
 
-        return $apd;
-    });
+    $totalReturnBefore = APDReturnItem::join('apd_returns','apd_return_items.apd_return_id','=','apd_returns.id')
+        ->where('apd_return_items.apd_id', $apd->id)
+        ->where('apd_returns.return_date','<',$filterStart)
+        ->sum('apd_return_items.qty');
+
+    $totalOutBefore = APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
+        ->where('apd_adjustment_items.apd_id', $apd->id)
+        ->where('apd_adjustments.adjustment_type','OUT')
+        ->where('apd_adjustments.adjustment_date','<',$filterStart)
+        ->sum('apd_adjustment_items.qty');
+
+    $totalDistributionBefore = APDDistributionItem::join('apd_distributions','apd_distribution_items.apd_distribution_id','=','apd_distributions.id')
+        ->where('apd_distribution_items.apd_id', $apd->id)
+        ->where('apd_distributions.distribution_date','<',$filterStart)
+        ->sum('apd_distribution_items.qty');
+
+    $initialStock = $apd->initial_stock + $totalInBefore + $totalReturnBefore - $totalOutBefore - $totalDistributionBefore;
+    $apd->initial_stock_filtered = $initialStock;
+
+    // --- Hitung total in/out/return/distribution ---
+    $totalIn = APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
+        ->where('apd_adjustment_items.apd_id', $apd->id)
+        ->where('apd_adjustments.adjustment_type','IN')
+        ->when($filterYear, fn($q) => $q->whereYear('apd_adjustments.adjustment_date', $filterYear))
+        ->when($filterMonth, fn($q) => $q->whereMonth('apd_adjustments.adjustment_date', $filterMonth))
+        ->sum('apd_adjustment_items.qty');
+
+    $totalReturn = APDReturnItem::join('apd_returns','apd_return_items.apd_return_id','=','apd_returns.id')
+        ->where('apd_return_items.apd_id', $apd->id)
+        ->when($filterYear, fn($q) => $q->whereYear('apd_returns.return_date', $filterYear))
+        ->when($filterMonth, fn($q) => $q->whereMonth('apd_returns.return_date', $filterMonth))
+        ->sum('apd_return_items.qty');
+
+    $totalOut = APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
+        ->where('apd_adjustment_items.apd_id', $apd->id)
+        ->where('apd_adjustments.adjustment_type','OUT')
+        ->when($filterYear, fn($q) => $q->whereYear('apd_adjustments.adjustment_date', $filterYear))
+        ->when($filterMonth, fn($q) => $q->whereMonth('apd_adjustments.adjustment_date', $filterMonth))
+        ->sum('apd_adjustment_items.qty');
+
+    $totalDistribution = APDDistributionItem::join('apd_distributions','apd_distribution_items.apd_distribution_id','=','apd_distributions.id')
+        ->where('apd_distribution_items.apd_id', $apd->id)
+        ->when($filterYear, fn($q) => $q->whereYear('apd_distributions.distribution_date', $filterYear))
+        ->when($filterMonth, fn($q) => $q->whereMonth('apd_distributions.distribution_date', $filterMonth))
+        ->sum('apd_distribution_items.qty');
+
+    $apd->total_in = $totalIn;
+    $apd->total_return = $totalReturn;
+    $apd->total_out = $totalOut;
+    $apd->total_distribution = $totalDistribution;
+
+    $apd->balance = $initialStock + $totalIn + $totalReturn - $totalOut - $totalDistribution;
+
+    return $apd;
+});
+
+
+
+
+
+
+
+
 
 
 // ========== STEP 1: BUILD WARNINGS ==========
@@ -261,48 +305,129 @@ public function getEmployeeAPD($employee_id)
     return response()->json($apds);
 }
 
+public function debugMovement()
+{
+    $apdIds = [11, 12]; // ganti sesuai kebutuhan
+
+    foreach ($apdIds as $id) {
+
+        $apd = DB::table('apds')->where('id', $id)->first();
+
+        if (!$apd) continue;
+
+        Log::info("=== DEBUG APD {$apd->id} - {$apd->name} ===");
+
+        // ---  MONTH LIST  ----
+        $months = [
+            ['bulan' => 11, 'nama' => 'NOVEMBER'],
+            ['bulan' => 12, 'nama' => 'DESEMBER'],
+        ];
+
+        // stock awal dari apds
+        $currentStock = $apd->initial_stock;
+
+        foreach ($months as $m) {
+
+            $bulan = $m['bulan'];
+            $namaBulan = $m['nama'];
+
+            // ======================
+            // IN (ADJUSTMENT)
+            // ======================
+            $inAdjustment = DB::table('apd_adjustment_items')
+                ->join('apd_adjustments', 'apd_adjustments.id', 'apd_adjustment_items.apd_adjustment_id')
+                ->where('apd_adjustment_items.apd_id', $id)
+                ->where('apd_adjustments.adjustment_type', 'IN')
+                ->whereMonth('apd_adjustments.adjustment_date', $bulan)
+                ->sum('apd_adjustment_items.qty');
+
+            // ======================
+            // RETURN
+            // ======================
+            $returnQty = DB::table('apd_return_items')
+                ->join('apd_returns', 'apd_returns.id', 'apd_return_items.apd_return_id')
+                ->where('apd_return_items.apd_id', $id)
+                ->whereMonth('apd_returns.return_date', $bulan)
+                ->sum('apd_return_items.qty');
+
+            // ======================
+            // OUT (Distribution)
+            // ======================
+            $outDistribution = DB::table('apd_distribution_items')
+                ->join('apd_distributions', 'apd_distributions.id', 'apd_distribution_items.apd_distribution_id')
+                ->where('apd_distribution_items.apd_id', $id)
+                ->whereMonth('apd_distributions.distribution_date', $bulan)
+                ->sum('apd_distribution_items.qty');
+
+            // ======================
+            // OUT (Adjustment OUT)
+            // ======================
+            $outAdjustment = DB::table('apd_adjustment_items')
+                ->join('apd_adjustments', 'apd_adjustments.id', 'apd_adjustment_items.apd_adjustment_id')
+                ->where('apd_adjustment_items.apd_id', $id)
+                ->where('apd_adjustments.adjustment_type', 'OUT')
+                ->whereMonth('apd_adjustments.adjustment_date', $bulan)
+                ->sum('apd_adjustment_items.qty');
+
+            // ======================
+            // TOTAL
+            // ======================
+            $inTotal = $inAdjustment + $returnQty;
+            $outTotal = $outDistribution + $outAdjustment;
+            $balance = $currentStock + $inTotal - $outTotal;
+
+            Log::info("{$namaBulan} APD {$apd->id}", [
+                'Stock awal'      => $currentStock,
+                'IN (Adjustment)' => $inAdjustment,
+                'RETURN'          => $returnQty,
+                'OUT Dist'        => $outDistribution,
+                'OUT Adjust'      => $outAdjustment,
+                'Total IN'        => $inTotal,
+                'Total OUT'       => $outTotal,
+                'BALANCE'         => $balance
+            ]);
+
+            // update stock untuk bulan berikutnya
+            $currentStock = $balance;
+        }
+
+        Log::info("=== END DEBUG APD {$apd->id} ===");
+    }
+}
+
 public function getAPDReminder()
 {
-    // Eager load apd, receiverUser, dan distribusi induk
     $items = APDDistributionItem::with(['apd', 'receiverUser', 'distribution'])
         ->get();
 
     $result = [];
 
     foreach ($items as $item) {
-        // Pastikan receiverUser ada
         if (!$item->receiverUser || !$item->distribution) continue;
 
-        // Ambil lifetime APD (bulan)
-        $lifetime = $item->apd->lifetime ?? 6;
+        // Ambil lifetime dari DB, default 12 jika null
+        $lifetime = is_numeric($item->apd->lifetime) ? (int) $item->apd->lifetime : 12;
 
-      $due_date = null; // inisialisasi dulu
+        $distribution_date = $item->distribution->distribution_date ?? null;
 
-if (!empty($item->distribution->distribution_date) && !empty($item->apd->lifetime) && is_numeric($item->apd->lifetime)) {
-    $lifetime = (int) $item->apd->lifetime;
-    $due_date = \Carbon\Carbon::parse($item->distribution->distribution_date)
-                 ->copy()
-                 ->addMonths($lifetime);
-}
+        // Hitung due date
+        $due_date = $distribution_date ? \Carbon\Carbon::parse($distribution_date)->addMonths($lifetime) : null;
 
-$year  = $due_date ? $due_date->format('Y') : null;
-$month = $due_date ? $due_date->format('m') : null;
-$day   = $due_date ? $due_date->format('d') : null;
+        $year = $due_date ? $due_date->format('Y') : null;
+        $full_date = $due_date ? $due_date->format('Y-m-d') : null;
 
-
-
-       $full_date = $due_date ? $due_date->format('Y-m-d') : null;
-         // Hitung sisa APD
+        // Hitung sisa APD
         $remaining = $item->qty - ($item->qty_return ?? 0);
-
         $status = $remaining > 0 ? "APD Masih Di Karyawan" : "APD Sudah Dikembalikan";
 
         // Masuk hanya jika qty belum dikembalikan
-        if (($item->qty - ($item->qty_return ?? 0)) > 0) {
-            $result[$year][] = [
+        if ($remaining > 0) {
+            $yearKey = $year ?? 'Tidak Diketahui';
+
+            $result[$yearKey][] = [
                 'name'       => $item->receiverUser->name,
-                 'apd_name'   => $item->apd->name,   // Nama APD
-                 'apd_icon'   => $item->apd->icon,   // Nama APD
+                'apd_name'   => $item->apd->name,
+                'apd_icon'   => $item->apd->icon,
                 'department' => $item->receiverUser->position->name ?? '-',
                 'status'     => $status,
                 'due'        => $full_date
@@ -310,8 +435,12 @@ $day   = $due_date ? $due_date->format('d') : null;
         }
     }
 
+    // Urutkan berdasarkan tahun ascending
+    ksort($result);
+
     return response()->json($result);
 }
+
 
 
 
@@ -1152,44 +1281,48 @@ private function generateReturnNumber()
 
     return "APDRTN-{$year}-{$monthRoman}-{$nextNumber}";
 }
-
 public function sendAPDReminderEmail()
 {
     $now = Carbon::now();
 
-    // Ambil semua distribusi APD
     $items = APDDistributionItem::with(['apd', 'receiverUser', 'distribution'])->get();
-
     $reminderItems = [];
 
     foreach ($items as $item) {
         if (!$item->receiverUser || !$item->distribution) continue;
 
-        $lifetime = $item->apd->lifetime ?? 6;
-        $due_date = Carbon::parse($item->distribution->distribution_date)->addMonths($lifetime);
+        $lifetime = is_numeric($item->apd->lifetime) && $item->apd->lifetime > 0
+                    ? (int)$item->apd->lifetime
+                    : 12; // default 12 bulan
 
-        // Cek apakah APD sudah lewat masa pergantian
-        if ($due_date->lt($now)) { // lt = less than, artinya sudah lewat
+        $distribution_date = $item->distribution->distribution_date;
+        if (!$distribution_date) continue;
+
+        $due_date = Carbon::parse($distribution_date)->addMonths($lifetime);
+        $reminder_date = $due_date->copy()->subMonths(2);
+
+        // cek apakah hari ini waktunya kirim reminder
+        if ($now->toDateString() === $reminder_date->toDateString()) {
             $remaining = $item->qty - ($item->qty_return ?? 0);
-            $status = $remaining > 0 ? "APD Masih Di Karyawan" : "APD Sudah Dikembalikan";
+            if ($remaining <= 0) continue; // sudah dikembalikan, skip
 
             $reminderItems[] = [
                 'name' => $item->receiverUser->name,
                 'department' => $item->receiverUser->position->name ?? '-',
                 'apd_name' => $item->apd->name,
                 'due' => $due_date->format('Y-m-d'),
-                'status' => $status,
+                'status' => "APD Masih Di Karyawan",
             ];
         }
     }
 
     if (count($reminderItems) > 0) {
-        // Kirim email ke GA atau admin (ganti email sesuai kebutuhan)
         Mail::to('it2@asnusantara.co.id')->send(new APDReminderMail($reminderItems));
     }
 
     return response()->json(['success' => true, 'count' => count($reminderItems)]);
 }
+
 
 public function getAPDRecommendation()
 {
@@ -1380,7 +1513,80 @@ public function getAPDRecommendation()
     return response()->json($final);
 }
 
+public function data(Request $request)
+{
+    // ===========================
+    // Gabungkan semua sumber
+    // ===========================
 
+    // Adjustment (IN/OUT tergantung adjustment_type)
+    $adjustments = APDAdjustment::select(
+        'adjustment_date as date',
+        'adjustment_type as type',      // IN atau OUT
+        'transaction_code as transaction_number',
+        'adjustment_reason as note',
+        DB::raw("'Adjustment' as source")
+    );
+
+    // Distribution (selalu OUT)
+    $distributions = APDDistribution::select(
+        'distribution_date as date',
+        DB::raw("'OUT' as type"),
+        'distribution_number as transaction_number',
+        'note',
+        DB::raw("'Distribution' as source")
+    );
+
+    // Return (selalu IN)
+    $returns = APDReturn::select(
+        'return_date as date',
+        DB::raw("'IN' as type"),
+        'return_number as transaction_number',
+        'note',
+        DB::raw("'Return' as source")
+    );
+
+    // Merge semua menggunakan unionAll supaya tetap query builder
+    $allTransactions = $adjustments
+        ->unionAll($distributions)
+        ->unionAll($returns);
+
+    // ===========================
+   return DataTables::of($allTransactions)
+    ->addColumn('action', function ($row) {
+        $dropdownId = $row->source . '-' . $row->transaction_number;
+
+        return <<<HTML
+<div class="relative inline-block text-left group">
+    <button type="button"
+        data-dropdown-id="{$dropdownId}"
+        onclick="toggleDropdown('{$dropdownId}', event)"
+        class="inline-flex justify-center w-full rounded-md shadow-sm px-2 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+        <i data-feather="align-justify"></i>
+    </button>
+    <div id="{$dropdownId}" class="dropdown-menu hidden absolute right-0 mt-2 z-50 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 text-sm text-gray-700">
+        <div class="py-1 text-sm text-gray-700">
+            <a href="" class="block px-4 py-2 hover:bg-gray-100">
+                <i data-feather="eye" class="w-4 h-4 inline mr-2"></i>Detail
+            </a>
+            <button 
+                type="button" 
+                class="btn-delete-apd w-full text-left px-4 py-2 text-red-500 hover:bg-red-500 hover:text-white"
+                data-number="{$row->transaction_number}">
+                <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
+            </button>
+        </div>
+    </div>
+</div>
+HTML;
+    })
+    ->editColumn('type', function($row){
+        $color = $row->type === 'IN' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+        return "<span class='{$color}'>".$row->type."</span>";
+    })
+    ->rawColumns(['action', 'type'])
+    ->make(true);
+}
 
 
 }

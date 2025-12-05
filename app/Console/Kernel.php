@@ -13,8 +13,8 @@ class Kernel extends ConsoleKernel
      * @var array<int, class-string>
      */
     protected $commands = [
-        // Daftarkan command custom kamu di sini
         \App\Console\Commands\AutoCloseTickets::class,
+        \App\Console\Commands\SyncFingerLogs::class, // ← wajib daftar
     ];
 
     /**
@@ -22,7 +22,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Jalankan command tickets:autoclose setiap menit (untuk testing)
+        // Jalankan auto close tickets tiap menit
         $schedule->command('tickets:autoclose')
             ->everyMinute()
             ->before(function () {
@@ -31,6 +31,11 @@ class Kernel extends ConsoleKernel
             ->after(function () {
                 \Log::info('Scheduler tickets:autoclose selesai jalan');
             });
+
+        // 🔥 Sync fingerprint setiap 1 menit
+        $schedule->command('finger:sync')->everyMinute();
+        
+         $schedule->command('apd:send-reminder')->dailyAt('09:00');
     }
 
     /**
@@ -38,15 +43,12 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        // Load semua command di app/Console/Commands
         $this->load(__DIR__.'/Commands');
-
-        // Load routes/console.php (wajib)
         require base_path('routes/console.php');
     }
 
     /**
-     * Timezone untuk schedule.
+     * Timezone schedule.
      */
     protected function scheduleTimezone(): string
     {
