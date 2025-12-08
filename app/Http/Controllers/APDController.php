@@ -42,8 +42,8 @@ class APDController extends Controller
 
 
             $departments = Department::orderBy('id', 'asc')->get();
-
-      $filterYear  = $request->input('tahun');
+// ambil input filter seperti sebelumnya
+$filterYear  = $request->input('tahun');
 $filterMonth = $request->input('bulan');
 
 if ($filterYear && $filterMonth) {
@@ -57,6 +57,81 @@ if ($filterYear && $filterMonth) {
     $endDate   = null;
 }
 
+// filterStart hanya dipakai untuk hitung "before" (stok awal)
+if ($filterYear && $filterMonth) {
+    $filterStart = date('Y-m-01', strtotime($startDate));
+} elseif ($filterYear) {
+    $filterStart = "{$filterYear}-01-01";
+} else {
+    $filterStart = null;
+}
+
+/**
+ * Helper: sum untuk apd_adjustment_items (IN/OUT)
+ * $type: 'IN' or 'OUT' or null (null utk semua type)
+ * $before: tanggal (string) untuk menghitung < $before (sebagai "before")
+ * $betweenStart/$betweenEnd: untuk menghitung dalam periode [start,end]
+ */
+$sumAdjustmentItems = function($apdId, $type = null, $before = null, $betweenStart = null, $betweenEnd = null) {
+    $q = DB::table('apd_adjustment_items')
+        ->join('apd_adjustments', 'apd_adjustment_items.apd_adjustment_id', '=', 'apd_adjustments.id')
+        ->where('apd_adjustment_items.apd_id', $apdId);
+
+    if ($type !== null) {
+        $q->where('apd_adjustments.adjustment_type', $type);
+    }
+
+    if ($before !== null) {
+        $q->where('apd_adjustments.adjustment_date', '<', $before);
+    }
+
+    if ($betweenStart !== null && $betweenEnd !== null) {
+        $q->whereBetween('apd_adjustments.adjustment_date', [$betweenStart, $betweenEnd]);
+    }
+
+    return (int) $q->sum('apd_adjustment_items.qty');
+};
+
+/**
+ * Helper: sum untuk apd_return_items
+ * sama pattern: before OR between
+ */
+$sumReturnItems = function($apdId, $before = null, $betweenStart = null, $betweenEnd = null) {
+    $q = DB::table('apd_return_items')
+        ->join('apd_returns', 'apd_return_items.apd_return_id', '=', 'apd_returns.id')
+        ->where('apd_return_items.apd_id', $apdId);
+
+    if ($before !== null) {
+        $q->where('apd_returns.return_date', '<', $before);
+    }
+
+    if ($betweenStart !== null && $betweenEnd !== null) {
+        $q->whereBetween('apd_returns.return_date', [$betweenStart, $betweenEnd]);
+    }
+
+    return (int) $q->sum('apd_return_items.qty');
+};
+
+/**
+ * Helper: sum untuk apd_distribution_items
+ */
+$sumDistributionItems = function($apdId, $before = null, $betweenStart = null, $betweenEnd = null) {
+    $q = DB::table('apd_distribution_items')
+        ->join('apd_distributions', 'apd_distribution_items.apd_distribution_id', '=', 'apd_distributions.id')
+        ->where('apd_distribution_items.apd_id', $apdId);
+
+    if ($before !== null) {
+        $q->where('apd_distributions.distribution_date', '<', $before);
+    }
+
+    if ($betweenStart !== null && $betweenEnd !== null) {
+        $q->whereBetween('apd_distributions.distribution_date', [$betweenStart, $betweenEnd]);
+    }
+
+    return (int) $q->sum('apd_distribution_items.qty');
+};
+
+// ambil daftar apd
 $apds = Apd::orderByRaw("
         CASE
             WHEN conditions = 'Baru' THEN 1
@@ -67,76 +142,33 @@ $apds = Apd::orderByRaw("
     ")
     ->orderBy('name','asc')
     ->get();
-$apds = $apds->map(function($apd) use ($startDate, $endDate, $filterYear, $filterMonth) {
 
-    // --- Tentukan awal & akhir data APD untuk loop ---
-    $firstDate = $apd->created_at 
-        ?? APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
-            ->where('apd_adjustment_items.apd_id', $apd->id)
-            ->min('apd_adjustments.adjustment_date');
-
-    $lastDate = $endDate ?? now()->format('Y-m-d');
-
-    // --- Hitung initial_stock_filtered sebelum filter ---
-    if ($filterYear && $filterMonth) {
-        $filterStart = date('Y-m-01', strtotime($startDate));
-    } elseif ($filterYear && !$filterMonth) {
-        $filterStart = date('Y-m-01', strtotime("$filterYear-01-01"));
+$apds = $apds->map(function($apd) use (
+    $filterStart, $startDate, $endDate,
+    $sumAdjustmentItems, $sumReturnItems, $sumDistributionItems
+) {
+    // --- initial stock ---
+    if ($filterStart === null) {
+        // semua tahun/bulan: gunakan initial stock murni
+        $initialStock = (int) $apd->initial_stock;
     } else {
-        $filterStart = $firstDate; // semua tahun → awal APD
+        // hitung transaksi sebelum periode (before)
+        $inBefore = $sumAdjustmentItems($apd->id, 'IN', $filterStart, null, null);
+        $returnBefore = $sumReturnItems($apd->id, $filterStart, null, null);
+        $outBefore = $sumAdjustmentItems($apd->id, 'OUT', $filterStart, null, null);
+        $distBefore = $sumDistributionItems($apd->id, $filterStart, null, null);
+
+        $initialStock = (int) $apd->initial_stock + $inBefore + $returnBefore - $outBefore - $distBefore;
     }
 
-    $totalInBefore  = APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
-        ->where('apd_adjustment_items.apd_id', $apd->id)
-        ->where('apd_adjustments.adjustment_type','IN')
-        ->where('apd_adjustments.adjustment_date','<',$filterStart)
-        ->sum('apd_adjustment_items.qty');
-
-    $totalReturnBefore = APDReturnItem::join('apd_returns','apd_return_items.apd_return_id','=','apd_returns.id')
-        ->where('apd_return_items.apd_id', $apd->id)
-        ->where('apd_returns.return_date','<',$filterStart)
-        ->sum('apd_return_items.qty');
-
-    $totalOutBefore = APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
-        ->where('apd_adjustment_items.apd_id', $apd->id)
-        ->where('apd_adjustments.adjustment_type','OUT')
-        ->where('apd_adjustments.adjustment_date','<',$filterStart)
-        ->sum('apd_adjustment_items.qty');
-
-    $totalDistributionBefore = APDDistributionItem::join('apd_distributions','apd_distribution_items.apd_distribution_id','=','apd_distributions.id')
-        ->where('apd_distribution_items.apd_id', $apd->id)
-        ->where('apd_distributions.distribution_date','<',$filterStart)
-        ->sum('apd_distribution_items.qty');
-
-    $initialStock = $apd->initial_stock + $totalInBefore + $totalReturnBefore - $totalOutBefore - $totalDistributionBefore;
     $apd->initial_stock_filtered = $initialStock;
 
-    // --- Hitung total in/out/return/distribution ---
-    $totalIn = APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
-        ->where('apd_adjustment_items.apd_id', $apd->id)
-        ->where('apd_adjustments.adjustment_type','IN')
-        ->when($filterYear, fn($q) => $q->whereYear('apd_adjustments.adjustment_date', $filterYear))
-        ->when($filterMonth, fn($q) => $q->whereMonth('apd_adjustments.adjustment_date', $filterMonth))
-        ->sum('apd_adjustment_items.qty');
-
-    $totalReturn = APDReturnItem::join('apd_returns','apd_return_items.apd_return_id','=','apd_returns.id')
-        ->where('apd_return_items.apd_id', $apd->id)
-        ->when($filterYear, fn($q) => $q->whereYear('apd_returns.return_date', $filterYear))
-        ->when($filterMonth, fn($q) => $q->whereMonth('apd_returns.return_date', $filterMonth))
-        ->sum('apd_return_items.qty');
-
-    $totalOut = APDAdjustmentItem::join('apd_adjustments','apd_adjustment_items.apd_adjustment_id','=','apd_adjustments.id')
-        ->where('apd_adjustment_items.apd_id', $apd->id)
-        ->where('apd_adjustments.adjustment_type','OUT')
-        ->when($filterYear, fn($q) => $q->whereYear('apd_adjustments.adjustment_date', $filterYear))
-        ->when($filterMonth, fn($q) => $q->whereMonth('apd_adjustments.adjustment_date', $filterMonth))
-        ->sum('apd_adjustment_items.qty');
-
-    $totalDistribution = APDDistributionItem::join('apd_distributions','apd_distribution_items.apd_distribution_id','=','apd_distributions.id')
-        ->where('apd_distribution_items.apd_id', $apd->id)
-        ->when($filterYear, fn($q) => $q->whereYear('apd_distributions.distribution_date', $filterYear))
-        ->when($filterMonth, fn($q) => $q->whereMonth('apd_distributions.distribution_date', $filterMonth))
-        ->sum('apd_distribution_items.qty');
+    // --- total in/out/return/distribution dalam periode (jika ada) ---
+    // catatan: bila $startDate dan $endDate null, helpers tidak mem-filter (akan menjumlah seluruh data)
+    $totalIn = $sumAdjustmentItems($apd->id, 'IN', null, $startDate, $endDate);
+    $totalReturn = $sumReturnItems($apd->id, null, $startDate, $endDate);
+    $totalOut = $sumAdjustmentItems($apd->id, 'OUT', null, $startDate, $endDate);
+    $totalDistribution = $sumDistributionItems($apd->id, null, $startDate, $endDate);
 
     $apd->total_in = $totalIn;
     $apd->total_return = $totalReturn;
@@ -147,6 +179,7 @@ $apds = $apds->map(function($apd) use ($startDate, $endDate, $filterYear, $filte
 
     return $apd;
 });
+
 
 
 
