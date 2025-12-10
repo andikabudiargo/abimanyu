@@ -803,70 +803,89 @@ resetForm();
   // === CETAK LABEL ===
   // =====================
 
-  // Cetak langsung dari labels server
-  function printLabelsDirect(labels) {
-      const html = generateLabelHTML(labels);
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) return;
+  // Cetak langsung dari labels server (perbaikan)
+async function printLabelsDirect(labels) {
+    const html = await generateLabelHTML(labels);
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
 
-      printWindow.document.open();
-      printWindow.document.write(html);
-      printWindow.document.close();
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
 
-      printWindow.onload = function() {
-          printWindow.focus();
-          setTimeout(() => printWindow.print(), 500);
-      };
-  }
+    printWindow.onload = function() {
+        printWindow.focus();
+        setTimeout(() => printWindow.print(), 500);
+    };
+}
 
-  // Generate HTML label QR
-  function generateLabelHTML(labels, options = ['qr_transfer', 'qr_item']) {
-      if (!labels || !Array.isArray(labels) || labels.length === 0) {
-          return `<html><body><h3>Tidak ada label untuk dicetak</h3></body></html>`;
-      }
+async function createLabelPNG(label, text) {
+    const size = 220; // px (≈ 20mm)
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
 
-      let html = `<html><head><title>Cetak Label</title>
-          <style>
-          body { font-family: Arial; padding: 0; margin:0; }
-          .label-container {
-              width: 20mm; height: 20mm; page-break-after: always;
-              text-align: center; box-sizing: border-box;
-              display: flex; flex-direction: column;
-              justify-content: center; align-items: center;
-          }
-          .label-container img { width: 18mm; height: 18mm; }
-          .label-container div { font-size: 4pt; line-height: 1; margin-top: 0.5mm; }
-          @page { size: 20mm 20mm; margin: 0; }
-          </style>
-      </head><body>`;
+    const ctx = canvas.getContext("2d");
 
-      labels.forEach(label => {
-          // QR Transfer
-          if (label.type === 'qr_transfer' && options.includes('qr_transfer')) {
-              html += `<div class="label-container">
-                  <img src="${label.qr_path}" />
-                  <div>${label.reference_number}</div>
-              </div>`;
-          }
+    // Background
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, size, size);
 
-          // QR Item (duplikasi sesuai min_package)
-          if (label.type === 'qr_item' && options.includes('qr_item')) {
-              let minPackage = parseInt(label.min_package || 1, 10);
-              let qtyIn = parseInt(label.qty || 0, 10);
-              let numLabels = Math.ceil(qtyIn / minPackage);
+    // Load QR image
+    const qr = new Image();
+    qr.src = label.qr_path;
+    await new Promise((res) => qr.onload = res);
 
-              for (let i = 0; i < numLabels; i++) {
-                  html += `<div class="label-container">
-                      <img src="${label.qr_path}" />
-                      <div>${label.code}</div>
-                  </div>`;
-              }
-          }
-      });
+    // Draw QR (180px supaya tidak kepotong)
+    ctx.drawImage(qr, 20, 10, 180, 180);
 
-      html += `</body></html>`;
-      return html;
-  }
+    // Draw text
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 18px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(text, size / 2, 210);
+
+    return canvas.toDataURL("image/png");
+}
+
+  async function generateLabelHTML(labels, options = ['qr_transfer', 'qr_item']) {
+    if (!labels || !Array.isArray(labels) || labels.length === 0) {
+        return `<html><body><h3>Tidak ada label untuk dicetak</h3></body></html>`;
+    }
+
+    let html = `<html><head><title>Cetak Label</title>
+        <style>
+            @page { margin: 0; }
+            body { margin:0; padding:0; text-align:center; }
+            img { width: 20mm; height: 20mm; page-break-after: always; display:block; }
+        </style>
+    </head><body>`;
+
+    for (const label of labels) {
+
+        // QR Transfer
+        if (label.type === "qr_transfer" && options.includes("qr_transfer")) {
+            const png = await createLabelPNG(label, label.reference_number);
+            html += `<img src="${png}" />`;
+        }
+
+        // QR Item
+        if (label.type === "qr_item" && options.includes("qr_item")) {
+            let minPackage = parseInt(label.min_package || 1, 10);
+            let qtyIn = parseInt(label.qty || 0, 10);
+            let numLabels = Math.ceil(qtyIn / minPackage);
+
+            for (let i = 0; i < numLabels; i++) {
+                const png = await createLabelPNG(label, label.code);
+                html += `<img src="${png}" />`;
+            }
+        }
+    }
+
+    html += `</body></html>`;
+    return html;
+}
+
 
 
   // Contoh penggunaan tombol di HTML
