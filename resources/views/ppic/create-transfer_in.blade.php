@@ -836,17 +836,22 @@ async function createLabelPNG(label, text) {
     qr.src = label.qr_path;
     await new Promise((res) => qr.onload = res);
 
-    // Draw QR (180px supaya tidak kepotong)
-    ctx.drawImage(qr, 20, 10, 180, 180);
+    // === CENTERING QR CODE ===
+    const qrSize = 150; // QR fix (lebih aman untuk label kecil)
+    const qrX = (size - qrSize) / 2;           // center horizontal
+    const qrY = (size - qrSize - 30) / 2;      // center vertical (sisakan ruang 30px untuk text)
+
+    ctx.drawImage(qr, qrX, qrY, qrSize, qrSize);
 
     // Draw text
     ctx.fillStyle = "#000";
     ctx.font = "bold 18px Arial";
     ctx.textAlign = "center";
-    ctx.fillText(text, size / 2, 210);
+    ctx.fillText(text, size / 2, size - 10);
 
     return canvas.toDataURL("image/png");
 }
+
 
   async function generateLabelHTML(labels, options = ['qr_transfer', 'qr_item']) {
     if (!labels || !Array.isArray(labels) || labels.length === 0) {
