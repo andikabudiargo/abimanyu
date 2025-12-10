@@ -9,6 +9,8 @@ use Rats\Zkteco\Lib\ZKTeco;
 use Carbon\Carbon;
 use App\Helpers\WebSocketHelper;
 use App\Models\Employee;
+use App\Models\SecurityGood;
+use App\Models\SecurityGoodItem;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -19,7 +21,21 @@ class SecurityController extends Controller
         return view('security');
     }
 
- public function getDataCatering(Request $request)
+  public function getDataBarang()
+{
+    $data = SecurityGood::with('items')
+        ->orderBy('tanggal', 'DESC') // TANGGAL TERBARU DI ATAS
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $data
+    ]);
+}
+
+
+
+public function getDataCatering(Request $request)
 {
     $request->validate([
         'date'  => 'required|date',
@@ -111,5 +127,91 @@ public function broadcastNewCatering(Request $request)
     return response()->json(['status' => 'ok']);
 }
 
+public function storeBarang(Request $r)
+    {
+        DB::beginTransaction();
+        try {
+// Simpan foto surat jalan
+$fotoSuratJalan = null;
 
+if ($r->hasFile('surat_jalan')) {
+
+    // Tentukan lokasi folder tujuan (path absolut server)
+    $destinationPath = '/home/abimany3/public_html/surat_jalan';
+
+    // Ambil nama file asli
+    $fileName = time() . '_' . $r->file('surat_jalan')->getClientOriginalName();
+
+    // Pindahkan file ke folder tujuan
+    $r->file('surat_jalan')->move($destinationPath, $fileName);
+
+    // Simpan hanya nama file ke database
+    $fotoSuratJalan = $fileName;
 }
+            // Simpan data utama
+            $barang = SecurityGood::create([
+                'jenis_barang'      => $r->jenis_barang,
+                'tanggal'    => $r->tanggal,
+                'jam_masuk'    => $r->jam_masuk,
+                'jam_keluar'        => $r->jam_keluar,
+                'perusahaan'   => $r->perusahaan,
+                'identitas'   => $r->identitas,
+                'nama_pengirim'     => $r->nama_pengirim,
+                'nomor_kendaraan'      => $r->nomor_kendaraan,
+                'nama_penerima'     => $r->nama_penerima,
+                'surat_jalan'  => $fotoSuratJalan,
+            ]);
+
+            // Simpan item daftar barang
+            if ($r->nama_barang) {
+                foreach ($r->nama_barang as $i => $nama) {
+
+                  $fotoItem = null;
+
+if ($r->hasFile("foto.$i")) {
+
+    $file = $r->file("foto.$i");
+
+    // Nama file unik
+    $filename = time() . '_' . $file->getClientOriginalName();
+
+    // Path tujuan
+    $destinationPath = '/home/abimany3/public_html/barang_item';
+
+    // Pindahkan file
+    $file->move($destinationPath, $filename);
+
+    // Simpan hanya nama file
+    $fotoItem = $filename;
+}
+
+
+                    SecurityGoodItem::create([
+                        'security_good_id' => $barang->id, // <-- wajib
+                        'nama_barang' => $nama,
+                        'jumlah' => $r->jumlah[$i],
+                        'foto' => $fotoItem,
+                        'kondisi' => $r->kondisi[$i],
+                        'catatan' => $r->catatan[$i] ?? null
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Barang berhasil disimpan!',
+                 'id' => $barang->id // → penting!
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+}
+

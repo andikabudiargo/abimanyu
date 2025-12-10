@@ -129,6 +129,8 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::get('/security', [SecurityController::class, 'index'])
     ->name('security');
     Route::get('/security/catering', [SecurityController::class, 'getDataCatering'])->name('security.catering');
+    Route::post('/security/store/barang', [SecurityController::class, 'storeBarang'])->name('store.barang');
+    Route::get('/security-goods/list', [SecurityController::class, 'getDataBarang'])->name('barang.list');
     Route::post('/security/catering/broadcast', [SecurityController::class, 'broadcastNewCatering']);
 
 

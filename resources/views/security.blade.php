@@ -6,7 +6,63 @@
 @section('breadcrumb-active', 'Catering Management')
 
 @section('content')
- <div id="cateringPanel" class="p-4 bg-white rounded-t-lg mt-4 animate-fadeIn">
+ <div id="homePanel" class="p-6 bg-white from-gray-50 to-white rounded-xl shadow-sm mt-6 animate-fadeIn">
+
+    <!-- HEADER -->
+    <div class="text-left mb-6">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
+            Selamat Datang,
+        </h1>
+
+        <p class="text-sm text-gray-500 mt-2 tracking-wide">
+            Security Services PT. Abimanyu Sekar Nusantara.
+        </p>
+
+        <!-- GARIS HIASAN -->
+        <div class="mx-auto w-full h-1 bg-teal-600 rounded mt-3"></div>
+    </div>
+
+     <div class="mb-6">
+    <div class="flex items-center mb-3">
+      <div class="w-1.5 h-5 bg-teal-600 rounded mr-2"></div>
+      <h3 class="text-sm font-semibold text-gray-800">Pilih Layanan</h3>
+    </div>
+    <div class="grid grid-cols-3 gap-3">
+      <a href="#" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 transition">
+        <div class="text-xl sm:text-2xl mb-1">🚻</div>
+        <span class="text-[11px] sm:text-xs font-medium text-gray-700 text-center">Verifikasi Identitas Tamu</span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 transition">
+        <div class="text-xl sm:text-2xl mb-1">🚶</div>
+        <span class="text-[11px] sm:text-xs font-medium text-gray-700 text-center">Verifikasi Surat Izin Keluar</span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 transition">
+        <div class="text-xl sm:text-2xl mb-1">🚗</div>
+        <span class="text-[11px] sm:text-xs font-medium text-gray-700 text-center">Verifikasi Surat Dinas Luar</span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 transition">
+        <div class="text-xl sm:text-2xl mb-1">👷</div>
+        <span class="text-[11px] sm:text-xs font-medium text-gray-700 text-center">Patrol</span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 transition">
+        <div class="text-xl sm:text-2xl mb-1">📦</div>
+        <span class="text-[11px] sm:text-xs font-medium text-gray-700 text-center">Pencatatan Barang Masuk</span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 transition">
+        <div class="text-xl sm:text-2xl mb-1">☕</div>
+        <span class="text-[11px] sm:text-xs font-medium text-gray-700 text-center">Estimasi Porsi Catering</span>
+      </a>
+    </div>
+  </div>
+
+   
+
+    </div>
+
+</div>
+
+
+ <div id="cateringPanel" class="p-4 bg-white rounded-t-lg mt-4 mb-12 animate-fadeIn">
  <div class="relative overflow-hidden rounded-2xl shadow-lg p-6 mb-8 text-white text-center bg-gradient-to-br from-blue-500 via-blue-300 to-blue-500 transform transition-all hover:scale-[1.02] hover:shadow-2xl">
   <!-- Efek Cahaya Bergerak -->
   <div class="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent opacity-30 blur-2xl"></div>
@@ -106,34 +162,393 @@
   </div>
 </div>
 
-<!-- Floating Bottom Navigation (Mobile Only) -->
-<nav class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg z-50">
-  <div class="flex justify-around">
+<div id="barangPanel" class="p-4 bg-white rounded-t-lg mt-2 animate-fadeIn">
 
-    <!-- Home -->
-    <a href="#home"
-       class="nav-item flex flex-col items-center justify-center py-2 w-full text-gray-500 hover:text-blue-500 transition-colors duration-200">
-      <i data-feather="home" class="w-5 h-5 mb-1"></i>
-      <span class="text-xs font-medium">Home</span>
-    </a>
+ <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Sistem Pengecekan Barang</h2>
+    <p class="text-xs text-gray-500 mt-1">Keamanan Dimulai dari Pintu Masuk.</p>
+    <div class="w-14 h-1 bg-teal-600 rounded mt-2"></div>
+  </div>
+  <!-- === SEARCH BAR + ICONS === -->
+<div class="flex items-center gap-3 mb-4">
+
+    <!-- SEARCH INPUT -->
+    <div class="relative flex-1">
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Search barang..."
+            class="w-full border border-gray-300 rounded-lg py-2 pl-10 pr-12 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+        <i data-feather="search" class="absolute left-3 top-2.5 w-5 h-5 text-gray-500"></i>
+
+        <!-- FILTER ICON -->
+        <button id="openFilterBtn"
+            class="absolute right-3 top-2.5 text-gray-600 hover:text-blue-600">
+            <i data-feather="sliders" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <!-- SELECT MODE -->
+    <button id="selectModeBtn"
+        class="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-600">
+        <i data-feather="check-square" class="w-5 h-5"></i>
+    </button>
+
+    <!-- EDIT MODE -->
+    <button id="editModeBtn"
+        class="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-600">
+        <i data-feather="edit-3" class="w-5 h-5"></i>
+    </button>
+
+</div>
+<div class="w-full h-[calc(100vh-150px)] overflow-y-auto overflow-x-auto">
+    <table id="barangTable" class="w-full border-collapse whitespace-nowrap">
+
+        <thead class="sticky top-0 bg-blue-500 text-white">
+            <tr>
+                <th class="p-2 text-left">Tanggal</th>
+                <th class="p-2 text-left">Jenis Barang</th>
+                <th class="p-2 text-center">Jam Kedatangan</th>
+                <th class="p-2 text-center">Jam Keluar</th>
+                <th class="p-2 text-center">No. Kendaraan</th>
+                <th class="p-2 text-center">Identitas</th>
+                <th class="p-2 text-left">Perusahaan/Alamat</th>
+                <th class="p-2 text-left">Nama Pengirim</th>
+                <th class="p-2 text-left">Nama Penerima</th>
+                <th class="p-2 text-center">Bukti Surat Jalan</th>
+            </tr>
+        </thead>
+
+        <tbody id="barangBody"></tbody>
+    </table>
+</div>
+
+
+<!-- 🌟 Floating Add Button -->
+<button id="barangAdd"
+  class="fixed bottom-20 right-4 bg-blue-600 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center hover:bg-blue-700 transform hover:scale-110 transition-all duration-300 z-50">
+  <i data-feather="plus" class="w-6 h-6"></i>
+</button>
+<!-- 🌟 OVERLAY -->
+<div id="sidebarOverlay"
+  class="fixed inset-0 bg-black bg-opacity-40 hidden z-80 transition-opacity"></div>
+
+<!-- 🌟 SIDEBAR -->
+<div id="sidebarForm"
+  class="fixed top-0 right-0 h-full w-full lg:w-[50%] bg-white shadow-xl transform translate-x-full transition-transform duration-300 z-70 flex flex-col">
+
+  <!-- ⭐ HEADER -->
+  <div class="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+    <h2 class="text-xl font-semibold">Tambah Barang</h2>
+    <button id="closeSidebar" class="text-gray-500 hover:text-gray-700">
+      <i data-feather="x" class="w-5 h-5"></i>
+    </button>
+  </div>
+
+  <!-- ⭐ CONTENT (SCROLLABLE) -->
+  <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+    <form id="formInput" class="space-y-6">
+      @csrf
+<input type="hidden" name="security_good_id" id="security_good_id" value="{{ $securityGood->id ?? '' }}">
+
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Jenis Barang</label>
+      <select name="jenis_barang" class="w-full border rounded-lg p-2">
+        <option value="">-- Pilih Jenis Barang --</option>
+        <option value="Raw Material (Part)">Raw Material (Part)</option>
+        <option value="Pembelian Barang (PO)">Pembelian Barang (PO)</option>
+        <option value="Peminjaman Barang Sementara (PBS)">Peminjaman Barang Sementara (PBS)</option>
+        <option value="Lainnya">Lainnya</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Tanggal Kedatangan</label>
+      <input type="date" name="tanggal" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Jam Kedatangan</label>
+      <input type="time" name="jam_masuk" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Jam Keluar</label>
+      <input type="time" name="jam_keluar" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Perusahaan/Alamat Pengirim</label>
+      <input type="text" name="perusahaan" class="w-full border rounded-lg p-2">
+    </div>
+
+      <div>
+      <label class="block text-sm font-medium mb-1">No. Kendaraan (Plat Nomor)</label>
+      <input type="text" name="nomor_kendaraan" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Identitas Pengirim</label>
+      <select name="identitas" class="w-full border rounded-lg p-2">
+        <option value="">-- Pilih Jenis Identitas --</option>
+        <option value="KTP">KTP</option>
+        <option value="ID Card">ID Card</option>
+        <option value="SIM">SIM</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Nama Pengirim</label>
+      <input type="text" name="nama_pengirim" class="w-full border rounded-lg p-2">
+    </div>
+
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Nama Penerima (Pengecekan)</label>
+      <input type="text" name="nama_penerima" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Upload Foto Surat Jalan</label>
+      <input type="file" name="surat_jalan" accept="image/*" class="w-full border rounded-lg p-1.5">
+    </div>
+
+</div>
+
+      <!-- 🔶 SECTION ITEM LIST -->
+    <div class="mt-4">
+  <h3 class="text-lg font-semibold mb-3">Daftar Barang</h3>
+<div class="overflow-x-auto">
+  <table class="min-w-max text-sm" id="itemTable">
+    <thead class="bg-blue-500 text-white">
+      <tr>
+        <th class="border p-2 w-48">Nama Barang</th>
+        <th class="border p-2 w-24">Jumlah</th>
+        <th class="border p-2 w-24">Foto</th>
+        <th class="border p-2 w-32">Kondisi</th>
+        <th class="border p-2">Catatan</th>
+        <th class="border p-2 w-24">#</th>
+      </tr>
+    </thead>
+    <tbody id="itemBody"></tbody>
+  </table>
+</div>
+
+
+  <button type="button"
+    id="addRow"
+    class="mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-all">
+    + Tambah Item
+  </button>
+
+</div>
+
+
+    </form>
+
+  </div>
+
+  <!-- ⭐ FOOTER -->
+  <div class="p-4 border-t bg-white sticky bottom-0 z-10">
+    <button form="formInput"
+      class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-all">
+      Simpan
+    </button>
+  </div>
+
+</div>
+
+
+<!-- 🌟 SIDEBAR -->
+<div id="filterSidebar"
+  class="fixed top-0 right-0 h-full w-[50%] bg-white shadow-xl transform translate-x-full transition-transform duration-300 z-70 flex flex-col">
+
+  <!-- ⭐ HEADER -->
+  <div class="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+    <h2 class="text-xl font-semibold">Filter Barang</h2>
+    <button id="closeFilterBtn" class="text-gray-500 hover:text-gray-700">
+      <i data-feather="x" class="w-5 h-5"></i>
+    </button>
+  </div>
+
+  <!-- ⭐ CONTENT (SCROLLABLE) -->
+  <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+    <form id="formInput" class="space-y-6">
+      @csrf
+<input type="hidden" name="security_good_id" id="security_good_id" value="{{ $securityGood->id ?? '' }}">
+
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <div class="col-span-2">
+      <label class="block text-sm font-medium mb-1">Jenis Barang</label>
+      <select name="jenis_barang" class="w-full border rounded-lg p-2">
+        <option value="">-- Pilih Jenis Barang --</option>
+        <option value="Raw Material (Part)">Raw Material (Part)</option>
+        <option value="Pembelian Barang (PO)">Pembelian Barang (PO)</option>
+        <option value="Peminjaman Barang Sementara (PBS)">Peminjaman Barang Sementara (PBS)</option>
+        <option value="Lainnya">Lainnya</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Tanggal Kedatangan</label>
+      <input type="date" name="tanggal" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Jam Kedatangan</label>
+      <input type="time" name="jam_masuk" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Jam Keluar</label>
+      <input type="time" name="jam_keluar" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Perusahaan/Alamat Pengirim</label>
+      <input type="text" name="perusahaan" class="w-full border rounded-lg p-2">
+    </div>
+
+      <div>
+      <label class="block text-sm font-medium mb-1">No. Kendaraan (Plat Nomor)</label>
+      <input type="text" name="nomor_kendaraan" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Identitas Pengirim</label>
+      <select name="identitas" class="w-full border rounded-lg p-2">
+        <option value="">-- Pilih Jenis Identitas --</option>
+        <option value="KTP">KTP</option>
+        <option value="ID Card">ID Card</option>
+        <option value="SIM">SIM</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Nama Pengirim</label>
+      <input type="text" name="nama_pengirim" class="w-full border rounded-lg p-2">
+    </div>
+
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Nama Penerima (Pengecekan)</label>
+      <input type="text" name="nama_penerima" class="w-full border rounded-lg p-2">
+    </div>
+
+   
+
+</div>
+
+
+    </form>
+
+  </div>
+
+  <!-- ⭐ FOOTER -->
+  <div class="p-4 border-t bg-white sticky bottom-0 z-10">
+    <button form="formInput"
+      class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-all">
+      Filter
+    </button>
+  </div>
+
+</div>
+
+
+<!-- === SIDEBAR FILTER (KANAN) === -->
+<div id="filterSideba"
+     class="fixed top-0 right-0 w-72 h-full bg-white shadow-xl transform translate-x-full transition-transform duration-300 z-50">
+
+    <div class="p-4 border-b flex justify-between items-center">
+        <h2 class="text-lg font-semibold">Filter Barang</h2>
+        <button id="closeFilteBtn" class="text-gray-600 hover:text-red-500">
+            <i data-feather="x" class="w-6 h-6"></i>
+        </button>
+    </div>
+
+    <div class="p-4">
+        <!-- Tambahkan filter yang Anda perlukan -->
+        <label class="block mb-1 text-sm">Jenis Barang</label>
+        <select class="w-full border rounded-lg p-2 mb-4">
+            <option value="">-- Semua Barang --</option>
+            <option value="Raw Material (Part)">Raw Material (Part)</option>
+            <option value="Pembelian Barang (PO)">Pembelian Barang (PO)</option>
+            <option value="Peminjaman Barang Sementara (PBS)">Peminjaman Barang Sementara (PBS)</option>
+            <option value="Lainnya">Lainnya</option>
+        </select>
+
+         <div>
+      <label class="block text-sm font-medium mb-1">Tanggal Kedatangan</label>
+      <input type="date" name="tanggal" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Jam Kedatangan</label>
+      <input type="time" name="jam_masuk" class="w-full border rounded-lg p-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Jam Keluar</label>
+      <input type="time" name="jam_keluar" class="w-full border rounded-lg p-2">
+    </div>
+
+        <label class="block mb-1 text-sm">Status Stok</label>
+        <select class="w-full border rounded-lg p-2">
+            <option>Semua</option>
+            <option>Stok Tersedia</option>
+            <option>Habis</option>
+        </select>
+    </div>
+</div>
+
+</div>
+
+<!-- Floating Bottom Navigation (Mobile Only) -->
+<nav id="bottomNav" class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg z-50">
+  <div class="relative flex justify-around items-center">
 
     <!-- Visitor -->
     <a href="#visitor"
-       class="nav-item flex flex-col items-center justify-center py-2 w-full text-gray-500 hover:text-blue-500 transition-colors duration-200">
+       class="nav-item flex flex-col items-center justify-center py-3 w-full text-gray-500 hover:text-blue-500 transition duration-200">
       <i data-feather="user" class="w-5 h-5 mb-1"></i>
       <span class="text-xs font-medium">Visitor</span>
     </a>
 
-    <!-- Izin -->
+    
+
+    <!-- Izin (beri jarak dari Home) -->
     <a href="#izin"
-       class="nav-item flex flex-col items-center justify-center py-2 w-full text-gray-500 hover:text-blue-500 transition-colors duration-200">
+       class="nav-item mx-4 flex flex-col items-center justify-center py-3 w-full text-gray-500 hover:text-blue-500 transition duration-200">
       <i data-feather="clock" class="w-5 h-5 mb-1"></i>
       <span class="text-xs font-medium">Izin</span>
     </a>
 
+    <!-- === HOME (ABSOLUTE FLOATING BUTTON) === -->
+    <div class="absolute -top-7 left-1/2 -translate-x-1/2">
+      <a href="#home" class="flex flex-col items-center justify-center">
+        <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-xl border-4 border-white">
+          <i data-feather="home" class="w-8 h-8 text-white"></i>
+        </div>
+      
+      </a>
+    </div>
+
+    <!-- Barang (beri jarak dari Home) -->
+    <a href="#barang"
+       class="nav-item mx-4 flex flex-col items-center justify-center py-3 w-full text-gray-500 hover:text-blue-500 transition duration-200">
+      <i data-feather="package" class="w-5 h-5 mb-1"></i>
+      <span class="text-xs font-medium">Barang</span>
+    </a>
+
     <!-- Catering -->
     <a href="#catering"
-       class="nav-item flex flex-col items-center justify-center py-2 w-full text-gray-500 hover:text-blue-500 transition-colors duration-200">
+       class="nav-item flex flex-col items-center justify-center py-3 w-full text-gray-500 hover:text-blue-500 transition duration-200">
       <i data-feather="coffee" class="w-5 h-5 mb-1"></i>
       <span class="text-xs font-medium">Catering</span>
     </a>
@@ -141,11 +556,10 @@
   </div>
 </nav>
 
-<!-- 🌟 Floating Add Button -->
-<button id="fabAdd"
-  class="fixed bottom-20 right-4 bg-blue-600 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center hover:bg-blue-700 transform hover:scale-110 transition-all duration-300 z-50">
-  <i data-feather="plus" class="w-6 h-6"></i>
-</button>
+
+
+
+
 {{-- SCRIPT --}}
 @push('scripts')
 <style>
@@ -388,7 +802,257 @@ div.dt-button-collection .dt-button:hover {
 
 </style>
 <script>
-   feather.replace();
+
+ let globalData = []; // SIMPAN DATA GLOBAL
+
+// ======================================================
+//  LOAD DATA AWAL
+// ======================================================
+function loadBarang() {
+    $.ajax({
+        url: "{{ route('barang.list') }}",
+        method: "GET",
+        success: function(res) {
+            if (!res.success) return;
+
+            globalData = res.data; // SIMPAN DATA GLOBAL
+            renderBarang(globalData); // RENDER PERTAMA
+        }
+    });
+}
+
+function renderBarang(data) {
+          let rows = "";
+let lastDate = "";
+
+// Urutkan dari terbaru ke terlama
+data.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+
+data.forEach(item => {
+
+    // Jika tanggal berubah → tampilkan header tanggal
+    if (item.tanggal !== lastDate) {
+        rows += `
+            <tr class="bg-gray-100">
+                <td colspan="10" class="p-2 font-bold text-gray-700 border-l">
+                   ${item.tanggal}
+                </td>
+            </tr>
+        `;
+        lastDate = item.tanggal;
+    }
+
+   rows += `
+   <tr class="border-b accordion-row cursor-pointer" data-id="${item.id}">
+        <!-- Tanggal (normal) -->
+        <td class="p-2 font-semibold bordder-l">${item.tanggal ?? '-'}</td>
+
+        <!-- Jenis Barang (UPPERCASE) -->
+        <td class="p-2 text-gray-900 font-bold">
+            ${(item.jenis_barang ?? '-').toUpperCase()}
+        </td>
+
+      <!-- JAM MASUK (text-center) -->
+<td class="p-2 text-left">
+    <i class="fa-regular fa-clock text-green-600 mr-1 text-lg"></i>
+    <span class="text-green-700 font-semibold">
+        ${item.jam_masuk ? item.jam_masuk.substring(0,5) : '-'} WIB
+    </span>
+</td>
+
+<!-- JAM KELUAR (text-center) -->
+<td class="p-2 text-left">
+    <i class="fa-regular fa-clock text-red-600 mr-1 text-lg"></i>
+    <span class="text-red-700 font-semibold">
+        ${item.jam_keluar ? item.jam_keluar.substring(0,5) : '-'} WIB
+    </span>
+</td>
+
+
+        <!-- Nomor Kendaraan (UPPERCASE, left) -->
+        <td class="p-2 text-left">
+            <i class="fa-solid fa-car text-indigo-900 text-lg mr-2"></i>
+            <span class="text-indigo-900 font-semibold">
+                ${(item.nomor_kendaraan ?? '-').toUpperCase()}
+            </span>
+        </td>
+
+        <!-- Identitas (UPPERCASE, left) -->
+        <td class="p-2 text-left">
+            <i class="fa-solid fa-id-card text-indigo-900 text-lg mr-2"></i>
+            <span class="text-indigo-900 font-semibold">
+                ${(item.identitas ?? '-').toUpperCase()}
+            </span>
+        </td>
+
+        <!-- Perusahaan (UPPERCASE, left) -->
+        <td class="p-2 text-left">
+            <i class="fa-solid fa-building text-indigo-900 text-lg mr-2"></i>
+            <span class="text-indigo-900 font-semibold">
+                ${(item.perusahaan ?? '-').toUpperCase()}
+            </span>
+        </td>
+
+        <!-- Pengirim (UPPERCASE, left) -->
+        <td class="p-2 text-left">
+            <i class="fa-solid fa-user text-indigo-900 text-md mr-2"></i>
+            <span class="text-indigo-900 font-semibold">
+                ${(item.nama_pengirim ?? '-').toUpperCase()}
+            </span>
+        </td>
+
+        <!-- Penerima (UPPERCASE, left) -->
+        <td class="p-2 text-left">
+            <i class="fa-solid fa-user text-indigo-900 text-md mr-2"></i>
+            <span class="text-indigo-900 font-semibold">
+                ${(item.nama_penerima ?? '-').toUpperCase()}
+            </span>
+        </td>
+
+            <td class="p-2 text-center">
+                ${item.surat_jalan ? `
+                <div class="flex items-center justify-center gap-2">
+
+                    <!-- WATCH (hanya tampil saat desktop) -->
+                    <button class="watchBtn bg-blue-500 text-white px-2 py-1 rounded text-xs hidden md:inline-block"
+                            data-img="/surat_jalan/${item.surat_jalan}">
+                        Watch
+                    </button>
+
+                   <!-- DOWNLOAD -->
+<a href="/surat_jalan/${item.surat_jalan}"
+   download
+   class="bg-green-600 text-white px-2 py-1 rounded text-xs">
+   Download
+</a>
+
+                </div>
+                ` : '-'}
+            </td>
+        </tr>
+ <!-- ====== DETAIL (ITEMS) ====== -->
+                <tr class="accordion-detail hidden bg-gray-50" data-id="${item.id}">
+                    <td colspan="10" class="p-4">
+
+                        <div class="grid grid-cols-1 gap-4">
+                `;
+
+         // ====== LOOP ITEMS (1 BARIS PER BARANG, KOMPAK & MODERN) ======
+item.items.forEach(d => {
+    rows += `
+        <div class="flex bg-yellow-50 rounded-xl items-center gap-4 border p-2">
+
+            <!-- FOTO BARANG -->
+            <img src="/barang_item/${d.foto}" 
+                 class="w-20 h-20 object-cover rounded shadow">
+
+            <!-- INFORMASI BARANG -->
+            <div class="flex-1 grid grid-cols-1 gap-2">
+
+                <p class="text-sm">
+                    <span class="font-semibold text-gray-900">Nama Barang:</span>
+                    ${d.nama_barang ?? '-'}
+                </p>
+
+                <p class="text-sm">
+                    <span class="font-semibold text-gray-900">Jumlah:</span>
+                    ${d.jumlah ?? '-'} pcs
+                </p>
+
+                 <p class="text-sm">
+                    <span class="font-semibold text-gray-900">Kondisi:</span>
+                    ${d.kondisi ?? '-'}
+                </p>
+
+                <p class="text-sm">
+                    <span class="font-semibold text-gray-900">Catatan:</span>
+                    ${d.catatan ?? '-'}
+                </p>
+            </div>
+        </div>
+    `;
+});
+
+
+
+                rows += `
+                        </div>
+                    </td>
+                </tr>
+
+
+`;
+});
+
+$("#barangBody").html(rows);
+feather.replace();
+}
+
+// ======================================================
+//  SEARCH FILTER (REALTIME)
+// ======================================================
+document.getElementById("searchInput").addEventListener("input", function () {
+    const keyword = this.value.toLowerCase();
+
+    const filtered = globalData.filter(row => {
+        const parentMatch = JSON.stringify(row).toLowerCase().includes(keyword);
+
+        const itemMatch = row.items.some(d =>
+            (d.nama_barang ?? "").toLowerCase().includes(keyword) ||
+            (d.kondisi ?? "").toLowerCase().includes(keyword) ||
+            (d.catatan ?? "").toLowerCase().includes(keyword)
+        );
+
+        return parentMatch || itemMatch;
+    });
+
+    renderBarang(filtered); // TANPA AJAX ULANG
+});
+
+
+
+// FIRST LOAD
+loadBarang();
+
+
+$(document).on('click', '.accordion-row', function () {
+    const id = $(this).data('id');
+    const detailRow = $(`.accordion-detail[data-id="${id}"]`);
+    detailRow.toggleClass('hidden');
+});
+
+$(document).ready(function () {
+  
+loadBarang()
+    feather.replace();
+
+    // Fungsi OPEN sidebar
+    function openSidebar() {
+        $("#sidebarForm").removeClass("translate-x-full");
+        $("#sidebarOverlay").removeClass("hidden");
+        $("#bottomNav").hide(); // sembunyikan bottom nav
+         $("#barangAdd").hide(); // sembunyikan bottom nav
+    }
+
+    // Fungsi CLOSE sidebar
+    function closeSidebar() {
+        $("#sidebarForm").addClass("translate-x-full");
+        $("#sidebarOverlay").addClass("hidden");
+        $("#bottomNav").show(); // tampilkan lagi
+         $("#barangAdd").show(); // sembunyikan bottom nav
+    }
+
+    // Trigger open
+    $("#barangAdd, #openSidebar").on("click", openSidebar);
+
+    // Trigger close
+    $("#closeSidebar, #sidebarOverlay").on("click", closeSidebar);
+
+});
+
+
+
 
 $(document).ready(function() {
 
@@ -402,19 +1066,6 @@ $(document).ready(function() {
   $('.nav-link').on('click', function() {
     $('.nav-link').removeClass('bg-blue-50 text-blue-600');
     $(this).addClass('bg-blue-50 text-blue-600');
-  });
-
-  // === BUTTON ADD EFFECT ===
-  $('#fabAdd').on('click', function() {
-    $(this).addClass('scale-90');
-    setTimeout(() => $(this).removeClass('scale-90'), 150);
-
-    Swal.fire({
-      title: 'Tambah Data Baru',
-      text: 'Tombol Add diklik!',
-      icon: 'info',
-      confirmButtonText: 'OK'
-    });
   });
 
  $(document).ready(function () {
@@ -507,48 +1158,209 @@ $(document).ready(function() {
 });
 
 
+});
 
-  // === SOCKET.IO ===
-  const socket = io("http://127.0.0.1:6001");
+// === Sidebar Filter ===
+document.getElementById('openFilterBtn').onclick = () => {
+    document.getElementById('filterSidebar').classList.remove('translate-x-full');
+};
 
-  socket.on("connect", function() {
-    console.log("Terhubung ke server WebSocket.");
-  });
+document.getElementById('closeFilterBtn').onclick = () => {
+    document.getElementById('filterSidebar').classList.add('translate-x-full');
+};
 
-  socket.on("disconnect", function() {
-    console.warn("Terputus dari server WebSocket.");
-  });
+// === SELECT MODE ===
+let selectMode = false;
+document.getElementById('selectModeBtn').onclick = () => {
+    selectMode = !selectMode;
+    const rows = document.querySelectorAll('#barangTable tbody tr');
 
-  socket.on("new_catering", function(data) {
-    console.log("Data baru diterima:", data);
+    if (selectMode) {
+        rows.forEach(r => {
+            r.classList.add("cursor-pointer");
+            r.onclick = () => r.classList.toggle("bg-blue-100");
+        });
+    } else {
+        rows.forEach(r => {
+            r.classList.remove("cursor-pointer", "bg-blue-100");
+            r.onclick = null;
+        });
+    }
+};
 
-    $('#cateringTableBody').prepend(`
-      <tr class="bg-green-100 animate-pulse">
-        <td class="py-2 px-3 uppercase">${data.name}</td>
-        <td class="py-2 px-3">${data.nik}</td>
-        <td class="py-2 px-3">${data.timestamp}</td>
-      </tr>
-    `);
+// === EDIT MODE ===
+let editMode = false;
+document.getElementById('editModeBtn').onclick = () => {
+    editMode = !editMode;
+    const cells = document.querySelectorAll('#barangTable tbody td');
 
-    // Update counter
-    const total = parseInt($('#cateringCount').text()) || 0;
-    $('#cateringCount').text(total + 1);
+    if (editMode) {
+        cells.forEach(c => c.setAttribute("contenteditable", "true"));
+    } else {
+        cells.forEach(c => c.removeAttribute("contenteditable"));
+    }
+};
 
-    // SweetAlert2 notification (toast)
-    Swal.fire({
-      title: 'Karyawan Baru Masuk!',
-      text: `${data.name} baru saja absen masuk.`,
-      icon: 'success',
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 2500,
-      timerProgressBar: true
+$(document).ready(function () {
+// --- SEMBUNYIKAN SEMUA PANEL DI AWAL ---
+$("#homePanel").show();
+$("#barangPanel").hide();
+$("#cateringPanel").hide();
+
+function openPanel(panelId, buttonAnchor) {
+    // Sembunyikan semua panel TERMASUK home
+    $("#homePanel, #barangPanel, #cateringPanel").hide();
+
+    // Tampilkan panel yang dipilih
+    $(panelId).fadeIn(200);
+
+    // Reset semua tombol nav
+    $(".nav-item")
+        .removeClass("text-blue-600 font-semibold")
+        .addClass("text-gray-500");
+
+    // Highlight tombol aktif
+    $(buttonAnchor)
+        .removeClass("text-gray-500")
+        .addClass("text-blue-600 font-semibold");
+
+    feather.replace();
+}
+
+// --- EVENT CLICK NAVBAR ---
+$("a[href='#barang']").click(function () {
+    openPanel("#barangPanel", this);
+});
+
+$("a[href='#catering']").click(function () {
+    openPanel("#cateringPanel", this);
+});
+
+$("a[href='#home']").click(function () {
+    // Sembunyikan semua panel
+    $("#barangPanel, #cateringPanel").hide();
+
+    // Tampilkan home
+    $("#homePanel").fadeIn(200);
+
+    // Styling tombol
+    $(".nav-item")
+        .removeClass("text-blue-600 font-semibold")
+        .addClass("text-gray-500");
+
+    $(this)
+        .removeClass("text-gray-500")
+        .addClass("text-blue-600 font-semibold");
+
+    feather.replace();
+});
+
+
+});
+$(document).ready(function () {
+
+    feather.replace();
+
+    // Tambah Row Item
+    $("#addRow").on("click", function () {
+       let row = `
+<tr>
+    <td class="border p-2 w-48">
+        <input type="text" name="nama_barang[]" class="w-full border rounded p-1">
+    </td>
+
+    <td class="border p-2 w-20">
+        <input type="number" name="jumlah[]" class="w-full border rounded p-1" min="1">
+    </td>
+
+    <td class="border p-2 w-28">
+        <input type="file" name="foto[]" class="w-full border rounded p-1">
+    </td>
+
+    <td class="border p-2 w-32">
+        <select name="kondisi[]" class="w-full border rounded p-1">
+            <option value="Normal">Normal</option>
+            <option value="Rusak">Rusak</option>
+        </select>
+    </td>
+
+    <td class="border p-2 w-40">
+        <input type="text" name="catatan[]" class="w-full border rounded p-1">
+    </td>
+
+    <td class="border p-2 text-center w-14">
+        <button type="button" class="text-red-500 deleteRow">x</button>
+    </td>
+</tr>
+`;
+
+        $("#itemBody").append(row);
     });
-  });
 
-  // === INITIAL LOAD + AUTO REFRESH ===
-  loadCateringData();
+    // Hapus Row
+    $(document).on("click", ".deleteRow", function () {
+        $(this).closest("tr").remove();
+    });
+
+    // 🔥 DEFAULT TAMBAH 1 BARIS SAAT LOAD
+    $("#addRow").click();
+
+    $("#formInput").submit(function (e) {
+    e.preventDefault();
+
+    let formData = new FormData(this);
+
+    $.ajax({
+        url: "{{ route('store.barang') }}",
+        method: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        beforeSend: function() {
+            Swal.fire({
+                title: 'Menyimpan...',
+                text: 'Mohon tunggu',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+        },
+        success: function (res) {
+            Swal.close();
+
+            if (res.success) {
+
+              let securityGoodId = res.id;   // ⬅ ID dari parent
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: res.message
+                });
+
+                $("#formInput")[0].reset();
+                $("#itemBody").empty();
+                $("#addRow").click();
+                loadBarang()
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: res.message
+                });
+            }
+        },
+        error: function (xhr) {
+            Swal.close();
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: xhr.responseJSON?.message ?? "Terjadi kesalahan"
+            });
+        }
+    });
+});
+
 });
 
   </script>
