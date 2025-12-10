@@ -799,97 +799,90 @@ resetForm();
     });
 }
 
-// =====================
-  // === CETAK LABEL ===
-  // =====================
+async function sendToLocalPrinter(tspl) {
+    try {
+        const res = await fetch("http://localhost:9001/print", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: tspl
+        });
 
-  // Cetak langsung dari labels server (perbaikan)
-async function printLabelsDirect(labels) {
-    const html = await generateLabelHTML(labels);
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+        const json = await res.json();
 
-    printWindow.document.open();
-    printWindow.document.write(html);
-    printWindow.document.close();
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: json.message,
+            timer: 1500,
+            showConfirmButton: false
+        });
 
-    printWindow.onload = function() {
-        printWindow.focus();
-        setTimeout(() => printWindow.print(), 500);
-    };
-}
+    } catch (err) {
 
-async function createLabelPNG(label, text) {
-    const size = 220; // px (≈ 20mm)
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal Terhubung',
+            html: "Print server tidak ditemukan.<br>Pastikan <b>print_server.py</b> sedang berjalan.",
+            confirmButtonText: 'OK'
+        });
 
-    const ctx = canvas.getContext("2d");
-
-    // Background
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, size, size);
-
-    // Load QR image
-    const qr = new Image();
-    qr.src = label.qr_path;
-    await new Promise((res) => qr.onload = res);
-
-    // === CENTERING QR CODE ===
-    const qrSize = 150; // QR fix (lebih aman untuk label kecil)
-    const qrX = (size - qrSize) / 2;           // center horizontal
-    const qrY = (size - qrSize - 30) / 2;      // center vertical (sisakan ruang 30px untuk text)
-
-    ctx.drawImage(qr, qrX, qrY, qrSize, qrSize);
-
-    // Draw text
-    ctx.fillStyle = "#000";
-    ctx.font = "bold 18px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText(text, size / 2, size - 10);
-
-    return canvas.toDataURL("image/png");
-}
-
-
-  async function generateLabelHTML(labels, options = ['qr_transfer', 'qr_item']) {
-    if (!labels || !Array.isArray(labels) || labels.length === 0) {
-        return `<html><body><h3>Tidak ada label untuk dicetak</h3></body></html>`;
     }
+}
 
-    let html = `<html><head><title>Cetak Label</title>
-        <style>
-            @page { margin: 0; }
-            body { margin:0; padding:0; text-align:center; }
-            img { width: 20mm; height: 20mm; page-break-after: always; display:block; }
-        </style>
-    </head><body>`;
 
+
+
+
+// ===============================
+// === Generate TSPL Commands ====
+// ===============================
+function generateTSPLLabel(label, text) {
+
+    let tspl = "";
+    tspl += "SIZE 20 mm,20 mm\n";
+    tspl += "GAP 2 mm,0 mm\n";
+    tspl += "SPEED 3\n";
+    tspl += "DENSITY 10\n";
+    tspl += "CLS\n";
+
+    tspl += `QRCODE 30,20,M,4,A,0,"${label.qr_value}"\n`;
+    tspl += `TEXT 20,180,"3",0,1,1,"${text}"\n`;
+
+    tspl += "PRINT 1\n";
+
+    return tspl;
+}
+
+
+
+async function printLabelsDirect(labels) {
     for (const label of labels) {
 
-        // QR Transfer
-        if (label.type === "qr_transfer" && options.includes("qr_transfer")) {
-            const png = await createLabelPNG(label, label.reference_number);
-            html += `<img src="${png}" />`;
+        // Print QR Transfer
+        if (label.type === "qr_transfer") {
+
+            const tspl = generateTSPLLabel(label, label.reference_number);
+            await sendToLocalPrinter(tspl); // AUTO PRINT
         }
 
-        // QR Item
-        if (label.type === "qr_item" && options.includes("qr_item")) {
-            let minPackage = parseInt(label.min_package || 1, 10);
-            let qtyIn = parseInt(label.qty || 0, 10);
-            let numLabels = Math.ceil(qtyIn / minPackage);
+        // Print QR Item
+        if (label.type === "qr_item") {
+
+            let minPackage = parseInt(label.min_package || 1);
+            let qty = parseInt(label.qty || 0);
+            let numLabels = Math.ceil(qty / minPackage);
 
             for (let i = 0; i < numLabels; i++) {
-                const png = await createLabelPNG(label, label.code);
-                html += `<img src="${png}" />`;
+
+                const tspl = generateTSPLLabel(label, label.code);
+                await sendToLocalPrinter(tspl); // AUTO PRINT
+
             }
         }
     }
-
-    html += `</body></html>`;
-    return html;
 }
+
+
 
 
 
