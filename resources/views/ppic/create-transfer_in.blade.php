@@ -799,75 +799,96 @@ resetForm();
     });
 }
 
-function generateLabelHTML(labels, options = ['qr_transfer','qr_item']) {
-  if (!labels || !Array.isArray(labels) || labels.length === 0) {
-    return `<html><body><h3>Tidak ada label untuk dicetak</h3></body></html>`;
-  }
-
-  // head + inline styles to ensure consistent print
-  let html = `<!doctype html>
-  <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Cetak Label</title>
-    <style>
-      @page { margin: 0; size: 20mm 20mm; }
-      html,body{margin:0;padding:0;background:#fff;}
-      .label-container{width:20mm;height:20mm;box-sizing:border-box;page-break-after:always;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;margin:0;padding:0;}
-      .label-img{width:16mm;height:16mm;object-fit:contain;display:block;}
-      .label-text{font-family:Arial,Helvetica,sans-serif;font-size:6pt;line-height:1;margin-top:0.4mm;word-break:break-word;}
-    </style>
-  </head>
-  <body>`;
-
-  // helper to sanitize text inserted into HTML
-  function escapeHtml(s) {
-    if (s === null || s === undefined) return '';
-    return String(s)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#39;');
-  }
-
-  // iterate labels
-  labels.forEach(label => {
-    if (label.type === 'qr_transfer' && options.includes('qr_transfer')) {
-      // single transfer label
-      const imgSrc = label.qr_path || ''; // can be data URL or public URL
-      const text = escapeHtml(label.reference_number || label.qr_value || '');
-      html += `<div class="label-container">
-                 <img class="label-img" src="${imgSrc}" alt="${text}" />
-                 <div class="label-text">${text}</div>
-               </div>`;
+function generateLabelHTML(labels, options = ['qr_transfer', 'qr_item']) {
+    if (!labels || !Array.isArray(labels) || labels.length === 0) {
+        return `
+        <html><body><h3>Tidak ada label untuk dicetak</h3></body></html>
+        `;
     }
 
-    if (label.type === 'qr_item' && options.includes('qr_item')) {
-      const minPackage = parseInt(label.min_package || 1, 10) || 1;
-      const qty = parseInt(label.qty || 0, 10) || 0;
-      const numLabels = Math.max(1, Math.ceil(qty / minPackage));
-      const imgSrc = label.qr_path || '';
-      const text = escapeHtml(label.code || label.qr_value || '');
+    let html = `
+    <html>
+    <head>
+        <title>Cetak Label</title>
+        <style>
+            body {
+                font-family: Arial;
+                margin: 0;
+                padding: 0;
+            }
+            .label-container {
+                width: 20mm;
+                height: 20mm;
+                page-break-after: always;
+                text-align: center;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            .label-container img {
+                width: 18mm;
+                height: 18mm;
+                object-fit: contain;
+            }
+            .label-container div {
+                font-size: 4pt;
+                line-height: 1;
+                margin-top: 0.5mm;
+            }
+            @page {
+                size: 20mm 20mm;
+                margin: 0;
+            }
+        </style>
+    </head>
+    <body>
+    `;
 
-      for (let i = 0; i < numLabels; i++) {
-        html += `<div class="label-container">
-                   <img class="label-img" src="${imgSrc}" alt="${text}" />
-                   <div class="label-text">${text}</div>
-                 </div>`;
-      }
-    }
-  });
+    labels.forEach(label => {
 
-  html += `</body></html>`;
-  return html;
+        // QR Transfer
+        if (label.type === 'qr_transfer' && options.includes('qr_transfer')) {
+            html += `
+            <div class="label-container">
+                <img src="${label.qr_path}" />
+                <div>${label.reference_number}</div>
+            </div>
+            `;
+        }
+
+        // QR Item (duplikasi sesuai min_package)
+        if (label.type === 'qr_item' && options.includes('qr_item')) {
+
+            let minPackage = parseInt(label.min_package || 1, 10);
+            let qtyIn = parseInt(label.qty || 0, 10);
+            let numLabels = Math.ceil(qtyIn / minPackage);
+
+            for (let i = 0; i < numLabels; i++) {
+                html += `
+                <div class="label-container">
+                    <img src="${label.qr_path}" />
+                    <div>${label.code}</div>
+                </div>
+                `;
+            }
+        }
+    });
+
+    html += `
+    </body>
+    </html>
+    `;
+
+    return html;
 }
 
 /**
  * printLabelsHTML(labels)
  * - opens a new window, writes generated HTML, then triggers print()
  */
-async function printLabelsHTML(labels, options) {
+async function printLabelsDirect(labels, options) {
   try {
     const html = generateLabelHTML(labels, options);
     const w = window.open('', '_blank');
@@ -938,17 +959,6 @@ async function printLabelsHTML(labels, options) {
   }
 }
 
-/* =========================
-   Contoh pemakaian
-   ========================= */
-function testPrintHtml() {
-  const labels = [
-    { type: 'qr_transfer', qr_path: 'https://via.placeholder.com/300.png?text=QR1', reference_number: 'TRIN-2025-0001' },
-    { type: 'qr_item', qr_path: 'https://via.placeholder.com/300.png?text=QR2', code: 'ITEM-001', qty: 10, min_package: 5 }
-  ];
-
-  printLabelsHTML(labels);
-}
 
 
 
