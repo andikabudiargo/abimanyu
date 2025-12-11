@@ -799,89 +799,156 @@ resetForm();
     });
 }
 
-async function sendToLocalPrinter(tspl) {
-    try {
-        const res = await fetch("http://localhost:9001/print", {
-            method: "POST",
-            headers: { "Content-Type": "text/plain" },
-            body: tspl
-        });
+function generateLabelHTML(labels, options = ['qr_transfer','qr_item']) {
+  if (!labels || !Array.isArray(labels) || labels.length === 0) {
+    return `<html><body><h3>Tidak ada label untuk dicetak</h3></body></html>`;
+  }
 
-        const json = await res.json();
+  // head + inline styles to ensure consistent print
+  let html = `<!doctype html>
+  <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Cetak Label</title>
+    <style>
+      @page { margin: 0; size: 20mm 20mm; }
+      html,body{margin:0;padding:0;background:#fff;}
+      .label-container{width:20mm;height:20mm;box-sizing:border-box;page-break-after:always;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;margin:0;padding:0;}
+      .label-img{width:16mm;height:16mm;object-fit:contain;display:block;}
+      .label-text{font-family:Arial,Helvetica,sans-serif;font-size:6pt;line-height:1;margin-top:0.4mm;word-break:break-word;}
+    </style>
+  </head>
+  <body>`;
 
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil',
-            text: json.message,
-            timer: 1500,
-            showConfirmButton: false
-        });
+  // helper to sanitize text inserted into HTML
+  function escapeHtml(s) {
+    if (s === null || s === undefined) return '';
+    return String(s)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
 
-    } catch (err) {
-
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal Terhubung',
-            html: "Print server tidak ditemukan.<br>Pastikan <b>print_server.py</b> sedang berjalan.",
-            confirmButtonText: 'OK'
-        });
-
+  // iterate labels
+  labels.forEach(label => {
+    if (label.type === 'qr_transfer' && options.includes('qr_transfer')) {
+      // single transfer label
+      const imgSrc = label.qr_path || ''; // can be data URL or public URL
+      const text = escapeHtml(label.reference_number || label.qr_value || '');
+      html += `<div class="label-container">
+                 <img class="label-img" src="${imgSrc}" alt="${text}" />
+                 <div class="label-text">${text}</div>
+               </div>`;
     }
-}
 
+    if (label.type === 'qr_item' && options.includes('qr_item')) {
+      const minPackage = parseInt(label.min_package || 1, 10) || 1;
+      const qty = parseInt(label.qty || 0, 10) || 0;
+      const numLabels = Math.max(1, Math.ceil(qty / minPackage));
+      const imgSrc = label.qr_path || '';
+      const text = escapeHtml(label.code || label.qr_value || '');
 
-
-
-
-// ===============================
-// === Generate TSPL Commands ====
-// ===============================
-function generateTSPLLabel(label, text) {
-
-    let tspl = "";
-    tspl += "SIZE 20 mm,20 mm\n";
-    tspl += "GAP 2 mm,0 mm\n";
-    tspl += "SPEED 3\n";
-    tspl += "DENSITY 10\n";
-    tspl += "CLS\n";
-
-    tspl += `QRCODE 30,20,M,4,A,0,"${label.qr_value}"\n`;
-    tspl += `TEXT 20,180,"3",0,1,1,"${text}"\n`;
-
-    tspl += "PRINT 1\n";
-
-    return tspl;
-}
-
-
-
-async function printLabelsDirect(labels) {
-    for (const label of labels) {
-
-        // Print QR Transfer
-        if (label.type === "qr_transfer") {
-
-            const tspl = generateTSPLLabel(label, label.reference_number);
-            await sendToLocalPrinter(tspl); // AUTO PRINT
-        }
-
-        // Print QR Item
-        if (label.type === "qr_item") {
-
-            let minPackage = parseInt(label.min_package || 1);
-            let qty = parseInt(label.qty || 0);
-            let numLabels = Math.ceil(qty / minPackage);
-
-            for (let i = 0; i < numLabels; i++) {
-
-                const tspl = generateTSPLLabel(label, label.code);
-                await sendToLocalPrinter(tspl); // AUTO PRINT
-
-            }
-        }
+      for (let i = 0; i < numLabels; i++) {
+        html += `<div class="label-container">
+                   <img class="label-img" src="${imgSrc}" alt="${text}" />
+                   <div class="label-text">${text}</div>
+                 </div>`;
+      }
     }
+  });
+
+  html += `</body></html>`;
+  return html;
 }
 
+/**
+ * printLabelsHTML(labels)
+ * - opens a new window, writes generated HTML, then triggers print()
+ */
+async function printLabelsHTML(labels, options) {
+  try {
+    const html = generateLabelHTML(labels, options);
+    const w = window.open('', '_blank');
+
+    if (!w) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Pop-up Blocked',
+        html: 'Browser memblokir jendela baru. Izinkan pop-up untuk melanjutkan pencetakan.',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+
+    // give browser a short time to layout images; wait for load of images if any
+    const waitForImages = new Promise((resolve) => {
+      const imgs = w.document.images;
+      if (!imgs || imgs.length === 0) return resolve();
+      let loaded = 0;
+      for (let img of imgs) {
+        if (img.complete) {
+          loaded++;
+          if (loaded === imgs.length) resolve();
+        } else {
+          img.onload = img.onerror = () => {
+            loaded++;
+            if (loaded === imgs.length) resolve();
+          };
+        }
+      }
+      // fallback timer in case images hang
+      setTimeout(() => resolve(), 700);
+    });
+
+    await waitForImages;
+
+    // trigger print; small delay to ensure layout stable
+    w.focus();
+    setTimeout(() => {
+      try {
+        w.print();
+        // close optional: don't close automatically so user sees print dialog results; adjust as needed
+        // w.close();
+        Swal.fire({
+          icon: 'success',
+          title: 'Perintah Cetak Terkirim',
+          timer: 1200,
+          showConfirmButton: false
+        });
+      } catch (e) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal Cetak',
+          text: 'Terjadi kesalahan saat memanggil print dialog.'
+        });
+      }
+    }, 300);
+  } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: (err && err.message) ? err.message : 'Gagal menghasilkan label'
+    });
+  }
+}
+
+/* =========================
+   Contoh pemakaian
+   ========================= */
+function testPrintHtml() {
+  const labels = [
+    { type: 'qr_transfer', qr_path: 'https://via.placeholder.com/300.png?text=QR1', reference_number: 'TRIN-2025-0001' },
+    { type: 'qr_item', qr_path: 'https://via.placeholder.com/300.png?text=QR2', code: 'ITEM-001', qty: 10, min_package: 5 }
+  ];
+
+  printLabelsHTML(labels);
+}
 
 
 
