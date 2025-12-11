@@ -835,7 +835,7 @@ function generateLabelHTML(labels, options = ['qr_transfer', 'qr_item']) {
             }
 
             .text {
-                font-size: 7px;
+                font-size: 4px;
                 margin-top: -4px;
             }
         </style>
