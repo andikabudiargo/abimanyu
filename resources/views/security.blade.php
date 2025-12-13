@@ -1078,7 +1078,7 @@ $(document).ready(function() {
     // Kosongkan tampilan awal
     showNoData();
 
-   $("#btnFilterCatering").on("click", function () {
+  $("#btnFilterCatering").on("click", function () {
 
     let startDatetime = $("#filterStartDatetime").val();
     let endDatetime   = $("#filterEndDatetime").val();
@@ -1106,6 +1106,16 @@ $(document).ready(function() {
     $("#cateringTableBody").empty();
     $("#cateringCount").text("0");
 
+    // === LOADER TABEL ===
+    $("#cateringTableBody").append(`
+        <tr id="loadingRow">
+            <td colspan="5" class="py-6 text-center">
+                <i class="fa-solid fa-spinner fa-spin text-blue-500 text-2xl"></i>
+                <div class="text-sm text-gray-500 mt-2">Memuat data...</div>
+            </td>
+        </tr>
+    `);
+
     $.ajax({
         url: "{{ route('security.catering') }}",
         method: "GET",
@@ -1117,11 +1127,13 @@ $(document).ready(function() {
         success: function (res) {
 
             if (!res || res.length === 0) {
-                Swal.fire({
-                    icon: "info",
-                    title: "Data tidak ditemukan",
-                    text: "Tidak ada data absen pada rentang waktu tersebut."
-                });
+                $("#cateringTableBody").html(`
+                    <tr>
+                        <td colspan="5" class="py-6 text-center text-gray-500">
+                            Tidak ada data absen pada rentang waktu tersebut.
+                        </td>
+                    </tr>
+                `);
                 return;
             }
 
@@ -1145,6 +1157,15 @@ $(document).ready(function() {
             });
 
             $("#cateringCount").text(res.length);
+        },
+        error: function () {
+            $("#cateringTableBody").html(`
+                <tr>
+                    <td colspan="5" class="py-6 text-center text-red-500">
+                        Gagal mengambil data.
+                    </td>
+                </tr>
+            `);
         }
     });
 
