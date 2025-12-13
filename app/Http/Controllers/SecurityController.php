@@ -38,85 +38,104 @@ class SecurityController extends Controller
 public function getDataCatering(Request $request)
 {
     $request->validate([
-        'date'  => 'required|date',
-        'start' => 'required',
-        'end'   => 'required'
+        'start_datetime' => 'required|date',
+        'end_datetime'   => 'required|date|after_or_equal:start_datetime',
     ]);
 
-    $date  = $request->date;
-    $start = $request->start;
-    $end   = $request->end;
+    $start = $request->start_datetime;
+    $end   = $request->end_datetime;
 
-  $raw = DB::table('finger_logs as f_in')
-    ->leftJoin('employees', 'employees.nik', '=', 'f_in.nik')
-    ->leftJoin('finger_logs as f_out', function($join) use ($date) {
-        $join->on('f_out.nik', '=', 'f_in.nik')
-             ->where('f_out.status', 1)
-             ->whereDate('f_out.timestamp', $date);
-    })
-    ->select(
-        DB::raw("
-            CASE 
-                WHEN employees.id IS NULL 
-                    THEN 'Nama Belum Terdaftar di Abimanyulive'
-                ELSE employees.name
-            END AS name
-        "),
-        DB::raw("COALESCE(employees.nik, f_in.nik) as nik"),
-        'f_in.timestamp as in_timestamp',
-        DB::raw('TIME(f_in.timestamp) as in_time'),
-        'f_out.timestamp as out_timestamp',
-        DB::raw('TIME(f_out.timestamp) as out_time')
-    )
-    ->where('f_in.status', 0)
-    ->whereDate('f_in.timestamp', $date)
-    ->whereTime('f_in.timestamp', '>=', $start)
-    ->whereTime('f_in.timestamp', '<=', $end)
+    $raw = DB::table('finger_logs as f_in')
+        ->leftJoin('employees', 'employees.nik', '=', 'f_in.nik')
+        ->select(
+            DB::raw("
+                CASE 
+                    WHEN employees.id IS NULL 
+                        THEN 'Nama Belum Terdaftar di Abimanyulive'
+                    ELSE employees.name
+                END AS name
+            "),
+            DB::raw("COALESCE(employees.nik, f_in.nik) as nik"),
+            'f_in.timestamp as in_timestamp',
+            DB::raw('TIME(f_in.timestamp) as in_time'),
 
-    // ======== FILTER PENTING ========
-    // Tampilkan jika:
-    // 1. Employee tidak ditemukan (NULL), atau
-    // 2. eat = 1
-    ->where(function($q) {
-        $q->whereNull('employees.id')      // nik tidak ada → tampil
-          ->orWhere('employees.eat', 1);   // eat=1 → tampil
-    })
-    // =================================
+            // ===============================
+            // OUT TERDEKAT SETELAH IN
+            // ===============================
+            DB::raw("(
+                SELECT fo.timestamp
+                FROM finger_logs fo
+                WHERE fo.nik = f_in.nik
+                  AND fo.status = 1
+                  AND fo.timestamp > f_in.timestamp
+                ORDER BY fo.timestamp ASC
+                LIMIT 1
+            ) as out_timestamp"),
 
-    ->orderBy('f_in.timestamp', 'asc')
-    ->get();
+            DB::raw("TIME((
+                SELECT fo.timestamp
+                FROM finger_logs fo
+                WHERE fo.nik = f_in.nik
+                  AND fo.status = 1
+                  AND fo.timestamp > f_in.timestamp
+                ORDER BY fo.timestamp ASC
+                LIMIT 1
+            )) as out_time")
+        )
 
+        // ===============================
+        // HANYA DATA MASUK
+        // ===============================
+        ->where('f_in.status', 0)
 
+        // ===============================
+        // FILTER RANGE DATETIME (AMAN SHIFT)
+        // ===============================
+        ->whereBetween('f_in.timestamp', [$start, $end])
 
+        // ===============================
+        // FILTER KARYAWAN MAKAN
+        // ===============================
+        ->where(function ($q) {
+            $q->whereNull('employees.id')
+              ->orWhere('employees.eat', 1);
+        })
+
+        ->orderBy('f_in.timestamp', 'asc')
+        ->get();
 
     // -----------------------------------------
-    //  FILTER DUPLIKAT — KURANG DARI 1 JAM
+    // FILTER DUPLIKAT & NOISE ABSEN
     // -----------------------------------------
     $filtered = [];
-    $lastPunch = [];
+    $lastValid = [];
 
     foreach ($raw as $row) {
 
         $nik = $row->nik;
         $current = strtotime($row->in_timestamp);
 
-        if (!isset($lastPunch[$nik])) {
-            // NIK pertama kali muncul
+        if (!isset($lastValid[$nik])) {
             $filtered[] = $row;
-            $lastPunch[$nik] = $current;
+            $lastValid[$nik] = $row;
             continue;
         }
 
-        $diff = $current - $lastPunch[$nik];
+        $lastTime = strtotime($lastValid[$nik]->in_timestamp);
+        $diff = $current - $lastTime;
 
-        if ($diff >= 3600) { // 3600 detik = 1 jam
-            $filtered[] = $row;
-            $lastPunch[$nik] = $current;
+        // ❌ Abaikan IN terlalu dekat (< 1 jam)
+        if ($diff < 3600) {
+            continue;
         }
+
+        $filtered[] = $row;
+        $lastValid[$nik] = $row;
     }
 
     return response()->json(array_values($filtered));
 }
+
 
 
 

@@ -89,45 +89,38 @@
 
  
 
- <!-- Section Filter -->
-<div class="flex flex-col mb-4 space-y-4">
+ <!-- =============================== -->
+<!-- Filter Awal & Akhir Absen Masuk -->
+<!-- =============================== -->
+<div class="flex flex-col gap-4 mb-6">
 
-  <!-- Filter Tanggal -->
+  <!-- Awal Absen Masuk -->
   <div class="flex flex-col">
-    <label for="filterDate" class="text-sm font-medium text-gray-600 mb-1">
-      Pilih Tanggal:
+    <label class="text-sm font-medium text-gray-600 mb-1">
+      Awal Absen Masuk
     </label>
-    <input 
-      type="date" 
-      id="filterDate" 
-      class="w-full sm:w-96 border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring focus:ring-blue-200 focus:outline-none"
+    <input
+      type="datetime-local"
+      id="filterStartDatetime"
+      class="w-full sm:w-96 border border-gray-300 rounded-md px-2 py-1 text-sm
+             focus:ring focus:ring-blue-200 focus:outline-none"
     >
   </div>
 
-  <!-- Filter Jam -->
-  <div class="flex flex-col space-y-2">
-    <div class="flex flex-col">
-      <label for="filterTimeStart" class="text-sm font-medium text-gray-600 mb-1">
-        Jam Dari:
-      </label>
-      <input 
-        type="time" 
-        id="filterTimeStart"
-        class="w-full sm:w-96 border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring focus:ring-blue-200 focus:outline-none"
-      >
-    </div>
-
-    <div class="flex flex-col">
-      <label for="filterTimeEnd" class="text-sm font-medium text-gray-600 mb-1">
-        Jam Sampai:
-      </label>
-      <input 
-        type="time" 
-        id="filterTimeEnd"
-        class="w-full sm:w-96 border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring focus:ring-blue-200 focus:outline-none"
-      >
-    </div>
+  <!-- Akhir Absen Masuk -->
+  <div class="flex flex-col">
+    <label class="text-sm font-medium text-gray-600 mb-1">
+      Akhir Absen Masuk
+    </label>
+    <input
+      type="datetime-local"
+      id="filterEndDatetime"
+      class="w-full sm:w-96 border border-gray-300 rounded-md px-2 py-1 text-sm
+             focus:ring focus:ring-blue-200 focus:outline-none"
+    >
   </div>
+
+
 
   <!-- Tombol Filter -->
    <button 
@@ -1085,75 +1078,78 @@ $(document).ready(function() {
     // Kosongkan tampilan awal
     showNoData();
 
-    // Tombol Filter
-    $("#btnFilterCatering").on("click", function () {
+   $("#btnFilterCatering").on("click", function () {
 
-        let tanggal = $("#filterDate").val();
-        let jamStart = $("#filterTimeStart").val();
-        let jamEnd = $("#filterTimeEnd").val();
+    let startDatetime = $("#filterStartDatetime").val();
+    let endDatetime   = $("#filterEndDatetime").val();
 
-        // VALIDASI INPUT
-        if (!tanggal || !jamStart || !jamEnd) {
-            alert("Isi semua filter (Tanggal, Jam Dari, Jam Sampai).");
-            return;
-        }
-
-        // Reset tabel & jumlah
-        $("#cateringTableBody").empty();
-        $("#cateringCount").text("0");
-
-        $.ajax({
-            url: "{{ route('security.catering') }}",  
-            method: "GET",
-            dataType: "json",
-            data: {
-                date: tanggal,
-                start: jamStart,
-                end: jamEnd
-            },
-            success: function (res) {
-
-                if (!res || res.length === 0) {
-                    showNoData();
-                    return;
-                }
-
-                // Masukkan data ke tabel dengan odd/even styling
-                $("#cateringTableBody").empty();
-               res.forEach((row, index) => {
-    let inTime = row.in_time || "-";       // Jam masuk
-    let outTime = row.out_time || "-";     // Jam keluar
-    let statusText = "";
-    let statusIcon = "";
-
-    if (inTime > "08:00:00") {
-        statusText = "Terlambat";
-        statusIcon = `<i class="fa-solid fa-clock text-red-500 mr-1"></i> <span class="text-red-600 font-medium">${statusText}</span>`;
-    } else {
-        statusText = "Tepat Waktu";
-        statusIcon = `<i class="fa-solid fa-clock text-green-500 mr-1"></i> <span class="text-green-600 font-medium">${statusText}</span>`;
+    // VALIDASI INPUT
+    if (!startDatetime || !endDatetime) {
+        Swal.fire({
+            icon: "warning",
+            title: "Filter belum lengkap",
+            text: "Silakan isi Awal dan Akhir Absen Masuk terlebih dahulu."
+        });
+        return;
     }
 
-    let rowClass = index % 2 === 0 ? "bg-white" : "bg-gray-50";
+    if (startDatetime > endDatetime) {
+        Swal.fire({
+            icon: "error",
+            title: "Rentang waktu tidak valid",
+            text: "Akhir absen tidak boleh lebih awal dari awal absen."
+        });
+        return;
+    }
 
-    $("#cateringTableBody").append(`
-        <tr class="${rowClass}">
-            <td class="py-2 px-3 text-center">${index + 1}</td>
-            <td class="py-2 px-3">${row.name}</td>
-            <td class="py-2 px-3">${row.nik}</td>
-            <td class="py-2 px-3">${inTime}</td>
-            <td class="py-2 px-3">${outTime}</td>  <!-- jam keluar -->
-        </tr>
-    `);
+    // Reset tabel & jumlah
+    $("#cateringTableBody").empty();
+    $("#cateringCount").text("0");
+
+    $.ajax({
+        url: "{{ route('security.catering') }}",
+        method: "GET",
+        dataType: "json",
+        data: {
+            start_datetime: startDatetime,
+            end_datetime: endDatetime
+        },
+        success: function (res) {
+
+            if (!res || res.length === 0) {
+                Swal.fire({
+                    icon: "info",
+                    title: "Data tidak ditemukan",
+                    text: "Tidak ada data absen pada rentang waktu tersebut."
+                });
+                return;
+            }
+
+            $("#cateringTableBody").empty();
+
+            res.forEach((row, index) => {
+                let inTime  = row.in_time || "-";
+                let outTime = row.out_time || "-";
+
+                let rowClass = index % 2 === 0 ? "bg-white" : "bg-gray-50";
+
+                $("#cateringTableBody").append(`
+                    <tr class="${rowClass}">
+                        <td class="py-2 px-3 text-center">${index + 1}</td>
+                        <td class="py-2 px-3">${row.name}</td>
+                        <td class="py-2 px-3">${row.nik}</td>
+                        <td class="py-2 px-3">${inTime}</td>
+                        <td class="py-2 px-3">${outTime}</td>
+                    </tr>
+                `);
+            });
+
+            $("#cateringCount").text(res.length);
+        }
+    });
+
 });
 
-
-                // Hitung porsi
-                $("#cateringCount").text(res.length);
-            }
-        });
-
-    });
 
 });
 
