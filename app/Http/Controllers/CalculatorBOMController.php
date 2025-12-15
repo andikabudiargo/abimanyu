@@ -98,27 +98,24 @@ class CalculatorBOMController extends Controller
 
 public function exportCMFG()
 {
-    $rows = Cache::get('cm_data', []);
+     $rows = DB::table('boms')
+        ->select(
+            'article_cm as cm_code',
+            'article_cm_desc as cm_name',
+            'qty as qty_bom',
+            'uom',
+            'article_fg as fg_code',
+            'article_fg_desc as fg_name'
+        )
+        ->whereNotNull('article_cm')
+        ->whereNotNull('article_fg')
+        ->whereNotNull('article_fg_desc')
+        ->get();
 
     $data = collect($rows)
-        ->skip(1) // lewati header
-        ->map(function($row){
-            return [
-                'cm_code' => $row[2] ?? null,
-                'cm_name' => $row[3] ?? null,
-                'qty_bom' => $row[4] ?? null,
-                'uom' => $row[5] ?? null,
-                'fg_code' => $row[0] ?? null,
-                'fg_name' => $row[1] ?? null,
-            ];
-        })
-        ->filter(function($item){
-            // buang baris yang penting kosong
-            return $item['cm_code'] && $item['fg_code'] && $item['fg_name'];
-        })
-        ->unique(function($item){
-            // unik per CM-FG
-            return $item['cm_code'].'|'.$item['fg_code'];
+        ->unique(function ($item) {
+            // unik per kombinasi CM + FG
+            return $item->cm_code . '|' . $item->fg_code;
         })
         ->values();
 
@@ -152,15 +149,16 @@ $sheet->getStyle('A1:F1')->applyFromArray($headerStyle);
 
 // Isi data
 $rowNumber = 2;
-foreach($data as $item){
-    $sheet->setCellValue('A'.$rowNumber, $item['cm_code']);
-    $sheet->setCellValue('B'.$rowNumber, $item['cm_name']);
-    $sheet->setCellValue('C'.$rowNumber, $item['qty_bom']);
-    $sheet->setCellValue('D'.$rowNumber, $item['uom']);
-    $sheet->setCellValue('E'.$rowNumber, $item['fg_code']);
-    $sheet->setCellValue('F'.$rowNumber, $item['fg_name']);
+foreach ($data as $item) {
+    $sheet->setCellValue('A'.$rowNumber, $item->cm_code);
+    $sheet->setCellValue('B'.$rowNumber, $item->cm_name);
+    $sheet->setCellValue('C'.$rowNumber, $item->qty_bom);
+    $sheet->setCellValue('D'.$rowNumber, $item->uom);
+    $sheet->setCellValue('E'.$rowNumber, $item->fg_code);
+    $sheet->setCellValue('F'.$rowNumber, $item->fg_name);
     $rowNumber++;
 }
+
 
 // Auto size kolom berdasarkan isi
 foreach(range('A','F') as $col){
@@ -316,7 +314,7 @@ public function getChemical(Request $request)
 
 public function getRMByFG(Request $request)
 {
-    $fgCode = $request->query('fg_code');
+    $fgCode = $request->query('article_fg');
     $periodeSelected = $request->query('periode'); // bulan 1–12
 
     if (!$fgCode) {
@@ -327,7 +325,7 @@ public function getRMByFG(Request $request)
     // 1. AMBIL RM DARI TABEL BOM
     // ================================
     $bomRows = DB::table('boms')
-        ->where('fg_code', $fgCode)
+        ->where('article_fg', $fgCode)
         ->get();
 
     if ($bomRows->isEmpty()) {
@@ -388,7 +386,7 @@ public function getRMByFG(Request $request)
     // 3. AMBIL QTY SALES DARI SJ
     // ================================
     $sjQuery = DB::table('sj_temporary')
-        ->where('fg_code', $fgCode);
+        ->where('article_code', $fgCode);
 
     if ($periodeSelected) {
         $sjQuery->whereMonth('tanggal', $periodeSelected);
@@ -435,7 +433,7 @@ public function getChemicalByFG(Request $request)
     // 1. Ambil chemical dari BOM berdasarkan FG
     // ========================================
     $bomRows = DB::table('boms')
-        ->where('fg_code', $fgCode)
+        ->where('article_fg', $fgCode)
         ->whereNotNull('cm_code')
         ->get();
 
@@ -498,7 +496,7 @@ public function getChemicalByFG(Request $request)
     // 3. Ambil qty sales dari SJ
     // ========================================
     $sjQuery = DB::table('sj_temporary')
-        ->where('fg_code', $fgCode);
+        ->where('article_code', $fgCode);
 
     if ($periodeSelected) {
         $sjQuery->whereMonth('tanggal', $periodeSelected);
