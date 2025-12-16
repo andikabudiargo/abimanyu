@@ -110,30 +110,52 @@
     <h2 class="text-lg font-semibold text-gray-700">Quality Inspection</h2>
     <form id="inspection-form" class="space-y-4">
 
-     <!-- Row 1 -->
+    <!-- Row 1 -->
 <div class="flex flex-col md:flex-row gap-4">
   <div class="w-full md:w-1/2">
-    <label class="block text-sm font-medium text-gray-700 mb-1">Inspection Post <span class="text-red-600">*</span></label>
-    <select name="inspection_post" id="inspection_post" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+      Inspection Post <span class="text-red-600">*</span>
+    </label>
+    <select name="inspection_post" id="inspection_post"
+      class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm"
+      required>
       <option value="">-- Choose Post --</option>
       <option value="Incoming">Incoming</option>
       <option value="Unloading">Unloading</option>
       <option value="Buffing">Buffing</option>
       <option value="Touch Up">Touch Up</option>
       <option value="Final">Final</option>
+      <option value="Outgoing">Outgoing</option>
     </select>
   </div>
 
-  <div class="w-full md:w-1/2">
-    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier <span class="text-red-600">*</span></label>
-    <select name="supplier" id="supplier" class="select2 w-full" required>
+  <!-- SUPPLIER -->
+  <div class="w-full md:w-1/2" id="supplier-wrapper">
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+      Supplier <span class="text-red-600">*</span>
+    </label>
+    <select name="supplier" id="supplier" class="select2 w-full">
       <option value="">-- Pilih Supplier --</option>
       @foreach ($suppliers as $supplier)
         <option value="{{ $supplier->code }}">{{ $supplier->name }}</option>
       @endforeach
     </select>
   </div>
+
+  <!-- CUSTOMER -->
+  <div class="w-full md:w-1/2 hidden" id="customer-wrapper">
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+      Customer <span class="text-red-600">*</span>
+    </label>
+    <select name="customer" id="customer" class="select2 w-full">
+      <option value="">-- Pilih Customer --</option>
+      @foreach ($customers as $customer)
+        <option value="{{ $customer->code }}">{{ $customer->name }}</option>
+      @endforeach
+    </select>
+  </div>
 </div>
+
 
 <!-- Row 2 -->
 <div class="flex flex-col md:flex-row gap-4">
@@ -144,10 +166,18 @@
     </select>
   </div>
 
-  <div class="w-full md:w-1/2">
-    <label class="block text-sm font-medium text-gray-700 mb-1">Qty Received <span class="text-red-600">*</span></label>
-    <input type="number" name="qty_received" id="qty_received" placeholder="Masukan Qty Total Kedatangan Barang ..." class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required/>
-  </div>
+  <div class="w-full md:w-1/2 hidden" id="qty-received-wrapper">
+  <label class="block text-sm font-medium text-gray-700 mb-1">
+    Qty Received <span class="text-red-600">*</span>
+  </label>
+  <input
+    type="number"
+    name="qty_received"
+    id="qty_received"
+    placeholder="Masukan Qty Total Kedatangan Barang ..."
+    class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm"
+  />
+</div>
 </div>
 
 
@@ -403,34 +433,71 @@ $okRepairRate.text(okRepairRate + '%');
     updateTotals();
   });
 
-  // ================== Select2 ==================
-   $('#inspection_post').select2({ placeholder: "-- Pilih Inspection Post --", allowClear: true, width: '100%' });
-  $('#supplier').select2({ placeholder: "-- Pilih Supplier --", allowClear: true, width: '100%' });
 
-  $('#part_name').select2({
-    placeholder: "-- Select Part --",
-    allowClear: true,
-    width: '100%',
-    ajax: {
-      url: '/qc/get-articles',
-      dataType: 'json',
-      data: params => ({ term: params.term, post: $('#inspection_post').val(), supplier: $('#supplier').val() }),
-      processResults: data => {
-        articleMap = {};
-        data.forEach(item => { articleMap[item.article_code] = item; });
-        return { results: data.map(item => ({ id: item.article_code, text: item.description })) };
-      }
-    }
-  });
+$('#inspection_post').select2({
+  placeholder: "-- Pilih Inspection Post --",
+  allowClear: true,
+  width: '100%'
+});
 
-  $('#part_name').on('change', function () {
-    const data = articleMap[$(this).val()];
-    if (data) {
-      $('[data-info="part-name"]').text(data.description || '-');
-      $('[data-info="supplier"]').text(data.supplier?.name || '-');
-      $('#supplier_code').val(data.supplier?.code || '');
-    }
-  });
+$('#supplier').select2({
+  placeholder: "-- Pilih Supplier --",
+  allowClear: true,
+  width: '100%'
+});
+
+$('#customer').select2({
+  placeholder: "-- Pilih Customer --",
+  allowClear: true,
+  width: '100%'
+});
+
+
+   $('#inspection_post').on('change', function () {
+  const post = $(this).val();
+
+  if (post === 'Incoming') {
+    // ================= Incoming =================
+    // Supplier ON
+    $('#supplier-wrapper').removeClass('hidden');
+    $('#customer-wrapper').addClass('hidden');
+
+    $('#customer').val(null).trigger('change');
+    $('#supplier').prop('required', true);
+    $('#customer').prop('required', false);
+
+    // Qty Received ON
+    $('#qty-received-wrapper').removeClass('hidden');
+    $('#qty_received').prop('required', true);
+
+  } else if (post) {
+    // ================= Selain Incoming =================
+    // Customer ON
+    $('#supplier-wrapper').addClass('hidden');
+    $('#customer-wrapper').removeClass('hidden');
+
+    $('#supplier').val(null).trigger('change');
+    $('#supplier').prop('required', false);
+    $('#customer').prop('required', true);
+
+    // Qty Received OFF
+    $('#qty-received-wrapper').addClass('hidden');
+    $('#qty_received').prop('required', false).val('');
+
+  } else {
+    // ================= Reset =================
+    $('#supplier-wrapper, #customer-wrapper').addClass('hidden');
+    $('#supplier, #customer').prop('required', false);
+
+    $('#qty-received-wrapper').addClass('hidden');
+    $('#qty_received').prop('required', false).val('');
+  }
+
+  // Reset Part setiap ganti post
+  $('#part_name').val(null).trigger('change');
+});
+
+
 
   // ================== Initial ==================
   updateTotals();
@@ -570,32 +637,51 @@ $('#defectTableBody').on('click', '.removeBtn', function () {
 });
 
 
+let articleMap = {};
+
+// ================== Select2 Basic ==================
+$('#inspection_post').select2({
+  placeholder: "-- Pilih Inspection Post --",
+  allowClear: true,
+  width: '100%'
+});
+
 $('#supplier').select2({
   placeholder: "-- Pilih Supplier --",
   allowClear: true,
-  width: 'resolve'
+  width: '100%'
 });
 
-let articleMap = {}; // Global article map
+$('#customer').select2({
+  placeholder: "-- Pilih Customer --",
+  allowClear: true,
+  width: '100%'
+});
+
+// ================== PART SELECT2 ==================
 
 $('#part_name').select2({
   placeholder: "-- Select Part --",
   allowClear: true,
-  width: 'resolve',
+  width: '100%',
   ajax: {
-    url: function () {
-      return `/qc/get-articles`;
-    },
+    url: '/qc/get-articles',
     dataType: 'json',
-    data: function (params) {
+    data: params => {
+      const post = $('#inspection_post').val();
+
       return {
-        term: params.term, // keyword pencarian
-        post: $('#inspection_post').val(),
-        supplier: $('#supplier').val() // ambil kode supplier
+        term: params.term,
+        post: post,
+        supplier: post === 'Incoming'
+          ? $('#supplier').val()
+          : $('#customer').val()
       };
     },
-    processResults: function (data) {
+    processResults: data => {
+       console.log('📥 Response from backend →', data);
       articleMap = {};
+
       data.forEach(item => {
         articleMap[item.article_code] = item;
       });
@@ -603,7 +689,7 @@ $('#part_name').select2({
       return {
         results: data.map(item => ({
           id: item.article_code,
-          text: `${item.description}`
+          text: item.description
         }))
       };
     },
@@ -611,26 +697,24 @@ $('#part_name').select2({
   }
 });
 
-// Kosongkan Select2 saat inspection_post berubah
- $('#supplier, #inspection_post').on('change', function () {
-  $('#part_name').val(null).trigger('change'); // reset Select2 part
+// ================== RESET PART ==================
+$('#inspection_post, #supplier, #customer').on('change', function () {
+  $('#part_name').val(null).trigger('change');
 });
 
-
+// ================== PART CHANGE ==================
 $('#part_name').on('change', function () {
-  const code = $(this).val();
-  const data = articleMap[code];
-
+  const data = articleMap[$(this).val()];
   if (!data) return;
 
-  $('[data-info="part-name"]').text(data.description ?? '-');
+  $('[data-info="part-name"]').text(data.description || '-');
 
-  if (data && data.supplier) {
-    $('[data-info="supplier"]').text(data.supplier.name); // tampilkan nama
-    $('#supplier_code').val(data.supplier.code); // simpan code
-}
-
+  // supplier / customer disatukan
+  $('[data-info="supplier"]').text(data.partner_name || '-');
+  $('#supplier_code').val(data.partner_code || '');
 });
+
+
 
 
 

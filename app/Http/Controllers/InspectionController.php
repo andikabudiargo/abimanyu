@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Inspection;
 use App\Models\InspectionDefect;
 use App\Models\Supplier;
+use App\Models\Customer;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,14 +16,21 @@ use Carbon\Carbon;
 
 class InspectionController extends Controller
 {
-      public function index() {
+      public function index()
+{
     $suppliers = Supplier::orderBy('name')->get();
+    $customers = Customer::orderBy('name')->get();
+
     $articles = Article::whereIn('article_type', ['RMP', 'RMNP', 'FG'])
                        ->orderBy('description')
                        ->get();
 
-    return view('qc.daily-inspection', compact('suppliers', 'articles'));
+    return view(
+        'qc.daily-inspection',
+        compact('suppliers', 'customers', 'articles')
+    );
 }
+
 
 
      public function data(Request $request)
@@ -183,7 +191,8 @@ $query->orderBy('created_at', 'desc');
 
      public function create() {
          $suppliers = Supplier::orderBy('name')->get();
-        return view('qc.create-daily-inspection', compact('suppliers'));
+            $customers = Customer::orderBy('name')->get();
+        return view('qc.create-daily-inspection', compact('suppliers','customers'));
     }
 
     public function store(Request $request)

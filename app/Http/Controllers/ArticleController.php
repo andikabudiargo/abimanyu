@@ -318,7 +318,7 @@ public function search(Request $request)
             ->get(['article_code', 'description']);
     }
 
-  public function find($code)
+   public function find($code)
 {
     // === Transfer In ===
     $transfer = TransferIn::with(['supplier', 'items.article'])
@@ -442,22 +442,24 @@ $item = TransferInItems::with(['article', 'transferIn'])
 
 
 
-    public function getByInspectionPost(Request $request)
+  public function getByInspectionPost(Request $request)
 {
-    $post = $request->get('post');
-    $supplierCode = $request->get('supplier');
-    $term = $request->get('term');
+    $post = $request->post;
+    $code = $request->supplier;
+    $term = $request->term;
 
-    $query = Article::with('supplier');
+    $query = Article::query();
 
     if ($post === 'Incoming') {
-        $query->whereIn('article_type', ['RMP', 'RMNP']);
+        $query->whereIn('article_type', ['RMP', 'RMNP'])
+              ->with('supplier');
     } else {
-        $query->where('article_type', 'FG');
+        $query->where('article_type', 'FG')
+              ->with('customer');
     }
 
-    if ($supplierCode) {
-        $query->where('supplier_code', $supplierCode);
+    if ($code) {
+        $query->where('supplier_code', $code);
     }
 
     if ($term) {
@@ -467,20 +469,32 @@ $item = TransferInItems::with(['article', 'transferIn'])
         });
     }
 
-    $articles = $query->orderBy('description')->get([
-        'id', 'article_code', 'description', 'supplier_code'
-    ]);
+    // 🔥 INI YANG KURANG
+    $articles = $query
+        ->orderBy('description')
+        ->get();
 
-    return response()->json($articles);
+    return response()->json(
+        $articles->map(function ($a) use ($post) {
+            return [
+                'article_code' => $a->article_code,
+                'description'  => $a->description,
+                'partner_name' => $post === 'Incoming'
+                    ? optional($a->supplier)->name
+                    : optional($a->customer)->name,
+                'partner_code' => $a->supplier_code,
+            ];
+        })
+    );
 }
+
 
 
 public function getBySupplier($supplierCode)
 {
     $articles = Article::where('supplier_code', $supplierCode)
-        ->whereIn('article_type', ['RMNP', 'RMP'])
         ->orderBy('description')
-        ->get(['id', 'article_code', 'description']);
+        ->get(['id', 'article_code', 'description', 'article_type']);
 
     return response()->json($articles);
 }
