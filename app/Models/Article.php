@@ -26,6 +26,11 @@ class Article extends Model
     return $this->belongsTo(Supplier::class, 'supplier_code', 'code');
 }
 
+ public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'supplier_code', 'code');
+    }
+
 public function ArticleType()
 {
     return $this->belongsTo(ArticleType::class, 'article_type');
