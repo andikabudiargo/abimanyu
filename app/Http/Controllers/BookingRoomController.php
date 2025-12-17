@@ -502,84 +502,81 @@ $sheet->getStyle("A3:{$highestColumn}{$highestRow}")->applyFromArray([
 }
 
 
-  public function data(Request $request)
+
+public function data(Request $request) 
 {
-   $query = BookingRoom::with(['cancel', 'creator', 'approved', 'room'])
-    ->orderByRaw("CASE WHEN status = 'Waiting Approval' THEN 0 ELSE 1 END")
-    ->orderBy('booking_date', 'desc') // bisa diganti 'desc' kalau mau terbaru dulu
-    ->orderBy('created_at', 'desc');
+    $nowDate = Carbon::now()->toDateString();
+    $nowTime = Carbon::now()->format('H:i:s');
 
-if ($request->filled('start_date') && $request->filled('end_date')) {
-    $query->whereBetween('booking_date', [$request->start_date, $request->end_date]);
-}
+    $query = BookingRoom::with(['cancel', 'creator', 'approved', 'room'])
+        ->orderByRaw("
+            CASE 
+                WHEN status = 'Waiting Approval' 
+                     AND (
+                        booking_date > ?
+                        OR (booking_date = ? AND start_time > ?)
+                     )
+                THEN 0
+                ELSE 1
+            END
+        ", [$nowDate, $nowDate, $nowTime])
+        ->orderBy('booking_date', 'desc')
+        ->orderBy('created_at', 'desc');
 
+    // Filter tanggal
+    if ($request->filled('start_date') && $request->filled('end_date')) {
+        $query->whereBetween('booking_date', [$request->start_date, $request->end_date]);
+    }
 
-// Filter status
-if ($request->filled('status')) {
-    $query->where('status', $request->status);
-}
+    // Filter status
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
 
-// Filter room
-if ($request->filled('room')) {
-    $query->where('room_id', $request->room);
-}
-  
+    // Filter room
+    if ($request->filled('room')) {
+        $query->where('room_id', $request->room);
+    }
 
     return DataTables::of($query)
-    ->addColumn('room_id', function ($row) {
-    return $row->room ? $row->room->name : '-';
-})
- ->addColumn('created_by', function ($row) {
-    return $row->creator ? $row->creator->name : '-';
-})
-->addColumn('approved_by', function ($row) {
-    return $row->approved ? $row->approved->name : '-';
-})
+        ->addColumn('room_id', fn ($row) => $row->room?->name ?? '-')
+        ->addColumn('created_by', fn ($row) => $row->creator?->name ?? '-')
+        ->addColumn('approved_by', fn ($row) => $row->approved?->name ?? '-')
+        ->addColumn('cancel_by', fn ($row) => $row->cancel?->name ?? '-')
 
-->addColumn('cancel_by', function ($row) {
-    return $row->cancel ? $row->cancel->name : '-';
-})
-->editColumn('status', function ($row) {
+        ->editColumn('status', function ($row) {
+            $common = 'inline-block w-28 text-center text-gray-100 text-xs font-medium p-1 rounded-xl';
 
-    $commonClasses = 'inline-block w-28 text-center text-gray-100 text-xs font-medium p-1 rounded-xl';
+            return match ($row->status) {
+                'Waiting Approval' => '<span class="bg-yellow-500 '.$common.'">Waiting Approval</span>',
+                'Booked'           => '<span class="bg-green-500 '.$common.'">Booked</span>',
+                'Cancelled'        => '<span class="bg-red-500 '.$common.'">Cancelled</span>',
+                default            => '-'
+            };
+        })
 
-    if ($row->status === 'Waiting Approval') {
-        return '<span class="bg-yellow-500 ' . $commonClasses . '">Waiting Approval</span>';
-    } elseif ($row->status === 'Booked') {
-        return '<span class="bg-green-500 ' . $commonClasses . '">Booked</span>';
-    } elseif ($row->status === 'Cancelled') {
-        return '<span class="bg-red-500 ' . $commonClasses . '">Cancelled</span>';
-    }
-})
- ->addColumn('time', function ($row) {
-    $start = Carbon::parse($row->start_time)->format('H:i');
-    $end   = Carbon::parse($row->end_time)->format('H:i');
-    return $start . ' - ' . $end;
-})
+        ->addColumn('time', function ($row) {
+            return Carbon::parse($row->start_time)->format('H:i')
+                .' - '.
+                Carbon::parse($row->end_time)->format('H:i');
+        })
 
-->addColumn('created_at', function ($row) {
-    return $row->created_at 
-        ? Carbon::parse($row->created_at)->format('Y-m-d H:i') 
-        : '-';
-})
+        ->addColumn('created_at', fn ($row) =>
+            $row->created_at?->format('Y-m-d H:i') ?? '-'
+        )
 
+        ->addColumn('approved_at', fn ($row) =>
+            $row->approved_at?->format('Y-m-d H:i') ?? '-'
+        )
 
-->addColumn('approved_at', function ($row) {
-    return $row->approved_at 
-        ? Carbon::parse($row->approved_at)->format('Y-m-d H:i') 
-        : '-';
-})
-
-->addColumn('cancel_at', function ($row) {
-    return $row->cancel_at 
-        ? Carbon::parse($row->cancel_at)->format('Y-m-d H:i') 
-        : '-';
-})
-
+        ->addColumn('cancel_at', fn ($row) =>
+            $row->cancel_at?->format('Y-m-d H:i') ?? '-'
+        )
 
         ->rawColumns(['status'])
         ->make(true);
 }
+
 
 
 }
