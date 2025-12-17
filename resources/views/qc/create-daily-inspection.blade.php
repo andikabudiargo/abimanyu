@@ -589,138 +589,50 @@ function createRow(index, defects = []) {
 }
 
 // Tambahkan default row saat page load
-const defectCache = {};
-
-// ===============================
-// Load defect (cache)
-// ===============================
-function loadDefects(post, callback) {
-    if (defectCache[post]) {
-        callback(defectCache[post]);
-        return;
-    }
-
-    $.getJSON(`/qc/get-defects/${post}`, function (data) {
-        defectCache[post] = data;
-        callback(data);
-    });
-}
-
-// ===============================
-// Create Row (SELALU BARU)
-// ===============================
-function createRow(index, defects) {
-    let options = '<option value="">-- Select Defect --</option>';
-
-    defects.forEach(d => {
-        options += `<option value="${d.defect}">${d.code} - ${d.defect}</option>`;
-    });
-
-    return `
-        <tr>
-            <td class="text-center">${index}</td>
-            <td>
-                <select class="defect-select w-full">
-                    ${options}
-                </select>
-            </td>
-            <td class="text-center">
-                <button type="button" class="removeBtn text-red-500">
-                    <i data-feather="trash-2"></i>
-                </button>
-            </td>
-        </tr>
-    `;
-}
-
-// ===============================
-// Init Select2 (AMAN)
-// ===============================
-function initSelect2() {
-    $('.defect-select').each(function () {
-        if ($(this).hasClass('select2-hidden-accessible')) {
-            $(this).select2('destroy');
-        }
-        $(this).select2({
-            width: '100%',
-            placeholder: '-- Select Defect --'
-        });
-    });
-}
-
-// ===============================
-// PAGE LOAD
-// ===============================
 $(document).ready(function () {
     const post = $('#inspection_post').val();
-
-    $('#defectTableBody').empty();
-    rowIndex = 1;
-
-    if (!post) {
+    if (post) {
+        $.getJSON(`/qc/get-defects/${post}`, function(defects) {
+            $('#defectTableBody').append(createRow(rowIndex, defects));
+            feather.replace();
+        });
+    } else {
         $('#defectTableBody').append(createRow(rowIndex, []));
         feather.replace();
-        return;
     }
-
-    loadDefects(post, function (defects) {
-        $('#defectTableBody').append(createRow(rowIndex, defects));
-        initSelect2();
-        feather.replace();
-    });
 });
 
-// ===============================
-// INSPECTION POST CHANGE
-// ===============================
+// Update row ketika inspection_post berubah
 $('#inspection_post').on('change', function () {
     const post = $(this).val();
     if (!post) return;
 
-    $('#defectTableBody').empty();
-    rowIndex = 1;
-
-    loadDefects(post, function (defects) {
+    $.getJSON(`/qc/get-defects/${post}`, function(defects) {
+        $('#defectTableBody').empty();
+        rowIndex = 1;
         $('#defectTableBody').append(createRow(rowIndex, defects));
-        initSelect2();
         feather.replace();
     });
 });
 
-// ===============================
-// ADD ROW (SweetAlert)
-// ===============================
+// Tombol Add Row
 $('#addRowBtn').on('click', function () {
     const post = $('#inspection_post').val();
+    if (!post) return alert('Select inspection post first!');
 
-    if (!post) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Inspection Post belum dipilih',
-            text: 'Silakan pilih inspection post terlebih dahulu.',
-            confirmButtonText: 'OK'
-        });
-        return;
-    }
-
-    loadDefects(post, function (defects) {
+    $.getJSON(`/qc/get-defects/${post}`, function(defects) {
         rowIndex++;
         $('#defectTableBody').append(createRow(rowIndex, defects));
-        initSelect2();
         feather.replace();
     });
 });
 
-// ===============================
-// REMOVE ROW
-// ===============================
+// Tombol Remove Row & update nomor
 $('#defectTableBody').on('click', '.removeBtn', function () {
     $(this).closest('tr').remove();
-
-    $('#defectTableBody tr').each(function (i) {
+    $('#defectTableBody tr').each(function(i) {
         $(this).find('td:first').text(i + 1);
     });
-
     rowIndex = $('#defectTableBody tr').length;
 });
 
