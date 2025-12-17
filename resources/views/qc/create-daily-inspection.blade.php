@@ -613,7 +613,7 @@ function createRow(index, defects) {
     let options = '<option value="">-- Select Defect --</option>';
 
     defects.forEach(d => {
-        options += `<option value="${d.defect}">${d.defect}</option>`;
+        options += `<option value="${d.defect}">${d.code} - ${d.defect}</option>`;
     });
 
     return `
