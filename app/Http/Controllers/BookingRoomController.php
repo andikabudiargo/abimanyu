@@ -561,17 +561,26 @@ public function data(Request $request)
                 Carbon::parse($row->end_time)->format('H:i');
         })
 
-        ->addColumn('created_at', fn ($row) =>
-            $row->created_at?->format('Y-m-d H:i') ?? '-'
-        )
+        ->addColumn('created_at', function ($row) {
+    return $row->created_at
+        ? Carbon::parse($row->created_at)->format('Y-m-d H:i')
+        : '-';
+})
 
-        ->addColumn('approved_at', fn ($row) =>
-            $row->approved_at?->format('Y-m-d H:i') ?? '-'
-        )
 
-        ->addColumn('cancel_at', fn ($row) =>
-            $row->cancel_at?->format('Y-m-d H:i') ?? '-'
-        )
+        ->addColumn('approved_at', function ($row) {
+    return $row->approved_at
+        ? Carbon::parse($row->approved_at)->format('Y-m-d H:i')
+        : '-';
+})
+
+
+       ->addColumn('cancel_at', function ($row) {
+    return $row->cancel_at
+        ? Carbon::parse($row->cancel_at)->format('Y-m-d H:i')
+        : '-';
+})
+
 
         ->rawColumns(['status'])
         ->make(true);
