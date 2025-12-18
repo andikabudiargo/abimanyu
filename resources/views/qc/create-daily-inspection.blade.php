@@ -516,7 +516,7 @@ function createRow(index, defects = []) {
 
     let defectOptions = '<option value="">-- Choose Defect --</option>';
     defects.forEach(defect => {
-        defectOptions += `<option value="${defect.id}">${defect.defect}</option>`;
+        defectOptions += `<option value="${defect.id}">${defect.category} - ${defect.defect}</option>`;
     });
 
     $row.html(`

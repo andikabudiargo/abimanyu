@@ -117,13 +117,14 @@ public function data(Request $request)
 public function getByInspectionPost($post)
 {
     $defects = \App\Models\Defect::where('inspection_post', $post)
-        ->select('code', 'defect')
-        ->groupBy('code', 'defect')
+        ->select('code', 'defect', 'category')
+        ->groupBy('code', 'defect', 'category')
         ->orderBy('defect')
         ->get();
 
     return response()->json($defects);
 }
+
 
 
 
