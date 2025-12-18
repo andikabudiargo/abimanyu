@@ -76,6 +76,7 @@ $query->orderBy('created_at', 'desc');
             'Buffing' => '<span class="bg-blue-500 '.$commonClasses.'">Buffing</span>',
             'Touch Up' => '<span class="bg-green-500 '.$commonClasses.'">Touch Up</span>',
             'Final' => '<span class="bg-teal-400 '.$commonClasses.'">Final</span>',
+            'Outgoing' => '<span class="bg-purple-400 '.$commonClasses.'">Outgoing</span>',
             default => '-'
         };
     })
@@ -131,6 +132,9 @@ $query->orderBy('created_at', 'desc');
             break;
         case 'Final':
             $colorClass = 'bg-teal-400';
+            break;
+        case 'Outgoing':
+            $colorClass = 'bg-purple-400';
             break;
         default:
             $colorClass = 'bg-gray-300';
@@ -264,7 +268,8 @@ if ($request->defect_id) {
         'UNLOADING' => 'U',
         'BUFFING'   => 'B',
         'TOUCH UP'  => 'T',
-        'FINAL'     => 'F'
+        'FINAL'     => 'F',
+        'OUTGOING'     => 'O'
     ];
 
     $shiftMapping = [
