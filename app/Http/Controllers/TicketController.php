@@ -478,8 +478,34 @@ if ($lastHold) {
 }
 
 
- // ID user yang ingin dikirimi notifikasi
-$targetUserIds = [2, 9, 39];
+ // Ambil ticket + category + department
+$ticket->load('category.department');
+
+// User yang WAJIB selalu dapat
+$mandatoryUserIds = [2];
+
+// Pastikan category & department ada
+if (!$ticket->category || !$ticket->category->department) {
+    return response()->json([
+        'success' => false,
+        'message' => 'Category tidak memiliki department.'
+    ], 422);
+}
+
+// Ambil semua user berdasarkan department category ticket
+$departmentUserIds = \App\Models\User::where(
+        'department_id',
+        $ticket->category->department->id
+    )
+    ->pluck('id')
+    ->toArray();
+
+// Gabungkan + pastikan unik
+$targetUserIds = array_unique(array_merge(
+    $mandatoryUserIds,
+    $departmentUserIds
+));
+
 
 // Ambil semua subscription dari user yang ditargetkan
 $subscriptions = DB::table('subscriptions')
@@ -627,16 +653,48 @@ protected function generateTicketNumber($categoryId)
 
 public function approve($id)
 {
-    $ticket = Ticket::findOrFail($id);
+    $ticket = Ticket::with('category.department', 'approved')
+        ->findOrFail($id);
+
     $ticket->status = 'Approved';
     $ticket->approved_by = auth()->id();
     $ticket->approved_at = now();
     $ticket->save();
 
-    
-    // Ambil subscription untuk user id 2 dan 39
+    // ============================
+    // AMBIL DEPARTMENT DARI CATEGORY
+    // ============================
+
+    if (!$ticket->category || !$ticket->category->department) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Category tidak memiliki department.'
+        ], 422);
+    }
+
+    // Ambil semua user berdasarkan department category ticket
+    $targetUserIds = \App\Models\User::where(
+            'department_id',
+            $ticket->category->department->id
+        )
+        ->pluck('id')
+        ->toArray();
+
+    // Jika tidak ada user di department, stop
+    if (empty($targetUserIds)) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Ticket approved, tidak ada user department untuk dinotifikasi.',
+            'ticket_number' => $ticket->ticket_number
+        ]);
+    }
+
+    // ============================
+    // AMBIL SUBSCRIPTION
+    // ============================
+
     $subscriptions = DB::table('subscriptions')
-        ->whereIn('user_id', [2, 39])
+        ->whereIn('user_id', $targetUserIds)
         ->get();
 
     $webPush = new WebPush([
@@ -648,25 +706,28 @@ public function approve($id)
         'automaticPadding' => true
     ]);
 
+    // ============================
+    // KIRIM NOTIFIKASI
+    // ============================
+
+    $approverName = $ticket->approved->name
+        ?? auth()->user()->name
+        ?? 'Manager';
+
     foreach ($subscriptions as $subRow) {
         $subData = json_decode($subRow->subscription, true);
         if (!$subData) continue;
 
         $sub = Subscription::create($subData);
 
-       $approverName = $ticket->approved->name ?? auth()->user()->name ?? 'Manager';
-
-$webPush->sendOneNotification($sub, json_encode([
-    'title' => '🛠️ Helpdesk Ticketing System | Abimanyu Live',
-    'body'  => "Ticket $ticket->ticket_number telah disetujui oleh $approverName, silahkan diproses.",
-    'url'   => url("/it/ticket/detail/{$ticket->id}")
-]));
-
+        $webPush->sendOneNotification($sub, json_encode([
+            'title' => '🛠️ Helpdesk Ticketing System | Abimanyu Live',
+            'body'  => "Ticket {$ticket->ticket_number} telah disetujui oleh {$approverName}, silahkan diproses.",
+            'url'   => url("/it/ticket/detail/{$ticket->id}")
+        ]));
     }
 
     $webPush->flush();
-
-
 
     return response()->json([
         'success' => true,
@@ -674,6 +735,7 @@ $webPush->sendOneNotification($sub, json_encode([
         'ticket_number' => $ticket->ticket_number
     ]);
 }
+
 
 public function reject(Request $request, $id)
 {

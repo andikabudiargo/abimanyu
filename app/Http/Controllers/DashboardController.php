@@ -40,8 +40,7 @@ class DashboardController extends Controller
                         $userDepartments->contains('Information & Technology');
 
                         // ✅ Cek apakah Supervisor Special Access dari departemen Maintenance
-$isMaintenanceSpecialSupervisor = $userRoles->contains('Supervisor Special Access') &&
-                                   $userDepartments->contains('Maintenance');
+$isMaintenance = $userDepartments->contains('Maintenance');
 
     // Default variabel
     $ticketsToApprove = collect();
@@ -55,13 +54,13 @@ $isMaintenanceSpecialSupervisor = $userRoles->contains('Supervisor Special Acces
         ->get();
     $ticketSectionTitle = 'Tickets Need Approval';
     $userRoleLabel = 'approve';
-} elseif ($isITSpecialStaff || $isMaintenanceSpecialSupervisor) {
+} elseif ($isITSpecialStaff || $isMaintenance) {
     $ticketsToApprove = Ticket::where('status', 'Approved')
-        ->whereHas('category.department', function ($q) use ($isITSpecialStaff, $isMaintenanceSpecialSupervisor) {
+        ->whereHas('category.department', function ($q) use ($isITSpecialStaff, $isMaintenance) {
             if ($isITSpecialStaff) {
                 $q->where('name', 'Information & Technology'); // hanya tiket IT
             }
-            if ($isMaintenanceSpecialSupervisor) {
+            if ($isMaintenance) {
                 $q->where('name', 'Maintenance'); // hanya tiket Maintenance
             }
         })
