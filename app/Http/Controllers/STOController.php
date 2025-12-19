@@ -224,11 +224,15 @@ if ($request->filled('sto_number')) {
         $totalFiltered = $query->count();
     }
 
-    $data = $query
-        ->offset($start)
-        ->limit($limit)
-        ->orderBy($order, $dir)
-        ->get();
+   $query->orderBy($order, $dir);
+
+// 🔥 JIKA BUKAN SHOW ALL
+if ($limit != -1) {
+    $query->offset($start)->limit($limit);
+}
+
+$data = $query->get();
+
 
     $result = [];
     foreach ($data as $row) {
