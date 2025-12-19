@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Daily Inspection')
-@section('page-title', 'DASHBOARD DAILY INSPECTION')
-@section('breadcrumb-item', 'Quality Control')
-@section('breadcrumb-active', 'Daily Inspection')
+@section('title', 'e-STO')
+@section('page-title', 'DASHBOARD E-STO')
+@section('breadcrumb-item', 'e-STO')
+@section('breadcrumb-active', 'e-STO')
 
 @section('content')
 
@@ -33,7 +33,6 @@
             <input id="filter-sto_number" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
         </div>
         </div>
-    </div>
 
     <div class="flex justify-start gap-2 mt-6">
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">Search</button>
