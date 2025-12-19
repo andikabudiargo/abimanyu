@@ -53,6 +53,7 @@ use App\Http\Controllers\PushTestController;
 use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\RemoteAccessController;
+use App\Http\Controllers\STOController;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 use Minishlink\WebPush\WebPush; 
@@ -171,6 +172,9 @@ Route::prefix('hr')->name('hr.')->group(function () {
      Route::get('/department/select', [DepartmentController::class, 'select'])->name('department.select');
     Route::get('/department/data', [DepartmentController::class, 'data'])->name('department.data');
     Route::post('/department/store', [DepartmentController::class, 'store'])->name('department.store');
+    Route::get('/sections/by-department/{department}',
+    [EmployeeController::class, 'getSectionByDepartment']
+);
      Route::get('/position/index', [PositionController::class, 'index'])->name('position.index');
       Route::get('/position/create', [PositionController::class, 'create'])->name('position.create');
       Route::get('/employee/dashboard', [EmployeeController::class, 'index'])->name('employee.index');
@@ -224,6 +228,12 @@ Route::get('/apd/{id}/globalMovement', [APDController::class, 'globalMovement'])
      Route::post('/apd-return/store', [APDController::class, 'storeReturn'])->name('return.store');
      Route::get('/apd/reminder-email', [APDController::class, 'sendAPDReminderEmail']);
 Route::get('/apd/transactions/data', [APDController::class, 'data'])->name('apd.transactions.data');
+Route::get('/facility/sto/index', [STOController::class, 'index'])->name('sto.index');
+Route::get('/facility/sto/create', [STOController::class, 'create'])->name('sto.create');
+Route::post('/sto/save', [STOController::class, 'store'])->name('sto.store');
+Route::get('/sto/data', [STOController::class, 'datatables'])->name('sto.data');
+Route::get('/sto/{id}/edit', [StoController::class, 'edit']);
+Route::put('/sto/update/{id}', [StoController::class, 'update']);
 
      
 
@@ -449,6 +459,7 @@ Route::prefix('it')->name('it.')->group(function () {
 
    Route::prefix('fa')->name('fa.')->group(function () {  
     Route::get('calculator-bom', [CalculatorBOMController::class, 'index'])->name('cabom.index');
+     Route::get('demo/logistik', [CalculatorBOMController::class, 'demo'])->name('demo.logistik');
     Route::post('excel/uploadBOM', [CalculatorBOMController::class, 'upload'])->name('cabom.upload');
     Route::get('data/fg', [CalculatorBOMController::class, 'getFinishGoods'])->name('cabom.fg');
     Route::get('data/cm', [CalculatorBOMController::class, 'getChemical'])->name('cabom.select-cm');

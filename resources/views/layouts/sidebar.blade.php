@@ -334,6 +334,18 @@
   </ul>
 </li>
 
+<li class="pc-item pc-hasmenu">
+  <a href="#!" class="pc-link">
+    <span class="pc-micon"><i data-feather="clipboard"></i></span>
+    <span class="pc-mtext">STO Management</span>
+    <span class="pc-arrow"><i class="ti ti-chevron-right"></i></span>
+  </a>
+  <ul class="pc-submenu">
+    <li class="pc-item">
+      <a class="pc-link" href="{{ route('facility.sto.index') }}">E-STO</a>
+    </li>
+  </ul>
+</li>
 
 
             
