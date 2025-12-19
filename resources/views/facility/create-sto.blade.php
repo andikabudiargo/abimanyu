@@ -79,7 +79,7 @@
   @if($warehouse === 'Work In Progress')
     <select id="wip-master"
             class="mt-1 w-full text-black text-sm rounded px-1 py-1">
-      <option value="">-- pilih WIP --</option>
+      <option value="">-- Pilih WIP --</option>
       <option value="WIP Sanding">WIP Sanding</option>
       <option value="WIP Buffing">WIP Buffing</option>
       <option value="WIP Stripping">WIP Stripping</option>

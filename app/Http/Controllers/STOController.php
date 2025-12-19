@@ -308,5 +308,60 @@ public function update(Request $request, $id)
     ]);
 }
 
+public function selectSto(Request $request)
+{
+    $search = $request->get('q');
+
+    $stos = Sto::select('id', 'sto_number')
+        ->when($search, function ($q) use ($search) {
+            $q->where('sto_number', 'like', "%{$search}%");
+        })
+        ->orderBy('sto_number', 'desc')
+        ->limit(20)
+        ->get();
+
+    return response()->json([
+        'results' => $stos->map(function ($sto) {
+            return [
+                'id'   => $sto->sto_number, // ⬅ dipakai untuk filter
+                'text' => $sto->sto_number,
+            ];
+        }),
+    ]);
+}
+
+public function selectArticle(Request $request)
+{
+    $search = $request->get('q');
+
+    $allowedTypes = [
+        'RMP',
+        'RMNP',
+        'CM1',
+        'CM2',
+        'FG',
+    ];
+
+    $articles = Article::select('article_code', 'description', 'article_type')
+        ->whereIn('article_type', $allowedTypes)
+        ->when($search, function ($q) use ($search) {
+            $q->where(function ($qq) use ($search) {
+                $qq->where('article_code', 'like', "%{$search}%")
+                   ->orWhere('description', 'like', "%{$search}%");
+            });
+        })
+        ->orderBy('article_code')
+        ->get();
+
+    return response()->json([
+        'results' => $articles->map(function ($a) {
+            return [
+                'id'   => $a->article_code,
+                'text' => "{$a->article_code} - {$a->description}",
+            ];
+        }),
+    ]);
+}
+
 
 }

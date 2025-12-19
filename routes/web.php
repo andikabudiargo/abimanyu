@@ -234,6 +234,14 @@ Route::post('/sto/save', [STOController::class, 'store'])->name('sto.store');
 Route::get('/sto/data', [STOController::class, 'datatables'])->name('sto.data');
 Route::get('/sto/{id}/edit', [StoController::class, 'edit']);
 Route::put('/sto/update/{id}', [StoController::class, 'update']);
+// routes/web.php
+Route::get('/sto/select', [StoController::class, 'selectSto'])
+     ->name('sto.select');
+     // routes/web.php
+Route::get('/article/select', [STOController::class, 'selectArticle'])
+     ->name('article.select');
+
+
 
      
 

@@ -74,20 +74,29 @@
 
         </tr>
       </thead>
+@php
+  $maxRow   = 7;
+  $rowCount = $items->count();
+@endphp
 
       <!-- TBODY -->
-     <tbody id="article-table">
+   <tbody id="article-table">
+
 @foreach ($items as $i => $item)
 <tr class="bg-white sto-row">
   <td class="border px-2 py-2">
     <input type="text"
+           name="items[{{ $i }}][article_code]"
            class="article-code w-full border rounded px-2 py-1"
            value="{{ $item->article_code }}"
            readonly>
   </td>
 
   <td class="border px-2 py-2">
-    <select class="part-select w-full" data-row="{{ $i }}">
+    <select name="items[{{ $i }}][article_id]"
+            class="part-select w-full"
+            data-row="{{ $i }}">
+      <option value="">-- pilih --</option>
       @foreach ($articles as $a)
         <option value="{{ $a->id }}"
                 data-code="{{ $a->article_code }}"
@@ -101,6 +110,7 @@
 
   <td class="border px-2 py-2 text-center">
     <input type="number"
+           name="items[{{ $i }}][qty]"
            value="{{ $item->qty }}"
            class="qty-input w-full border rounded text-center">
   </td>
@@ -108,8 +118,7 @@
   <td class="border px-2 py-2 text-center">
     <input type="text"
            class="part-uom w-full border rounded text-center"
-           value="{{ $item->article->unit ?? '-' }}
-"
+           value="{{ $item->article->unit ?? '-' }}"
            readonly>
   </td>
 
@@ -121,7 +130,53 @@
   </td>
 </tr>
 @endforeach
+@for ($i = $rowCount; $i < $maxRow; $i++)
+<tr class="bg-gray-50 sto-row">
+  <td class="border px-2 py-2">
+    <input type="text"
+           name="items[{{ $i }}][article_code]"
+           class="article-code w-full border rounded px-2 py-1"
+           readonly>
+  </td>
+
+  <td class="border px-2 py-2">
+    <select name="items[{{ $i }}][article_id]"
+            class="part-select w-full"
+            data-row="{{ $i }}">
+      <option value="">-- pilih --</option>
+      @foreach ($articles as $a)
+        <option value="{{ $a->id }}"
+                data-code="{{ $a->article_code }}"
+                data-uom="{{ $a->unit }}">
+          {{ $a->description }}
+        </option>
+      @endforeach
+    </select>
+  </td>
+
+  <td class="border px-2 py-2 text-center">
+    <input type="number"
+           name="items[{{ $i }}][qty]"
+           class="qty-input w-full border rounded text-center">
+  </td>
+
+  <td class="border px-2 py-2 text-center">
+    <input type="text"
+           class="part-uom w-full border rounded text-center"
+           readonly>
+  </td>
+
+  <td class="border px-2 py-2 text-center">
+    <input type="text"
+           class="location-input w-full bg-gray-100 border rounded"
+           value="{{ $warehouse }}"
+           readonly>
+  </td>
+</tr>
+@endfor
+
 </tbody>
+
 
     </table>
 
@@ -227,23 +282,38 @@
 </style>
 @push('scripts')
 <script>
-  $(document).ready(function () {
+ $(document).ready(function () {
 
   $('.part-select').select2({
     placeholder: '-- Pilih Part --',
-    width: 'resolve',
-    allowclear: 'true'
+    width: '100%',
+    allowClear: true
   });
 
-  $('.part-select').on('change', function () {
-    const row  = $(this).data('row');
-    const opt  = $(this).find(':selected');
+  $(document).on('change', '.part-select', function () {
 
-    const code = opt.data('code') || '';
-    const uom  = opt.data('uom')  || '';
+    const $row = $(this).closest('tr');
+    const $opt = $(this).find(':selected');
 
-    $(`input[name="articles[${row}][article_code]"]`).val(code);
-    $(`input[name="articles[${row}][uom]"]`).val(uom);
+    const code = $opt.data('code') || '';
+    const uom  = $opt.data('uom')  || '';
+
+    $row.find('.article-code').val(code);
+    $row.find('.part-uom').val(uom);
+
+    if (code) {
+      $row.find('.qty-input').prop('disabled', false);
+    } else {
+      $row.find('.qty-input').val('').prop('disabled', true);
+      $row.find('.part-uom').val('');
+    }
+  });
+
+  // 🔥 INI KUNCI SUPAYA EDIT MODE LANGSUNG MUNCUL
+  $('.part-select').each(function () {
+    if ($(this).val()) {
+      $(this).trigger('change');
+    }
   });
 
 });
@@ -263,13 +333,6 @@ $(document).ready(function () {
     });
   });
 
-});
-
-$(document).ready(function () {
-  $('#sto_number').select2({
-    placeholder: '-- Pilih STO Number --',
-    width: '100%'
-  });
 });
 
 $(document).ready(function () {

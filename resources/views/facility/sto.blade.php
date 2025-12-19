@@ -20,18 +20,35 @@
                 <option value="Finish Goods">Finish Goods</option>
                 <option value="Chemical">Chemical</option>
                 <option value="Consumable">Consumable</option>
-                <option value="WIP">WIP</option>
+                <option value="WIP Sanding">WIP Sanding</option>
+      <option value="WIP Buffing">WIP Buffing</option>
+      <option value="WIP Stripping">WIP Stripping</option>
+      <option value="WIP Touchup">WIP Touchup</option>
                 <option value="OT">OT</option>
             </select>
         </div>
-        <div>
-            <label class="block text-sm mb-1 font-medium text-gray-700">Article Code</label>
-            <input id="filter-article" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
-        </div>
-        <div>
-            <label class="block text-sm mb-1 font-medium text-gray-700">Number e-STO</label>
-            <input id="filter-sto_number" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
-        </div>
+      <div>
+  <label class="block text-sm mb-1 font-medium text-gray-700">
+    Article Code
+  </label>
+
+  <select id="filter-article"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md">
+    <option value="">-- All Article --</option>
+  </select>
+</div>
+
+       <div>
+  <label class="block text-sm mb-1 font-medium text-gray-700">
+    Number e-STO
+  </label>
+
+  <select id="filter-sto_number"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md">
+    <option value="">-- All STO Number --</option>
+  </select>
+</div>
+
         </div>
 
     <div class="flex justify-start gap-2 mt-6">
@@ -292,9 +309,55 @@ $('#sto-table tbody').on('click', 'tr.sto-row', function () {
   window.location.href = `/facility/sto/${stoId}/edit`;
 });
 
+$(document).ready(function () {
 
+  $('#filter-sto_number').select2({
+    placeholder: '-- All STO Number --',
+    allowClear: true,
+    width: '100%',
+    ajax: {
+      url: '/facility/sto/select',
+      dataType: 'json',
+      delay: 250,
+      data: function (params) {
+        return {
+          q: params.term
+        };
+      },
+      processResults: function (data) {
+        return {
+          results: data.results
+        };
+      }
+    }
+  });
 
+});
 
+$(document).ready(function () {
+
+  $('#filter-article').select2({
+    placeholder: '-- All Article --',
+    allowClear: true,
+    width: '100%',
+    ajax: {
+      url: '/facility/article/select',
+      dataType: 'json',
+      delay: 250,
+      data: function (params) {
+        return {
+          q: params.term
+        };
+      },
+      processResults: function (data) {
+        return {
+          results: data.results
+        };
+      }
+    }
+  });
+
+});
   </script>
 
 @endpush
