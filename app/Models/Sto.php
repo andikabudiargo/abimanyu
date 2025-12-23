@@ -33,4 +33,13 @@ class Sto extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+// Optional: hapus otomatis sto_items saat sto dihapus
+protected static function booted()
+{
+    static::deleting(function ($sto) {
+        $sto->items()->delete();
+    });
+}
+
 }

@@ -222,110 +222,150 @@ if ($warehouse === null) {
 
 public function datatables(Request $request)
 {
-   $columns = [
-    0 => 'sto_items.id',
-    1 => 'sto_items.location',
-    2 => 'articles.description',
-    3 => 'sto_items.qty',
-    4 => 'articles.unit',
-    5 => 'stos.sto_number',
-    6 => 'stos.created_by',
-    7 => 'stos.created_at',
-    8 => 'stos.note',
-];
+    $columns = [
+        0 => 'sto_items.id',
+        1 => 'sto_items.location',
+        2 => 'articles.description',
+        3 => 'sto_items.qty',
+        4 => 'articles.unit',
+        5 => 'stos.sto_number',
+        6 => 'stos.created_by',
+        7 => 'stos.created_at',
+        8 => 'stos.note',
+    ];
 
-
-    $totalData = DB::table('sto_items')->count();
-    $totalFiltered = $totalData;
-
+    // 🔥 AMBIL MAPPING USER
+    $warehouse     = $this->userWarehouse();
     $limit  = $request->length;
     $start  = $request->start;
     $order  = $columns[$request->input('order.0.column')];
     $dir    = $request->input('order.0.dir');
 
-   $query = DB::table('sto_items')
-    ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
-    ->join('articles', 'articles.article_code', '=', 'sto_items.article_code')
-    ->leftJoin('users', 'users.id', '=', 'stos.created_by')
-    ->select(
-        'sto_items.id as sto_item_id',
-        'sto_items.sto_id',
-        'sto_items.location',
-        'sto_items.article_code',
-        'articles.description as part_name',
-        'sto_items.qty',
-        'articles.unit',
-        'stos.sto_number',
-        'users.name as created_by', // 🔥 INI YANG BERUBAH
-        'stos.created_at',
-        'stos.note'
-    );
-
-
-
-        // =====================
-    // 🔍 FILTERS
     // =====================
-   // FILTERS
-if ($request->filled('location')) {
-    $query->where('sto_items.location', $request->location);
-}
+    // 🔹 BASE QUERY
+    // =====================
+    $query = DB::table('sto_items')
+        ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+        ->join('articles', 'articles.article_code', '=', 'sto_items.article_code')
+        ->leftJoin('users', 'users.id', '=', 'stos.created_by')
+        ->select(
+            'sto_items.id as sto_item_id',
+            'sto_items.sto_id',
+            'sto_items.location',
+            'sto_items.article_code',
+            'articles.description as part_name',
+            'sto_items.qty',
+            'articles.unit',
+            'stos.sto_number',
+            'users.name as created_by',
+            'stos.created_at',
+            'stos.note'
+        );
 
-if ($request->filled('article')) {
-    $query->where('sto_items.article_code', 'like', '%'.$request->article.'%');
-}
+    // =====================
+    // 🔐 FILTER OTOMATIS USER
+    // =====================
+    if (!is_null($warehouse)) {
+        $query->where('sto_items.location', $warehouse);
+    }
 
-if ($request->filled('sto_number')) {
-    $query->where('stos.sto_number', 'like', '%'.$request->sto_number.'%');
-}
+    // =====================
+    // 🔍 FILTER REQUEST (AMAN)
+    // =====================
+    if ($request->filled('location') && is_null($warehouse)) {
+        // hanya user yg boleh pilih gudang
+        $query->where('sto_items.location', $request->location);
+    }
 
+    if ($request->filled('article')) {
+        $query->where('sto_items.article_code', 'like', '%'.$request->article.'%');
+    }
+
+    if ($request->filled('sto_number')) {
+        $query->where('stos.sto_number', 'like', '%'.$request->sto_number.'%');
+    }
+
+    // =====================
     // 🔍 SEARCH
+    // =====================
     if (!empty($request->search['value'])) {
         $search = $request->search['value'];
 
-       $query->where(function ($q) use ($search) {
-   $q->where('sto_items.article_code', 'LIKE', "%{$search}%")
-  ->orWhere('articles.description', 'LIKE', "%{$search}%")
-  ->orWhere('stos.sto_number', 'LIKE', "%{$search}%")
-  ->orWhere('sto_items.location', 'LIKE', "%{$search}%")
-  ->orWhere('users.name', 'LIKE', "%{$search}%");
-
-});
-
-
-        $totalFiltered = $query->count();
+        $query->where(function ($q) use ($search) {
+            $q->where('sto_items.article_code', 'LIKE', "%{$search}%")
+              ->orWhere('articles.description', 'LIKE', "%{$search}%")
+              ->orWhere('stos.sto_number', 'LIKE', "%{$search}%")
+              ->orWhere('sto_items.location', 'LIKE', "%{$search}%")
+              ->orWhere('users.name', 'LIKE', "%{$search}%");
+        });
     }
 
-   $query->orderBy($order, $dir);
+    // =====================
+    // 🔢 TOTAL DATA (WAJIB SESUAI USER)
+    // =====================
+    $totalDataQuery = DB::table('sto_items')
+        ->join('articles', 'articles.article_code', '=', 'sto_items.article_code');
 
-// 🔥 JIKA BUKAN SHOW ALL
-if ($limit != -1) {
-    $query->offset($start)->limit($limit);
+    if (!is_null($warehouse)) {
+        $totalDataQuery->where('sto_items.location', $warehouse);
+    }
+
+    $totalData = $totalFiltered = $totalDataQuery->count();
+
+    // =====================
+    // 📊 ORDER & PAGINATION
+    // =====================
+    $query->orderBy($order, $dir);
+
+    if ($limit != -1) {
+        $query->offset($start)->limit($limit);
+    }
+
+    $data = $query->get();
+
+    // =====================
+    // 📦 FORMAT DATA
+    // =====================
+  $result = [];
+foreach ($data as $row) {
+    // 🔥 ID unik untuk dropdown
+    $dropdownId = 'dropdown-' . $row->sto_item_id;
+$editUrl = route('facility.sto.edit', ['id' => $row->sto_id]);
+    $result[] = [
+        'DT_RowAttr' => [
+            'data-id' => $row->sto_id,
+            'class'   => 'sto-row cursor-pointer hover:bg-blue-50'
+        ],
+        // 🔹 ACTION DROPDOWN DI AWAL
+        'action' => '
+        <div class="relative inline-block text-left">
+          <button type="button" onclick="toggleDropdown(\'' . $dropdownId . '\')" class="inline-flex justify-center w-full px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+           <i data-feather="align-justify"></i>
+          </button>
+          <div id="' . $dropdownId . '" class="hidden origin-top-right absolute right-100 mt-2 w-28 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+            <div class="py-1 text-sm text-gray-700">
+             <a href="' . $editUrl . '" class="block px-4 py-2 hover:bg-gray-100">
+                <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
+              </a>
+             <button onclick="deleteSTO(' . $row->sto_id . ')" class="w-full text-red-500 text-left px-4 py-2 hover:bg-red-500 hover:text-gray-100">
+    <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
+</button>
+            </div>
+          </div>
+        </div>',
+        // 🔹 DATA LAINNYA
+        'location'     => $row->location,
+        'article_code' => $row->article_code,
+        'part_name'    => $row->part_name,
+        'qty'          => $row->qty,
+        'unit'         => $row->unit,
+        'sto_number'   => $row->sto_number,
+        'created_by'   => $row->created_by,
+        'created_at'   => $row->created_at,
+        'note'         => $row->note,
+    ];
 }
 
-$data = $query->get();
-
-
-    $result = [];
-    foreach ($data as $row) {
-      $result[] = [
-    'DT_RowAttr' => [
-        'data-id' => $row->sto_id,
-        'class'   => 'sto-row cursor-pointer hover:bg-blue-50'
-    ],
-    'location'     => $row->location,
-    'article_code' => $row->article_code,
-    'part_name'    => $row->part_name,
-    'qty'          => $row->qty,
-    'unit'         => $row->unit,
-    'sto_number'   => $row->sto_number,
-    'created_by'   => $row->created_by,
-    'created_at'   => $row->created_at, // bisa diformat di JS atau Carbon
-    'note'         => $row->note,
-];
-
-
-    }
 
     return response()->json([
         "draw"            => intval($request->draw),
@@ -334,6 +374,7 @@ $data = $query->get();
         "data"            => $result
     ]);
 }
+
 
 public function edit($id)
 {
@@ -434,6 +475,22 @@ public function selectArticle(Request $request)
                 'text' => "{$a->article_code} - {$a->description}",
             ];
         }),
+    ]);
+}
+
+public function destroy($id)
+{
+    $sto = STO::findOrFail($id);
+
+    // Hapus semua item terkait
+    $sto->items()->delete(); 
+
+    // Hapus header STO
+    $sto->delete();
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'STO berhasil dihapus'
     ]);
 }
 

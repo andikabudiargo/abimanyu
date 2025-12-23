@@ -232,8 +232,9 @@ Route::get('/facility/sto/index', [STOController::class, 'index'])->name('sto.in
 Route::get('/facility/sto/create', [STOController::class, 'create'])->name('sto.create');
 Route::post('/sto/save', [STOController::class, 'store'])->name('sto.store');
 Route::get('/sto/data', [STOController::class, 'datatables'])->name('sto.data');
-Route::get('/sto/{id}/edit', [StoController::class, 'edit']);
+Route::get('/sto/{id}/edit', [STOController::class, 'edit'])->name('sto.edit');
 Route::put('/sto/update/{id}', [StoController::class, 'update']);
+Route::delete('/sto/delete/{id}', [STOController::class, 'destroy'])->name('sto.destroy');
 // routes/web.php
 Route::get('/sto/select', [StoController::class, 'selectSto'])
      ->name('sto.select');

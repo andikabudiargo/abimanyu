@@ -66,6 +66,7 @@
     <table id="sto-table" class="min-w-full text-sm text-left whitespace-nowrap">
             <thead class="bg-blue-500 text-white uppercase text-xs font-bold tracking-wider">
                 <tr>
+                     <th class="px-4 py-2 text-left">Action</th>
                     <th class="px-4 py-2 text-left">Location</th>
                     <th class="px-4 py-2 text-left">Part Code</th>
                     <th class="px-4 py-2 text-left">Part Name</th>
@@ -92,24 +93,6 @@
     /* hover background */
 #sto-table tbody tr.sto-row:hover {
   background-color: #eff6ff; /* bg-blue-50 */
-}
-
-/* tooltip container */
-#sto-table tbody tr.sto-row::after {
-  content: '✏️ Edit data';
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
-  background: #1f2937; /* gray-800 */
-  color: #fff;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease-in-out;
-  white-space: nowrap;
 }
 
 /* show tooltip on hover */
@@ -263,6 +246,7 @@ $(function () {
     },
 
     columns: [
+    { data: 'action', orderable: false, searchable: false },
       { data: 'location', className: 'text-center' },
       { data: 'article_code' },
       { data: 'part_name' },
@@ -302,19 +286,16 @@ $(function () {
       }
     ]
   });
-
+// 🔍 Feather icons
+  table.on('draw', function () {
+    feather.replace();
+  });
   // 🔍 Submit filter
   $('#filter-form').on('submit', function (e) {
     e.preventDefault();
     table.ajax.reload();
   });
 
-});
-
-// 🔥 klik row → detail STO
-$('#sto-table tbody').on('click', 'tr.sto-row', function () {
-  const stoId = $(this).data('id');
-  window.location.href = `/facility/sto/${stoId}/edit`;
 });
 
 $(document).ready(function () {
@@ -366,6 +347,70 @@ $(document).ready(function () {
   });
 
 });
+
+let openDropdown = null;
+
+function toggleDropdown(id) {
+  const dropdown = document.getElementById(id);
+
+  // Tutup dropdown lain
+  if (openDropdown && openDropdown !== dropdown) {
+    openDropdown.classList.add('hidden');
+  }
+
+  dropdown.classList.toggle('hidden');
+  openDropdown = dropdown.classList.contains('hidden') ? null : dropdown;
+}
+
+// Tutup dropdown saat klik di luar
+document.addEventListener('click', function (e) {
+  if (openDropdown && !openDropdown.contains(e.target)) {
+    const isTrigger = e.target.closest('button[onclick^="toggleDropdown"]');
+    if (!isTrigger) {
+      openDropdown.classList.add('hidden');
+      openDropdown = null;
+    }
+  }
+  });
+
+function deleteSTO(id) {
+    Swal.fire({
+        title: 'Yakin ingin hapus?',
+        text: "STO Number ini akan terhapus!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/facility/sto/delete/' + id,
+                type: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    Swal.fire(
+                        'Terhapus!',
+                        response.message,
+                        'success'
+                    );
+                    $('#sto-table').DataTable().ajax.reload();
+                },
+                error: function(xhr) {
+                    Swal.fire(
+                        'Gagal!',
+                        'Terjadi kesalahan saat menghapus.',
+                        'error'
+                    );
+                }
+            });
+        }
+    });
+}
+
   </script>
 
 @endpush
