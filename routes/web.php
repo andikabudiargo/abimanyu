@@ -240,6 +240,8 @@ Route::get('/sto/select', [StoController::class, 'selectSto'])
      // routes/web.php
 Route::get('/article/select', [STOController::class, 'selectArticle'])
      ->name('article.select');
+     Route::get('/articles/by-warehouse', [STOController::class, 'getArticlesByWarehouse']);
+
 
 
 

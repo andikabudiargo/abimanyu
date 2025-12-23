@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\DB;
 
 use App\Models\Article;
 
-
 class STOController extends Controller
 {
    public function index()
@@ -20,24 +19,26 @@ class STOController extends Controller
         return view('facility.sto');
     }
 
-   public function create()
+  public function create()
 {
-    $warehouse     = $this->userWarehouse();
-    $allowedTypes  = $this->allowedArticleTypes($warehouse);
+    $warehouse = $this->userWarehouse();
+
+    $canChooseWarehouse = is_null($warehouse); // 🔥 INI BARU
+
+    $allowedTypes = $this->allowedArticleTypes($warehouse);
 
     $articles = Article::whereIn('article_type', $allowedTypes)
         ->select('id', 'article_code', 'description', 'unit', 'article_type')
         ->orderBy('description')
         ->get();
 
-          // ambil STO number yang sudah ada di database
     $usedStoNumbers = \DB::table('stos')
         ->pluck('sto_number')
         ->toArray();
 
-        // Mengembalikan view resources/views/accounting/bbm.blade.php
-        return view('facility.create-sto', compact(
+    return view('facility.create-sto', compact(
         'warehouse',
+        'canChooseWarehouse', // 🔥 KIRIM KE VIEW
         'articles',
         'usedStoNumbers'
     ));
@@ -48,28 +49,65 @@ class STOController extends Controller
     $userId = Auth::id();
 
     return match ($userId) {
-        55        => 'Raw Material',
+        55,63     => 'Raw Material',
         64        => 'Finish Goods',
         92        => 'Work In Progress',
-        86, 63    => 'OT',
+        86        => 'OT',
         67        => 'Chemical',
         94        => 'Consumable',
+        53     => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
 
-private function allowedArticleTypes(string $warehouse): array
+private function allowedArticleTypes(?string $warehouse): array
 {
+    // 🔥 kalau user boleh pilih gudang (warehouse = null)
+    // jangan batasi tipe artikel
+    if (is_null($warehouse)) {
+        return ['RMP','RMNP','FG','CM1','CM2'];
+    }
+
     return match ($warehouse) {
         'Raw Material'     => ['RMP','RMNP'],
         'Finish Goods'     => ['FG'],
         'Work In Progress' => ['RMP','RMNP'],
-        'OT'               => ['RMP','RMNP', 'FG'],
+        'OT'               => ['RMP','RMNP','FG'],
         'Chemical'         => ['CM1'],
         'Consumable'       => ['CM2'],
         default            => [],
     };
 }
+
+public function getArticlesByWarehouse(Request $request)
+{
+    // 🔐 Warehouse berdasarkan user login
+    $userWarehouse = $this->userWarehouse();
+
+    /**
+     * RULE:
+     * - Jika userWarehouse !== null → PAKSA pakai itu
+     * - Jika null (boleh pilih sendiri) → pakai request
+     */
+    $warehouse = $userWarehouse ?? $request->warehouse;
+
+    // 🔥 NORMALISASI WIP
+    if ($warehouse && str_starts_with($warehouse, 'WIP')) {
+        $warehouse = 'Work In Progress';
+    }
+
+    $allowedTypes = $this->allowedArticleTypes($warehouse);
+
+    $articles = Article::whereIn('article_type', $allowedTypes)
+        ->select('article_code', 'description', 'unit')
+        ->orderBy('description')
+        ->get();
+
+    return response()->json($articles);
+}
+
+
+
 
 public function store(Request $request)
 {
@@ -99,9 +137,34 @@ public function store(Request $request)
         // =========================
         // CREATE STO HEADER
         // =========================
+        $warehouse = $this->userWarehouse();
+
+// 🔥 JIKA USER BOLEH PILIH BEBAS (WAREHOUSE NULL)
+if ($warehouse === null) {
+
+    $firstLocation = $request->articles[0]['location'] ?? null;
+
+    if (!$firstLocation) {
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Location belum dipilih',
+        ], 422);
+    }
+
+    // Mapping WIP
+    if (str_starts_with($firstLocation, 'WIP')) {
+        $warehouse = 'Work In Progress';
+    } else {
+        // OT, Chemical, Consumable, dll
+        $warehouse = $firstLocation;
+    }
+}
+
         $sto = Sto::create([
             'sto_number' => $request->sto_number,
-            'warehouse'  => $this->userWarehouse(),
+            'warehouse'  => $warehouse,
             'note'       => $request->note,
             'created_by' => auth()->id(),
         ]);
@@ -159,15 +222,18 @@ public function store(Request $request)
 
 public function datatables(Request $request)
 {
-    $columns = [
-        0 => 'sto_items.id',
-        1 => 'sto_items.location',
-        2 => 'articles.description',
-        3 => 'sto_items.qty',
-        4 => 'articles.unit',
-        5 => 'stos.sto_number',
-        6 => 'stos.note',
-    ];
+   $columns = [
+    0 => 'sto_items.id',
+    1 => 'sto_items.location',
+    2 => 'articles.description',
+    3 => 'sto_items.qty',
+    4 => 'articles.unit',
+    5 => 'stos.sto_number',
+    6 => 'stos.created_by',
+    7 => 'stos.created_at',
+    8 => 'stos.note',
+];
+
 
     $totalData = DB::table('sto_items')->count();
     $totalFiltered = $totalData;
@@ -180,17 +246,21 @@ public function datatables(Request $request)
    $query = DB::table('sto_items')
     ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
     ->join('articles', 'articles.article_code', '=', 'sto_items.article_code')
+    ->leftJoin('users', 'users.id', '=', 'stos.created_by')
     ->select(
-        'sto_items.id as sto_item_id',   // kalau nanti mau edit item
-        'sto_items.sto_id',              // 🔥 INI KUNCI UTAMA
+        'sto_items.id as sto_item_id',
+        'sto_items.sto_id',
         'sto_items.location',
         'sto_items.article_code',
         'articles.description as part_name',
         'sto_items.qty',
         'articles.unit',
         'stos.sto_number',
+        'users.name as created_by', // 🔥 INI YANG BERUBAH
+        'stos.created_at',
         'stos.note'
     );
+
 
 
         // =====================
@@ -214,10 +284,12 @@ if ($request->filled('sto_number')) {
         $search = $request->search['value'];
 
        $query->where(function ($q) use ($search) {
-    $q->where('sto_items.article_code', 'LIKE', "%{$search}%") // ✅
-      ->orWhere('articles.description', 'LIKE', "%{$search}%")
-      ->orWhere('stos.sto_number', 'LIKE', "%{$search}%")
-      ->orWhere('sto_items.location', 'LIKE', "%{$search}%");
+   $q->where('sto_items.article_code', 'LIKE', "%{$search}%")
+  ->orWhere('articles.description', 'LIKE', "%{$search}%")
+  ->orWhere('stos.sto_number', 'LIKE', "%{$search}%")
+  ->orWhere('sto_items.location', 'LIKE', "%{$search}%")
+  ->orWhere('users.name', 'LIKE', "%{$search}%");
+
 });
 
 
@@ -238,7 +310,7 @@ $data = $query->get();
     foreach ($data as $row) {
       $result[] = [
     'DT_RowAttr' => [
-        'data-id' => $row->sto_id, // 🔥 PAKE sto_id
+        'data-id' => $row->sto_id,
         'class'   => 'sto-row cursor-pointer hover:bg-blue-50'
     ],
     'location'     => $row->location,
@@ -247,6 +319,8 @@ $data = $query->get();
     'qty'          => $row->qty,
     'unit'         => $row->unit,
     'sto_number'   => $row->sto_number,
+    'created_by'   => $row->created_by,
+    'created_at'   => $row->created_at, // bisa diformat di JS atau Carbon
     'note'         => $row->note,
 ];
 

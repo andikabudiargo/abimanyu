@@ -85,6 +85,21 @@
       <option value="WIP Stripping">WIP Stripping</option>
       <option value="WIP Touchup">WIP Touchup</option>
     </select>
+    @elseif($warehouse === null)
+     <select id="warehouse-null"
+            class="mt-1 w-full text-black text-sm rounded px-1 py-1">
+      <option value="">-- Pilih Gudang --</option>
+      <option value="Raw Material">Raw Material</option>
+      <option value="Finish Goods">Finish Goods</option>
+      <option value="OT">OT</option>
+      <option value="Chemical">Chemical</option>
+      <option value="Consumable">Consumable</option>
+      <option value="WIP Sanding">WIP Sanding</option>
+      <option value="WIP Sanding">WIP Sanding</option>
+      <option value="WIP Buffing">WIP Buffing</option>
+      <option value="WIP Stripping">WIP Stripping</option>
+      <option value="WIP Touchup">WIP Touchup</option>
+    </select>
   @endif
 </th>
 
@@ -265,35 +280,72 @@
     allowclear: 'true'
   });
 
-  $('.part-select').on('change', function () {
-    const row  = $(this).data('row');
-    const opt  = $(this).find(':selected');
+  $(document).on('change', '.part-select', function () {
+  const row = $(this).data('row');
+  const opt = $(this).find(':selected');
 
-    const code = opt.data('code') || '';
-    const uom  = opt.data('uom')  || '';
+  const code = opt.data('code') || opt.val() || '';
+  const uom  = opt.data('uom')  || opt.data('unit') || '';
 
-    $(`input[name="articles[${row}][article_code]"]`).val(code);
-    $(`input[name="articles[${row}][uom]"]`).val(uom);
-  });
+  $(`input[name="articles[${row}][article_code]"]`).val(code);
+  $(`input[name="articles[${row}][uom]"]`).val(uom);
+});
 
+
+});
+
+$(document).on('change', '#warehouse-null, #wip-master', function () {
+  const selectedLocation = $(this).val();
+  console.log('SELECTED:', selectedLocation);
+
+  if (!selectedLocation) {
+    $('.location-input').val('');
+    return;
+  }
+
+  $('.location-input').val(selectedLocation);
 });
 
 $(document).ready(function () {
 
-  $('#wip-master').on('change', function () {
-    const selectedWip = $(this).val();
+  function loadArticles(warehouse = null) {
 
-    if (!selectedWip) return;
+    $.get('/facility/articles/by-warehouse', { warehouse }, function (articles) {
 
-    console.log('WIP MASTER SELECTED:', selectedWip);
+     $('.part-select').each(function () {
+  const select = $(this);
+  select.empty();
+  select.append('<option value="">-- Pilih Artikel --</option>');
 
-    $('.location-input').each(function (index) {
-      // baris pertama ikut juga, biar konsisten
-      $(this).val(selectedWip);
+  articles.forEach(a => {
+    select.append(`
+      <option value="${a.article_code}"
+              data-code="${a.article_code}"
+              data-uom="${a.unit}">
+        ${a.article_code} - ${a.description}
+      </option>
+    `);
+  });
+
+  // 🔥 INI KUNCI
+  select.val(null).trigger('change');
+});
+
     });
+  }
+
+  // 🔥 LOAD AWAL (warehouse null → semua artikel)
+  loadArticles(null);
+
+  // 🔁 SAAT GUDANG DIPILIH
+  $('#warehouse-null').on('change', function () {
+    const warehouse = $(this).val() || null;
+    loadArticles(warehouse);
   });
 
 });
+
+
 
 $(document).ready(function () {
   $('#sto_number').select2({

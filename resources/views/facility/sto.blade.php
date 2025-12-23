@@ -66,13 +66,15 @@
     <table id="sto-table" class="min-w-full text-sm text-left whitespace-nowrap">
             <thead class="bg-blue-500 text-white uppercase text-xs font-bold tracking-wider">
                 <tr>
-                    <th class="px-4 py-2 text-center">Location</th>
-                    <th class="px-4 py-2 text-center">Part Code</th>
-                    <th class="px-4 py-2 text-center">Part Name</th>
+                    <th class="px-4 py-2 text-left">Location</th>
+                    <th class="px-4 py-2 text-left">Part Code</th>
+                    <th class="px-4 py-2 text-left">Part Name</th>
                      <th class="px-4 py-2 text-center">Qty</th>
-                    <th class="px-4 py-2">UoM</th>
+                    <th class="px-4 py-2 text-center">UoM</th>
                     <th class="px-4 py-2 text-center">STO Number</th>
-                    <th class="px-4 py-2 text-center">Note</th>
+                    <th class="px-4 py-2 text-center">Created by</th>
+                    <th class="px-4 py-2 text-center">Created at</th>
+                    <th class="px-4 py-2 text-left">Note</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -267,10 +269,16 @@ $(function () {
       { data: 'qty', className: 'text-center' },
       { data: 'unit', className: 'text-center' },
       { data: 'sto_number', className: 'text-center' },
+      { data: 'created_by', className: 'text-center' },
+      { 
+        data: 'created_at',
+        className: 'text-center',
+    
+      },
       { data: 'note' },
     ],
 
-    order: [[6, 'desc']],
+    order: [[7, 'desc']],
 
     lengthMenu: [
       [10, 25, 50, -1],
@@ -303,7 +311,7 @@ $(function () {
 
 });
 
-
+// 🔥 klik row → detail STO
 $('#sto-table tbody').on('click', 'tr.sto-row', function () {
   const stoId = $(this).data('id');
   window.location.href = `/facility/sto/${stoId}/edit`;
