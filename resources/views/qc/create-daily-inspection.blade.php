@@ -181,12 +181,6 @@
 </div>
 
 
-      <!-- Note -->
-      <div class="w-full">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
-        <textarea id="note" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
-      </div>
-
       <!-- Check Method & Total Check -->
       <div class="flex flex-col md:flex-row gap-4">
         <div id="check_method_container" class="w-full md:w-1/2 hidden">
@@ -774,11 +768,10 @@ $('#submitBtn').on('click', function (e) {
     formData.append('_token', '{{ csrf_token() }}');
     formData.append('inspection_post', $('#inspection_post').val());
     formData.append('part_name', $('#part_name').val());
-    formData.append('supplier_code', $('#supplier_code').val());
+   formData.append('supplier_code', $('#supplier').val());
     formData.append('qty_received', $('#qty_received').val());
     formData.append('shift', $('#shift-label').text());
     formData.append('inspection_date', $('#inspection-date').text());
-    formData.append('note', $('#note').val());
     formData.append('check_method', $('#check_method').val());
     formData.append('total_check', $('#total_check').val());
     formData.append('total_ok', $('[data-info="total-ok"]').text());
