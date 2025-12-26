@@ -596,7 +596,7 @@ $defectSelect.on('select2:select', function (e) {
             $(this).val(qtyDefect);
         }
     });
-toggleOkRepair();
+
     return $row;
 }
 
