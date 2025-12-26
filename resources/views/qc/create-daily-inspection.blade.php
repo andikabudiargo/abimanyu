@@ -147,7 +147,7 @@
     <label class="block text-sm font-medium text-gray-700 mb-1">
       Customer <span class="text-red-600">*</span>
     </label>
-    <select name="supplier" id="customer" class="select2 w-full">
+    <select name="customer" id="customer" class="select2 w-full">
       <option value="">-- Pilih Customer --</option>
       @foreach ($customers as $customer)
         <option value="{{ $customer->code }}">{{ $customer->name }}</option>
@@ -769,7 +769,14 @@ $('#submitBtn').on('click', function (e) {
     formData.append('_token', '{{ csrf_token() }}');
     formData.append('inspection_post', $('#inspection_post').val());
     formData.append('part_name', $('#part_name').val());
-   formData.append('supplier_code', $('#supplier').val());
+  const post = $('#inspection_post').val();
+
+const supplierCode = (post === 'Incoming')
+    ? $('#supplier').val()
+    : $('#customer').val();
+
+formData.append('supplier_code', supplierCode);
+
     formData.append('qty_received', $('#qty_received').val());
     formData.append('shift', $('#shift-label').text());
     formData.append('inspection_date', $('#inspection-date').text());
