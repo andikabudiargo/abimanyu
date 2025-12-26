@@ -147,7 +147,7 @@
     <label class="block text-sm font-medium text-gray-700 mb-1">
       Customer <span class="text-red-600">*</span>
     </label>
-    <select name="customer" id="customer" class="select2 w-full">
+    <select name="supplier" id="customer" class="select2 w-full">
       <option value="">-- Pilih Customer --</option>
       @foreach ($customers as $customer)
         <option value="{{ $customer->code }}">{{ $customer->name }}</option>
@@ -542,11 +542,6 @@ $defectSelect.select2({
 /// Saat defect dipilih
 $defectSelect.on('select2:select', function (e) {
     const val = $(this).val();
-
-    console.log('🧪 DEFECT SELECTED');
-    console.log('row index      :', index);
-    console.log('select.val()   :', val, typeof val);
-    console.log('select2 data   :', e.params.data);
 
     const currentDefect = e.params.data.element.dataset.defect
         ?.trim()
