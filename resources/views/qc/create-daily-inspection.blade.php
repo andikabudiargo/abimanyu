@@ -778,19 +778,23 @@ $('#submitBtn').on('click', function (e) {
     formData.append('total_ok_repair', $('[data-info="total-ok-repair"]').text());
     formData.append('total_ng', $('[data-info="total-ng"]').text());
 
-    $('#defectTableBody tr').each(function (index) {
-        const defect = $(this).find('select[name="defect_id[]"]').val();
-        const qty = $(this).find('input[name="qty[]"]').val();
-        const ok_repair = $(this).find('input[name="ok_repair[]"]').val();
-        const note = $(this).find('input[name="note_defect[]"]').val();
+   $('#defectTableBody tr').each(function (index) {
+    const select = $(this).find('.defect-select');
+    const data = select.select2('data');
 
-        if (defect && qty) {
-            formData.append(`defect_id[${index}]`, defect);
-            formData.append(`qty[${index}]`, qty);
-            formData.append(`ok_repair[${index}]`, ok_repair);
-            formData.append(`note_defect[${index}]`, note ?? '');
-        }
-    });
+    const defect = data.length ? data[0].id : null;
+    const qty = $(this).find('input[name="qty[]"]').val();
+    const ok_repair = $(this).find('input[name="ok_repair[]"]').val();
+    const note = $(this).find('input[name="note_defect[]"]').val();
+
+    if (!defect || !qty) return;
+
+    formData.append(`defect_id[${index}]`, defect);
+    formData.append(`qty[${index}]`, qty);
+    formData.append(`ok_repair[${index}]`, ok_repair || 0);
+    formData.append(`note_defect[${index}]`, note || '');
+});
+
 
     console.log('Payload sending to server...');
     for (let pair of formData.entries()) {
