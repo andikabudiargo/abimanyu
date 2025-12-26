@@ -201,17 +201,24 @@ $query->orderBy('created_at', 'desc');
 
     public function store(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
-            'inspection_post' => 'required|string',
-            'part_name' => 'required|string',
-            'total_check' => 'required|integer',
-            'check_method' => 'nullable|string',
-            'defects' => 'nullable|array',
-            'defects.*.defect' => 'required|string',
-            'defects.*.qty' => 'required|integer',
-            'defects.*.ok_repair' => 'nullable|integer',
-            'defects.*.note_defect' => 'nullable|string',
-        ]);
+    'inspection_post' => 'required|string',
+    'part_name' => 'required|string',
+    'total_check' => 'required|integer',
+    'check_method' => 'nullable|string',
+    'defect_id' => 'nullable|array',
+    'defect_id.*' => 'required|integer|exists:defects,id',
+
+    'qty' => 'required|array',
+    'qty.*' => 'required|integer|min:1',
+
+    'ok_repair' => 'nullable|array',
+    'ok_repair.*' => 'nullable|integer|min:0',
+
+    'note_defect' => 'nullable|array',
+    'note_defect.*' => 'nullable|string',
+]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -237,19 +244,17 @@ $query->orderBy('created_at', 'desc');
             'total_ng' => $request->total_ng ?? 0,
         ]);
 
-   // Simpan defects jika ada
-if ($request->defect_id) {
+  if ($request->defect_id) {
     foreach ($request->defect_id as $i => $defectId) {
-        if ($defectId && $request->qty[$i]) {
-            InspectionDefect::create([
-                'inspection_id' => $inspection->id,
-                'defect_id' => $defectId,
-                'qty' => $request->qty[$i],
-                'ok_repair' => $request->ok_repair[$i] ?? 0,
-                'note_defect' => $request->note[$i] ?? null,
-            ]);
-        }
+        InspectionDefect::create([
+            'inspection_id' => $inspection->id,
+            'defect_id' => $defectId,
+            'qty' => $request->qty[$i],
+            'ok_repair' => $request->ok_repair[$i] ?? 0,
+            'note_defect' => $request->note_defect[$i] ?? null,
+        ]);
     }
+
 }
 
         return response()->json(['message' => 'Inspection saved successfully']);
