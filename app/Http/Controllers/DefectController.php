@@ -117,13 +117,20 @@ public function data(Request $request)
 public function getByInspectionPost($post)
 {
     $defects = \App\Models\Defect::where('inspection_post', $post)
-        ->select('code', 'defect', 'category')
-        ->groupBy('code', 'defect', 'category')
-        ->orderBy('defect')
+        ->select('id', 'defect', 'category')
+        ->orderByRaw("
+            CASE category
+                WHEN 'NG' THEN 1
+                WHEN 'NC' THEN 2
+                ELSE 3
+            END
+        ")
+        ->orderBy('defect', 'ASC')
         ->get();
 
     return response()->json($defects);
 }
+
 
 
 
