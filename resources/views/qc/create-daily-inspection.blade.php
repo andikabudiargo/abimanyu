@@ -414,20 +414,6 @@ $okRepairRate.text(okRepairRate + '%');
     }
   });
 
-  $(document).on('change', '.defect-select', function () {
-    const selected = [];
-    $('.defect-select').each(function () {
-      const val = $(this).val();
-      if (val) selected.push(val);
-    });
-
-    const hasDuplicate = new Set(selected).size !== selected.length;
-    if (hasDuplicate) {
-      Swal.fire('Peringatan', 'Defect duplikat tidak diizinkan', 'warning');
-      $(this).val('').trigger('change');
-    }
-  });
-
   $(document).on('click', '.removeBtn', function () {
     $(this).closest('tr').remove();
     updateTotals();
@@ -514,10 +500,16 @@ $('#customer').select2({
 function createRow(index, defects = []) {
     const $row = $('<tr>');
 
-    let defectOptions = '<option value="">-- Choose Defect --</option>';
-    defects.forEach(defect => {
-        defectOptions += `<option value="${defect.id}">${defect.category} - ${defect.defect}</option>`;
-    });
+   let defectOptions = '<option value="">-- Choose Defect --</option>';
+defects.forEach(defect => {
+    defectOptions += `
+      <option 
+        value="${defect.id}" 
+        data-defect="${defect.defect}">
+        ${defect.category} - ${defect.defect}
+      </option>`;
+});
+
 
     $row.html(`
         <td class="border p-2 text-center min-w-[40px]">${index}</td>
@@ -529,9 +521,13 @@ function createRow(index, defects = []) {
         <td class="border p-2 min-w-[80px]">
             <input type="number" name="qty[]" min="1" class="w-full border rounded p-1 qty-defect" required>
         </td>
-        <td class="border p-2 min-w-[80px]">
-            <input type="number" name="ok_repair[]" class="w-full border rounded p-1 qty-ok-repair" required>
-        </td>
+     <td class="border p-2 min-w-[80px] ok-repair-wrapper">
+    <input type="number"
+           name="ok_repair[]"
+           class="w-full border rounded p-1 qty-ok-repair">
+</td>
+
+
         <td class="border p-2 min-w-[120px]">
             <input type="text" name="note_defect[]" class="w-full border rounded p-1">
         </td>
@@ -541,33 +537,52 @@ function createRow(index, defects = []) {
     `);
 
     // Init Select2
-    $row.find('.defect-select').select2({
-        placeholder: '-- Choose Defect --',
-        allowClear: true,
-        width: '100%'
-    });
+const $defectSelect = $row.find('.defect-select');
 
-    // Validasi duplikat defect
-    $row.find('.defect-select').on('change', function () {
-        const selectedValue = $(this).val();
-        let isDuplicate = false;
+$defectSelect.select2({
+    placeholder: '-- Choose Defect --',
+    allowClear: true,
+    width: '100%'
+});
 
-        $('.defect-select').not(this).each(function () {
-            if ($(this).val() === selectedValue && selectedValue !== '') {
-                isDuplicate = true;
-            }
-        });
+// ✅ VALIDASI DUPLIKAT DEFECT (FIX)
+$defectSelect.on('select2:select', function (e) {
 
-        if (isDuplicate) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Duplikasi Defect!',
-                text: 'Defect yang sama sudah dipilih di baris lain.',
-                confirmButtonText: 'OK'
-            });
-            $(this).val('').trigger('change');
+    const currentDefect = e.params.data.element.dataset.defect
+        ?.trim()
+        .toLowerCase();
+
+    if (!currentDefect) return;
+
+    let isDuplicate = false;
+
+    $('.defect-select').not(this).each(function () {
+
+        const data = $(this).select2('data');
+        if (!data.length) return;
+
+        const defect = data[0].element.dataset.defect
+            ?.trim()
+            .toLowerCase();
+
+        if (defect === currentDefect) {
+            isDuplicate = true;
         }
     });
+
+    if (isDuplicate) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Duplikasi Defect!',
+            text: 'Defect yang sama sudah dipilih di baris lain.',
+            confirmButtonText: 'OK'
+        });
+
+        // reset TANPA trigger change
+        $(this).val(null).trigger('select2:clear');
+    }
+});
+
 
     // Validasi OK Repair <= Qty Defect
     $row.find('.qty-ok-repair').on('input', function () {
@@ -715,13 +730,6 @@ $('#part_name').on('change', function () {
 });
 
 
-
-
-
-
- 
-
-
   const today = new Date();
     const formattedDate = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
     document.getElementById("inspection-date").textContent = formattedDate;
@@ -755,32 +763,8 @@ $('#inspection_post').on('change', function() {
         methodField.classList.add('hidden');
     }
 });
-  function attachDefectValidation() {
-  const selects = document.querySelectorAll('.defect-select');
 
-  selects.forEach(select => {
-    select.removeEventListener('change', handleDefectChange); // Prevent multiple bindings
-    select.addEventListener('change', handleDefectChange);
-  });
-}
 
-function handleDefectChange() {
-  const selectedValues = Array.from(document.querySelectorAll('.defect-select'))
-    .map(s => s.value)
-    .filter(v => v); // Remove empty
-
-  const duplicates = selectedValues.filter((v, i, self) => self.indexOf(v) !== i);
-
-  if (duplicates.length > 0) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Duplicate Defect',
-      text: 'Tidak bisa pilih defect yang sama dua kali.',
-    });
-
-    this.value = ''; // Reset the current select
-  }
-}
 
 $('#submitBtn').on('click', function (e) {
     e.preventDefault();
@@ -849,7 +833,27 @@ $('#submitBtn').on('click', function (e) {
     });
 });
 
+$(document).ready(function () {
 
+    function toggleOkRepair() {
+        const inspectionPost = $('#inspection_post').val();
+
+        if (inspectionPost === 'Incoming') {
+            $('.ok-repair-wrapper').removeClass('hidden')
+                .find('input').prop('required', true);
+        } else {
+            $('.ok-repair-wrapper').addClass('hidden')
+                .find('input').prop('required', false).val('');
+        }
+    }
+
+    // saat load
+    toggleOkRepair();
+
+    // saat berubah
+    $('#inspection_post').on('change', toggleOkRepair);
+
+});
 
 </script>
 @endpush
