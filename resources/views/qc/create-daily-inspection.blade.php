@@ -539,6 +539,8 @@ $defectSelect.select2({
     width: '100%'
 });
 
+
+
 /// Saat defect dipilih
 $defectSelect.on('select2:select', function (e) {
     const val = $(this).val();
@@ -594,7 +596,7 @@ $defectSelect.on('select2:select', function (e) {
             $(this).val(qtyDefect);
         }
     });
-
+toggleOkRepair();
     return $row;
 }
 
