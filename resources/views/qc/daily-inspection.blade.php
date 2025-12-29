@@ -324,18 +324,11 @@ div.dt-button-collection .dt-button:hover {
   className: 'text-left',
   orderable: false,
   render: function (data) {
-  const post = data.inspection_post;
-
-  if (post === 'Incoming' && data.supplier) {
-    return data.supplier.name;
-  }
-
-  if (post !== 'Incoming' && data.customer) {
-    return data.customer.name;
-  }
-
-  return '-';
+  return data.inspection_post === 'Incoming'
+    ? (data.supplier?.name ?? '-')
+    : (data.customer?.name ?? '-');
 }
+
 
 },
   { data: 'part_name', name: 'part_name', className: 'text-left', orderable: false },
