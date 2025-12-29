@@ -205,7 +205,7 @@
              <th class="p-2 border text-center min-w-[40px]">No.</th>
         <th class="p-2 border min-w-[140px]">Defect</th>
         <th class="p-2 border min-w-[80px]">Qty</th>
-        <th class="p-2 border min-w-[80px]">OK Repair</th>
+        <th class="p-2 border min-w-[80px] ok-repair-wrapper">OK Repair</th>
         <th class="p-2 border min-w-[120px]">Note</th>
         <th class="p-2 border text-center min-w-[60px]">Action</th>
             </tr>
@@ -315,7 +315,10 @@ select:disabled {
 </style>
 @push('scripts')
 <script>
+  
+
 $(document).ready(function () {
+  toggleOkRepair(); // 🔥 INI WAJIB
   const $checkMethod = $('#check_method');
   const $qtyReceiving = $('#qty_received');
   const $totalCheck = $('#total_check');
@@ -433,54 +436,13 @@ $('#customer').select2({
 });
 
 
-   $('#inspection_post').on('change', function () {
-  const post = $(this).val();
-
-  if (post === 'Incoming') {
-    // ================= Incoming =================
-    // Supplier ON
-    $('#supplier-wrapper').removeClass('hidden');
-    $('#customer-wrapper').addClass('hidden');
-
-    $('#customer').val(null).trigger('change');
-    $('#supplier').prop('required', true);
-    $('#customer').prop('required', false);
-
-    // Qty Received ON
-    $('#qty-received-wrapper').removeClass('hidden');
-    $('#qty_received').prop('required', true);
-
-  } else if (post) {
-    // ================= Selain Incoming =================
-    // Customer ON
-    $('#supplier-wrapper').addClass('hidden');
-    $('#customer-wrapper').removeClass('hidden');
-
-    $('#supplier').val(null).trigger('change');
-    $('#supplier').prop('required', false);
-    $('#customer').prop('required', true);
-
-    // Qty Received OFF
-    $('#qty-received-wrapper').addClass('hidden');
-    $('#qty_received').prop('required', false).val('');
-
-  } else {
-    // ================= Reset =================
-    $('#supplier-wrapper, #customer-wrapper').addClass('hidden');
-    $('#supplier, #customer').prop('required', false);
-
-    $('#qty-received-wrapper').addClass('hidden');
-    $('#qty_received').prop('required', false).val('');
-  }
-
-  // Reset Part setiap ganti post
-  $('#part_name').val(null).trigger('change');
-});
+ 
 
 
 
   // ================== Initial ==================
   updateTotals();
+  toggleOkRepair();
   feather.replace();
 });
 
@@ -596,57 +558,151 @@ $defectSelect.on('select2:select', function (e) {
             $(this).val(qtyDefect);
         }
     });
+toggleOkRepair();
 
     return $row;
 }
 
-// Tambahkan default row saat page load
-$(document).ready(function () {
+// ================= TOGGLE OK REPAIR =================
+  function toggleOkRepair() {
     const post = $('#inspection_post').val();
-    if (post) {
-        $.getJSON(`/qc/get-defects/${post}`, function(defects) {
-            $('#defectTableBody').append(createRow(rowIndex, defects));
-            feather.replace();
-        });
+
+    // === ambil container div-nya ===
+    const $totalOkRepairRow = $('[data-info="total-ok-repair"]').closest('div.flex');
+    const $okRepairRateRow  = $('[data-info="ok-repair-rate"]').closest('div.flex');
+
+    if (post === 'Incoming') {
+
+        // kolom OK Repair di table
+        $('.ok-repair-wrapper').removeClass('hidden')
+            .find('input')
+            .prop('required', true)
+            .prop('disabled', false);
+
+        // summary
+        $totalOkRepairRow.removeClass('hidden');
+        $okRepairRateRow.removeClass('hidden');
+
     } else {
-        $('#defectTableBody').append(createRow(rowIndex, []));
-        feather.replace();
+
+        // kolom OK Repair di table
+        $('.ok-repair-wrapper').addClass('hidden')
+            .find('input')
+            .prop('required', false)
+            .prop('disabled', true)
+            .val('');
+
+        // summary
+        $totalOkRepairRow.addClass('hidden');
+        $okRepairRateRow.addClass('hidden');
     }
+}
+
+
+      $('#inspection_post').on('change', function () {
+   
+  const post = $(this).val();
+
+  if (post === 'Incoming') {
+    // ================= Incoming =================
+    // Supplier ON
+    $('#supplier-wrapper').removeClass('hidden');
+    $('#customer-wrapper').addClass('hidden');
+
+    $('#customer').val(null).trigger('change');
+    $('#supplier').prop('required', true);
+    $('#customer').prop('required', false);
+
+    // Qty Received ON
+    $('#qty-received-wrapper').removeClass('hidden');
+    $('#qty_received').prop('required', true);
+
+  } else if (post) {
+    // ================= Selain Incoming =================
+    // Customer ON
+    $('#supplier-wrapper').addClass('hidden');
+    $('#customer-wrapper').removeClass('hidden');
+
+    $('#supplier').val(null).trigger('change');
+    $('#supplier').prop('required', false);
+    $('#customer').prop('required', true);
+
+    // Qty Received OFF
+    $('#qty-received-wrapper').addClass('hidden');
+    $('#qty_received').prop('required', false).val('');
+
+  } else {
+    // ================= Reset =================
+    $('#supplier-wrapper, #customer-wrapper').addClass('hidden');
+    $('#supplier, #customer').prop('required', false);
+
+    $('#qty-received-wrapper').addClass('hidden');
+    $('#qty_received').prop('required', false).val('');
+  }
+
+  // Reset Part setiap ganti post
+  $('#part_name').val(null).trigger('change');
 });
 
-// Update row ketika inspection_post berubah
+   // ===== DEFAULT ROW SAAT PAGE LOAD =====
+const post = $('#inspection_post').val();
+
+if (post) {
+    $.getJSON(`/qc/get-defects/${post}`, function (defects) {
+        $('#defectTableBody').append(createRow(rowIndex, defects));
+        toggleOkRepair();              // 🔥 WAJIB
+        feather.replace();
+    });
+} else {
+    $('#defectTableBody').append(createRow(rowIndex, []));
+    toggleOkRepair();                  // 🔥 WAJIB
+    feather.replace();
+}
+
+// ===== UPDATE ROW SAAT INSPECTION POST BERUBAH =====
 $('#inspection_post').on('change', function () {
     const post = $(this).val();
     if (!post) return;
 
-    $.getJSON(`/qc/get-defects/${post}`, function(defects) {
+    $.getJSON(`/qc/get-defects/${post}`, function (defects) {
         $('#defectTableBody').empty();
         rowIndex = 1;
+
         $('#defectTableBody').append(createRow(rowIndex, defects));
+
+        toggleOkRepair();              // 🔥 INI YANG KURANG
         feather.replace();
+        totalOkRepair();
     });
 });
 
-// Tombol Add Row
+// ===== ADD ROW =====
 $('#addRowBtn').on('click', function () {
     const post = $('#inspection_post').val();
     if (!post) return alert('Select inspection post first!');
 
-    $.getJSON(`/qc/get-defects/${post}`, function(defects) {
+    $.getJSON(`/qc/get-defects/${post}`, function (defects) {
         rowIndex++;
         $('#defectTableBody').append(createRow(rowIndex, defects));
+
+        toggleOkRepair();              // aman
         feather.replace();
+        totalOkRepair();
     });
 });
 
-// Tombol Remove Row & update nomor
+// ===== REMOVE ROW =====
 $('#defectTableBody').on('click', '.removeBtn', function () {
     $(this).closest('tr').remove();
-    $('#defectTableBody tr').each(function(i) {
+
+    $('#defectTableBody tr').each(function (i) {
         $(this).find('td:first').text(i + 1);
     });
+
     rowIndex = $('#defectTableBody tr').length;
+    toggleOkRepair();                  // 🔥 WAJIB
 });
+
 
 
 let articleMap = {};
@@ -839,29 +895,14 @@ $('#defectTableBody tr').each(function () {
     });
 });
 
-$(document).ready(function () {
-
-    function toggleOkRepair() {
-        const inspectionPost = $('#inspection_post').val();
-
-        if (inspectionPost === 'Incoming') {
-            $('.ok-repair-wrapper').removeClass('hidden')
-                .find('input').prop('required', true);
-        } else {
-            $('.ok-repair-wrapper').addClass('hidden')
-                .find('input').prop('required', false).val('');
-        }
-    }
 
     // saat load
     toggleOkRepair();
 
-    // saat berubah
-    $('#inspection_post').on('change', toggleOkRepair);
-
-});
+    
+    
 
 </script>
 @endpush
 @endsection
-
+ 
