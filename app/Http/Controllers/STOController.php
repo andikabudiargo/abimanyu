@@ -53,7 +53,7 @@ class STOController extends Controller
 
     return match ($userId) {
         55        => 'Raw Material',
-        64        => 'Finish Goods',
+        44        => 'Finish Goods',
         94        => 'WIP Stripping',
         92        => 'WIP Buffing',
         96        => 'WIP Touch Up',
@@ -425,14 +425,29 @@ public function edit($id)
         }
     ])->findOrFail($id);
 
-    return view('facility.edit-sto', [
-        'sto'       => $sto,
-        'items'     => $sto->items,
-        'articles'  => Article::select('id', 'article_code', 'description', 'unit')
-                              ->orderBy('description')
-                              ->get(),
-        'warehouse' => optional($sto->items->first())->location ?? '',
-    ]);
+    $items = $sto->items;
+
+    $warehouse = optional($sto->items->first())->location ?? null;
+
+    $canChooseWarehouse = is_null($warehouse); // 🔥 logika sama seperti create
+
+    $allowedTypes = $this->allowedArticleTypes($warehouse);
+
+    $articles = Article::whereIn('article_type', $allowedTypes)
+        ->select('id', 'article_code', 'description', 'unit', 'article_type')
+        ->orderBy('description')
+        ->get();
+
+    $allowedWarehouses = $this->allowedWarehouses(); // 🔥 KIRIM KE VIEW
+
+    return view('facility.edit-sto', compact(
+        'sto',
+        'items',
+         'articles',
+        'warehouse',
+        'canChooseWarehouse',
+        'allowedWarehouses'
+    ));
 }
 
 
@@ -487,32 +502,39 @@ public function selectSto(Request $request)
 public function selectArticle(Request $request)
 {
     $search    = $request->get('q');
-    $warehouse = $this->userWarehouse(); // 🔥 INI KUNCI
+    $page      = $request->get('page', 1);   // halaman, default 1
+    $perPage   = 20;                          // jumlah item per load
+    $offset    = ($page - 1) * $perPage;
 
+    $warehouse = $this->userWarehouse();
     $allowedTypes = $this->allowedArticleTypes($warehouse);
 
-    $articles = Article::select('article_code', 'unit', 'description', 'article_type')
-        ->when(!empty($allowedTypes), function ($q) use ($allowedTypes) {
-            $q->whereIn('article_type', $allowedTypes);
-        })
-        ->when($search, function ($q) use ($search) {
-            $q->where(function ($qq) use ($search) {
-                $qq->where('article_code', 'like', "%{$search}%")
-                   ->orWhere('description', 'like', "%{$search}%");
-            });
-        })
-        ->orderBy('article_code')
-        ->limit(20)
-        ->get();
+    $query = Article::select('article_code', 'unit', 'description', 'article_type')
+        ->when(!empty($allowedTypes), fn($q) => $q->whereIn('article_type', $allowedTypes))
+        ->when($search, fn($q) => $q->where(fn($qq) => 
+            $qq->where('article_code', 'like', "%{$search}%")
+               ->orWhere('description', 'like', "%{$search}%")
+        ))
+        ->orderBy('article_code');
+
+    $totalCount = $query->count();
+
+    $articles = $query->offset($offset)
+                      ->limit($perPage)
+                      ->get();
 
     return response()->json([
-        'results' => $articles->map(fn ($a) => [
+        'results' => $articles->map(fn($a) => [
             'id'   => $a->article_code,
             'text' => "{$a->article_code} - {$a->description}",
             'unit' => $a->unit,
         ]),
+        'pagination' => [
+            'more' => $offset + $perPage < $totalCount
+        ]
     ]);
 }
+
 
 
 
