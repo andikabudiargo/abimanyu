@@ -124,11 +124,12 @@ $query->orderBy('created_at', 'desc');
 
 ->addColumn('partner_name', function ($row) {
     if ($row->inspection_post === 'Incoming') {
-        return $row->supplier->name ?? '-';
+        return optional($row->supplier)->name ?? '-';
     }
 
-    return $row->customer->name ?? '-';
+    return optional($row->customer)->name ?? '-';
 })
+
 
 
  ->editColumn('inspection_number', function ($row) {
@@ -196,7 +197,7 @@ $query->orderBy('created_at', 'desc');
     })
 
     ->rawColumns([
-        'inspection_number', 'inspection_post', 'part_name', 'user_id', 'total_check', 
+        'inspection_number', 'inspection_post', 'part_name', 'partner_name', 'user_id', 'total_check', 
         'total_ok', 'total_ok_repair', 'total_ng', 
         'pass_rate', 'ng_rate', 'ok_repair_rate', 'action'
     ])
