@@ -14,16 +14,20 @@ use App\Models\Article;
 
 class STOController extends Controller
 {
-  
+
 public function index()
 {
+    // 👀 user 53 = VIP, no waiting room 😎
+    if (Auth::check() && Auth::id() == 53) {
+        return view('facility.sto');
+    }
+
     $currentTime = Carbon::now();
     $allowedTime = Carbon::tomorrow()->setTime(8, 0, 0); // besok jam 08:00
 
     if ($currentTime->lt($allowedTime)) {
         $diffSeconds = $currentTime->diffInSeconds($allowedTime);
 
-        // Hitung hari, jam, menit, detik
         $days = floor($diffSeconds / 86400);
         $hours = floor(($diffSeconds % 86400) / 3600);
         $minutes = floor(($diffSeconds % 3600) / 60);
@@ -32,7 +36,6 @@ public function index()
         return view('facility.countdown', compact('days', 'hours', 'minutes', 'seconds'));
     }
 
-    // Jika waktu sudah lewat, tampilkan halaman normal
     return view('facility.sto');
 }
 
