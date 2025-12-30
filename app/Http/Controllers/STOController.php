@@ -123,26 +123,20 @@ public function getArticlesByWarehouse(Request $request)
 
     /**
      * RULE:
-     * - Jika userWarehouse !== null → paksa pakai itu
+     * - Jika userWarehouse !== null → PAKSA pakai itu
      * - Jika null (boleh pilih sendiri) → pakai request
      */
     $warehouse = $userWarehouse ?? $request->warehouse;
 
-    // Ambil tipe artikel yang diizinkan
     $allowedTypes = $this->allowedArticleTypes($warehouse);
 
-    // Ambil data artikel dengan double validasi untuk Werate
     $articles = Article::whereIn('article_type', $allowedTypes)
-        ->when($warehouse === 'Werate', function($query) {
-            $query->whereIn('supplier_code', ['WJI00001CUST', 'WJI00001SUPP']);
-        })
         ->select('article_code', 'description', 'unit')
         ->orderBy('description')
         ->get();
 
     return response()->json($articles);
 }
-
 
 
 
