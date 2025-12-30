@@ -129,7 +129,7 @@ private function allowedArticleTypes(?string $warehouse): array
         'Werate'           => ['RMP','RMNP', 'FG'],
         'WIP Touch Up'     => ['FG'],
         'WIP Sanding'      => ['FG'],
-        'OT'               => ['RMP','RMNP','FG'],
+        'OT'               => ['FG'],
         'Chemical'         => ['CM1'],
         'Consumable'       => ['CM2'],
         default            => [],
