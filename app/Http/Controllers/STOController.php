@@ -122,10 +122,10 @@ private function allowedArticleTypes(?string $warehouse): array
     return match ($warehouse) {
         'Raw Material'     => ['RMP','RMNP'],
         'Finish Goods'     => ['FG'],
-        'WIP Buffing'      => ['RMP','RMNP'],
+        'WIP Buffing'      => ['FG'],
         'Werate'           => ['RMP','RMNP', 'FG'],
-        'WIP Touch Up'     => ['RMP','RMNP'],
-        'WIP Sanding'      => ['RMP','RMNP'],
+        'WIP Touch Up'     => ['FG'],
+        'WIP Sanding'      => ['FG'],
         'OT'               => ['RMP','RMNP','FG'],
         'Chemical'         => ['CM1'],
         'Consumable'       => ['CM2'],
