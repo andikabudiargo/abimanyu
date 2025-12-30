@@ -51,7 +51,10 @@ class STOController extends Controller
     return match ($userId) {
         55        => 'Raw Material',
         64        => 'Finish Goods',
-        92, 94, 86, 96 => 'Work In Progress',
+        94        => 'WIP Stripping',
+        92        => 'WIP Buffing',
+        96        => 'WIP Touch Up',
+        86        => 'WIP Sanding',
         63        => 'OT',
         67        => 'Chemical',
         95      => 'Consumable',
@@ -71,7 +74,10 @@ private function allowedArticleTypes(?string $warehouse): array
     return match ($warehouse) {
         'Raw Material'     => ['RMP','RMNP'],
         'Finish Goods'     => ['FG'],
-        'Work In Progress' => ['RMP','RMNP'],
+        'WIP Buffing'      => ['RMP','RMNP'],
+        'WIP Stripping'    => ['RMP','RMNP'],
+        'WIP Touch Up'     => ['RMP','RMNP'],
+        'WIP Sanding'      => ['RMP','RMNP'],
         'OT'               => ['RMP','RMNP','FG'],
         'Chemical'         => ['CM1'],
         'Consumable'       => ['CM2'],
@@ -90,11 +96,6 @@ public function getArticlesByWarehouse(Request $request)
      * - Jika null (boleh pilih sendiri) → pakai request
      */
     $warehouse = $userWarehouse ?? $request->warehouse;
-
-    // 🔥 NORMALISASI WIP
-    if ($warehouse && str_starts_with($warehouse, 'WIP')) {
-        $warehouse = 'Work In Progress';
-    }
 
     $allowedTypes = $this->allowedArticleTypes($warehouse);
 

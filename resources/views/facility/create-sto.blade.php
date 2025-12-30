@@ -76,16 +76,7 @@
           <th class="border border-gray-300 px-3 py-2 text-center w-32">UOM</th>
          <th class="border border-gray-300 px-3 py-2 text-center w-48">
   LOCATION
-  @if($warehouse === 'Work In Progress')
-    <select id="wip-master"
-            class="mt-1 w-full text-black text-sm rounded px-1 py-1">
-      <option value="">-- Pilih WIP --</option>
-      <option value="WIP Sanding">WIP Sanding</option>
-      <option value="WIP Buffing">WIP Buffing</option>
-      <option value="WIP Stripping">WIP Stripping</option>
-      <option value="WIP Touchup">WIP Touchup</option>
-    </select>
-    @elseif($warehouse === null)
+    @if($warehouse === null)
      <select id="warehouse-null"
             class="mt-1 w-full text-black text-sm rounded px-1 py-1">
       <option value="">-- Pilih Gudang --</option>
