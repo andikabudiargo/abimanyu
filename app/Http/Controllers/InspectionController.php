@@ -56,12 +56,6 @@ class InspectionController extends Controller
     );
 }
 
-if ($request->customer_code) {
-    $query->whereHas('customer', fn ($q) =>
-        $q->where('code', $request->customer_code)
-    );
-}
-
 
 
 if ($request->part_name) {
