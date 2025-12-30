@@ -54,7 +54,7 @@ class STOController extends Controller
     return match ($userId) {
         55        => 'Raw Material',
         44        => 'Finish Goods',
-        94        => 'WIP Stripping',
+        94        => 'Werate',
         92        => 'WIP Buffing',
         96        => 'WIP Touch Up',
         95        => 'WIP Sanding',
@@ -106,7 +106,7 @@ private function allowedArticleTypes(?string $warehouse): array
         'Raw Material'     => ['RMP','RMNP'],
         'Finish Goods'     => ['FG'],
         'WIP Buffing'      => ['RMP','RMNP'],
-        'WIP Stripping'    => ['RMP','RMNP'],
+        'Werate'           => ['RMP','RMNP', 'FG'],
         'WIP Touch Up'     => ['RMP','RMNP'],
         'WIP Sanding'      => ['RMP','RMNP'],
         'OT'               => ['RMP','RMNP','FG'],
