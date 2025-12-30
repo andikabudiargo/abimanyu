@@ -318,19 +318,8 @@ div.dt-button-collection .dt-button:hover {
   { data: 'action', name: 'action', orderable: false, searchable: false },
   { data: 'inspection_number', name: 'inspection_number', orderable: false },
   { data: 'inspection_date', name: 'inspection_date', className: 'text-center', orderable: false },
-{ data: 'inspection_post', name: 'inspection_post', className: 'text-center', orderable: false },
- {
-  data: null,
-  className: 'text-left',
-  orderable: false,
-  render: function (data) {
-  return data.inspection_post === 'Incoming'
-    ? (data.supplier?.name ?? '-')
-    : (data.customer?.name ?? '-');
-}
-
-
-},
+  { data: 'inspection_post', name: 'inspection_post', className: 'text-center', orderable: false },
+  { data: 'partner_name', className: 'text-left', orderable: false},
   { data: 'part_name', name: 'part_name', className: 'text-left', orderable: false },
   { data: 'check_method', name: 'check_method', className: 'text-center', orderable: false },
   { data: 'qty_received', name: 'qty_received', className: 'text-center', orderable: false },

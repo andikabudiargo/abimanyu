@@ -35,7 +35,7 @@ class InspectionController extends Controller
 
      public function data(Request $request)
 {
-    $query = Inspection::with(['user', 'article', 'supplier']);
+    $query = Inspection::with(['user', 'article', 'supplier', 'customer']);
 
     if ($request->inspection_number) {
         $query->where('inspection_number', 'like', '%' . $request->inspection_number . '%');
@@ -50,11 +50,18 @@ class InspectionController extends Controller
         $query->whereBetween('inspection_date', [$start, $end]);
     }
 
-   if ($request->supplier_code) {
-    $query->whereHas('supplier', function ($q) use ($request) {
-        $q->where('code', $request->supplier_code);
-    });
+ if ($request->supplier_code) {
+    $query->whereHas('supplier', fn ($q) =>
+        $q->where('code', $request->supplier_code)
+    );
 }
+
+if ($request->customer_code) {
+    $query->whereHas('customer', fn ($q) =>
+        $q->where('code', $request->customer_code)
+    );
+}
+
 
 
 if ($request->part_name) {
@@ -114,6 +121,15 @@ $query->orderBy('created_at', 'desc');
     $ngRate = ($row->total_ng / $totalCheck) * 100;
     return '<span class="text-red-600 font-semibold">' . number_format($ngRate, 0) . '%</span>';
 })
+
+->addColumn('partner_name', function ($row) {
+    if ($row->inspection_post === 'Incoming') {
+        return $row->supplier->name ?? '-';
+    }
+
+    return $row->customer->name ?? '-';
+})
+
 
  ->editColumn('inspection_number', function ($row) {
     $colorClass = '';
