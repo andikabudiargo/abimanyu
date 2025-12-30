@@ -49,12 +49,12 @@ class STOController extends Controller
     $userId = Auth::id();
 
     return match ($userId) {
-        55,63     => 'Raw Material',
+        55        => 'Raw Material',
         64        => 'Finish Goods',
-        92        => 'Work In Progress',
-        86        => 'OT',
+        92, 94, 86, 96 => 'Work In Progress',
+        63        => 'OT',
         67        => 'Chemical',
-        94        => 'Consumable',
+        95      => 'Consumable',
         53     => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
@@ -447,18 +447,15 @@ public function selectSto(Request $request)
 
 public function selectArticle(Request $request)
 {
-    $search = $request->get('q');
+    $search    = $request->get('q');
+    $warehouse = $this->userWarehouse(); // 🔥 INI KUNCI
 
-    $allowedTypes = [
-        'RMP',
-        'RMNP',
-        'CM1',
-        'CM2',
-        'FG',
-    ];
+    $allowedTypes = $this->allowedArticleTypes($warehouse);
 
-    $articles = Article::select('article_code', 'description', 'article_type')
-        ->whereIn('article_type', $allowedTypes)
+    $articles = Article::select('article_code', 'unit', 'description', 'article_type')
+        ->when(!empty($allowedTypes), function ($q) use ($allowedTypes) {
+            $q->whereIn('article_type', $allowedTypes);
+        })
         ->when($search, function ($q) use ($search) {
             $q->where(function ($qq) use ($search) {
                 $qq->where('article_code', 'like', "%{$search}%")
@@ -466,17 +463,19 @@ public function selectArticle(Request $request)
             });
         })
         ->orderBy('article_code')
+        ->limit(20)
         ->get();
 
     return response()->json([
-        'results' => $articles->map(function ($a) {
-            return [
-                'id'   => $a->article_code,
-                'text' => "{$a->article_code} - {$a->description}",
-            ];
-        }),
+        'results' => $articles->map(fn ($a) => [
+            'id'   => $a->article_code,
+            'text' => "{$a->article_code} - {$a->description}",
+            'unit' => $a->unit,
+        ]),
     ]);
 }
+
+
 
 public function destroy($id)
 {
