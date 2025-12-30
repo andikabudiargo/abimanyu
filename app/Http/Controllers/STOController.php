@@ -36,9 +36,12 @@ class STOController extends Controller
         ->pluck('sto_number')
         ->toArray();
 
+        $allowedWarehouses = $this->allowedWarehouses();
+
     return view('facility.create-sto', compact(
         'warehouse',
-        'canChooseWarehouse', // 🔥 KIRIM KE VIEW
+        'canChooseWarehouse',
+         'allowedWarehouses', // 🔥 KIRIM KE VIEW
         'articles',
         'usedStoNumbers'
     ));
@@ -54,14 +57,42 @@ class STOController extends Controller
         94        => 'WIP Stripping',
         92        => 'WIP Buffing',
         96        => 'WIP Touch Up',
-        86        => 'WIP Sanding',
+        95        => 'WIP Sanding',
         63        => 'OT',
-        67        => 'Chemical',
-        95      => 'Consumable',
+        67        => null,
         53     => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
+
+private function allowedWarehouses(): array
+{
+    $userId = Auth::id();
+
+    // 🔥 User 67 hanya boleh Chemical & Consumable
+    if ($userId == 67) {
+        return ['Chemical', 'Consumable'];
+    }
+
+    // 🔥 User bebas pilih
+    if (is_null($this->userWarehouse())) {
+        return [
+            'Raw Material',
+            'Finish Goods',
+            'OT',
+            'Chemical',
+            'Consumable',
+            'WIP Sanding',
+            'WIP Buffing',
+            'WIP Stripping',
+            'WIP Touch Up',
+        ];
+    }
+
+    // 🔒 User terkunci
+    return [$this->userWarehouse()];
+}
+
 
 private function allowedArticleTypes(?string $warehouse): array
 {
@@ -223,6 +254,8 @@ if ($warehouse === null) {
 
 public function datatables(Request $request)
 {
+    $userId = Auth::id();
+
     $columns = [
         0 => 'sto_items.id',
         1 => 'sto_items.location',
@@ -266,6 +299,11 @@ public function datatables(Request $request)
     // =====================
     // 🔐 FILTER OTOMATIS USER
     // =====================
+    // 🔐 FILTER KHUSUS USER 67
+if ($userId == 67) {
+    $query->whereIn('sto_items.location', ['Chemical', 'Consumable']);
+}
+
     if (!is_null($warehouse)) {
         $query->where('sto_items.location', $warehouse);
     }

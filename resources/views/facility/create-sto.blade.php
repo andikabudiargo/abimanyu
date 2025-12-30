@@ -76,23 +76,30 @@
           <th class="border border-gray-300 px-3 py-2 text-center w-32">UOM</th>
          <th class="border border-gray-300 px-3 py-2 text-center w-48">
   LOCATION
+
+  @if(in_array(auth()->id(), [67, 53]))
+    
     @if($warehouse === null)
-     <select id="warehouse-null"
-            class="mt-1 w-full text-black text-sm rounded px-1 py-1">
-      <option value="">-- Pilih Gudang --</option>
-      <option value="Raw Material">Raw Material</option>
-      <option value="Finish Goods">Finish Goods</option>
-      <option value="OT">OT</option>
-      <option value="Chemical">Chemical</option>
-      <option value="Consumable">Consumable</option>
-      <option value="WIP Sanding">WIP Sanding</option>
-      <option value="WIP Sanding">WIP Sanding</option>
-      <option value="WIP Buffing">WIP Buffing</option>
-      <option value="WIP Stripping">WIP Stripping</option>
-      <option value="WIP Touchup">WIP Touchup</option>
-    </select>
+      <select name="warehouse"
+              id="warehouse-null"
+              class="mt-1 w-full text-black text-sm rounded px-1 py-1">
+        <option value="">-- Pilih Gudang --</option>
+
+        @foreach($allowedWarehouses as $wh)
+          <option value="{{ $wh }}">{{ $wh }}</option>
+        @endforeach
+      </select>
+    @else
+      <input type="text"
+             class="mt-1 w-full bg-gray-100 text-sm rounded px-1 py-1"
+             value="{{ $warehouse }}"
+             readonly>
+    @endif
+
   @endif
 </th>
+
+
 
         </tr>
       </thead>
