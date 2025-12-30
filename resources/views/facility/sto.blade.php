@@ -22,7 +22,7 @@
                 <option value="Consumable">Consumable</option>
                 <option value="WIP Sanding">WIP Sanding</option>
       <option value="WIP Buffing">WIP Buffing</option>
-      <option value="WIP Stripping">WIP Stripping</option>
+      <option value="Werate">Werate</option>
       <option value="WIP Touchup">WIP Touchup</option>
                 <option value="OT">OT</option>
             </select>
