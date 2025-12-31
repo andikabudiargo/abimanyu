@@ -102,7 +102,7 @@
                 data-code="{{ $a->article_code }}"
                 data-uom="{{ $a->unit }}"
                 @selected($a->article_code == $item->article_code)>
-          {{ $a->description }}
+          {{ $a->article_code }} - {{ $a->description }}
         </option>
       @endforeach
     </select>
@@ -148,7 +148,7 @@
         <option value="{{ $a->id }}"
                 data-code="{{ $a->article_code }}"
                 data-uom="{{ $a->unit }}">
-          {{ $a->description }}
+          {{ $a->article_code }} - {{ $a->description }}
         </option>
       @endforeach
     </select>
