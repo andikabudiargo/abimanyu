@@ -271,23 +271,124 @@
 </style>
 @push('scripts')
 <script>
-  $(document).ready(function () {
+$(document).ready(function () {
 
+  // =====================
+  // SELECT2 INIT
+  // =====================
   $('.part-select').select2({
     placeholder: '-- Pilih Part --',
-    width: 'resolve',
-    allowclear: 'true'
+    width: '100%',
+    allowClear: true,
+    tags: true,
+    selectOnClose: false,
+
+    // =====================
+    // MODE OTHER (KETIK MANUAL)
+    // =====================
+    createTag: function (params) {
+      const term = $.trim(params.term);
+      if (!term) return null;
+
+      return {
+        id: '__OTHER__:' + term,   // 🔑 penanda aman & unik
+        text: term,
+        isOther: true
+      };
+    },
+
+    ajax: {
+      url: "{{ route('facility.article.select') }}",
+      dataType: 'json',
+      delay: 300,
+      data: params => ({ q: params.term }),
+
+      processResults: function (data) {
+        return {
+          results: data.results.map(a => ({
+            id: a.id,
+            text: a.text,
+            code: a.article_code,
+            uom: a.unit,
+            isOther: false
+          }))
+        };
+      }
+    }
   });
 
-  $(document).on('change', '.part-select', function () {
-  const row = $(this).data('row');
-  const opt = $(this).find(':selected');
+  // =====================
+  // SELECT HANDLER
+  // =====================
+  $(document).on('select2:select', '.part-select', function (e) {
+    const data = e.params.data;
+    const $row = $(this).closest('tr');
+    const row  = $(this).data('row');
 
-  const code = opt.data('code') || opt.val() || '';
-  const uom  = opt.data('uom')  || opt.data('unit') || '';
+    const $codeInput = $(`input[name="articles[${row}][article_code]"]`);
+    const $uomInput  = $(`input[name="articles[${row}][uom]"]`);
 
-  $(`input[name="articles[${row}][article_code]"]`).val(code);
-  $(`input[name="articles[${row}][uom]"]`).val(uom);
+    const isOther = data.isOther || String(data.id).startsWith('__OTHER__:');
+
+    // =====================
+    // MODE OTHER
+    // =====================
+    if (isOther) {
+
+      $codeInput.val('OTHER');
+
+      $uomInput
+        .val('')
+        .prop('readonly', false)
+        .focus();
+
+      $row.data('other_name', data.text);
+
+    }
+    // =====================
+    // MODE NORMAL
+    // =====================
+    else {
+
+      $codeInput.val(data.code || data.id || '');
+
+      $uomInput
+        .val(data.uom || '')
+        .prop('readonly', true);
+
+      $row.data('other_name', null);
+    }
+
+    // qty aktif setelah pilih
+    $row.find('.qty-input').prop('disabled', false);
+  });
+
+  // =====================
+  // CLEAR HANDLER
+  // =====================
+ $(document).on('select2:clear', '.part-select', function () {
+  const $select = $(this);
+  const $row    = $select.closest('tr');
+  const row     = $select.data('row');
+
+  // 🔥 reset select2 dengan benar
+  $select
+    .val(null)
+    .trigger('change');
+
+  // 🔥 hapus option OTHER hasil ketikan manual
+  $select.find('option').filter(function () {
+    return this.value && this.value.startsWith('__OTHER__:');
+  }).remove();
+
+  // 🔥 reset input lain
+  $(`input[name="articles[${row}][article_code]"]`).val('');
+  $(`input[name="articles[${row}][uom]"]`)
+    .val('')
+    .prop('readonly', true);
+
+  $row.data('other_name', null);
+  $row.find('.qty-input').val('').prop('disabled', true);
 });
 
 
@@ -362,32 +463,40 @@ $(document).ready(function () {
     let hasError = false;
     let errorRow = 0;
 
-    $('.sto-row').each(function (index) {
-      const articleCode = $(this).find('.article-code').val();
-      const qty = parseFloat(
-  $(this).find('input[name$="[qty]"]').val()
-);
+  $('.sto-row').each(function (index) {
 
-const location = $(this).find('.location-input').val();
+  const $row = $(this);
+
+  const articleCode = $row.find('.article-code').val()?.trim();
+  const qty = parseFloat($row.find('input[name$="[qty]"]').val());
+  const location = $row.find('.location-input').val();
+const uom         = $(this).find('.part-uom').val()?.trim();
+  const otherName = $row.data('other_name') || null; // ✅ FIX UTAMA
+
+  const isFilled = articleCode || qty;
+
+  if (!isFilled) return;
+
+  if (!qty || qty <= 0) {
+    hasError = true;
+    errorRow = index + 1;
+    return false;
+  }
+
+  articles.push({
+    article_code: articleCode,
+    other_name: articleCode === 'OTHER' ? otherName : null, // ✅ AMAN
+    qty: qty,
+     uom: uom || null,
+    location: location
+  });
+});
 
 
-      // 🔴 Jika article dipilih tapi qty 0 / kosong
-      if (articleCode && (!qty || qty <= 0)) {
-        hasError = true;
-        errorRow = index + 1;
-        return false; // break each
-      }
+    /* =========================
+       VALIDATION
+    ========================= */
 
-      if (articleCode && qty > 0) {
-        articles.push({
-          article_code: articleCode,
-          qty: qty,
-          location: location
-        });
-      }
-    });
-
-    // ❌ Validasi qty = 0
     if (hasError) {
       Swal.fire({
         icon: 'warning',
@@ -398,7 +507,6 @@ const location = $(this).find('.location-input').val();
       return;
     }
 
-    // ❌ Tidak ada item sama sekali
     if (articles.length === 0) {
       Swal.fire({
         icon: 'warning',
@@ -408,6 +516,10 @@ const location = $(this).find('.location-input').val();
       });
       return;
     }
+
+    /* =========================
+       PAYLOAD
+    ========================= */
 
     const payload = {
       sto_number: $('#sto_number').val(),
@@ -426,6 +538,7 @@ const location = $(this).find('.location-input').val();
         $('#btnSave').prop('disabled', true).text('Saving...');
       },
       success: function (res) {
+
         Swal.fire({
           icon: 'success',
           title: 'Berhasil',
@@ -434,59 +547,45 @@ const location = $(this).find('.location-input').val();
           showConfirmButton: false
         });
 
- /* =========================
-     RESET STO NUMBER
-  ========================= */
-  const $stoSelect = $('#sto_number');
-  const usedValue = $stoSelect.val();
+        /* =========================
+           RESET STO NUMBER
+        ========================= */
+        const $stoSelect = $('#sto_number');
+        const usedValue = $stoSelect.val();
 
-  $stoSelect.find(`option[value="${usedValue}"]`).remove();
-  $stoSelect.prop('selectedIndex', 0);
+        $stoSelect.find(`option[value="${usedValue}"]`).remove();
+        $stoSelect.prop('selectedIndex', 0);
 
-  /* =========================
-     RESET TABLE ROWS
-  ========================= */
-  $('.sto-row').each(function () {
+        /* =========================
+           RESET TABLE ROWS
+        ========================= */
+        $('.sto-row').each(function () {
+          $(this).find('.part-select').val(null).trigger('change');
+          $(this).find('.article-code').val('');
+          $(this).find('.part-uom').val('');
+          $(this).find('input[name$="[qty]"]').val('');
+          $(this).find('.location-input').val('{{ $warehouse }}');
+        });
 
-    // reset part select (SELECT2)
-    $(this).find('.part-select')
-      .val(null)
-      .trigger('change'); // 🔥 WAJIB untuk select2
-
-    // reset input lain
-    $(this).find('.article-code').val('');
-    $(this).find('.part-uom').val('');
-    $(this).find('input[name$="[qty]"]').val('');
-    
-    // reset location ke warehouse awal
-    $(this).find('.location-input').val('{{ $warehouse }}');
-  });
-
-  /* =========================
-     RESET NOTE
-  ========================= */
-  $('textarea[name="note"]').val('');
-
+        $('textarea[name="note"]').val('');
       },
       error: function (xhr) {
         if (xhr.status === 422) {
-          let errors = xhr.responseJSON.errors;
           let msg = '';
-
-          $.each(errors, function (key, value) {
+          $.each(xhr.responseJSON.errors, function (_, value) {
             msg += `• ${value[0]}\n`;
           });
 
           Swal.fire({
             icon: 'error',
             title: 'Validasi gagal',
-            text: msg,
+            text: msg
           });
         } else {
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Terjadi kesalahan saat menyimpan STO',
+            text: 'Terjadi kesalahan saat menyimpan STO'
           });
         }
       },

@@ -148,13 +148,37 @@ public function store(Request $request)
     // VALIDATION
     // =========================
     $validator = \Validator::make($request->all(), [
-         'sto_number'              => 'required|string|unique:stos,sto_number',
-        'articles'                  => 'required|array',
-        'articles.*.article_code'     => 'required|exists:articles,article_code',
-        'articles.*.qty'            => 'required|numeric|min:0',
+        'sto_number'                => 'required|string|unique:stos,sto_number',
+        'articles'                  => 'required|array|min:1',
+        'articles.*.article_code'   => 'required|string',
+        'articles.*.qty'            => 'required|numeric|min:1',
+        'articles.*.uom'            => 'nullable|string',
         'articles.*.location'       => 'required|string',
         'note'                      => 'nullable|string',
     ]);
+
+    // 🔥 VALIDASI KHUSUS OTHER
+    $validator->after(function ($validator) use ($request) {
+        foreach ($request->articles as $i => $row) {
+
+            if (($row['article_code'] ?? null) === 'OTHER') {
+
+                if (empty($row['other_name'])) {
+                    $validator->errors()->add(
+                        "articles.$i.other_name",
+                        "Nama part wajib diisi untuk OTHER"
+                    );
+                }
+
+                if (empty($row['uom'])) {
+                    $validator->errors()->add(
+                        "articles.$i.uom",
+                        "UOM wajib diisi untuk OTHER"
+                    );
+                }
+            }
+        }
+    });
 
     if ($validator->fails()) {
         return response()->json([
@@ -172,28 +196,21 @@ public function store(Request $request)
         // =========================
         $warehouse = $this->userWarehouse();
 
-// 🔥 JIKA USER BOLEH PILIH BEBAS (WAREHOUSE NULL)
-if ($warehouse === null) {
+        if ($warehouse === null) {
+            $firstLocation = $request->articles[0]['location'] ?? null;
 
-    $firstLocation = $request->articles[0]['location'] ?? null;
+            if (!$firstLocation) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Location belum dipilih',
+                ], 422);
+            }
 
-    if (!$firstLocation) {
-        DB::rollBack();
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Location belum dipilih',
-        ], 422);
-    }
-
-    // Mapping WIP
-    if (str_starts_with($firstLocation, 'WIP')) {
-        $warehouse = 'Work In Progress';
-    } else {
-        // OT, Chemical, Consumable, dll
-        $warehouse = $firstLocation;
-    }
-}
+            $warehouse = str_starts_with($firstLocation, 'WIP')
+                ? 'Work In Progress'
+                : $firstLocation;
+        }
 
         $sto = Sto::create([
             'sto_number' => $request->sto_number,
@@ -208,14 +225,23 @@ if ($warehouse === null) {
         $itemCount = 0;
 
         foreach ($request->articles as $row) {
+
             if (empty($row['article_code']) || empty($row['qty'])) {
                 continue;
             }
 
+            $uom = $row['article_code'] === 'OTHER'
+                ? $row['uom']
+                : Article::where('article_code', $row['article_code'])->value('unit');
+
             $sto->items()->create([
                 'article_code' => $row['article_code'],
-                'qty'        => $row['qty'],
-                'location'   => $row['location'],
+                'other_name'   => $row['article_code'] === 'OTHER'
+                                    ? $row['other_name']
+                                    : null,
+                'uom'          => $uom,
+                'qty'          => $row['qty'],
+                'location'     => $row['location'],
             ]);
 
             $itemCount++;
@@ -223,7 +249,6 @@ if ($warehouse === null) {
 
         if ($itemCount === 0) {
             DB::rollBack();
-
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak ada item STO yang valid',
@@ -241,7 +266,7 @@ if ($warehouse === null) {
                 'warehouse'  => $sto->warehouse,
                 'item_count' => $itemCount,
             ]
-        ], 200);
+        ]);
 
     } catch (\Throwable $e) {
         DB::rollBack();
@@ -252,6 +277,7 @@ if ($warehouse === null) {
         ], 500);
     }
 }
+
 
 public function datatables(Request $request)
 {
@@ -283,21 +309,37 @@ public function datatables(Request $request)
     // =====================
     $query = DB::table('sto_items')
         ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
-        ->join('articles', 'articles.article_code', '=', 'sto_items.article_code')
+        ->leftJoin('articles', 'articles.article_code', '=', 'sto_items.article_code')
         ->leftJoin('users', 'users.id', '=', 'stos.created_by')
-        ->select(
-            'sto_items.id as sto_item_id',
-            'sto_items.sto_id',
-            'sto_items.location',
-            'sto_items.article_code',
-            'articles.description as part_name',
-            'sto_items.qty',
-            'articles.unit',
-            'stos.sto_number',
-            'users.name as created_by',
-            'stos.created_at',
-            'stos.note'
-        );
+       ->select(
+    'sto_items.id as sto_item_id',
+    'sto_items.sto_id',
+    'sto_items.location',
+    'sto_items.article_code',
+
+    DB::raw("
+      CASE
+        WHEN sto_items.article_code = 'OTHER'
+        THEN sto_items.other_name
+        ELSE articles.description
+      END as part_name
+    "),
+
+    'sto_items.qty',
+
+    DB::raw("
+      CASE
+        WHEN sto_items.article_code = 'OTHER'
+        THEN sto_items.uom
+        ELSE articles.unit
+      END as unit
+    "),
+
+    'stos.sto_number',
+    'users.name as created_by',
+    'stos.created_at',
+    'stos.note'
+       );
 
     
     // =====================
@@ -319,8 +361,12 @@ if ($userId == 67) {
     }
 
     if ($request->filled('article')) {
-        $query->where('sto_items.article_code', 'like', '%'.$request->article.'%');
-    }
+    $query->where(function ($q) use ($request) {
+        $q->where('sto_items.article_code', 'like', "%{$request->article}%")
+          ->orWhere('sto_items.other_name', 'like', "%{$request->article}%");
+    });
+}
+
 
     if ($request->filled('sto_number')) {
         $query->where('stos.sto_number', 'like', '%'.$request->sto_number.'%');
@@ -337,7 +383,9 @@ if ($userId == 67) {
               ->orWhere('articles.description', 'LIKE', "%{$search}%")
               ->orWhere('stos.sto_number', 'LIKE', "%{$search}%")
               ->orWhere('sto_items.location', 'LIKE', "%{$search}%")
-              ->orWhere('users.name', 'LIKE', "%{$search}%");
+              ->orWhere('users.name', 'LIKE', "%{$search}%")
+              ->orWhere('sto_items.other_name', 'LIKE', "%{$search}%");
+
         });
     }
 

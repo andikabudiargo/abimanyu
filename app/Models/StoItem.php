@@ -16,6 +16,8 @@ class StoItem extends Model
         'article_code',
         'qty',
         'location',
+        'other_name',
+        'uom'
     ];
 
     /* =====================
