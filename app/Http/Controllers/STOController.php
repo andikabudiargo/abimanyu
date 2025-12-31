@@ -14,25 +14,9 @@ use App\Models\Article;
 
 class STOController extends Controller
 {
-  
+
 public function index()
 {
-    $currentTime = Carbon::now();
-    $allowedTime = Carbon::tomorrow()->setTime(8, 0, 0); // besok jam 08:00
-
-    if ($currentTime->lt($allowedTime)) {
-        $diffSeconds = $currentTime->diffInSeconds($allowedTime);
-
-        // Hitung hari, jam, menit, detik
-        $days = floor($diffSeconds / 86400);
-        $hours = floor(($diffSeconds % 86400) / 3600);
-        $minutes = floor(($diffSeconds % 3600) / 60);
-        $seconds = $diffSeconds % 60;
-
-        return view('facility.countdown', compact('days', 'hours', 'minutes', 'seconds'));
-    }
-
-    // Jika waktu sudah lewat, tampilkan halaman normal
     return view('facility.sto');
 }
 
@@ -77,7 +61,7 @@ public function index()
         95        => 'WIP Sanding',
         63        => 'OT',
         67        => null,
-        53     => null, // 🔥 BOLEH PILIH SENDIRI
+        53,2     => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -101,7 +85,7 @@ private function allowedWarehouses(): array
             'Consumable',
             'WIP Sanding',
             'WIP Buffing',
-            'WIP Stripping',
+            'Werate',
             'WIP Touch Up',
         ];
     }
@@ -122,11 +106,11 @@ private function allowedArticleTypes(?string $warehouse): array
     return match ($warehouse) {
         'Raw Material'     => ['RMP','RMNP'],
         'Finish Goods'     => ['FG'],
-        'WIP Buffing'      => ['RMP','RMNP'],
+        'WIP Buffing'      => ['FG'],
         'Werate'           => ['RMP','RMNP', 'FG'],
-        'WIP Touch Up'     => ['RMP','RMNP'],
-        'WIP Sanding'      => ['RMP','RMNP'],
-        'OT'               => ['RMP','RMNP','FG'],
+        'WIP Touch Up'     => ['FG'],
+        'WIP Sanding'      => ['FG'],
+        'OT'               => ['FG'],
         'Chemical'         => ['CM1'],
         'Consumable'       => ['CM2'],
         default            => [],
