@@ -85,7 +85,7 @@ private function allowedWarehouses(): array
             'Consumable',
             'WIP Sanding',
             'WIP Buffing',
-            'WIP Stripping',
+            'Werate',
             'WIP Touch Up',
         ];
     }
