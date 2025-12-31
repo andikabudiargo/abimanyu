@@ -58,19 +58,22 @@
           <th class="border border-gray-300 px-3 py-2 text-left">PART-NAME</th>
           <th class="border border-gray-300 px-3 py-2 text-center w-32">QTY</th>
           <th class="border border-gray-300 px-3 py-2 text-center w-32">UOM</th>
-         <th class="border border-gray-300 px-3 py-2 text-center w-48">
+       <th class="border border-gray-300 px-3 py-2 text-center w-48">
   LOCATION
-  @if($warehouse === 'Work In Progress')
-    <select id="wip-master"
-            class="mt-1 w-full text-black text-sm rounded px-1 py-1">
-      <option value="">-- pilih WIP --</option>
-      <option value="WIP Sanding">WIP Sanding</option>
-      <option value="WIP Buffing">WIP Buffing</option>
-      <option value="WIP Stripping">WIP Stripping</option>
-      <option value="WIP Touchup">WIP Touchup</option>
+  @if(in_array(auth()->id(), [67, 53]))
+    <select name="warehouse" id="warehouse-select" class="mt-1 w-full text-black text-sm rounded px-1 py-1">
+      <option value="">-- Pilih Gudang --</option>
+      @foreach($allowedWarehouses as $wh)
+        <option value="{{ $wh }}" 
+          @if(old('warehouse', $sto->location ?? '') == $wh) selected @endif>
+          {{ $wh }}
+        </option>
+      @endforeach
     </select>
   @endif
 </th>
+
+
 
         </tr>
       </thead>
@@ -83,6 +86,10 @@
    <tbody id="article-table">
 
 @foreach ($items as $i => $item)
+  @php
+    $item    = $items[$i] ?? null;
+    $article = $item?->article;
+  @endphp
 <tr class="bg-white sto-row">
   <td class="border px-2 py-2">
     <input type="text"
@@ -93,19 +100,18 @@
   </td>
 
   <td class="border px-2 py-2">
-    <select name="items[{{ $i }}][article_id]"
-            class="part-select w-full"
-            data-row="{{ $i }}">
-      <option value="">-- pilih --</option>
-      @foreach ($articles as $a)
+  <select name="items[{{ $i }}][article_id]" class="part-select w-full" data-row="{{ $i }}">
+    <option value="">-- pilih --</option>
+    @foreach ($articles as $a)
         <option value="{{ $a->id }}"
                 data-code="{{ $a->article_code }}"
                 data-uom="{{ $a->unit }}"
                 @selected($a->article_code == $item->article_code)>
-          {{ $a->description }}
+            {{ $a->description }}
         </option>
-      @endforeach
-    </select>
+    @endforeach
+</select>
+
   </td>
 
   <td class="border px-2 py-2 text-center">
@@ -132,27 +138,17 @@
 @endforeach
 @for ($i = $rowCount; $i < $maxRow; $i++)
 <tr class="bg-gray-50 sto-row">
-  <td class="border px-2 py-2">
-    <input type="text"
-           name="items[{{ $i }}][article_code]"
-           class="article-code w-full border rounded px-2 py-1"
-           readonly>
-  </td>
+ <td class="border px-2 py-2">
+  <input type="text"
+         name="items[{{ $i }}][article_code]"
+         class="article-code w-full border rounded px-2 py-1"
+         readonly>
+</td>
 
-  <td class="border px-2 py-2">
-    <select name="items[{{ $i }}][article_id]"
-            class="part-select w-full"
-            data-row="{{ $i }}">
-      <option value="">-- pilih --</option>
-      @foreach ($articles as $a)
-        <option value="{{ $a->id }}"
-                data-code="{{ $a->article_code }}"
-                data-uom="{{ $a->unit }}">
-          {{ $a->description }}
-        </option>
-      @endforeach
-    </select>
-  </td>
+<td class="border px-2 py-2">
+  <select class="part-select w-full" data-row="{{ $i }}"></select>
+</td>
+
 
   <td class="border px-2 py-2 text-center">
     <input type="number"
@@ -175,6 +171,7 @@
 </tr>
 @endfor
 
+
 </tbody>
 
 
@@ -193,7 +190,7 @@
     </label>
 
     <div class="space-y-3">
-   <textarea name="note"
+   <textarea id="note" name="note"
           rows="3"
           class="note-lines w-full resize-none">{{ $sto->note }}</textarea>
 
@@ -282,41 +279,84 @@
 </style>
 @push('scripts')
 <script>
- $(document).ready(function () {
+$(document).ready(function () {
 
   $('.part-select').select2({
     placeholder: '-- Pilih Part --',
     width: '100%',
-    allowClear: true
+    allowClear: true,
+    ajax: {
+      url: "{{ route('facility.article.select') }}",
+      dataType: 'json',
+      delay: 300,
+      data: function(params) { return { q: params.term }; },
+      processResults: function(data) {
+        return {
+          results: data.results.map(a => ({
+            id: a.id,          // tetap pakai id untuk Select2
+            text: a.text,
+            code: a.article_code, // untuk input article-code
+            uom: a.unit
+          })),
+          pagination: { more: data.pagination?.more || false }
+        };
+      },
+      cache: true
+    }
   });
 
-  $(document).on('change', '.part-select', function () {
+  // 🔹 Saat pilih article
+$(document).on('select2:select', '.part-select', function(e){
+  const data = e.params.data;
+  const $row = $(this).closest('tr');
 
-    const $row = $(this).closest('tr');
-    const $opt = $(this).find(':selected');
+  const articleCode = data.code || data.id || ''; // fallback ke id kalau code undefined
+  const uom = data.uom || '';
 
-    const code = $opt.data('code') || '';
-    const uom  = $opt.data('uom')  || '';
+  // Set article code & uom
+  $row.find('.article-code').val(articleCode);
+  $row.find('.part-uom').val(uom);
 
-    $row.find('.article-code').val(code);
-    $row.find('.part-uom').val(uom);
+  // Enable/disable qty input
+  if(articleCode){
+    $row.find('.qty-input').prop('disabled', false);
+  } else {
+    $row.find('.qty-input').val('').prop('disabled', true);
+  }
+});
 
-    if (code) {
-      $row.find('.qty-input').prop('disabled', false);
+// 🔹 Saat clear select2
+$(document).on('select2:clear', '.part-select', function(){
+  const $row = $(this).closest('tr');
+  $row.find('.article-code').val('');
+  $row.find('.part-uom').val('');
+  $row.find('.qty-input').val('').prop('disabled', true);
+});
+
+$('.sto-row').each(function(){
+    const $row = $(this);
+    const articleCode = $row.find('.article-code').val();
+    const articleName = $row.find('.part-select').data('name') || '';
+    const uom = $row.find('.part-select').data('uom') || '';
+
+    if(articleCode){
+        // buat option Select2 untuk part yang sudah dipilih
+        const option = new Option(articleName, articleCode, true, true);
+        $row.find('.part-select').append(option).trigger('change');
+
+        $row.find('.part-uom').val(uom);
+        $row.find('.qty-input').prop('disabled', false);
     } else {
-      $row.find('.qty-input').val('').prop('disabled', true);
-      $row.find('.part-uom').val('');
+        $row.find('.qty-input').prop('disabled', true);
     }
-  });
+});
 
-  // 🔥 INI KUNCI SUPAYA EDIT MODE LANGSUNG MUNCUL
-  $('.part-select').each(function () {
-    if ($(this).val()) {
-      $(this).trigger('change');
-    }
-  });
+
+
 
 });
+
+
 
 $(document).ready(function () {
 

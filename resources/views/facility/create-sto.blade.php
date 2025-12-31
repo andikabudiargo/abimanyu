@@ -180,6 +180,7 @@
 
     <div class="space-y-3">
     <textarea
+    id="note"
   name="note"
   rows="3"
   class="note-lines w-full resize-none focus:outline-none"
