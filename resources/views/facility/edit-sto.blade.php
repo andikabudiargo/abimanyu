@@ -93,19 +93,33 @@
   </td>
 
   <td class="border px-2 py-2">
-    <select name="items[{{ $i }}][article_id]"
-            class="part-select w-full"
-            data-row="{{ $i }}">
-      <option value="">-- pilih --</option>
-      @foreach ($articles as $a)
-        <option value="{{ $a->id }}"
-                data-code="{{ $a->article_code }}"
-                data-uom="{{ $a->unit }}"
-                @selected($a->article_code == $item->article_code)>
-          {{ $a->article_code }} - {{ $a->description }}
-        </option>
-      @endforeach
-    </select>
+  <select name="items[{{ $i }}][article_id]"
+        class="part-select w-full"
+        data-row="{{ $i }}">
+
+  <option value="">-- pilih --</option>
+
+  {{-- 🔥 OPTION KHUSUS UNTUK OTHER (EDIT MODE) --}}
+  @if ($item->article_code === 'OTHER')
+    <option value="OTHER"
+            data-code="OTHER"
+            data-uom="{{ $item->uom }}"
+            selected>
+      {{ $item->other_name }}
+    </option>
+  @endif
+
+  @foreach ($articles as $a)
+    <option value="{{ $a->id }}"
+            data-code="{{ $a->article_code }}"
+            data-uom="{{ $a->unit }}"
+            @selected($a->article_code === $item->article_code)>
+      {{ $a->article_code }} - {{ $a->description }}
+    </option>
+  @endforeach
+
+</select>
+
   </td>
 
   <td class="border px-2 py-2 text-center">
@@ -116,10 +130,13 @@
   </td>
 
   <td class="border px-2 py-2 text-center">
-    <input type="text"
-           class="part-uom w-full border rounded text-center"
-           value="{{ $item->article->unit ?? '-' }}"
-           readonly>
+   <input type="text"
+       name="items[{{ $i }}][uom]"
+       class="part-uom w-full border rounded text-center"
+       value="{{ $item->article_code === 'OTHER' ? $item->uom : ($item->article->unit ?? '') }}"
+       @if($item->article_code !== 'OTHER') readonly @endif>
+
+
   </td>
 
   <td class="border px-2 py-2 text-center">
@@ -140,7 +157,7 @@
   </td>
 
   <td class="border px-2 py-2">
-    <select name="items[{{ $i }}][article_id]"
+  <select name="items[{{ $i }}][article_id]"
             class="part-select w-full"
             data-row="{{ $i }}">
       <option value="">-- pilih --</option>
@@ -152,6 +169,7 @@
         </option>
       @endforeach
     </select>
+
   </td>
 
   <td class="border px-2 py-2 text-center">
@@ -161,9 +179,10 @@
   </td>
 
   <td class="border px-2 py-2 text-center">
-    <input type="text"
+  <input type="text"
+           name="items[{{ $i }}][uom]"
            class="part-uom w-full border rounded text-center"
-           readonly>
+           >
   </td>
 
   <td class="border px-2 py-2 text-center">
@@ -287,36 +306,79 @@
   $('.part-select').select2({
     placeholder: '-- Pilih Part --',
     width: '100%',
-    allowClear: true
+    allowClear: true,
+    tags: true,
+    selectOnClose: false,
+    createTag: function (params) {
+      const term = $.trim(params.term);
+      if (!term) return null;
+
+      return {
+        id: 'OTHER',
+        text: term,
+        isOther: true
+      };
+    },
+  });
+
+  function handleSelect($select) {
+    const $row = $select.closest('tr');
+    const $opt = $select.find(':selected');
+    let code = $opt.data('code') || '';
+    let uom  = $opt.data('uom') || '';
+
+    // deteksi OTHER
+    const isOther = $opt.data('isOther') || $select.val() === 'OTHER';
+
+    if (isOther) {
+      code = 'OTHER';
+      if (!$opt.val()) uom = $row.data('other-uom') || '';
+      $row.find('.part-uom').prop('readonly', false).val(uom);
+    } else {
+      $row.find('.part-uom').prop('readonly', true).val(uom);
+    }
+
+    $row.find('.article-code').val(code);
+    $row.find('.qty-input').prop('disabled', !$select.val());
+  }
+
+  $(document).on('select2:select', '.part-select', function () {
+    handleSelect($(this));
   });
 
   $(document).on('change', '.part-select', function () {
-
-    const $row = $(this).closest('tr');
-    const $opt = $(this).find(':selected');
-
-    const code = $opt.data('code') || '';
-    const uom  = $opt.data('uom')  || '';
-
-    $row.find('.article-code').val(code);
-    $row.find('.part-uom').val(uom);
-
-    if (code) {
-      $row.find('.qty-input').prop('disabled', false);
-    } else {
-      $row.find('.qty-input').val('').prop('disabled', true);
-      $row.find('.part-uom').val('');
-    }
+    handleSelect($(this));
   });
 
-  // 🔥 INI KUNCI SUPAYA EDIT MODE LANGSUNG MUNCUL
+  $(document).on('select2:clear', '.part-select', function () {
+    const $row = $(this).closest('tr');
+    $row.find('.article-code').val('');
+    $row.find('.part-uom').val('').prop('readonly', true);
+    $row.find('.qty-input').val('').prop('disabled', true);
+  });
+
+  // 🔥 edit mode: trigger select2:select sesuai option yang sudah ada
   $('.part-select').each(function () {
-    if ($(this).val()) {
-      $(this).trigger('change');
+    const $select = $(this);
+    const selectedVal = $select.val();
+    if (selectedVal) {
+      // jika OTHER, buat option dulu supaya Select2 punya reference
+      if (selectedVal === 'OTHER') {
+        const $row = $select.closest('tr');
+        const otherName = $row.find('.article-code').val() || '';
+        const uom = $row.find('.part-uom').val() || '';
+        if (!$select.find('option[value="OTHER"]').length) {
+          $select.append(`<option value="OTHER" data-uom="${uom}" selected>${otherName}</option>`);
+        }
+      }
+      $select.trigger('select2:select', { data: $select.find(':selected').data() });
     }
   });
 
 });
+
+
+
 
 $(document).ready(function () {
 
@@ -345,14 +407,20 @@ $(document).ready(function () {
     let errorRow = 0;
 
     $('.sto-row').each(function (index) {
-      const articleCode = $(this).find('.article-code').val();
-      const qty = parseFloat($(this).find('.qty-input').val());
+      const $row = $(this);
+      const articleCode = $row.find('.article-code').val();
+      const qty = parseFloat($row.find('.qty-input').val());
+      const location = $row.find('.location-input').val();
+      const uom = $row.find('.part-uom').val();
 
+      // Ambil OTHER name jika article_code = OTHER
+      let other_name = '';
+      if (articleCode === 'OTHER') {
+        const $select = $row.find('.part-select');
+        other_name = $select.find(':selected').text() || $row.data('other_name') || '';
+      }
 
-const location = $(this).find('.location-input').val();
-
-
-      // 🔴 Jika article dipilih tapi qty 0 / kosong
+      // 🔴 Validasi qty
       if (articleCode && (!qty || qty <= 0)) {
         hasError = true;
         errorRow = index + 1;
@@ -363,7 +431,9 @@ const location = $(this).find('.location-input').val();
         articles.push({
           article_code: articleCode,
           qty: qty,
-          location: location
+          uom: uom,
+          location: location,
+          other_name: other_name
         });
       }
     });
@@ -400,33 +470,30 @@ const location = $(this).find('.location-input').val();
     console.log('=== STO PAYLOAD ===', payload);
 
     $.ajax({
-  url: '/facility/sto/update/{{ $sto->id }}',
-  method: 'PUT',
-  data: payload,
-
+      url: '/facility/sto/update/{{ $sto->id }}',
+      method: 'PUT',
+      data: payload,
       beforeSend: function () {
         $('#btnSave').prop('disabled', true).text('Saving...');
       },
       success: function (res) {
         Swal.fire({
-  icon: 'success',
-  title: 'Berhasil',
-  text: res.message,
-  timer: 1500,
-  showConfirmButton: false
-}).then(() => {
-  window.location.href = '/facility/facility/sto/index';
-});
+          icon: 'success',
+          title: 'Berhasil',
+          text: res.message,
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.href = '/facility/facility/sto/index';
+        });
       },
       error: function (xhr) {
         if (xhr.status === 422) {
           let errors = xhr.responseJSON.errors;
           let msg = '';
-
           $.each(errors, function (key, value) {
             msg += `• ${value[0]}\n`;
           });
-
           Swal.fire({
             icon: 'error',
             title: 'Validasi gagal',
@@ -447,6 +514,7 @@ const location = $(this).find('.location-input').val();
   });
 
 });
+
 
 
 </script>

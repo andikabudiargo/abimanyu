@@ -535,6 +535,8 @@ public function update(Request $request, $id)
                 'sto_id'       => $sto->id,
                 'article_code' => $row['article_code'],
                 'qty'          => $row['qty'],
+                'uom'          => $row['uom'] ?? null,           // 🔹 UOM
+                'other_name'   => $row['other_name'] ?? null,   // 🔹 OTHER name
                 'location'     => $row['location'],
             ]);
         }
@@ -544,6 +546,7 @@ public function update(Request $request, $id)
         'message' => 'STO berhasil diperbarui'
     ]);
 }
+
 
 public function selectSto(Request $request)
 {
