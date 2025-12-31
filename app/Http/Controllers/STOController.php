@@ -112,7 +112,7 @@ private function allowedArticleTypes(?string $warehouse): array
         'WIP Sanding'      => ['FG'],
         'OT'               => ['FG'],
         'Chemical'         => ['CM1'],
-        'Consumable'       => ['CM2'],
+        'Consumable'       => ['CM2','RMP','RMNP'],
         default            => [],
     };
 }
