@@ -151,7 +151,7 @@ public function store(Request $request)
         'sto_number'                => 'required|string|unique:stos,sto_number',
         'articles'                  => 'required|array|min:1',
         'articles.*.article_code'   => 'required|string',
-        'articles.*.qty'            => 'required|numeric|min:1',
+        'articles.*.qty'            => 'required|numeric|min:0',
         'articles.*.uom'            => 'nullable|string',
         'articles.*.location'       => 'required|string',
         'note'                      => 'nullable|string',
