@@ -299,8 +299,7 @@ public function datatables(Request $request)
             'stos.note'
         );
 
-    // =====================
-    // 🔐 FILTER OTOMATIS USER
+    
     // =====================
     // 🔐 FILTER KHUSUS USER 67
 if ($userId == 67) {
@@ -354,21 +353,36 @@ if ($userId == 67) {
 
     $totalData = $totalFiltered = $totalDataQuery->count();
 
-    // =====================
-    // 📊 ORDER & PAGINATION
-    // =====================
-    $query->orderBy($order, $dir);
+  // =====================
+// 📊 ORDER & PAGINATION (FINAL)
+// =====================
+$orderColumnIndex = $request->input('order.0.column');
+$orderDir         = $request->input('order.0.dir', 'desc');
 
-    if ($limit != -1) {
-        $query->offset($start)->limit($limit);
-    }
+if (
+    isset($columns[$orderColumnIndex]) &&
+    $columns[$orderColumnIndex] !== null
+) {
+    // sorting dari header DataTables
+    $query->orderBy($columns[$orderColumnIndex], $orderDir);
+} else {
+    // fallback default
+    $query->orderBy('stos.sto_number', 'desc');
+}
 
-    $data = $query->get();
+if ($limit != -1) {
+    $query->offset($start)->limit($limit);
+}
+
+$data = $query->get();
+
 
     // =====================
     // 📦 FORMAT DATA
     // =====================
   $result = [];
+
+ 
 foreach ($data as $row) {
     // 🔥 ID unik untuk dropdown
     $dropdownId = 'dropdown-' . $row->sto_item_id;
