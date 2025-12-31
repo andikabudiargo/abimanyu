@@ -257,17 +257,19 @@ public function datatables(Request $request)
 {
     $userId = Auth::id();
 
-    $columns = [
-        0 => 'sto_items.id',
-        1 => 'sto_items.location',
-        2 => 'articles.description',
-        3 => 'sto_items.qty',
-        4 => 'articles.unit',
-        5 => 'stos.sto_number',
-        6 => 'stos.created_by',
-        7 => 'stos.created_at',
-        8 => 'stos.note',
-    ];
+   $columns = [
+    0 => null, // action (tidak sortable)
+    1 => 'sto_items.location',
+    2 => 'sto_items.article_code',
+    3 => 'articles.description',
+    4 => 'sto_items.qty',
+    5 => 'articles.unit',
+    6 => 'stos.sto_number',   // ✅ FIX
+    7 => 'users.name',
+    8 => 'stos.created_at',
+    9 => 'stos.note',
+];
+
 
     // 🔥 AMBIL MAPPING USER
     $warehouse     = $this->userWarehouse();
