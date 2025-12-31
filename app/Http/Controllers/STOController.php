@@ -387,6 +387,9 @@ foreach ($data as $row) {
     // 🔥 ID unik untuk dropdown
     $dropdownId = 'dropdown-' . $row->sto_item_id;
 $editUrl = route('facility.sto.edit', ['id' => $row->sto_id]);
+$qtyFormatted = $row->location === 'Chemical'
+    ? number_format($row->qty, 2)
+    : number_format($row->qty, 0);
     $result[] = [
         'DT_RowAttr' => [
             'data-id' => $row->sto_id,
@@ -413,7 +416,7 @@ $editUrl = route('facility.sto.edit', ['id' => $row->sto_id]);
         'location'     => $row->location,
         'article_code' => $row->article_code,
         'part_name'    => $row->part_name,
-        'qty'          => $row->qty,
+        'qty'          => $qtyFormatted, // ✅ FIX DI SINI
         'unit'         => $row->unit,
         'sto_number'   => $row->sto_number,
         'created_by'   => $row->created_by,
