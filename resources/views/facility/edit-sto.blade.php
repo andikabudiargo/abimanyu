@@ -193,7 +193,7 @@
     </label>
 
     <div class="space-y-3">
-   <textarea name="note"
+   <textarea id="note" name="note"
           rows="3"
           class="note-lines w-full resize-none">{{ $sto->note }}</textarea>
 
