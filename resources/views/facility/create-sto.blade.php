@@ -45,7 +45,7 @@
   $month = '12';
 @endphp
 
-@for ($i = 1; $i <= 1000; $i++)
+@for ($i = 1; $i <= 2000; $i++)
   @php
     $number = str_pad($i, 4, '0', STR_PAD_LEFT);
     $val = "{$year}/{$month}/{$number}";
