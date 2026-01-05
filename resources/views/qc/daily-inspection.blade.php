@@ -72,7 +72,7 @@
                     <th class="px-4 py-2 text-center">Inspection Number</th>
                     <th class="px-4 py-2 text-center">Inspection Date</th>
                      <th class="px-4 py-2 text-center">Inspection Post</th>
-                    <th class="px-4 py-2">Supplier</th>
+                    <th class="px-4 py-2">Supplier/Customer</th>
                     <th class="px-4 py-2 ">Part Name</th>
                     <th class="px-4 py-2 ">Inspection Method</th>
                     <th class="px-4 py-2 text-center">Qty Received</th>

@@ -39,10 +39,15 @@
       <span class="font-medium text-gray-500 whitespace-nowrap">Part Name:</span>
       <span data-info="part-name" class="text-gray-800 text-right max-w-[70%] break-words">{{ $inspection->article->description }}</span>
     </div>
-    <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
-      <span class="font-medium text-gray-500 whitespace-nowrap">Supplier:</span>
-      <span data-info="supplier" class="text-gray-800 text-right max-w-[70%] break-words">{{ $inspection->supplier->name }}</span>
-    </div>
+   <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
+    <span class="font-medium text-gray-500 whitespace-nowrap">
+        Supplier / Customer:
+    </span>
+    <span class="text-gray-800 text-right max-w-[70%] break-words">
+        {{ optional($inspection->partner)->name ?? '-' }}
+    </span>
+</div>
+
   </div>
 
   <!-- Summary Inspection -->
@@ -145,13 +150,18 @@
         class="w-full px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $inspection->inspection_post }}" readonly>
     </div>
 
-    <div class="w-full md:w-1/2">
-      <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">
-        Supplier
-      </label>
-     <input type="text" id="supplier"
-        class="w-full px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $inspection->supplier->name }}" readonly>
-    </div>
+   <div class="w-full md:w-1/2">
+    <label for="partner" class="block text-sm font-medium text-gray-700 mb-1">
+        {{ $inspection->inspection_post === 'Incoming' ? 'Supplier' : 'Customer' }}
+    </label>
+
+    <input type="text"
+        id="partner"
+        class="w-full px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+        value="{{ optional($inspection->partner)->name ?? '-' }}"
+        readonly>
+</div>
+
   </div>
 
   <!-- Baris 2 -->
