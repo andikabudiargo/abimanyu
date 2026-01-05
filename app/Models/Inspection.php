@@ -33,8 +33,18 @@ public function article()
 
 public function supplier()
 {
-    return $this->belongsTo(Supplier::class, 'supplier_code', 'code'); 
+    return $this->belongsTo(Supplier::class, 'supplier_code', 'code');
 }
+
+public function getPartnerAttribute()
+{
+    if ($this->inspection_post === 'Incoming') {
+        return $this->supplier;
+    }
+
+    return Customer::where('code', $this->supplier_code)->first();
+}
+
 
 public function inspection_defects()
 {

@@ -35,7 +35,7 @@ class InspectionController extends Controller
 
      public function data(Request $request)
 {
-    $query = Inspection::with(['user', 'article', 'supplier', 'customer']);
+    $query = Inspection::with(['user', 'article', 'supplier']);
 
     if ($request->inspection_number) {
         $query->where('inspection_number', 'like', '%' . $request->inspection_number . '%');
@@ -117,12 +117,9 @@ $query->orderBy('created_at', 'desc');
 })
 
 ->addColumn('partner_name', function ($row) {
-    if ($row->inspection_post === 'Incoming') {
-        return optional($row->supplier)->name ?? '-';
-    }
-
-    return optional($row->customer)->name ?? '-';
+    return optional($row->partner)->name ?? '-';
 })
+
 
 
 
