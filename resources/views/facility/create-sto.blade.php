@@ -106,7 +106,7 @@
 
       <!-- TBODY -->
       <tbody id="article-table">
-        @for ($i = 0; $i < 7; $i++)
+        @for ($i = 0; $i < 15; $i++)
         <tr class="bg-white sto-row">
           <!-- PART CODE -->
           <td class="border border-gray-300 px-2 py-2">
