@@ -23,7 +23,7 @@
                 <option value="WIP Sanding">WIP Sanding</option>
       <option value="WIP Buffing">WIP Buffing</option>
       <option value="Werate">Werate</option>
-      <option value="WIP Touchup">WIP Touchup</option>
+      <option value="WIP Touch Up">WIP Touchup</option>
                 <option value="OT">OT</option>
                  <option value="Dead Stock CM1">Dead Stock CM1</option>
             </select>
