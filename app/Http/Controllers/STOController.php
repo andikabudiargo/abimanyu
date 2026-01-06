@@ -56,10 +56,11 @@ public function index()
         55        => 'Raw Material',
         44        => 'Finish Goods',
         94        => 'Werate',
-        92        => 'WIP Buffing',
+       // 92        => 'WIP Buffing',
         96        => 'WIP Touch Up',
         95        => 'WIP Sanding',
         63        => 'OT',
+        92        => 'Dead Stock CM1',
         67        => null,
         53,2     => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
@@ -87,6 +88,7 @@ private function allowedWarehouses(): array
             'WIP Buffing',
             'Werate',
             'WIP Touch Up',
+            'Dead Stock CM1',
         ];
     }
 
@@ -106,13 +108,14 @@ private function allowedArticleTypes(?string $warehouse): array
     return match ($warehouse) {
         'Raw Material'     => ['RMP','RMNP'],
         'Finish Goods'     => ['FG'],
-        'WIP Buffing'      => ['FG','RMP','RMNP'],
+        'WIP Buffing'      => ['FG'],
         'Werate'           => ['RMP','RMNP', 'FG'],
-        'WIP Touch Up'     => ['FG','RMP','RMNP'],
-        'WIP Sanding'      => ['FG','RMP','RMNP'],
+        'WIP Touch Up'     => ['FG'],
+        'WIP Sanding'      => ['FG'],
         'OT'               => ['FG'],
         'Chemical'         => ['CM1'],
         'Consumable'       => ['CM2','RMP','RMNP'],
+        'Dead Stock CM1'   => ['CM1'],
         default            => [],
     };
 }
