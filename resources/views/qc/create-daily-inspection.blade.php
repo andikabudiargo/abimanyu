@@ -88,6 +88,13 @@
           <span data-info="pass-rate" class="text-green-500 font-semibold">0</span>
         </div>
         <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-blue-500">
+            <i data-feather="check-circle" class="w-4 h-4"></i>
+            <span class="font-medium"  data-label="pass-trough-label">Pass Trough</span>
+          </div>
+          <span data-info="pass-trough" class="text-blue-500 font-semibold">0</span>
+        </div>
+        <div class="flex justify-between items-center">
           <div class="flex items-center gap-2 text-yellow-500">
             <i data-feather="tool" class="w-4 h-4"></i>
             <span class="font-medium">OK Repair</span>
@@ -327,10 +334,13 @@ $(document).ready(function () {
   const $totalOkLabel = $('[data-info="total-ok"]');
   const $totalOkRepairLabel = $('[data-info="total-ok-repair"]');
   const $passRate = $('[data-info="pass-rate"]');
+  const $passTrough = $('[data-info="pass-trough"]');
   const $NGRate = $('[data-info="ng-rate"]');
   const $okRepairRate = $('[data-info="ok-repair-rate"]');
   let articleMap = {};
   let rowIndex = 1;
+
+  
 
   // ================== Helper ==================
   function getSamplingCheck(qty) {
@@ -384,12 +394,26 @@ $(document).ready(function () {
       Swal.fire('Peringatan', 'Jumlah defect melebihi total check!', 'warning');
     }
 
-    // Hitung persentase
-const passRate = totalCheck ? ((totalOk / totalCheck) * 100).toFixed(0) : 0;
-const ngRate = totalCheck ? (((totalNg - totalOkRepair) / totalCheck) * 100).toFixed(0) : 0;
-const okRepairRate = totalCheck ? ((totalOkRepair / totalCheck) * 100).toFixed(0) : 0;
+ // Hitung persentase
+const passRate = totalCheck
+  ? (((totalOk + totalOkRepair) / totalCheck) * 100).toFixed(0)
+  : 0;
+
+const passTrough = totalCheck
+  ? ((totalOk / totalCheck) * 100).toFixed(0)
+  : 0;
+
+const ngRate = totalCheck
+  ? (((totalNg - totalOkRepair) / totalCheck) * 100).toFixed(0)
+  : 0;
+
+const okRepairRate = totalCheck
+  ? ((totalOkRepair / totalCheck) * 100).toFixed(0)
+  : 0;
+
 
 $passRate.text(passRate + '%');
+$passTrough.text(passTrough + '%');
 $NGRate.text(ngRate + '%');
 $okRepairRate.text(okRepairRate + '%');
 
@@ -563,40 +587,56 @@ toggleOkRepair();
     return $row;
 }
 
-// ================= TOGGLE OK REPAIR =================
-  function toggleOkRepair() {
+function toggleOkRepair() {
     const post = $('#inspection_post').val();
 
-    // === ambil container div-nya ===
+    // === OK Repair summary ===
     const $totalOkRepairRow = $('[data-info="total-ok-repair"]').closest('div.flex');
     const $okRepairRateRow  = $('[data-info="ok-repair-rate"]').closest('div.flex');
 
+    // === KPI label ===
+    const $passTroughLabel = $('[data-label="pass-trough-label"]');
+
     if (post === 'Incoming') {
 
-        // kolom OK Repair di table
-        $('.ok-repair-wrapper').removeClass('hidden')
+        // OK Repair aktif
+        $('.ok-repair-wrapper')
+            .removeClass('hidden')
             .find('input')
             .prop('required', true)
             .prop('disabled', false);
 
-        // summary
+        // summary OK Repair tampil
         $totalOkRepairRow.removeClass('hidden');
         $okRepairRateRow.removeClass('hidden');
 
+        // KPI
+        $passTroughLabel.text('Performance');
+
     } else {
 
-        // kolom OK Repair di table
-        $('.ok-repair-wrapper').addClass('hidden')
+        // OK Repair mati
+        $('.ok-repair-wrapper')
+            .addClass('hidden')
             .find('input')
             .prop('required', false)
             .prop('disabled', true)
             .val('');
 
-        // summary
+        // summary OK Repair sembunyi
         $totalOkRepairRow.addClass('hidden');
         $okRepairRateRow.addClass('hidden');
+
+        // KPI
+        if (post === 'Unloading') {
+            $passTroughLabel.text('Pass Through');
+        } else {
+            $passTroughLabel.text('Performance');
+        }
     }
 }
+
+
 
 
       $('#inspection_post').on('change', function () {
