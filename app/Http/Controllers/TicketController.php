@@ -1207,7 +1207,7 @@ foreach (range('A', 'N') as $col) {
 }
 
     // ====== Header tabel mulai baris 5 ======
-    $sheet->fromArray(['Ticket Number', 'Subject', 'Status', 'Priority',  'Department', 'Request By', 'Request At', 'Approved At', 'Assign By', 'Assign At', 'Done At', 'Closed At', 'Evidence'], NULL, 'A11');
+    $sheet->fromArray(['Ticket Number', 'Subject', 'Status', 'Priority',  'Department', 'Request By', 'Request At', 'SLA','Actual Duration', 'Evidence'], NULL, 'A11');
     $sheet->getStyle('A11:M11')->getFont()->setBold(true);
     // Background warna header (misal: biru muda)
 $sheet->getStyle('A11:M11')->getFill()
