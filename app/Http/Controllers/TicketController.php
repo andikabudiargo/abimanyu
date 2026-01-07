@@ -1291,8 +1291,8 @@ $chart = new Chart(
 );
 
 // Atur posisi chart lebih kecil
-$chart->setTopLeftPosition('M1');
-$chart->setBottomRightPosition('Q10'); // lebih kecil, 2 kolom x 4 baris
+$chart->setTopLeftPosition('J1');
+$chart->setBottomRightPosition('L10'); // lebih kecil, 2 kolom x 4 baris
 
 
 $sheet->addChart($chart);
