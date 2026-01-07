@@ -1151,7 +1151,7 @@ $drawing->setOffsetY(5);
     $drawing->setWorksheet($sheet);
 
     // ====== Judul di tengah (D1:M1) ======
-    $sheet->mergeCells('B1:I6');
+    $sheet->mergeCells('B1:F6');
     $sheet->setCellValue('B1', 'IT DAILY REPORT ACTIVITY');
     $sheet->getStyle('B1')->getFont()->setBold(true)->setSize(16);
     $sheet->getStyle('B1')->getAlignment()
@@ -1159,7 +1159,7 @@ $drawing->setOffsetY(5);
     ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
 
     // ====== Tanggal di bawah judul (D2:M2) ======
-    $sheet->mergeCells('B7:I10');
+    $sheet->mergeCells('B7:F10');
     $sheet->setCellValue('B7', 'Periode: ' . date('d-m-Y'));
     $sheet->getStyle('B7')->getFont()->setSize(11);
     $sheet->getStyle('B7')->getAlignment()
@@ -1167,21 +1167,21 @@ $drawing->setOffsetY(5);
     ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);;
 
     // Merge dulu cell untuk header tanda tangan
-$sheet->mergeCells('J1:J2');
-$sheet->mergeCells('K1:K2');
-$sheet->mergeCells('L1:L2');
+$sheet->mergeCells('G1:G2');
+$sheet->mergeCells('H1:H2');
+$sheet->mergeCells('I1:I2');
 
 // Set value hanya di sel paling kiri/atas dari merge
-$sheet->setCellValue('J1', 'Dibuat');
-$sheet->setCellValue('K1', 'Diperiksa');
-$sheet->setCellValue('L1', 'Diketahui');
+$sheet->setCellValue('G1', 'Dibuat');
+$sheet->setCellValue('H1', 'Diperiksa');
+$sheet->setCellValue('I1', 'Diketahui');
 
 
 // Kosong untuk tanda tangan (baris 2)
-$sheet->mergeCells('J3:J8');
-$sheet->mergeCells('K3:K8');
-$sheet->mergeCells('L3:L8');
-$sheet->mergeCells('M1:P10');
+$sheet->mergeCells('G3:G8');
+$sheet->mergeCells('H3:H8');
+$sheet->mergeCells('I3:I8');
+$sheet->mergeCells('J1:L10');
 
 $lastRow = 100; // misalnya sampai baris 100
 for ($row = 5; $row <= $lastRow; $row++) {
@@ -1189,20 +1189,20 @@ for ($row = 5; $row <= $lastRow; $row++) {
 }
 
 // Merge cell dulu
-$sheet->mergeCells('J9:J10');
-$sheet->mergeCells('K9:K10');
-$sheet->mergeCells('L9:L10');
+$sheet->mergeCells('G9:G10');
+$sheet->mergeCells('H9:H10');
+$sheet->mergeCells('I9:I10');
 
 // Set value hanya di sel pertama dari merge
-$sheet->setCellValue('J9', auth()->user()->name ?? 'Pembuat');
-$sheet->setCellValue('K9', 'Joko Sriyanto');
-$sheet->setCellValue('L9', 'Budi Mulyadi');
+$sheet->setCellValue('G9', auth()->user()->name ?? 'Pembuat');
+$sheet->setCellValue('H9', 'Joko Sriyanto');
+$sheet->setCellValue('I9', 'Budi Mulyadi');
 
 
 
 
 
-foreach (range('A', 'N') as $col) {
+foreach (range('A', 'L') as $col) {
     $sheet->getColumnDimension($col)->setAutoSize(true);
 }
 
@@ -1321,7 +1321,7 @@ foreach ($tickets as $t) {
     $sheet->setCellValue("E{$row}", $t->requestor->departments->first()->name ?? '-');
     $sheet->setCellValue("F{$row}", $t->requestor->name);
     $sheet->setCellValue("G{$row}", $t->created_at);
-    $sheet->setCellValue("H{$row}", $dueDate);
+    $sheet->setCellValue("H{$row}", $t->due_date);
     $sheet->setCellValue("I{$row}", $duration);
 
     // ===== Kasih warna merah jika overdue =====
