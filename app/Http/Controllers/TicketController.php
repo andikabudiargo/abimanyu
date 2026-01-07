@@ -1344,9 +1344,9 @@ foreach ($tickets as $t) {
             $drawing->setPath($imagePath);
             $drawing->setHeight($imageHeight);
             $drawing->setWidth($imageWidth);
-            $drawing->setCoordinates("M{$row}");
+            $drawing->setCoordinates("J{$row}");
 
-            $columnWidth = $sheet->getColumnDimension('M')->getWidth() * 7;
+            $columnWidth = $sheet->getColumnDimension('J')->getWidth() * 7;
             $rowHeight   = $sheet->getRowDimension($row)->getRowHeight();
             if ($rowHeight == -1) {
                 $rowHeight = $imageHeight;
@@ -1360,9 +1360,9 @@ foreach ($tickets as $t) {
             $drawing->setWorksheet($sheet);
 
             $sheet->getRowDimension($row)->setRowHeight($imageHeight);
-            $sheet->getColumnDimension('M')->setWidth($imageWidth * 0.14);
+            $sheet->getColumnDimension('J')->setWidth($imageWidth * 0.14);
 
-            $sheet->getStyle("M{$row}")->getAlignment()->setHorizontal('center')->setVertical('center');
+            $sheet->getStyle("J{$row}")->getAlignment()->setHorizontal('center')->setVertical('center');
         }
     }
 
