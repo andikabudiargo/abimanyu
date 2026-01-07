@@ -1101,6 +1101,37 @@ public function destroy($id)
     ]);
 }
 
+private function convertDuration($start, $end)
+{
+    if (!$start || !$end) {
+        return '-';
+    }
+
+    $start = \Carbon\Carbon::parse($start);
+    $end   = \Carbon\Carbon::parse($end);
+
+    $diff = $end->diff($start);
+
+    return "{$diff->d} Hari {$diff->h} Jam {$diff->i} Menit {$diff->s} Detik";
+}
+
+private function isOverdue($dueDate, $doneAt)
+{
+    if (!$dueDate) {
+        return false;
+    }
+
+    $due = \Carbon\Carbon::parse($dueDate);
+
+    // jika belum selesai, bandingkan dengan sekarang
+    if (!$doneAt) {
+        return now()->greaterThan($due);
+    }
+
+    // jika sudah selesai, bandingkan done_at dengan due_date
+    return \Carbon\Carbon::parse($doneAt)->greaterThan($due);
+}
+
 public function dailyReport()
 {
     $spreadsheet = new Spreadsheet();
@@ -1268,56 +1299,75 @@ $sheet->addChart($chart);
 
 
     $row = 12;
-    foreach ($tickets as $t) {
-        $sheet->fromArray([$t->ticket_number, $t->title, $t->status, $t->priority, $t->requestor->departments->first()->name ?? '-', $t->requestor->name, $t->created_at, $t->approved_at,  $t->process?->name ?? '-', $t->processed_at, $t->done_at, $t->closed_at], NULL, 'A' . $row);
-        // Ambil hanya 1 evidence (misal evidence pertama)
-    // Ambil hanya 1 evidence (misal evidence pertama)
-$evidence = $t->evidences->first();
 
-if ($evidence) {
-   $imagePath = '/home/abimany3/public_html/' . $evidence->path;
+foreach ($tickets as $t) {
 
-    if (file_exists($imagePath)) {
-        // Tentukan ukuran gambar
-        $imageHeight = 200;
-        $imageWidth = 250;
+    // DUE DATE
+    $dueDate = $t->due_date
+        ? \Carbon\Carbon::parse($t->due_date)->format('Y-m-d H:i')
+        : '-';
 
-        // Masukkan gambar
-        $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
-        $drawing->setPath($imagePath);
-        $drawing->setHeight($imageHeight);
-        $drawing->setWidth($imageWidth);
-        $drawing->setCoordinates('M' . $row);
+    // DURATION
+    $duration = $this->convertDuration($t->processed_at, $t->done_at);
 
-        // Hitung lebar kolom & tinggi baris (Excel -> pixel)
-        $columnWidth = $sheet->getColumnDimension('M')->getWidth() * 7; // 1 width = ~7px
-        $rowHeight = $sheet->getRowDimension($row)->getRowHeight(); 
-        if ($rowHeight == -1) {
-            $rowHeight = $imageHeight; // default row height = image height
-        }
+    // CEK OVERDUE
+    $isOver = $this->isOverdue($t->due_date, $t->done_at);
 
-        // Offset supaya gambar center
-        $offsetX = max(0, ($columnWidth - $imageWidth) / 2);
-        $offsetY = max(0, ($rowHeight - $imageHeight) / 2);
+    // Tulis data utama
+    $sheet->setCellValue("A{$row}", $t->ticket_number);
+    $sheet->setCellValue("B{$row}", $t->title);
+    $sheet->setCellValue("C{$row}", $t->status);
+    $sheet->setCellValue("D{$row}", $t->priority);
+    $sheet->setCellValue("E{$row}", $t->requestor->departments->first()->name ?? '-');
+    $sheet->setCellValue("F{$row}", $t->requestor->name);
+    $sheet->setCellValue("G{$row}", $t->created_at);
+    $sheet->setCellValue("H{$row}", $dueDate);
+    $sheet->setCellValue("I{$row}", $duration);
 
-        $drawing->setOffsetX($offsetX);
-        $drawing->setOffsetY($offsetY);
-
-        $drawing->setWorksheet($sheet);
-
-        // Atur tinggi baris & lebar kolom agar sesuai
-        $sheet->getRowDimension($row)->setRowHeight($imageHeight); // konversi pixel → point
-        $sheet->getColumnDimension('M')->setWidth($imageWidth * 0.14);
-
-        // Align sel supaya konten (jika ada) center
-        $sheet->getStyle('M' . $row)->getAlignment()->setHorizontal('center')->setVertical('center');
+    // ===== Kasih warna merah jika overdue =====
+    if ($isOver) {
+        $sheet->getStyle("H{$row}:I{$row}")->getFont()->getColor()->setARGB('FFFF0000');
+        $sheet->getStyle("H{$row}:I{$row}")->getFont()->setBold(true);
     }
-}
 
+    // ===== Evidence (gambar) =====
+    $evidence = $t->evidences->first();
 
+    if ($evidence) {
+        $imagePath = '/home/abimany3/public_html/' . $evidence->path;
+        if (file_exists($imagePath)) {
 
+            $imageHeight = 200;
+            $imageWidth  = 250;
 
-        $row++;
+            $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+            $drawing->setPath($imagePath);
+            $drawing->setHeight($imageHeight);
+            $drawing->setWidth($imageWidth);
+            $drawing->setCoordinates("M{$row}");
+
+            $columnWidth = $sheet->getColumnDimension('M')->getWidth() * 7;
+            $rowHeight   = $sheet->getRowDimension($row)->getRowHeight();
+            if ($rowHeight == -1) {
+                $rowHeight = $imageHeight;
+            }
+
+            $offsetX = max(0, ($columnWidth - $imageWidth) / 2);
+            $offsetY = max(0, ($rowHeight - $imageHeight) / 2);
+
+            $drawing->setOffsetX($offsetX);
+            $drawing->setOffsetY($offsetY);
+            $drawing->setWorksheet($sheet);
+
+            $sheet->getRowDimension($row)->setRowHeight($imageHeight);
+            $sheet->getColumnDimension('M')->setWidth($imageWidth * 0.14);
+
+            $sheet->getStyle("M{$row}")->getAlignment()->setHorizontal('center')->setVertical('center');
+        }
+    }
+
+    $row++;
+
     }
 
     // Style alignment tengah semua kolom tanda tangan
