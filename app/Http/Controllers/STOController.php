@@ -438,9 +438,12 @@ foreach ($data as $row) {
     // 🔥 ID unik untuk dropdown
     $dropdownId = 'dropdown-' . $row->sto_item_id;
 $editUrl = route('facility.sto.edit', ['id' => $row->sto_id]);
-$qtyFormatted = $row->location === 'Chemical'
+$twoDecimalLocations = ['Chemical', 'Dead Stock CM1'];
+
+$qtyFormatted = in_array($row->location, $twoDecimalLocations)
     ? number_format($row->qty, 2)
     : number_format($row->qty, 0);
+
     $result[] = [
         'DT_RowAttr' => [
             'data-id' => $row->sto_id,
