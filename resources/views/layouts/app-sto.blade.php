@@ -69,22 +69,22 @@
         <div class="loader-fill w-[300px] h-[5px] bg-primary-500 absolute top-0 left-0 animate-[hitZak_0.6s_ease-in-out_infinite_alternate]"></div>
       </div>
     </div>
-   <!-- MOBILE FULLSCREEN LOADER -->
+   <!-- MOBILE FULLSCREEN LOADER 
 <div id="mobile-loader"
      class="fixed inset-0 z-[9999] bg-blue-600 flex flex-col items-center justify-center opacity-100 transition-opacity duration-700 sm:hidden">
 
     
 
-    <!-- CUSTOM SPINNER ICON -->
+    
     <div class="animate-bounce mb-6">
       🧐📝📦🔍🎯
     </div>
 
-    <!-- TEXT -->
+   
     <p class="text-white text-xl tracking-wide font-semibold animate-pulse">
       Memuat data...
     </p>
-</div>
+</div>-->
 
      @include('layouts.sidebar')
       <!-- [ Header Topbar ] start -->
