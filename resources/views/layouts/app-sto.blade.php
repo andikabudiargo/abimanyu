@@ -73,10 +73,7 @@
 <div id="mobile-loader"
      class="fixed inset-0 z-[9999] bg-blue-600 flex flex-col items-center justify-center opacity-100 transition-opacity duration-700 sm:hidden">
 
-    <!-- BIG GIF -->
-    <img src="{{ asset('img/stock-opname.gif') }}" 
-         class="w-96 h-96 mb-8 object-contain"
-         alt="Loading...">
+    
 
     <!-- CUSTOM SPINNER ICON -->
     <div class="animate-bounce mb-6">
