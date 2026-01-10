@@ -15,13 +15,13 @@
 <link rel="apple-touch-icon" href="{{ asset('img/asn-logo-bulat.png') }}" />
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <!-- Tom Select CSS & JS -->
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
-  
     <link rel="stylesheet" href="{{ asset('template/dist/assets/fonts/phosphor/duotone/style.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/dist/assets/fonts/tabler-icons.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/dist/assets/fonts/feather.css') }}" />
@@ -79,7 +79,7 @@
 
     <!-- BIG GIF -->
     <img src="{{ asset('img/stock-opname.gif') }}" 
-         class="w-96 h-96 mb-8"
+         class="w-96 h-96 mb-8 object-contain"
          alt="Loading...">
 
     <!-- CUSTOM SPINNER ICON -->
@@ -144,7 +144,86 @@
             </a>
           </div>
         </li>
-  
+    <!--<li class="dropdown pc-h-item">
+      <a class="pc-head-link dropdown-toggle me-0" data-pc-toggle="dropdown" href="#" role="button"
+        aria-haspopup="false" aria-expanded="false">
+        <i data-feather="settings"></i>
+      </a>
+      <div class="dropdown-menu dropdown-menu-end pc-h-dropdown">
+        <a href="#!" class="dropdown-item">
+          <i class="ti ti-user"></i>
+          <span>My Account</span>
+        </a>
+        <a href="#!" class="dropdown-item">
+          <i class="ti ti-settings"></i>
+          <span>Settings</span>
+        </a>
+        <a href="#!" class="dropdown-item">
+          <i class="ti ti-headset"></i>
+          <span>Support</span>
+        </a>
+        <a href="#!" class="dropdown-item">
+          <i class="ti ti-lock"></i>
+          <span>Lock Screen</span>
+        </a>
+        <a href="#!" class="dropdown-item">
+          <i class="ti ti-power"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </li>
+   @php
+use Illuminate\Support\Facades\Auth;
+
+$user = Auth::user();
+$canApprove = $user->roles()->whereIn('name', ['Supervisor Special Access', 'Manager Special Access'])->exists() &&
+              $user->departments()->where('name', 'Information & Technology')->exists();
+
+$ticketsToApprove = $canApprove
+    ? \App\Models\Ticket::where('status', 'Pending')->latest()->take(5)->get()
+    : collect(); // kosong jika tidak berhak
+@endphp
+
+@if ($canApprove)
+<li class="dropdown pc-h-item relative">
+  <a class="pc-head-link dropdown-toggle me-0" data-pc-toggle="dropdown" href="#" role="button">
+    <i data-feather="bell"></i>
+    @if ($ticketsToApprove->count())
+      <span class="badge bg-success-500 text-white rounded-full z-10 absolute right-0 top-0">{{ $ticketsToApprove->count() }}</span>
+    @endif
+  </a>
+  <div class="dropdown-menu dropdown-notification dropdown-menu-end pc-h-dropdown p-2 w-96">
+    <div class="dropdown-header flex items-center justify-between py-4 px-5">
+      <h5 class="m-0">Tickets to Approve</h5>
+      <a href="{{ route('it.ticket.index') }}" class="btn btn-link btn-sm">View All</a>
+    </div>
+    <div class="dropdown-body header-notification-scroll relative py-2 px-3" style="max-height: 400px; overflow-y: auto;">
+      @forelse ($ticketsToApprove as $ticket)
+      <div class="card mb-2 shadow-sm border border-gray-200">
+        <div class="card-body px-3 py-2">
+          <div class="text-sm font-semibold text-gray-700 mb-1">
+            {{ $ticket->ticket_number }} - {{ $ticket->title }}
+          </div>
+          <p class="text-xs text-gray-600 mb-2">{{ $ticket->category }}</p>
+          <div class="flex justify-end gap-2">
+            <a href=""
+              class="btn btn-xs btn-outline-primary">Detail</a>
+            <button onclick="approveTicket({{ $ticket->id }})" class="btn btn-xs btn-success">Approve</button>
+            <button onclick="rejectTicket({{ $ticket->id }})" class="btn btn-xs btn-danger">Reject</button>
+          </div>
+        </div>
+      </div>
+      @empty
+      <p class="text-sm text-gray-500 text-center">No pending tickets.</p>
+      @endforelse
+    </div>
+    <div class="text-center py-2">
+      <a href="{{ route('it.ticket.index') }}" class="text-primary hover:underline">Lihat semua ticket</a>
+    </div>
+  </div>
+</li>
+@endif-->
+
 
    <li class="dropdown pc-h-item header-user-profile">
           <a class="pc-head-link dropdown-toggle arrow-none me-0" data-pc-toggle="dropdown" href="#" role="button"
@@ -229,7 +308,7 @@
       $month = '12';
     @endphp
 
-    @for ($i = 1; $i <= 2000; $i++)
+    @for ($i = 1; $i <= 1000; $i++)
       @php
         $number = str_pad($i, 4, '0', STR_PAD_LEFT);
         $val = "{$year}/{$month}/{$number}";
@@ -289,6 +368,7 @@
     </div>
 
    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('template/dist/assets/js/plugins/simplebar.min.js') }}"></script>
