@@ -557,7 +557,6 @@ public function selectSto(Request $request)
             $q->where('sto_number', 'like', "%{$search}%");
         })
         ->orderBy('sto_number', 'desc')
-        ->limit(20)
         ->get();
 
     return response()->json([
