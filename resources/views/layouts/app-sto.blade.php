@@ -291,7 +291,7 @@ $ticketsToApprove = $canApprove
   <!-- STO Number -->
   <select
     name="sto_number"
-    id="sto_number"
+    id="sto_number_mobile"
     required
     class="w-full px-4 py-2 rounded-lg bg-white/90 text-gray-800 shadow-sm border border-transparent
            focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 transition-all duration-200"

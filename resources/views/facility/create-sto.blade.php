@@ -231,7 +231,7 @@ $(document).ready(function () {
 
   loadArticles(null);
 
-  $('#warehouse-null', 'warehouse-null-desktop').on('change', function () {
+  $('#warehouse-null', '#warehouse-null-desktop').on('change', function () {
     const warehouse = $(this).val() || null;
       loadArticles(warehouse);
   });
@@ -245,6 +245,10 @@ $(document).ready(function () {
     placeholder: '-- Pilih STO Number --',
     width: '100%'
   });
+  $('#sto_number_mobile').select2({
+  placeholder: '-- Pilih STO Number --',
+  width: '100%'
+});
    $('#warehouse-null').select2({
     placeholder: '-- Pilih Lokasi --',
     width: '100%',
@@ -256,10 +260,20 @@ $(document).ready(function () {
   });
 });
 
+function getStoNumber() {
+  if ($(window).width() < 1024) {
+    return $('#sto_number_mobile').val();
+  } else {
+    return $('#sto_number').val();
+  }
+}
+
+
 $(document).ready(function () {
 
   $("#btnSave, #btnSaveMobile").on("click", function (e) {
     e.preventDefault();
+    
 
     let articles = [];
     let hasError = false;
@@ -331,7 +345,7 @@ $(document).ready(function () {
     ========================= */
 
     const payload = {
-      sto_number: $('#sto_number').val(),
+       sto_number: getStoNumber(),
       note: $('#note, #note_mobile').val() || '',
       articles: articles,
       _token: $('meta[name="csrf-token"]').attr('content')
@@ -358,11 +372,19 @@ $(document).ready(function () {
         /* =========================
            RESET STO NUMBER
         ========================= */
-        const $stoSelect = $('#sto_number');
-        const usedValue = $stoSelect.val();
+       const usedValue = getStoNumber();
 
-        $stoSelect.find(`option[value="${usedValue}"]`).remove();
-        $stoSelect.prop('selectedIndex', 0);
+// reset mobile
+$('#sto_number_mobile')
+  .find(`option[value="${usedValue}"]`)
+  .remove()
+  .prop('selectedIndex', 0);
+
+// reset desktop
+$('#sto_number')
+  .find(`option[value="${usedValue}"]`)
+  .remove()
+  .prop('selectedIndex', 0);
 const $header = $row.find('.header-label');
   $header.text(`Item ${row + 1}`);
         /* =========================
