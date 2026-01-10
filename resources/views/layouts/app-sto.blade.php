@@ -18,10 +18,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <!-- Tom Select CSS & JS -->
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-
     <link rel="stylesheet" href="{{ asset('template/dist/assets/fonts/phosphor/duotone/style.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/dist/assets/fonts/tabler-icons.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('template/dist/assets/fonts/feather.css') }}" />
@@ -381,23 +377,21 @@ $ticketsToApprove = $canApprove
 <script src="https://cdn.jsdelivr.net/npm/leader-line"></script> <!-- untuk garis -->
 <script src="https://unpkg.com/@popperjs/core@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
  <script>
-     window.addEventListener('load', () => {
+   document.addEventListener('DOMContentLoaded', () => {
   const loader = document.getElementById('mobile-loader');
 
-  // fade out
-  loader.style.opacity = '0';
-
-  // after transition ends, hide element
+  // beri waktu 300-500 ms agar tidak terlalu tiba-tiba
   setTimeout(() => {
-    loader.style.display = 'none';
-  }, 700);
-});
+    loader.style.opacity = '0';
+    loader.style.pointerEvents = 'none';
 
+    setTimeout(() => {
+      loader.style.display = 'none';
+    }, 500);
+  }, 300);
+});
     
 </script>
 
