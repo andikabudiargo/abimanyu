@@ -376,19 +376,7 @@ $ticketsToApprove = $canApprove
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
  <script>
-   document.addEventListener('DOMContentLoaded', () => {
-  const loader = document.getElementById('mobile-loader');
-
-  // beri waktu 300-500 ms agar tidak terlalu tiba-tiba
-  setTimeout(() => {
-    loader.style.opacity = '0';
-    loader.style.pointerEvents = 'none';
-
-    setTimeout(() => {
-      loader.style.display = 'none';
-    }, 500);
-  }, 300);
-});
+  
     
 </script>
 
