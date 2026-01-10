@@ -9,7 +9,7 @@ use App\Models\Sto;
 use App\Models\StoItem;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-
+use Jenssegers\Agent\Agent;
 use App\Models\Article;
 
 class STOController extends Controller
@@ -22,6 +22,8 @@ public function index()
 
   public function create()
 {
+     $agent = new Agent();
+
     $warehouse = $this->userWarehouse();
 
     $canChooseWarehouse = is_null($warehouse); // 🔥 INI BARU
