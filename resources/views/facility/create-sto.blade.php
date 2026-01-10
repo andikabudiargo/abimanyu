@@ -368,38 +368,34 @@ $(document).ready(function () {
           timer: 2000,
           showConfirmButton: false
         });
+ /* AMBIL VALUE STO YANG DIGUNAKAN SEBELUM DIHAPUS */
+  const usedValue = payload.sto_number;
 
-        /* =========================
-           RESET STO NUMBER
-        ========================= */
-       const usedValue = getStoNumber();
+  /* HAPUS OPTION YANG SUDAH DIPAKAI */
+  $('#sto_number_mobile').find(`option[value="${usedValue}"]`).remove();
+  $('#sto_number').find(`option[value="${usedValue}"]`).remove();
 
-// reset mobile
-$('#sto_number_mobile')
-  .find(`option[value="${usedValue}"]`)
-  .remove()
-  .prop('selectedIndex', 0);
+  /* RESET SELECT KE INDEX 0 */
+  $('#sto_number_mobile')[0].selectedIndex = 0;
+  $('#sto_number')[0].selectedIndex = 0;
 
-// reset desktop
-$('#sto_number')
-  .find(`option[value="${usedValue}"]`)
-  .remove()
-  .prop('selectedIndex', 0);
-const $header = $row.find('.header-label');
-  $header.text(`Item ${row + 1}`);
-        /* =========================
-           RESET TABLE ROWS
-        ========================= */
-        $('.sto-row').each(function () {
-          $(this).find('.part-select').val(null).trigger('change');
-          $(this).find('.article-code').val('');
-          $(this).find('.part-uom').val('');
-          $(this).find('input[name$="[qty]"]').val('');
-          $(this).find('.location-input').val('{{ $warehouse }}');
-        });
+  /* RESET SEMUA ROW */
+  $('.sto-row').each(function (i) {
+    const $r = $(this);
 
-        $('textarea[name="note"]').val('');
-      },
+    $r.find('.part-select').val(null).trigger('change');
+    $r.find('.article-code').val('');
+    $r.find('.part-uom').val('');
+    $r.find('input[name$="[qty]"]').val('');
+    $r.find('.location-input').val('{{ $warehouse }}');
+
+    // reset label header
+    $r.find('.header-label').text(`Item ${i + 1}`);
+  });
+
+  /* RESET NOTE */
+  $('#note, #note_mobile').val('');
+},
       error: function (xhr) {
         if (xhr.status === 422) {
           let msg = '';
