@@ -60,9 +60,9 @@ public function index()
         96        => 'WIP Touch Up',
         95        => 'WIP Sanding',
         63        => 'OT',
-        92        => 'Dead Stock CM1',
+        
         67        => null,
-        53,2     => null, // 🔥 BOLEH PILIH SENDIRI
+        53,2, 92    => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -99,8 +99,6 @@ private function allowedWarehouses(): array
 
 private function allowedArticleTypes(?string $warehouse): array
 {
-    // 🔥 kalau user boleh pilih gudang (warehouse = null)
-    // jangan batasi tipe artikel
     if (is_null($warehouse)) {
         return ['RMP','RMNP','FG','CM1','CM2'];
     }
@@ -122,14 +120,8 @@ private function allowedArticleTypes(?string $warehouse): array
 
 public function getArticlesByWarehouse(Request $request)
 {
-    // 🔐 Warehouse berdasarkan user login
     $userWarehouse = $this->userWarehouse();
 
-    /**
-     * RULE:
-     * - Jika userWarehouse !== null → PAKSA pakai itu
-     * - Jika null (boleh pilih sendiri) → pakai request
-     */
     $warehouse = $userWarehouse ?? $request->warehouse;
 
     $allowedTypes = $this->allowedArticleTypes($warehouse);
@@ -579,11 +571,13 @@ public function selectSto(Request $request)
 public function selectArticle(Request $request)
 {
     $search    = $request->get('q');
-    $page      = $request->get('page', 1);   // halaman, default 1
-    $perPage   = 20;                          // jumlah item per load
+    $page      = $request->get('page', 1);
+    $perPage   = 20;
     $offset    = ($page - 1) * $perPage;
 
-    $warehouse = $this->userWarehouse();
+    // Gunakan warehouse dari user dulu, jika tidak ada pakai request
+    $warehouse = $this->userWarehouse() ?? $request->warehouse;
+
     $allowedTypes = $this->allowedArticleTypes($warehouse);
 
     $query = Article::select('article_code', 'unit', 'description', 'article_type')
@@ -611,6 +605,7 @@ public function selectArticle(Request $request)
         ]
     ]);
 }
+
 
 
 

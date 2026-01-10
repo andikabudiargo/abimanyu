@@ -284,7 +284,7 @@ $ticketsToApprove = $canApprove
     </h1>
 
    <p class="text-sm mt-2 text-white/90 leading-relaxed">
-  @if(in_array(auth()->id(), [67, 53]))
+  @if(in_array(auth()->id(), [67, 53, 2, 92]))
       Silahkan pilih nomor STO dan Lokasi untuk memulai proses stock opname.
   @else
       Silahkan pilih nomor STO untuk memulai proses stock opname.
@@ -308,7 +308,7 @@ $ticketsToApprove = $canApprove
       $month = '12';
     @endphp
 
-    @for ($i = 1; $i <= 1000; $i++)
+    @for ($i = 1; $i <= 2000; $i++)
       @php
         $number = str_pad($i, 4, '0', STR_PAD_LEFT);
         $val = "{$year}/{$month}/{$number}";
@@ -322,7 +322,7 @@ $ticketsToApprove = $canApprove
 
 
   <!-- Warehouse Selector untuk user 67 & 53 -->
-  @if(in_array(auth()->id(), [2, 67, 53]))
+  @if(in_array(auth()->id(), [2, 67, 53, 92]))
 
     @if($warehouse === null)
       <select
