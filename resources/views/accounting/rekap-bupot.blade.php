@@ -7,13 +7,13 @@
 
 @section('content')
 
-<div class="w-full bg-white shadow-md rounded-xl p-4 space-y-4 mb-4">
+<div class="w-full bg-white shadow-md rounded-xl p-6 space-y-4 mb-4">
 
     <h2 class="text-lg font-semibold text-gray-700">Automated Report BuPot</h2>
 
     <!-- GUIDE / PANDUAN -->
-    <div class="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-sm text-yellow-900">
-        <p class="font-semibold mb-2 flex items-center gap-2">
+    <div class="mb-8 p-4 bg-yellow-500 border border-gray-900 rounded-xl text-sm text-yellow-900 shadow-[5px_5px_0_0_rgba(0,0,0,0.8)] hover-shake">
+        <p class="font-bold mb-2 flex items-center gap-2">
             <i class="fa-solid fa-circle-info"></i>
             Panduan Penggunaan:
         </p>
@@ -30,27 +30,29 @@
     <form id="uploadForm" enctype="multipart/form-data" method="POST">
     @csrf
 
-    <div class="flex flex-col md:flex-row gap-6">
+  <div class="flex flex-col md:flex-row gap-6">
 
-        <!-- KOLOM 1: INPUT FILE -->
-        <div class="md:flex-1 flex flex-col">
+    <!-- KOLOM 1: INPUT FILE -->
+    <div class="md:flex-1 flex flex-col">
+        <div class="bg-blue-400 rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,0.8)] border-2 border-gray-900">
 
-            <label class="font-semibold mb-2 block text-gray-700 tracking-wide">
-                Choose PDF Files
-            </label>
+            <!-- HEADER -->
+            <div class="px-6 py-3 border-b border-gray-300">
+                <label class="font-semibold text-white tracking-wide">
+                    Choose PDF Files
+                </label>
+            </div>
 
-            <div class="relative border border-gray-400 bg-[#fdf9f3] rounded-xl 
-                        shadow-[4px_4px_0_0_rgba(0,0,0,0.35)]
-                        h-[300px] flex flex-col items-center justify-center
-                        text-center px-6 transition-all duration-200 
-                        hover:bg-[#f8f3ea] cursor-pointer">
+            <!-- BODY / DROPZONE -->
+            <div class="relative h-[300px] flex flex-col items-center bg-[#fdf9f3] rounded-b-xl justify-center text-center px-6 transition-all duration-200 hover:bg-[#fdf0d6] cursor-pointer">
+                <i class="fa-solid fa-file-arrow-up text-5xl text-pink-500 mb-4"></i>
+                <p class="font-semibold text-gray-700">Klik atau Drag & Drop File Disini.</p>
+                <p class="text-sm text-gray-500">Only PDF File</p>
 
-                <!-- ICON -->
-                <i class="fa-solid fa-file-arrow-up text-5xl text-purple-500 mb-4"></i>
-
-                <!-- TEXT -->
-                <p class="font-semibold text-gray-700">Click or Drag & Drop</p>
-                <p class="text-sm text-gray-500">PDF files only</p>
+                <!-- DUMMY BUTTON -->
+                <div class="px-4 py-2 mt-2 w-48 bg-white text-black font-semibold hover:bg-gray-50 border border-black transition-colors shadow-[2px_2px_0_0_rgba(0,0,0,0.8)]">
+                    Pilih File PDF
+                </div>
 
                 <!-- INPUT FILE Overlay -->
                 <input 
@@ -63,37 +65,36 @@
                 >
             </div>
         </div>
+    </div>
 
-        <!-- KOLOM 2: LIST FILE -->
-        <div class="md:flex-1 flex flex-col">
+    <!-- KOLOM 2: LIST FILE -->
+    <div class="md:flex-1 flex flex-col">
+        <div class="bg-pink-400 rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,0.8)] border-2 border-gray-900">
 
-            <div class="flex items-center justify-between mb-2">
-                <label class="font-semibold text-gray-700 tracking-wide">
+            <!-- HEADER -->
+            <div class="flex items-center justify-between px-6 py-3">
+                <label class="font-semibold text-white tracking-wide">
                     List Selected Files
                 </label>
-
-                <span id="fileCount" 
-                    class="text-sm bg-[#e8e0d4] text-gray-700 px-2 rounded shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]">
+                <span id="fileCount" class="text-sm bg-white text-black px-2 border border-black shadow-[2px_2px_0_0_rgba(0,0,0,0.8)]">
                     0 files
                 </span>
             </div>
 
-            <div 
-    id="fileList"
-    class="border border-gray-400 bg-[#fdf9f3] rounded-lg p-3 
-           h-[300px] overflow-y-auto space-y-2 
-           shadow-[4px_4px_0_0_rgba(0,0,0,0.35)]
-           items-center justify-center"
->
-    <div id="noFilesMessage" class="text-center text-purple-500 mt-12">
-        <i class="fa-regular fa-folder-open text-4xl mb-3"></i>
-        <p class="font-medium">No files selected</p>
-        <p class="text-xs">Your uploaded PDF list will appear here</p>
-    </div>
-</div>
+            <!-- BODY -->
+            <div id="fileList" class="border border-gray-400 bg-[#fdf9f3] rounded-b-xl h-[300px] overflow-y-auto space-y-4 px-6 transition-all hover:bg-[#fdf0d6] duration-200 py-4 flex flex-col justify-center">
+                <div id="noFilesMessage" class="text-center mt-auto mb-auto">
+                    <i class="fa-regular fa-folder-open text-4xl text-blue-500 mb-3"></i>
+                    <p class="font-medium text-gray-900">Belum ada File yang dipilih, Nih.</p>
+                    <p class="text-xs text-gray-400">Your uploaded PDF list will appear here</p>
+                </div>
+            </div>
 
         </div>
     </div>
+
+</div>
+
 
 
 
@@ -123,6 +124,20 @@
     </form>
 </div>
 
+<style>
+    @keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+.hover-shake:hover {
+  animation: shake 0.5s ease-in-out;
+}
+</style>
+
 @push('scripts')
 
 <script>
@@ -137,23 +152,27 @@ $(document).on('change', '#pdfInput', function(e) {
     renderFileList();
 });
 
-// render list dokumen
 function renderFileList() {
     const container = $('#fileList');
     container.empty(); // kosongkan daftar dulu
 
     if (selectedFiles.length === 0) {
-    $('#fileList').html('');
-    $('#noFilesMessage').removeClass('hidden');
-    return;
-}
+        // Jika kosong → tampilkan pesan
+        $('#noFilesMessage').removeClass('hidden');
+        container.addClass('flex justify-center'); // aktifkan center
+        container.append($('#noFilesMessage'));
+        return;
+    }
 
+    // Ada file → hapus pesan & hilangkan flex center
+    $('#noFilesMessage').addClass('hidden');
+    container.removeClass('flex justify-center');
 
     selectedFiles.forEach((file, index) => {
         const ext = file.name.split('.').pop().toUpperCase();
 
         const item = `
-            <div class="flex items-center justify-between bg-gray-50 border px-3 py-2 rounded">
+            <div class="flex items-center justify-between bg-white border border-black px-3 py-2 shadow-[5px_5px_0_0_rgba(0,0,0,0.8)] my-2">
                 <div class="flex items-center gap-3">
                     <i class="fa-solid fa-file-pdf text-red-500 text-xl"></i>
                     <div>
@@ -174,6 +193,7 @@ function renderFileList() {
     updateFileCount();
     syncInputFiles();
 }
+
 
 // tombol x
 $(document).on('click', '.remove-file', function() {
@@ -201,23 +221,19 @@ function syncInputFiles() {
 }
 
 $('#clearFormBtn').on('click', function () {
-
-    // kosongkan array file pilihan
+    // Kosongkan array file pilihan
     selectedFiles = [];
 
-    // kosongkan input file
+    // Kosongkan input file
     $('#pdfInput').val('');
 
-    // render ulang daftar
+    // Render ulang daftar → otomatis menampilkan "No files selected"
     renderFileList();
 
-    // update badge jumlah file
+    // Update badge jumlah file
     $('#fileCount').text('0 files');
 
-    // tampilkan kembali pesan "No files selected"
-    $('#noFilesMessage').removeClass('hidden');
-
-    // berikan efek kecil agar terasa interaktif
+    // Berikan efek kecil agar terasa interaktif
     Swal.fire({
         icon: 'info',
         title: 'Cleared!',
@@ -246,7 +262,7 @@ $('#uploadForm').on('submit', function(e) {
     beforeSend: function() {
         Swal.fire({
             title: 'Processing...',
-            text: 'Mengolah PDF dan mengekspor Excel',
+            text: 'Santai... Biarkan sistem merekapnya untuk Anda~',
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
