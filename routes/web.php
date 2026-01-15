@@ -19,6 +19,8 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\TransferInController;
 use App\Http\Controllers\TransferOutController;
 use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\BackupAgentController;
+
 use App\Http\Controllers\PRController;
 use App\Http\Controllers\POController;
 use App\Http\Controllers\TicketController;
@@ -52,6 +54,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\PushTestController;
 use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\CAPAController;
+use App\Http\Controllers\RekapBupotController;
 use App\Http\Controllers\RemoteAccessController;
 use App\Http\Controllers\STOController;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +66,10 @@ use Minishlink\WebPush\WebPush;
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->middleware('guest')->name('login');
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth');
+Route::get('/login-magang', function () {
+    return view('auth.login-magang'); })->name('login.magang');
+
+
 Route::get('/check-session', function () {
     if (!auth()->check()) {
         return response()->json(['message' => 'Unauthenticated'], 401);
@@ -236,7 +244,7 @@ Route::get('/sto/{id}/edit', [STOController::class, 'edit'])->name('sto.edit');
 Route::put('/sto/update/{id}', [StoController::class, 'update']);
 Route::delete('/sto/delete/{id}', [STOController::class, 'destroy'])->name('sto.destroy');
 // routes/web.php
-Route::get('/sto/select', [StoController::class, 'selectSto'])
+Route::get('/sto/select', [STOController::class, 'selectSto'])
      ->name('sto.select');
      // routes/web.php
 Route::get('/article/select', [STOController::class, 'selectArticle'])
@@ -273,6 +281,14 @@ Route::prefix('mr')->name('mr.')->group(function () {
     Route::delete('/document/{id}/destroy', [DocumentController::class, 'destroy'])->name('doc.destroy');
     Route::get('/document/{id}/revision', [DocumentController::class, 'revision'])->name('doc.rev');
     Route::post('/document/{id}/revision-update', [DocumentController::class, 'storeRevision'])->name('doc.revision.update');
+    Route::get('/capa/index', [CAPAController::class, 'index'])->name('capa.index');
+    Route::get('/capa/{id}/verified', [CAPAController::class, 'verified'])->name('capa.verified');
+    Route::get('/capa/data', [CAPAController::class, 'data'])->name('capa.data');
+    Route::get('/capa/create', [CAPAController::class, 'create'])->name('capa.create');
+    Route::post('/capa/save', [CAPAController::class, 'store'])->name('capa.store');
+    Route::post('/capa/{id}/posted', [CAPAController::class, 'posted'])->name('capa.posted');
+    Route::put('/capa/verified-save/{id}', [CAPAController::class, 'updateVerified'])->name('capa.verified.save');
+    Route::get('/capa/{id}/submit', [CAPAController::class, 'submit'])->name('capa.submit');
 });
 
 Route::prefix('production')->name('production.')->group(function () {
@@ -439,6 +455,8 @@ Route::prefix('it')->name('it.')->group(function () {
      Route::get('/backup-monitor', [BackupMonitorController::class, 'index'])->name('backup.monitor');
      Route::get('/backup-data', [BackupMonitorController::class, 'getBackupData']);
     Route::post('/backup-monitor/check', [BackupMonitorController::class, 'checkNow'])->name('backup.check');
+    Route::get('agent/backup-plan', [BackupAgentController::class, 'getPlan']);
+Route::post('agent/backup-log', [BackupAgentController::class, 'storeLog']);
      Route::get('/remote-access/index', [RemoteAccessController::class, 'index'])->name('remote.index');
     });
 
@@ -493,7 +511,8 @@ Route::prefix('it')->name('it.')->group(function () {
     Route::put('/armada/update/{id}', [CalculatorFuelController::class, 'updateArmada'])->name('armada.update');
     Route::delete('/armada/delete/{id}', [CalculatorFuelController::class, 'destroyArmada']);
     Route::delete('/bbm/delete/{id}', [CalculatorFuelController::class, 'destroyBBM']);
-
+    Route::get('/rekap-bupot/index', [RekapBupotController::class, 'index'])->name('bupot.index');
+    Route::post('/process-pdf', [RekapBupotController::class, 'process'])->name('bupot.process');
     });
 
 

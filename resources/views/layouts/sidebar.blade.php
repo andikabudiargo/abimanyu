@@ -278,6 +278,7 @@
             <li class="pc-item"><a href="{{ route('purchasing.po.index') }}" class="pc-link">VAT Calculator</a></li>
             <li class="pc-item"><a href="{{ route('fa.cabom.index') }}" class="pc-link">BOM Calculator</a></li>
             <li class="pc-item"><a href="{{ route('fa.cmbom.index') }}" class="pc-link">Chemical Traceability</a></li>
+            <li class="pc-item"><a href="{{ route('fa.bupot.index') }}" class="pc-link">Automated Report Bupot</a></li>
              </ul>
             </li>
         @endif
@@ -346,6 +347,7 @@
     </li>
   </ul>
 </li>
+
 
 
             
@@ -569,6 +571,13 @@
               class="pc-mtext">Document Management</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span></a>
           <ul class="pc-submenu">
             <li class="pc-item"><a class="pc-link" href="{{ route('mr.doc.index') }}">Document Control Center</a></li>
+             </ul>
+            </li>
+            <li class="pc-item pc-hasmenu">
+          <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="thumbs-up"></i> </span><span
+              class="pc-mtext">Audit Management</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span></a>
+          <ul class="pc-submenu">
+            <li class="pc-item"><a class="pc-link" href="{{ route('mr.capa.index') }}">CAPA Management</a></li>
              </ul>
             </li>
 @if(
