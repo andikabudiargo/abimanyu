@@ -73,14 +73,21 @@
         <span data-info="total-ok" class="text-green-600 font-semibold">{{ $inspection->total_ok }}</span>
       </div>
 
-      <!-- Total OK Repair -->
-      <div class="flex justify-between items-center">
+     <div class="ok-repair-summary-row">
+
+    <!-- Total OK Repair -->
+    <div class="flex justify-between items-center">
         <div class="flex items-center gap-2 text-yellow-500">
-          <i data-feather="tool" class="w-4 h-4"></i>
-          <span class="font-medium">Total OK Repair</span>
+            <i data-feather="tool" class="w-4 h-4"></i>
+            <span class="font-medium">Total OK Repair</span>
         </div>
-        <span data-info="total-ok-repair" class="text-yellow-500 font-semibold">{{ $inspection->total_ok_repair }}</span>
-      </div>
+        <span data-info="total-ok-repair" class="text-yellow-500 font-semibold">
+            {{ $inspection->total_ok_repair }}
+        </span>
+    </div>
+
+</div>
+
 
       <!-- Total NG -->
       <div class="flex justify-between items-center">
@@ -112,13 +119,18 @@
           </div>
           <span data-info="pass-trough" class="text-blue-500 font-semibold">0</span>
         </div>
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-yellow-500">
-            <i data-feather="tool" class="w-4 h-4"></i>
-            <span class="font-medium">OK Repair</span>
-          </div>
-          <span data-info="ok-repair-rate" class="text-yellow-500 font-semibold">-</span>
+       <div class="ok-repair-summary-row">
+    <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2 text-orange-500">
+            <i data-feather="percent" class="w-4 h-4"></i>
+            <span class="font-medium">OK Repair Rate</span>
         </div>
+        <span data-info="ok-repair-rate" class="text-orange-500 font-semibold">
+            {{ $inspection->ok_repair_rate }}%
+        </span>
+    </div>
+</div>
+
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-2 text-red-600">
             <i data-feather="x-circle" class="w-4 h-4"></i>
@@ -302,48 +314,45 @@
     updateRates();
   });
 
-  function toggleOkRepair() {
+ function toggleOkRepair() {
     const post = $('#inspection_post').val()?.trim();
 
-    // Summary rows
-    const $totalOkRepairRow = $('[data-info="total-ok-repair"]').closest('.summary-row');
-    const $okRepairRateRow  = $('[data-info="ok-repair-rate"]').closest('.summary-row');
+    // Row summary untuk hide/show
+    const $okRepairSummaryRows = $('.ok-repair-summary-row');
 
     // Label KPI
     const $passTroughLabel = $('[data-label="pass-trough-label"]');
 
-    // Wrapper OK Repair
+    // Wrapper input OK Repair
     const $okRepairWrapper = $('.ok-repair-wrapper');
 
     if (post === 'Incoming') {
 
-        // Show OK Repair inputs
+        // Show input OK Repair
         $okRepairWrapper.removeClass('hidden');
         $okRepairWrapper.find('input')
             .prop('required', true)
             .prop('disabled', false);
 
         // Show summary rows
-        $totalOkRepairRow.removeClass('hidden');
-        $okRepairRateRow.removeClass('hidden');
+        $okRepairSummaryRows.removeClass('hidden');
 
-        // Label KPI untuk Incoming
+        // KPI label
         $passTroughLabel.text('Performance');
 
     } else {
 
-        // Hide OK Repair
+        // Hide input OK Repair
         $okRepairWrapper.addClass('hidden');
         $okRepairWrapper.find('input')
             .prop('required', false)
             .prop('disabled', true)
             .val('');
 
-        // Hide summary
-        $totalOkRepairRow.addClass('hidden');
-        $okRepairRateRow.addClass('hidden');
+        // Hide summary rows
+        $okRepairSummaryRows.addClass('hidden');
 
-        // KPI label logic
+        // KPI label
         if (post === 'Unloading') {
             $passTroughLabel.text('Pass Through');
         } else {
@@ -351,6 +360,7 @@
         }
     }
 }
+
 
 </script>
 
