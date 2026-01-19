@@ -23,6 +23,15 @@
       </ul>
     </div>
 
+    <!-- Top 3 Parts -->
+    <div class="mt-4">
+      <h3 class="text-sm font-semibold text-gray-700 mb-1">Top 3 Part dengan NG Tertinggi</h3>
+      <ul id="top-part-list" class="text-sm text-gray-800 space-y-1">
+        <li>Loading...</li>
+      </ul>
+    </div>
+
+
     <button id="closeDefectModal" class="mt-5 w-full py-2 bg-gray-700 text-white rounded">
       Tutup
     </button>
@@ -106,10 +115,7 @@
 </div>
 
 <div class="grid grid-cols-2 gap-4 mb-4">
-
-
-
-<div class="grid grid-cols-3 gap-4 mb-4">
+<div class="grid grid-cols-3 gap-4">
 
   <div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Incoming">
     <h3 class="text-xs font-semibold text-gray-500">Incoming</h3>
@@ -182,64 +188,6 @@
 
 </div>
 </div>
-
-
-
-
-<div class="grid grid-cols-2 gap-4 mb-4">
-<div class="p-4 bg-white shadow rounded-lg">
-  <h3 class="font-semibold text-gray-700 mb-3">Part dengan NG Tertinggi</h3>
-  
-  <table class="w-full text-sm">
-    <thead>
-      <tr class="border-b">
-        <th class="text-left p-2">Part</th>
-        <th class="text-left p-2">Pos</th>
-        <th class="text-left p-2">NG</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="p-2">Fender Left</td>
-        <td class="p-2">Buffing</td>
-        <td class="p-2 text-red-600 font-bold">18</td>
-      </tr>
-      <tr>
-        <td class="p-2">Door Panel</td>
-        <td class="p-2">Final</td>
-        <td class="p-2 text-red-600 font-bold">12</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<div class="p-4 bg-white shadow rounded-lg">
-  <h3 class="font-semibold text-gray-700 mb-3">Part Incoming dengan Recovery Terbanyak</h3>
-  
-  <table class="w-full text-sm">
-    <thead>
-      <tr class="border-b">
-        <th class="text-left p-2">Part</th>
-        <th class="text-left p-2">Repair</th>
-        <th class="text-left p-2">Success Rate</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="p-2">Rear Bumper</td>
-        <td class="p-2 font-bold text-blue-600">26</td>
-        <td class="p-2">92%</td>
-      </tr>
-      <tr>
-        <td class="p-2">Side Mirror</td>
-        <td class="p-2 font-bold text-blue-600">14</td>
-        <td class="p-2">88%</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-</div>
-
 
    {{-- 📄 TABEL --}}
 <div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
