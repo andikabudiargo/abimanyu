@@ -751,7 +751,7 @@ $('#closeDefectModalBtn').on('click', function () {
                         categoryPercentage: 0.55
                     },
                     {
-                        label: 'Pass Trough',
+                        label: 'Pass Trough/Performance',
                         data: data.pass_trough,
                         backgroundColor: gradientYellow,
                         borderRadius: 8,
