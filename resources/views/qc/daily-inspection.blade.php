@@ -688,7 +688,7 @@ res.top_defect.forEach((d, i) => {
                 <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-md">${i + 1}</span>
                 <span class="font-medium text-gray-800">${d.defect_name}</span>
             </div>
-            <span class="text-gray-700 font-semibold">${d.total_qty}</span>
+            <span class="text-gray-700 font-semibold">${d.total_qty} Part</span>
         </li>
     `;
 });
@@ -700,7 +700,7 @@ res.top_part.forEach((p, i) => {
                 <span class="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-md">${i + 1}</span>
                 <span class="font-medium text-gray-800">${p.part_name}</span>
             </div>
-            <span class="text-gray-700 font-semibold">${p.total_qty}</span>
+            <span class="text-gray-700 font-semibold">${p.total_qty} NG</span>
         </li>
     `;
 });
