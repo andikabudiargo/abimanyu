@@ -307,6 +307,7 @@
       const okRepairRate = totalCheck ? ((totalOkRepair / totalCheck) * 100).toFixed(0) : 0;
 
       $passRate.text(passRate + '%');
+      $passTrough.text(passTrough + '%');
       $ngRate.text(ngRate + '%');
       $okRepairRate.text(okRepairRate + '%');
     }
