@@ -37,7 +37,7 @@
     <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Part Information</h3>
     <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
       <span class="font-medium text-gray-500 whitespace-nowrap">Part Name:</span>
-      <span data-info="part-name" class="text-gray-800 text-right max-w-[70%] break-words">{{ $inspection->article->description }}</span>
+      <span data-info="part-name" class="text-gray-800 text-right max-w-[70%] break-words">{{ $inspection->article->description ?? '-' }}</span>
     </div>
    <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
     <span class="font-medium text-gray-500 whitespace-nowrap">
@@ -96,40 +96,39 @@
 
    <!-- Percentage Inspection -->
   <div class="space-y-3">
-    <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Percentage Inspection</h3>
-    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
-
-      <!-- Total Check -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-green-500">
-          <i data-feather="check-circle" class="w-4 h-4"></i>
-          <span class="font-medium">Pass Rate</span>
+   <h3 class="text-md font-semibold text-gray-700 border-b pb-1 mt-4">Percentage Inspection</h3>
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2 text-sm">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-green-500">
+            <i data-feather="check-circle" class="w-4 h-4"></i>
+            <span class="font-medium">Pass Rate</span>
+          </div>
+          <span data-info="pass-rate" class="text-green-500 font-semibold">0</span>
         </div>
-        <span data-info="pass-rate" class="text-green-500 font-semibold">0</span>
-      </div>
-
-
-      <!-- Total OK Repair -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-yellow-500">
-          <i data-feather="tool" class="w-4 h-4"></i>
-          <span class="font-medium">OK Repair</span>
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-blue-500">
+            <i data-feather="check-circle" class="w-4 h-4"></i>
+            <span class="font-medium"  data-label="pass-trough-label">Pass Trough</span>
+          </div>
+          <span data-info="pass-trough" class="text-blue-500 font-semibold">0</span>
         </div>
-        <span data-info="ok-repair-rate" class="text-yellow-500 font-semibold">-</span>
-      </div>
-
-      <!-- Total OK -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-red-600">
-          <i data-feather="x-circle" class="w-4 h-4"></i>
-          <span class="font-medium">NG Rate</span>
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-yellow-500">
+            <i data-feather="tool" class="w-4 h-4"></i>
+            <span class="font-medium">OK Repair</span>
+          </div>
+          <span data-info="ok-repair-rate" class="text-yellow-500 font-semibold">-</span>
         </div>
-        <span data-info="ng-rate" class="text-red-600 font-semibold">-</span>
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2 text-red-600">
+            <i data-feather="x-circle" class="w-4 h-4"></i>
+            <span class="font-medium">NG Rate</span>
+          </div>
+          <span data-info="ng-rate" class="text-red-600 font-semibold">-</span>
+        </div>
       </div>
-
     </div>
   </div>
-</div>
 
 
   <!-- 📦 Main Transfer Panel -->
@@ -171,7 +170,7 @@
         Part Name
       </label>
        <input type="text" id="part_name"
-        class="w-full px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $inspection->article->description }}" readonly>
+        class="w-full px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $inspection->article->description ?? '-' }}" readonly>
     </div>
 
     <div class="w-full md:w-1/2">
@@ -265,13 +264,16 @@
 </style>
 @push('scripts')
 <script>
+  
   $(document).ready(function () {
+     toggleOkRepair(); // 🔥 INI WAJIB
+ 
     const $totalCheck = $('[data-info="total-check"]');
     const $totalOk = $('[data-info="total-ok"]');
     const $totalNg = $('[data-info="total-ng"]');
     const $totalOkRepair = $('[data-info="total-ok-repair"]');
-
-    const $passRate = $('[data-info="pass-rate"]');
+ const $passRate = $('[data-info="pass-rate"]');
+  const $passTrough = $('[data-info="pass-trough"]');
     const $ngRate = $('[data-info="ng-rate"]');
     const $okRepairRate = $('[data-info="ok-repair-rate"]');
 
@@ -281,7 +283,12 @@
       const totalNg = parseFloat($totalNg.text()) || 0;
       const totalOkRepair = parseFloat($totalOkRepair.text()) || 0;
 
-      const passRate = totalCheck ? ((totalOk / totalCheck) * 100).toFixed(0) : 0;
+     const passRate = totalCheck
+  ? (((totalOk + totalOkRepair) / totalCheck) * 100).toFixed(0)
+  : 0;
+      const passTrough = totalCheck
+  ? ((totalOk / totalCheck) * 100).toFixed(0)
+  : 0;
      const ngRate = totalCheck 
     ? ((totalNg / totalCheck) * 100).toFixed(0) 
     : 0;
@@ -294,6 +301,57 @@
 
     updateRates();
   });
+
+  function toggleOkRepair() {
+    const post = $('#inspection_post').val()?.trim();
+
+    // Summary rows
+    const $totalOkRepairRow = $('[data-info="total-ok-repair"]').closest('.summary-row');
+    const $okRepairRateRow  = $('[data-info="ok-repair-rate"]').closest('.summary-row');
+
+    // Label KPI
+    const $passTroughLabel = $('[data-label="pass-trough-label"]');
+
+    // Wrapper OK Repair
+    const $okRepairWrapper = $('.ok-repair-wrapper');
+
+    if (post === 'Incoming') {
+
+        // Show OK Repair inputs
+        $okRepairWrapper.removeClass('hidden');
+        $okRepairWrapper.find('input')
+            .prop('required', true)
+            .prop('disabled', false);
+
+        // Show summary rows
+        $totalOkRepairRow.removeClass('hidden');
+        $okRepairRateRow.removeClass('hidden');
+
+        // Label KPI untuk Incoming
+        $passTroughLabel.text('Performance');
+
+    } else {
+
+        // Hide OK Repair
+        $okRepairWrapper.addClass('hidden');
+        $okRepairWrapper.find('input')
+            .prop('required', false)
+            .prop('disabled', true)
+            .val('');
+
+        // Hide summary
+        $totalOkRepairRow.addClass('hidden');
+        $okRepairRateRow.addClass('hidden');
+
+        // KPI label logic
+        if (post === 'Unloading') {
+            $passTroughLabel.text('Pass Through');
+        } else {
+            $passTroughLabel.text('Performance');
+        }
+    }
+}
+
 </script>
 
     @endpush
