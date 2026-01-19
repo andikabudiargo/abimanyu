@@ -97,11 +97,25 @@ $query->orderBy('created_at', 'desc');
     ->editColumn('total_ok_repair', fn($row) => '<span class="text-yellow-600 font-semibold">'.$row->total_ok_repair.'</span>')
     ->editColumn('total_ng', fn($row) => '<span class="text-red-600 font-semibold">'.$row->total_ng.'</span>')
 
-   // Tambahkan kolom persentase
-->addColumn('pass_rate', function ($row) {
+  ->addColumn('pass_rate', function ($row) {
+
+    // Total check minimal 1 supaya tidak division by zero
+    $totalCheck = $row->total_check ?: 1;
+
+    // Hitung pass rate sesuai rumus baru
+    $totalPass = ($row->total_ok + $row->total_ok_repair);
+
+    $passRate = ($totalPass / $totalCheck) * 100;
+
+    return '<span class="text-green-600 font-semibold">' . number_format($passRate, 0) . '%</span>';
+})
+
+
+ // Tambahkan kolom persentase
+->addColumn('pass_trough', function ($row) {
     $totalCheck = $row->total_check ?: 1;
     $passRate = ($row->total_ok / $totalCheck) * 100;
-    return '<span class="text-green-600 font-semibold">' . number_format($passRate, 0) . '%</span>';
+    return '<span class="text-yellow-600 font-semibold">' . number_format($passRate, 0) . '%</span>';
 })
 
 ->addColumn('ok_repair_rate', function ($row) {
@@ -189,13 +203,148 @@ $query->orderBy('created_at', 'desc');
 
     ->rawColumns([
         'inspection_number', 'inspection_post', 'part_name', 'partner_name', 'user_id', 'total_check', 
-        'total_ok', 'total_ok_repair', 'total_ng', 
+        'total_ok', 'total_ok_repair', 'total_ng', 'pass_trough',
         'pass_rate', 'ng_rate', 'ok_repair_rate', 'action'
     ])
     ->make(true);
 
 
 }
+
+public function getSummary(Request $request)
+{
+    $positions = ['Incoming', 'Unloading', 'Buffing', 'Touch Up', 'Final', 'Outgoing'];
+
+    // kalau user tidak mengisi date, pakai current date
+    $date = $request->date ?? date('Y-m-d');
+
+    $result = [];
+
+    foreach ($positions as $pos) {
+
+        $data = DB::table('inspections')
+            ->selectRaw("
+                SUM(total_check) AS total_part,
+                SUM(total_ok) AS total_ok,
+                SUM(total_ok_repair) AS total_ok_repair,
+                SUM(total_ng) AS total_ng
+            ")
+            ->where('inspection_post', $pos)
+            ->whereDate('inspection_date', $date)   // selalu pakai current date jika tidak ada input
+            ->first();
+
+        $result[$pos] = [
+            'pos'           => $pos,
+            'total'         => $data->total_part ?? 0,
+            'ok'            => $data->total_ok ?? 0,
+            'ok_repair'     => $data->total_ok_repair ?? 0,
+            'ng'            => $data->total_ng ?? 0,
+        ];
+    }
+
+    return response()->json([
+        'date_used' => $date,
+        'summary'   => $result
+    ]);
+}
+
+public function getTopDefect(Request $request)
+    {
+        $pos = $request->pos;
+        $today = now()->toDateString();
+
+        // Top 3 defect
+        $topDefect = DB::table('inspection_defects as d')
+            ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+            ->select('d.defect_id', DB::raw('COUNT(d.id) as total'))
+            ->where('i.inspection_post', $pos)
+            ->whereDate('i.inspection_date', $today)
+            ->groupBy('d.defect_id')
+            ->orderByDesc('total')
+            ->limit(3)
+            ->get();
+
+        // Top 3 part berdasarkan jumlah defect
+        $topPart = DB::table('inspection_defects as d')
+            ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+            ->select('i.part_name', DB::raw('COUNT(d.id) as total'))
+            ->where('i.inspection_post', $pos)
+            ->whereDate('i.inspection_date', $today)
+            ->groupBy('i.part_name')
+            ->orderByDesc('total')
+            ->limit(3)
+            ->get();
+
+        return response()->json([
+            'top_defect' => $topDefect,
+            'top_part' => $topPart
+        ]);
+    }
+
+public function monthlyTrend(Request $request)
+{
+    $month = $request->month ?? date('m');
+    $year  = $request->year ?? date('Y');
+
+    // Tentukan jumlah hari dalam bulan tertentu
+    $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+    // Ambil data inspeksi per tanggal
+    $records = DB::table('inspections')
+        ->selectRaw('
+            DATE(inspection_date) as d,
+            SUM(total_check) as total_check,
+            SUM(total_ok) as total_ok,
+            SUM(total_ok_repair) as total_ok_repair,
+            SUM(total_ng) as total_ng
+        ')
+        ->whereMonth('inspection_date', $month)
+        ->whereYear('inspection_date', $year)
+        ->groupBy('d')
+        ->orderBy('d')
+        ->get()
+        ->keyBy('d'); // memudahkan merk lookup tanggal
+
+    // siapkan array final per tanggal
+    $trend = [];
+
+    for ($day = 1; $day <= $daysInMonth; $day++) {
+
+        $date = sprintf("%04d-%02d-%02d", $year, $month, $day);
+
+        if (isset($records[$date])) {
+
+            $row = $records[$date];
+
+            $total_check = $row->total_check;
+            $total_ok = $row->total_ok;
+            $total_ok_repair = $row->total_ok_repair;
+
+            $pass_rate = $total_check ? round(($total_ok / $total_check) * 100, 2) : 0;
+            $pass_trough = $total_check ? round((($total_ok + $total_ok_repair) / $total_check) * 100, 2) : 0;
+
+            $trend[] = [
+                "date" => $date,
+                "total_check" => $total_check,
+                "pass_rate" => $pass_rate,
+                "pass_trough" => $pass_trough
+            ];
+
+        } else {
+            // tanggal tanpa data inspection
+            $trend[] = [
+                "date" => $date,
+                "total_check" => 0,
+                "pass_rate" => 0,
+                "pass_trough" => 0
+            ];
+        }
+    }
+
+    return response()->json($trend);
+}
+
+
 
      public function unloading() {
         return view('qc.unloading');

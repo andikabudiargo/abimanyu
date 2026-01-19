@@ -6,8 +6,30 @@
 @section('breadcrumb-active', 'Daily Inspection')
 
 @section('content')
+<!-- Modal Top Defect -->
+<div id="defectModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white w-96 rounded-lg shadow-lg p-5">
+    <h2 class="text-lg font-bold text-gray-800 mb-2">
+      Top Defect Hari Ini
+    </h2>
 
-   <div class="bg-white shadow rounded-xl p-6 mb-6">
+    <p id="modal-pos" class="text-sm text-gray-600 mb-3"></p>
+
+    <!-- Top 3 Defects -->
+    <div>
+      <h3 class="text-sm font-semibold text-gray-700 mb-1">Top 3 Defect</h3>
+      <ul id="top-defect-list" class="text-sm text-gray-800 space-y-1">
+        <li>Loading...</li>
+      </ul>
+    </div>
+
+    <button id="closeDefectModal" class="mt-5 w-full py-2 bg-gray-700 text-white rounded">
+      Tutup
+    </button>
+  </div>
+</div>
+
+   <div class="bg-white shadow rounded-xl p-6 mb-4">
     <h2 class="text-lg font-semibold mb-4">Filter Daily Inspection</h2>
 
     <form id="filter-form">
@@ -25,6 +47,7 @@
                 <option value="Buffing">Buffing</option>
                 <option value="Touch Up">Touch Up</option>
                 <option value="Final">Final</option>
+                <option value="Outgoing">Outgoing</option>
             </select>
         </div>
         <div>
@@ -33,15 +56,36 @@
         </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-            <label class="block text-sm mb-1 font-medium text-gray-700">Supplier</label>
-            <select id="filter-supplier" class="supplier w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="">-- All Supplier --</option>
-                @foreach ($suppliers as $supplier)
-                <option value="{{ $supplier->code }}">{{ $supplier->name }}</option>
-                @endforeach
-            </select>
-        </div>
+        <!-- SUPPLIER / CUSTOMER COMBINED -->
+<div>
+  <label class="block text-sm font-medium text-gray-700 mb-1">
+    Supplier / Customer <span class="text-red-600">*</span>
+  </label>
+
+  <select name="supplier" id="filter-supplier" class="supplier w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+    <option value="">-- Pilih Supplier / Customer --</option>
+
+    <!-- GROUP SUPPLIER -->
+    <optgroup label="SUPPLIER">
+      @foreach ($suppliers as $supplier)
+        <option value="{{ $supplier->code }}">
+          {{ $supplier->name }}
+        </option>
+      @endforeach
+    </optgroup>
+
+    <!-- GROUP CUSTOMER -->
+    <optgroup label="CUSTOMER">
+      @foreach ($customers as $customer)
+        <option value="{{ $customer->code }}">
+          {{ $customer->name }}
+        </option>
+      @endforeach
+    </optgroup>
+
+  </select>
+</div>
+
         <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Part Name</label>
             <select id="filter-part_name" class="part-name w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
@@ -61,6 +105,142 @@
 
 </div>
 
+<div class="grid grid-cols-2 gap-4 mb-4">
+
+
+
+<div class="grid grid-cols-3 gap-4 mb-4">
+
+  <div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Incoming">
+    <h3 class="text-xs font-semibold text-gray-500">Incoming</h3>
+    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
+    <div class="qc-ok text-sm text-green-600">OK: 0</div>
+    <div class="qc-ng text-sm text-red-600">NG: 0</div>
+
+    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Incoming">
+      Cek Top 3 Defect
+    </button>
+</div>
+
+<div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Unloading">
+    <h3 class="text-xs font-semibold text-gray-500">Unloading</h3>
+    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
+    <div class="qc-ok text-sm text-green-600">OK: 0</div>
+    <div class="qc-ng text-sm text-red-600">NG: 0</div>
+
+    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Unloading">
+      Cek Top 3 Defect
+    </button>
+</div>
+
+ <div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Buffing">
+    <h3 class="text-xs font-semibold text-gray-500">Buffing</h3>
+    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
+    <div class="qc-ok text-sm text-green-600">OK: 0</div>
+    <div class="qc-ng text-sm text-red-600">NG: 0</div>
+
+    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Buffing">
+      Cek Top 3 Defect
+    </button>
+</div>
+
+
+ <div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Touch Up">
+    <h3 class="text-xs font-semibold text-gray-500">Touch Up</h3>
+    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
+    <div class="qc-ok text-sm text-green-600">OK: 0</div>
+    <div class="qc-ng text-sm text-red-600">NG: 0</div>
+
+    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Touch Up">
+      Cek Top 3 Defect
+    </button>
+</div>
+
+
+<div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Final">
+    <h3 class="text-xs font-semibold text-gray-500">Final</h3>
+    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
+    <div class="qc-ok text-sm text-green-600">OK: 0</div>
+    <div class="qc-ng text-sm text-red-600">NG: 0</div>
+
+    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Final">
+      Cek Top 3 Defect
+    </button>
+</div>
+
+
+ <div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Outgoing">
+    <h3 class="text-xs font-semibold text-gray-500">Outgoing</h3>
+    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
+    <div class="qc-ok text-sm text-green-600">OK: 0</div>
+    <div class="qc-ng text-sm text-red-600">NG: 0</div>
+
+    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Outgoing">
+      Cek Top 3 Defect
+    </button>
+</div>
+
+</div>
+</div>
+
+
+
+
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div class="p-4 bg-white shadow rounded-lg">
+  <h3 class="font-semibold text-gray-700 mb-3">Part dengan NG Tertinggi</h3>
+  
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b">
+        <th class="text-left p-2">Part</th>
+        <th class="text-left p-2">Pos</th>
+        <th class="text-left p-2">NG</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="p-2">Fender Left</td>
+        <td class="p-2">Buffing</td>
+        <td class="p-2 text-red-600 font-bold">18</td>
+      </tr>
+      <tr>
+        <td class="p-2">Door Panel</td>
+        <td class="p-2">Final</td>
+        <td class="p-2 text-red-600 font-bold">12</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="p-4 bg-white shadow rounded-lg">
+  <h3 class="font-semibold text-gray-700 mb-3">Part Incoming dengan Recovery Terbanyak</h3>
+  
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b">
+        <th class="text-left p-2">Part</th>
+        <th class="text-left p-2">Repair</th>
+        <th class="text-left p-2">Success Rate</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="p-2">Rear Bumper</td>
+        <td class="p-2 font-bold text-blue-600">26</td>
+        <td class="p-2">92%</td>
+      </tr>
+      <tr>
+        <td class="p-2">Side Mirror</td>
+        <td class="p-2 font-bold text-blue-600">14</td>
+        <td class="p-2">88%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+
    {{-- 📄 TABEL --}}
 <div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
     <h2 class="text-lg font-semibold mb-2">Daily Inspection List</h2>
@@ -75,13 +255,11 @@
                     <th class="px-4 py-2">Supplier/Customer</th>
                     <th class="px-4 py-2 ">Part Name</th>
                     <th class="px-4 py-2 ">Inspection Method</th>
-                    <th class="px-4 py-2 text-center">Qty Received</th>
                     <th class="px-4 py-2 text-center">Total Check</th>
                     <th class="px-4 py-2 text-center">Total OK</th>
-                    <th class="px-4 py-2 text-center">Total OK Repair/NC</th>
                     <th class="px-4 py-2 text-center">Total NG</th>
                     <th class="px-4 py-2 text-center">Pass Rate</th>
-                    <th class="px-4 py-2 text-center">NC/OK Repair Rate</th>
+                    <th class="px-4 py-2 text-center">Pass Trough/Performance</th>
                     <th class="px-4 py-2 text-center">NG Rate</th>
                     <th class="px-4 py-2 ">Note</th>
                     <th class="px-4 py-2 ">Operator</th>
@@ -94,7 +272,6 @@
         </table>
     </div>
 </div>
-
 
 {{-- SCRIPT --}}
 @push('scripts')
@@ -227,6 +404,7 @@ div.dt-button-collection .dt-button:hover {
     });
 }
     let today = new Date().toISOString().slice(0, 10); // Hasil: "2025-07-21"
+    
  $(document).ready(function () {
 
     $('.part-name').select2({
@@ -322,13 +500,11 @@ div.dt-button-collection .dt-button:hover {
   { data: 'partner_name', className: 'text-left', orderable: false},
   { data: 'part_name', name: 'part_name', className: 'text-left', orderable: false },
   { data: 'check_method', name: 'check_method', className: 'text-center', orderable: false },
-  { data: 'qty_received', name: 'qty_received', className: 'text-center', orderable: false },
   { data: 'total_check', name: 'total_check', className: 'text-center', orderable: false },
   { data: 'total_ok', name: 'total_ok', className: 'text-center', orderable: false },
-  { data: 'total_ok_repair', name: 'total_ok_repair', className: 'text-center', orderable: false },
   { data: 'total_ng', name: 'total_ng', className: 'text-center', orderable: false },
   { data: 'pass_rate', name: 'pass_rate', className: 'text-center', orderable: false },
-  { data: 'ok_repair_rate', name: 'ok_repair_rate', className: 'text-center', orderable: false },
+  { data: 'pass_trough', name: 'pass_trough', className: 'text-center', orderable: false },
   { data: 'ng_rate', name: 'ng_rate', className: 'text-center', orderable: false },
   { data: 'note', name: 'note', orderable: false },
   { data: 'user_id', name: 'user_id', className: 'text-center', orderable: false },
@@ -445,6 +621,85 @@ $(document).on('click', '.btn-delete-inspection', function () {
         }
     });
 });
+
+ function loadSummary(date = null) {
+
+        $.ajax({
+            url: '/qc/inspection/summary',
+            type: 'GET',
+            data: { date: date },
+            beforeSend: function() {
+                // tampilkan animasi loading ringan
+                $('.qc-card .qc-total').text('...');
+            },
+            success: function(res) {
+
+                // Loop semua posisi sesuai response
+                Object.keys(res).forEach(function(pos) {
+
+                    const card = $('.qc-card[data-pos="' + pos + '"]');
+
+                    card.find('.qc-total').text(res[pos].total + ' Part');
+                    card.find('.qc-ok').text('OK: ' + res[pos].ok);
+                    card.find('.qc-ng').text('NG: ' + res[pos].ng);
+
+                });
+
+            },
+            error: function() {
+                alert('Gagal mengambil data summary');
+            }
+        });
+
+    }
+
+    // load awal tanpa filter
+    loadSummary();
+
+    // jika ada input tanggal
+    $('#filter-date').on('change', function() {
+        loadSummary($(this).val());
+    });
+
+    $('.open-defect-modal').on('click', function () {
+    const pos = $(this).data('pos');
+
+    $.ajax({
+        url: '/qc/inspection/top-defect',
+        type: 'GET',
+        data: { pos: pos },
+        beforeSend: function() {
+            $('#top-defect-list').html('<li>Loading...</li>');
+            $('#top-part-list').html('<li>Loading...</li>');
+        },
+        success: function(res) {
+            $('#modal-pos').text('Pos: ' + pos);
+
+            let defectHtml = '';
+            let partHtml = '';
+
+            res.top_defect.forEach(d => {
+                defectHtml += `<li>${d.defect_name} (${d.total})</li>`;
+            });
+
+            res.top_part.forEach(p => {
+                partHtml += `<li>${p.part_name} (${p.total})</li>`;
+            });
+
+            $('#top-defect-list').html(defectHtml);
+            $('#top-part-list').html(partHtml);
+
+            // tampilkan modal
+            $('#defectModal').removeClass('hidden').addClass('flex');
+        }
+    });
+});
+
+$('#closeDefectModal').on('click', function () {
+    $('#defectModal').removeClass('flex').addClass('hidden');
+});
+
+
 
   </script>
 

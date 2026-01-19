@@ -474,6 +474,8 @@ Route::post('agent/backup-log', [BackupAgentController::class, 'storeLog']);
     Route::get('/inspections/{id}/detail', [InspectionController::class, 'show'])->name('inspections.show');
     Route::put('/inspections/{id}/update', [InspectionController::class, 'update'])->name('inspections.update');
     Route::delete('/inspections/{id}/destroy', [InspectionController::class, 'destroy'])->name('inspections.destroy');
+    Route::get('/inspection/summary', [InspectionController::class, 'getSummary']);
+    Route::get('/inspection/top-defect', [InspectionController::class, 'getTopDefect']);
     Route::get('/incoming/dashboard', [IncomingInspectionController::class, 'index'])->name('incoming.index');
     Route::get('/incoming/data', [IncomingInspectionController::class, 'data'])->name('incoming.data');
     Route::get('/incoming/create', [IncomingInspectionController::class, 'create'])->name('incoming.create');
