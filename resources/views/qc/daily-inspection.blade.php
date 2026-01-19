@@ -185,8 +185,10 @@
       Cek Top 3 Defect
     </button>
 </div>
-
 </div>
+<h2 class="font-bold text-lg mb-4">Daily Pass Rate & Pass Trough</h2>
+
+    <canvas id="passChart" height="100"></canvas>
 </div>
 
    {{-- 📄 TABEL --}}
@@ -646,6 +648,53 @@ $(document).on('click', '.btn-delete-inspection', function () {
 $('#closeDefectModal').on('click', function () {
     $('#defectModal').removeClass('flex').addClass('hidden');
 });
+
+ fetch('{{ route("qc.inspection.chart") }}')
+    .then(res => res.json())
+    .then(data => {
+
+        let ctx = document.getElementById('passChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.days,
+                datasets: [
+                    {
+                        label: 'Pass Rate',
+                        data: data.pass_rate,
+                        backgroundColor: 'rgba(34,197,94,0.8)'
+                    },
+                    {
+                        label: 'Pass Trough',
+                        data: data.pass_trough,
+                        backgroundColor: 'rgba(234,179,8,0.8)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        stacked: false,
+                        title: {
+                            display: true,
+                            text: data.month
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: val => val + "%"
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+
 
   </script>
 

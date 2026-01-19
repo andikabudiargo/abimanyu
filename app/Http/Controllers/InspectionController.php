@@ -289,6 +289,67 @@ public function getTopDefect(Request $request)
     ]);
 }
 
+ public function getDataChart(Request $request)
+{
+    // Jika user kirim yyyy-mm maka gunakan itu
+    // Jika tidak, pakai bulan berjalan
+    $monthParam = $request->date ?? date('Y-m');
+    $year = substr($monthParam, 0, 4);
+    $month = substr($monthParam, 5, 2);
+
+    // Jumlah hari di bulan tersebut
+    $totalDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+    // Ambil data hanya untuk bulan itu
+    $rows = DB::table('inspections')
+        ->select(
+            'inspection_date',
+            'total_check',
+            'total_ok',
+            'total_ok_repair'
+        )
+        ->whereYear('inspection_date', $year)
+        ->whereMonth('inspection_date', $month)
+        ->orderBy('inspection_date', 'ASC')
+        ->get()
+        ->keyBy(function($item) {
+            return date('j', strtotime($item->inspection_date)); // hanya tanggal 1..31
+        });
+
+    // Normalisasi struktur 1..totalDays
+    $days = [];
+    $passRate = [];
+    $passTrough = [];
+
+    for ($day = 1; $day <= $totalDays; $day++) {
+
+        if (isset($rows[$day])) {
+            $r = $rows[$day];
+            $totalCheck = $r->total_check ?: 1;
+
+            // Hitung pass rate
+            $pr = ($r->total_ok + $r->total_ok_repair) / $totalCheck * 100;
+
+            // Hitung pass trough
+            $pt = ($r->total_ok / $totalCheck) * 100;
+        } else {
+            // Jika tidak ada data
+            $pr = 0;
+            $pt = 0;
+        }
+
+        $days[] = $day;
+        $passRate[] = round($pr, 0);
+        $passTrough[] = round($pt, 0);
+    }
+
+    return response()->json([
+        'month' => date('F', strtotime("$year-$month-01")),
+        'days' => $days,
+        'pass_rate' => $passRate,
+        'pass_trough' => $passTrough
+    ]);
+}
 
 
 public function monthlyTrend(Request $request)
