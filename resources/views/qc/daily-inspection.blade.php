@@ -146,7 +146,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Incoming">
-            Cek Top 3 Defect
+            Top 3 Defect
         </button>
     </div>
 
@@ -162,7 +162,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Unloading">
-            Cek Top 3 Defect
+            Top 3 Defect
         </button>
     </div>
 
@@ -178,7 +178,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Buffing">
-            Cek Top 3 Defect
+            Top 3 Defect
         </button>
     </div>
 
@@ -194,7 +194,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Touch Up">
-            Cek Top 3 Defect
+            Top 3 Defect
         </button>
     </div>
 
@@ -211,7 +211,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Final">
-            Cek Top 3 Defect
+            Top 3 Defect
         </button>
     </div>
 
@@ -227,7 +227,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Outgoing">
-            Cek Top 3 Defect
+            Top 3 Defect
         </button>
     </div>
 
@@ -237,7 +237,7 @@
     <!-- Chart Section -->
     <h2 class="font-bold text-lg mb-3">Chart Pass Rate & Pass Trough/Performance</h2>
     <div class="bg-white p-4 rounded-lg shadow-md">
-        <canvas id="passChart" height="120"></canvas>
+        <canvas id="passChart" height="100"></canvas>
     </div>
 
 </div>
