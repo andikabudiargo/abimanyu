@@ -249,37 +249,39 @@ public function getSummary(Request $request)
 }
 
 public function getTopDefect(Request $request)
-    {
-        $pos = $request->pos;
-        $today = now()->toDateString();
+{
+    $pos = $request->pos;
+    $today = now()->toDateString();
 
-        // Top 3 defect
-        $topDefect = DB::table('inspection_defects as d')
-            ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
-            ->select('d.defect_id', DB::raw('COUNT(d.id) as total'))
-            ->where('i.inspection_post', $pos)
-            ->whereDate('i.inspection_date', $today)
-            ->groupBy('d.defect_id')
-            ->orderByDesc('total')
-            ->limit(3)
-            ->get();
+    // Top 3 defect
+    $topDefect = DB::table('inspection_defects as d')
+        ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+        ->join('defects as f', 'f.id', '=', 'd.defect_id')
+        ->select('f.defect as defect_name', DB::raw('COUNT(d.id) as total'))
+        ->where('i.inspection_post', $pos)
+        ->whereDate('i.inspection_date', $today)
+        ->groupBy('f.defect')
+        ->orderByDesc('total')
+        ->limit(3)
+        ->get();
 
-        // Top 3 part berdasarkan jumlah defect
-        $topPart = DB::table('inspection_defects as d')
-            ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
-            ->select('i.part_name', DB::raw('COUNT(d.id) as total'))
-            ->where('i.inspection_post', $pos)
-            ->whereDate('i.inspection_date', $today)
-            ->groupBy('i.part_name')
-            ->orderByDesc('total')
-            ->limit(3)
-            ->get();
+    // Top 3 part berdasarkan jumlah defect
+    $topPart = DB::table('inspection_defects as d')
+        ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+        ->select('i.part_name', DB::raw('COUNT(d.id) as total'))
+        ->where('i.inspection_post', $pos)
+        ->whereDate('i.inspection_date', $today)
+        ->groupBy('i.part_name')
+        ->orderByDesc('total')
+        ->limit(3)
+        ->get();
 
-        return response()->json([
-            'top_defect' => $topDefect,
-            'top_part' => $topPart
-        ]);
-    }
+    return response()->json([
+        'top_defect' => $topDefect,
+        'top_part' => $topPart
+    ]);
+}
+
 
 public function monthlyTrend(Request $request)
 {
