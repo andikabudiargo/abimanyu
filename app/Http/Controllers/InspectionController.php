@@ -270,7 +270,7 @@ public function getTopDefect(Request $request)
 
     $topPart = DB::table('inspection_defects as d')
     ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
-    ->join('articles as a', 'a.article_code', '=', 'i.article_code')
+    ->join('articles as a', 'a.article_code', '=', 'i.part_name')
     ->select(
         'a.description as part_name',
         DB::raw('SUM(d.qty) as total_qty')
