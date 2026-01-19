@@ -268,19 +268,20 @@ public function getTopDefect(Request $request)
         ->limit(3)
         ->get();
 
-    // Top 3 part berdasarkan total defect qty
     $topPart = DB::table('inspection_defects as d')
-        ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
-        ->select(
-            'i.part_name',
-            DB::raw('SUM(d.qty) as total_qty')
-        )
-        ->where('i.inspection_post', $pos)
-        ->whereDate('i.inspection_date', $today)
-        ->groupBy('i.part_name')
-        ->orderByDesc('total_qty')
-        ->limit(3)
-        ->get();
+    ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+    ->join('articles as a', 'a.article_code', '=', 'i.article_code')
+    ->select(
+        'a.description as part_name',
+        DB::raw('SUM(d.qty) as total_qty')
+    )
+    ->where('i.inspection_post', $pos)
+    ->whereDate('i.inspection_date', $today)
+    ->groupBy('a.description')
+    ->orderByDesc('total_qty')
+    ->limit(3)
+    ->get();
+
 
     return response()->json([
         'top_defect' => $topDefect,
