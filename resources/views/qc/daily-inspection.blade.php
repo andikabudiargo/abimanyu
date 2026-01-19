@@ -7,36 +7,51 @@
 
 @section('content')
 <!-- Modal Top Defect -->
-<div id="defectModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
-  <div class="bg-white w-96 rounded-lg shadow-lg p-5">
-    <h2 class="text-lg font-bold text-gray-800 mb-2">
-      Top Defect Hari Ini
-    </h2>
+<div id="defectModal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
 
-    <p id="modal-pos" class="text-sm text-gray-600 mb-3"></p>
+  <div class="w-full max-w-xl bg-white/80 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 border border-gray-200 relative">
 
-    <!-- Top 3 Defects -->
-    <div>
-      <h3 class="text-sm font-semibold text-gray-700 mb-1">Top 3 Defect</h3>
-      <ul id="top-defect-list" class="text-sm text-gray-800 space-y-1">
-        <li>Loading...</li>
-      </ul>
-    </div>
+      <!-- Header -->
+      <div class="flex justify-between items-start">
+          <div>
+              <h2 class="text-xl font-bold text-gray-800 tracking-tight">
+                  Top Defect Hari Ini
+              </h2>
+              <p id="modal-pos" class="text-sm text-gray-600 mt-1"></p>
+          </div>
 
-    <!-- Top 3 Parts -->
-    <div class="mt-4">
-      <h3 class="text-sm font-semibold text-gray-700 mb-1">Top 3 Part dengan NG Tertinggi</h3>
-      <ul id="top-part-list" class="text-sm text-gray-800 space-y-1">
-        <li>Loading...</li>
-      </ul>
-    </div>
+          <!-- Close icon -->
+          <button id="closeDefectModal" class="p-2 rounded-full hover:bg-gray-200 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+          </button>
+      </div>
 
+      <!-- Top Defect -->
+      <div class="mt-4">
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">Top 3 Defect</h3>
+          <ul id="top-defect-list" class="space-y-2">
+              <li class="text-sm text-gray-700">Loading...</li>
+          </ul>
+      </div>
 
-    <button id="closeDefectModal" class="mt-5 w-full py-2 bg-gray-700 text-white rounded">
-      Tutup
-    </button>
+      <!-- Top Parts -->
+      <div class="mt-6">
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">Top 3 Part dengan NG Tertinggi</h3>
+          <ul id="top-part-list" class="space-y-2">
+              <li class="text-sm text-gray-700">Loading...</li>
+          </ul>
+      </div>
+
+      <!-- Footer Button -->
+      <button id="closeDefectModalBtn" class="closeDefectModal mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow hover:from-blue-700 hover:to-blue-800 transition">
+          Tutup
+      </button>
+
   </div>
 </div>
+
 
    <div class="bg-white shadow rounded-xl p-6 mb-4">
     <h2 class="text-lg font-semibold mb-4">Filter Daily Inspection</h2>
@@ -114,82 +129,119 @@
 
 </div>
 
-<div class="grid grid-cols-2 gap-4 mb-4">
-<div class="grid grid-cols-3 gap-4">
+<div class="w-full mb-6">
 
-  <div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Incoming">
-    <h3 class="text-xs font-semibold text-gray-500">Incoming</h3>
-    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
-    <div class="qc-ok text-sm text-green-600">OK: 0</div>
-    <div class="qc-ng text-sm text-red-600">NG: 0</div>
+    <!-- QC Cards Section -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
 
-    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Incoming">
-      Cek Top 3 Defect
-    </button>
+       <div class="qc-card group p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200 shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all cursor-pointer" data-pos="Incoming">
+        <div class="flex justify-between items-center">
+            <h3 class="text-xs font-semibold text-gray-500">Incoming</h3>
+            <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
+        </div>
+        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="flex justify-between mt-1 text-sm">
+            <span class="text-green-600 qc-ok">OK: 0</span>
+            <span class="text-red-600 qc-ng">NG: 0</span>
+        </div>
+
+        <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Incoming">
+            Cek Top 3 Defect
+        </button>
+    </div>
+
+         <div class="qc-card group p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200 shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all cursor-pointer" data-pos="Unloading">
+        <div class="flex justify-between items-center">
+            <h3 class="text-xs font-semibold text-gray-500">Unloading</h3>
+            <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
+        </div>
+        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="flex justify-between mt-1 text-sm">
+            <span class="text-green-600 qc-ok">OK: 0</span>
+            <span class="text-red-600 qc-ng">NG: 0</span>
+        </div>
+
+        <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Unloading">
+            Cek Top 3 Defect
+        </button>
+    </div>
+
+        <div class="qc-card group p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200 shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all cursor-pointer" data-pos="Buffing">
+        <div class="flex justify-between items-center">
+            <h3 class="text-xs font-semibold text-gray-500">Buffing</h3>
+            <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
+        </div>
+        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="flex justify-between mt-1 text-sm">
+            <span class="text-green-600 qc-ok">OK: 0</span>
+            <span class="text-red-600 qc-ng">NG: 0</span>
+        </div>
+
+        <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Buffing">
+            Cek Top 3 Defect
+        </button>
+    </div>
+
+        <div class="qc-card group p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200 shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all cursor-pointer" data-pos="Touch Up">
+        <div class="flex justify-between items-center">
+            <h3 class="text-xs font-semibold text-gray-500">Touch Up</h3>
+            <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
+        </div>
+        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="flex justify-between mt-1 text-sm">
+            <span class="text-green-600 qc-ok">OK: 0</span>
+            <span class="text-red-600 qc-ng">NG: 0</span>
+        </div>
+
+        <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Touch Up">
+            Cek Top 3 Defect
+        </button>
+    </div>
+
+    
+        <div class="qc-card group p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200 shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all cursor-pointer" data-pos="Final">
+        <div class="flex justify-between items-center">
+            <h3 class="text-xs font-semibold text-gray-500">Final</h3>
+            <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
+        </div>
+        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="flex justify-between mt-1 text-sm">
+            <span class="text-green-600 qc-ok">OK: 0</span>
+            <span class="text-red-600 qc-ng">NG: 0</span>
+        </div>
+
+        <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Final">
+            Cek Top 3 Defect
+        </button>
+    </div>
+
+        <div class="qc-card group p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200 shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all cursor-pointer" data-pos="Outgoing">
+        <div class="flex justify-between items-center">
+            <h3 class="text-xs font-semibold text-gray-500">Outgoing</h3>
+            <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
+        </div>
+        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="flex justify-between mt-1 text-sm">
+            <span class="text-green-600 qc-ok">OK: 0</span>
+            <span class="text-red-600 qc-ng">NG: 0</span>
+        </div>
+
+        <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Outgoing">
+            Cek Top 3 Defect
+        </button>
+    </div>
+
+
+    </div>
+
+    <!-- Chart Section -->
+    <h2 class="font-bold text-lg mb-3">Chart Pass Rate & Pass Trough/Performance</h2>
+    <div class="bg-white p-4 rounded-lg shadow-md">
+        <canvas id="passChart" height="120"></canvas>
+    </div>
+
 </div>
 
-<div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Unloading">
-    <h3 class="text-xs font-semibold text-gray-500">Unloading</h3>
-    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
-    <div class="qc-ok text-sm text-green-600">OK: 0</div>
-    <div class="qc-ng text-sm text-red-600">NG: 0</div>
-
-    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Unloading">
-      Cek Top 3 Defect
-    </button>
-</div>
-
- <div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Buffing">
-    <h3 class="text-xs font-semibold text-gray-500">Buffing</h3>
-    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
-    <div class="qc-ok text-sm text-green-600">OK: 0</div>
-    <div class="qc-ng text-sm text-red-600">NG: 0</div>
-
-    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Buffing">
-      Cek Top 3 Defect
-    </button>
-</div>
-
-
- <div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Touch Up">
-    <h3 class="text-xs font-semibold text-gray-500">Touch Up</h3>
-    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
-    <div class="qc-ok text-sm text-green-600">OK: 0</div>
-    <div class="qc-ng text-sm text-red-600">NG: 0</div>
-
-    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Touch Up">
-      Cek Top 3 Defect
-    </button>
-</div>
-
-
-<div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Final">
-    <h3 class="text-xs font-semibold text-gray-500">Final</h3>
-    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
-    <div class="qc-ok text-sm text-green-600">OK: 0</div>
-    <div class="qc-ng text-sm text-red-600">NG: 0</div>
-
-    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Final">
-      Cek Top 3 Defect
-    </button>
-</div>
-
-
- <div class="p-4 bg-white shadow-md rounded-lg qc-card" data-pos="Outgoing">
-    <h3 class="text-xs font-semibold text-gray-500">Outgoing</h3>
-    <div class="qc-total text-2xl font-bold text-gray-800 mt-1">0 Part</div>
-    <div class="qc-ok text-sm text-green-600">OK: 0</div>
-    <div class="qc-ng text-sm text-red-600">NG: 0</div>
-
-    <button class="mt-3 px-3 py-1 text-xs bg-blue-600 text-white rounded-md open-defect-modal" data-pos="Outgoing">
-      Cek Top 3 Defect
-    </button>
-</div>
-</div>
-<h2 class="font-bold text-lg mb-4">Daily Pass Rate & Pass Trough</h2>
-
-    <canvas id="passChart" height="100"></canvas>
-</div>
 
    {{-- 📄 TABEL --}}
 <div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
@@ -625,22 +677,39 @@ $(document).on('click', '.btn-delete-inspection', function () {
         success: function(res) {
             $('#modal-pos').text('Pos: ' + pos);
 
-            let defectHtml = '';
-            let partHtml = '';
+// FINTECH STYLE LIST ITEM
+let defectHtml = '';
+let partHtml = '';
 
-            res.top_defect.forEach(d => {
-                defectHtml += `<li>${d.defect_name} (${d.total_qty})</li>`;
-            });
+res.top_defect.forEach((d, i) => {
+    defectHtml += `
+        <li class="flex items-center justify-between bg-white/60 backdrop-blur-md border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-md">${i + 1}</span>
+                <span class="font-medium text-gray-800">${d.defect_name}</span>
+            </div>
+            <span class="text-gray-700 font-semibold">${d.total_qty}</span>
+        </li>
+    `;
+});
 
-            res.top_part.forEach(p => {
-                partHtml += `<li>${p.part_name} (${p.total_qty})</li>`;
-            });
+res.top_part.forEach((p, i) => {
+    partHtml += `
+        <li class="flex items-center justify-between bg-white/60 backdrop-blur-md border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-md">${i + 1}</span>
+                <span class="font-medium text-gray-800">${p.part_name}</span>
+            </div>
+            <span class="text-gray-700 font-semibold">${p.total_qty}</span>
+        </li>
+    `;
+});
 
-            $('#top-defect-list').html(defectHtml);
-            $('#top-part-list').html(partHtml);
+$('#top-defect-list').html(defectHtml);
+$('#top-part-list').html(partHtml);
 
-            // tampilkan modal
-            $('#defectModal').removeClass('hidden').addClass('flex');
+$('#defectModal').removeClass('hidden').addClass('flex');
+
         }
     });
 });
@@ -649,11 +718,24 @@ $('#closeDefectModal').on('click', function () {
     $('#defectModal').removeClass('flex').addClass('hidden');
 });
 
+$('#closeDefectModalBtn').on('click', function () {
+    $('#defectModal').removeClass('flex').addClass('hidden');
+});
+
  fetch('{{ route("qc.inspection.chart") }}')
     .then(res => res.json())
     .then(data => {
 
-        let ctx = document.getElementById('passChart').getContext('2d');
+        const ctx = document.getElementById('passChart').getContext('2d');
+
+        // GRADIENT STYLE ala Fintech/SaaS
+        const gradientGreen = ctx.createLinearGradient(0, 0, 0, 300);
+        gradientGreen.addColorStop(0, 'rgba(0,196,140,1)');   
+        gradientGreen.addColorStop(1, 'rgba(0,196,140,0.25)'); 
+
+        const gradientYellow = ctx.createLinearGradient(0, 0, 0, 300);
+        gradientYellow.addColorStop(0, 'rgba(254,207,77,1)');
+        gradientYellow.addColorStop(1, 'rgba(254,207,77,0.25)');
 
         new Chart(ctx, {
             type: 'bar',
@@ -663,36 +745,83 @@ $('#closeDefectModal').on('click', function () {
                     {
                         label: 'Pass Rate',
                         data: data.pass_rate,
-                        backgroundColor: 'rgba(34,197,94,0.8)'
+                        backgroundColor: gradientGreen,
+                        borderRadius: 8,
+                        barPercentage: 0.55,
+                        categoryPercentage: 0.55
                     },
                     {
                         label: 'Pass Trough',
                         data: data.pass_trough,
-                        backgroundColor: 'rgba(234,179,8,0.8)'
+                        backgroundColor: gradientYellow,
+                        borderRadius: 8,
+                        barPercentage: 0.55,
+                        categoryPercentage: 0.55
                     }
                 ]
             },
             options: {
                 responsive: true,
+                animation: {
+                    duration: 900,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#444',
+                            font: { size: 12, weight: '600' },
+                            padding: 16
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(20,20,20,0.85)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        displayColors: false,
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}%`
+                        }
+                    }
+                },
                 scales: {
                     x: {
-                        stacked: false,
                         title: {
                             display: true,
-                            text: data.month
+                            text: data.month,
+                            color: "#555",
+                            font: { size: 14, weight: '600' }
+                        },
+                        ticks: {
+                            color: "#777",
+                            font: { size: 10 },
+                            maxRotation: 45,
+                            minRotation: 45
+                        },
+                        grid: {
+                            display: false
                         }
                     },
                     y: {
                         beginAtZero: true,
                         max: 100,
                         ticks: {
-                            callback: val => val + "%"
+                            callback: val => val + "%",
+                            color: "#777",
+                            font: { size: 10 }
+                        },
+                        grid: {
+                            color: "rgba(0,0,0,0.06)",
+                            drawBorder: false
                         }
                     }
                 }
             }
         });
     });
+
 
 
 
