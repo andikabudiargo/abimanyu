@@ -679,11 +679,11 @@ $(document).on('click', '.btn-delete-inspection', function () {
             let partHtml = '';
 
             res.top_defect.forEach(d => {
-                defectHtml += `<li>${d.defect_name} (${d.total})</li>`;
+                defectHtml += `<li>${d.defect_name} (${d.total_qty})</li>`;
             });
 
             res.top_part.forEach(p => {
-                partHtml += `<li>${p.part_name} (${p.total})</li>`;
+                partHtml += `<li>${p.part_name} (${p.total_qty})</li>`;
             });
 
             $('#top-defect-list').html(defectHtml);
@@ -698,8 +698,6 @@ $(document).on('click', '.btn-delete-inspection', function () {
 $('#closeDefectModal').on('click', function () {
     $('#defectModal').removeClass('flex').addClass('hidden');
 });
-
-
 
   </script>
 
