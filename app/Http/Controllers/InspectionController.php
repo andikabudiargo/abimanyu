@@ -253,26 +253,32 @@ public function getTopDefect(Request $request)
     $pos = $request->pos;
     $today = now()->toDateString();
 
-    // Top 3 defect
+    // Top 3 defect berdasarkan total qty
     $topDefect = DB::table('inspection_defects as d')
         ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
         ->join('defects as f', 'f.id', '=', 'd.defect_id')
-        ->select('f.defect as defect_name', DB::raw('COUNT(d.id) as total'))
+        ->select(
+            'f.defect as defect_name',
+            DB::raw('SUM(d.qty) as total_qty')
+        )
         ->where('i.inspection_post', $pos)
         ->whereDate('i.inspection_date', $today)
         ->groupBy('f.defect')
-        ->orderByDesc('total')
+        ->orderByDesc('total_qty')
         ->limit(3)
         ->get();
 
-    // Top 3 part berdasarkan jumlah defect
+    // Top 3 part berdasarkan total defect qty
     $topPart = DB::table('inspection_defects as d')
         ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
-        ->select('i.part_name', DB::raw('COUNT(d.id) as total'))
+        ->select(
+            'i.part_name',
+            DB::raw('SUM(d.qty) as total_qty')
+        )
         ->where('i.inspection_post', $pos)
         ->whereDate('i.inspection_date', $today)
         ->groupBy('i.part_name')
-        ->orderByDesc('total')
+        ->orderByDesc('total_qty')
         ->limit(3)
         ->get();
 
@@ -281,6 +287,7 @@ public function getTopDefect(Request $request)
         'top_part' => $topPart
     ]);
 }
+
 
 
 public function monthlyTrend(Request $request)
