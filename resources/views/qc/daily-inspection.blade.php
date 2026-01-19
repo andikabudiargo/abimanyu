@@ -634,18 +634,18 @@ $(document).on('click', '.btn-delete-inspection', function () {
             },
             success: function(res) {
 
-                // Loop semua posisi sesuai response
-                Object.keys(res).forEach(function(pos) {
+    const summary = res.summary; // ambil object summary
 
-                    const card = $('.qc-card[data-pos="' + pos + '"]');
+    Object.keys(summary).forEach(function(pos) {
 
-                    card.find('.qc-total').text(res[pos].total + ' Part');
-                    card.find('.qc-ok').text('OK: ' + res[pos].ok);
-                    card.find('.qc-ng').text('NG: ' + res[pos].ng);
+        const card = $('.qc-card[data-pos="' + pos + '"]');
 
-                });
+        card.find('.qc-total').text(summary[pos].total + ' Part');
+        card.find('.qc-ok').text('OK: ' + summary[pos].ok);
+        card.find('.qc-ng').text('NG: ' + summary[pos].ng);
 
-            },
+    });
+},
             error: function() {
                 alert('Gagal mengambil data summary');
             }
