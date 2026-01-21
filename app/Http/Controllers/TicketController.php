@@ -1202,17 +1202,16 @@ foreach ($tickets as $t) {
     $duration = $this->convertDuration($t->processed_at, $t->done_at);
     $isOver = $this->isOverdue($t->due_date, $t->done_at);
 
-     $evidenceHtml = '';
+    $evidenceHtml = '';
 $evidence = $t->evidences->first();
 
 if ($evidence) {
-    $serverPath = public_path($evidence->path);
+    $serverPath = public_path($evidence->path); // /home/user/public_html/evidence/xxx.JPG
     if (file_exists($serverPath)) {
-        // langsung gunakan URL lengkap
-        $url = 'https://abimanyulive.cloud/' . str_replace(' ', '%20', $evidence->path); 
-        $evidenceHtml = '<img src="' . $url . '" width="100">';
+        $evidenceHtml = '<img src="' . $serverPath . '" width="100">';
     }
 }
+
     $html .= '<tr>
         <td>' . $index . '</td>  <!-- gunakan index -->
         <td>' . $t->title . '</td>
