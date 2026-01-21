@@ -58,8 +58,8 @@
                 <input 
                     id="pdfInput"
                     type="file"
-                    name="pdf_files[]" 
-                    accept="application/pdf"
+                    name="pdf_files" 
+                   accept=".zip"
                     multiple
                     class="absolute inset-0 opacity-0 cursor-pointer"
                 >
@@ -246,68 +246,81 @@ $('#clearFormBtn').on('click', function () {
 $('#uploadForm').on('submit', function(e) {
     e.preventDefault();
 
-    // TAMPILKAN LOADING
-    $('#generateBtn').prop('disabled', true).text('AI Sedang merekap Data...');
+    $('#generateBtn')
+        .prop('disabled', true)
+        .text('AI Sedang merekap Data...');
 
     let formData = new FormData(this);
 
+    // ⬇️ HARUS DI LUAR ajax
+    let dotCount = 0;
+    let loadingInterval;
+
     $.ajax({
-    url: "{{ route('fa.bupot.process') }}",
-    type: "POST",
-    data: formData,
-    processData: false,
-    contentType: false,
-    xhrFields: { responseType: 'blob' },
+        url: "{{ route('fa.bupot.process') }}",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        xhrFields: { responseType: 'blob' },
 
-    beforeSend: function() {
-        Swal.fire({
-            title: 'Processing...',
-            text: 'Santai... Biarkan sistem merekapnya untuk Anda~',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-    },
+        beforeSend: function () {
+            Swal.fire({
+                title: 'Processing',
+                text: 'Santai... Biarkan sistem merekapnya untuk Anda~',
+                imageUrl: '/img/task-done.gif',
+                imageWidth: 450,
+                imageHeight: 300,
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    loadingInterval = setInterval(() => {
+                        dotCount = (dotCount + 1) % 4; // 0–3
+                        Swal.getTitle().textContent =
+                            'Processing' + '.'.repeat(dotCount);
+                    }, 500);
+                },
+                willClose: () => {
+                    clearInterval(loadingInterval); // 🧹 bersih-bersih
+                }
+            });
+        },
 
-    success: function(blob) {
+        success: function(blob) {
+            Swal.close();
 
-        Swal.close(); // tutup loading
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: 'File Excel berhasil dibuat dan siap diunduh.',
+                timer: 1800,
+                showConfirmButton: false
+            });
 
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: 'File Excel berhasil dibuat dan siap diunduh.',
-            timer: 1800,
-            showConfirmButton: false
-        });
+            const fileName = "rekap_bukti_potong_" + Date.now() + ".xlsx";
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
 
-        const fileName = "rekap_bukti_potong_" + Date.now() + ".xlsx";
+            $('#generateBtn').prop('disabled', false).text('Generate');
+        },
 
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = fileName;
-        link.click();
+        error: function() {
+            Swal.close();
 
-        $('#generateBtn').prop('disabled', false).text('Generate');
-    },
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops!',
+                text: 'Terjadi error saat memproses PDF.',
+            });
 
-    error: function(err) {
-        Swal.close(); // tutup loading
-
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops!',
-            text: 'Terjadi error saat memproses PDF. Periksa kembali file Anda.',
-        });
-
-        $('#generateBtn').prop('disabled', false).text('Generate');
-    }
+            $('#generateBtn').prop('disabled', false).text('Generate');
+        }
+    });
 });
 
 
-
-});
 
 </script>
 

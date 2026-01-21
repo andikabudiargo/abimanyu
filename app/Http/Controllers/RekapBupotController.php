@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Smalot\PdfParser\Parser;
-
+use ZipArchive;
+use Illuminate\Support\Facades\File;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -16,24 +17,64 @@ class RekapBupotController extends Controller
     }
 
     public function process(Request $request)
-    {
-        $request->validate([
-            'pdf_files.*' => 'required|mimes:pdf'
-        ]);
+{
+    $request->validate([
+        'pdf_files' => 'required|mimes:zip|max:51200', // max 50MB
+    ]);
 
-        $allData = [];
+    $zipFile = $request->file('pdf_files');
 
-        foreach ($request->file('pdf_files') as $pdf) {
-            $parser = new Parser();
-            $text = $parser->parseFile($pdf->path())->getText();
+    // Folder sementara
+    $extractPath = storage_path('app/tmp_zip_' . uniqid());
 
-            $extracted = $this->extractData($text);
+    File::makeDirectory($extractPath, 0755, true);
 
-            $allData[] = $extracted;
+    // Ekstrak ZIP
+    $zip = new ZipArchive();
+    if ($zip->open($zipFile->path()) !== true) {
+        return back()->withErrors('Gagal membuka file ZIP');
+    }
+
+    $zip->extractTo($extractPath);
+    $zip->close();
+
+    $parser = new Parser();
+    $allData = [];
+
+    // Ambil semua PDF (recursive)
+    $pdfFiles = File::allFiles($extractPath);
+
+    foreach ($pdfFiles as $file) {
+        if (strtolower($file->getExtension()) !== 'pdf') {
+            continue;
         }
 
-        return $this->exportExcel($allData);
+        try {
+            $text = $parser->parseFile($file->getPathname())->getText();
+            $extracted = $this->extractData($text);
+
+            // Skip PDF yang gagal terbaca
+            if (empty($extracted['nomor'])) {
+                continue;
+            }
+
+            $allData[] = $extracted;
+
+        } catch (\Exception $e) {
+            // skip PDF rusak
+            continue;
+        }
     }
+
+    // Bersihkan folder sementara
+    File::deleteDirectory($extractPath);
+
+    if (empty($allData)) {
+        return back()->withErrors('Tidak ada data PDF yang berhasil diekstrak');
+    }
+
+    return $this->exportExcel($allData);
+}
 
     private function cleanNumber($value)
 {
