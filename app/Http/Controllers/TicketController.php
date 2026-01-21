@@ -36,6 +36,7 @@ use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Borders;
+use Mpdf\Mpdf;
 
 class TicketController extends Controller
 {
@@ -1133,6 +1134,127 @@ private function isOverdue($dueDate, $doneAt)
 }
 
 public function dailyReport()
+{
+    $authId = auth()->id();
+    $dateNow = now()->format('d-m-Y');
+
+    // Ambil data tiket user hari ini atau belum ditutup
+    $tickets = Ticket::with(['requestor.departments', 'evidences'])
+        ->where('processed_by', $authId)
+        ->where(function($q) {
+            $q->whereDate('created_at', now()->toDateString())
+              ->orWhereNull('closed_at')
+              ->orWhereDate('closed_at', now()->toDateString());
+        })
+        ->get();
+
+    // Hitung status
+    $statusCount = [
+        'Pending' => 0,
+        'Work in Progress' => 0,
+        'Done' => 0,
+        'Closed' => 0,
+    ];
+    foreach ($tickets as $t) {
+        if (isset($statusCount[$t->status])) $statusCount[$t->status]++;
+    }
+
+    // Mulai buat HTML
+    $html = '<!DOCTYPE html><html><head>
+        <style>
+            body { font-family: sans-serif; font-size: 12px; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #000; padding: 5px; text-align: center; }
+            th { background-color: #B6D7A8; }
+            .overdue { color: red; font-weight: bold; }
+            .header { text-align: center; }
+            .logo { height: 60px; }
+        </style>
+    </head><body>';
+
+    // Logo dan Judul
+    $html .= '<div class="header">';
+    $html .= '<img src="' . public_path('img/logo-2.jpg') . '" class="logo"><br>';
+    $html .= '<h2>IT DAILY REPORT ACTIVITY</h2>';
+    $html .= '<p>Periode: ' . $dateNow . '</p>';
+    $html .= '</div>';
+
+    // Tabel tiket
+    $html .= '<table>';
+    $html .= '<tr>
+        <th>No.</th>
+        <th>Subject</th>
+        <th>Status</th>
+        <th>Priority</th>
+        <th>Department</th>
+        <th>Request By</th>
+        <th>Request At</th>
+        <th>Due Date</th>
+        <th>Duration</th>
+        <th>Evidence</th>
+    </tr>';
+
+    // Tambahkan counter sebelum loop
+$index = 1;
+
+foreach ($tickets as $t) {
+    $dueDate = $t->due_date ? $t->due_date : '-';
+    $duration = $this->convertDuration($t->processed_at, $t->done_at);
+    $isOver = $this->isOverdue($t->due_date, $t->done_at);
+
+    // Evidence image
+    $evidenceHtml = '';
+    $evidence = $t->evidences->first();
+    if ($evidence) {
+        $imagePath = public_path($evidence->path);
+        if (file_exists($imagePath)) {
+            $evidenceHtml = '<img src="' . $imagePath . '" width="100">';
+        }
+    }
+
+    $html .= '<tr>
+        <td>' . $index . '</td>  <!-- gunakan index -->
+        <td>' . $t->title . '</td>
+        <td>' . $t->status . '</td>
+        <td>' . $t->priority . '</td>
+        <td>' . ($t->requestor->departments->first()->name ?? '-') . '</td>
+        <td>' . $t->requestor->name . '</td>
+        <td>' . $t->created_at . '</td>
+        <td class="' . ($isOver ? 'overdue' : '') . '">' . $dueDate . '</td>
+        <td class="' . ($isOver ? 'overdue' : '') . '">' . $duration . '</td>
+        <td>' . $evidenceHtml . '</td>
+    </tr>';
+
+    $index++; // naikkan counter tiap row
+}
+
+
+    $html .= '</table>';
+
+    // Tanda tangan
+    $html .= '<br><br>';
+    $html .= '<table style="width:100%; border:0;">
+        <tr>
+            <td>Dibuat<br><br><br>' . (auth()->user()->name ?? 'Pembuat') . '</td>
+            <td>Diperiksa<br><br><br>Joko Sriyanto</td>
+            <td>Diketahui<br><br><br>Budi Mulyadi</td>
+        </tr>
+    </table>';
+
+    $html .= '</body></html>';
+
+    // Generate PDF
+    $mpdf = new Mpdf(['tempDir' => storage_path('tmp')]); // kadang perlu tempDir di hosting
+    $mpdf->WriteHTML($html);
+
+    $assign = $tickets->first()?->process?->name ?? $authId;
+    $filename = "Daily Report Activity IT_{$assign}_{$dateNow}.pdf";
+
+    $mpdf->Output($filename, 'D'); // D = download
+    exit;
+}
+
+public function dailyReportExcel()
 {
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
