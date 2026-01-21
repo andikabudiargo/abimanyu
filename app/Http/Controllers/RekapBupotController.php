@@ -25,7 +25,7 @@ class RekapBupotController extends Controller
     $zipFile = $request->file('pdf_files');
 
     // Folder sementara
-    $extractPath = storage_path('app/tmp_zip_' . uniqid());
+    $extractPath = base_path('tmp_zip_' . uniqid());
 
     File::makeDirectory($extractPath, 0755, true);
 
@@ -70,7 +70,7 @@ class RekapBupotController extends Controller
     File::deleteDirectory($extractPath);
 
     if (empty($allData)) {
-        return back()->withErrors('Tidak ada data PDF yang berhasil diekstrak');
+        return back()->withErrors('Tidak ada data Zip yang berhasil diekstrak');
     }
 
     return $this->exportExcel($allData);
