@@ -1202,15 +1202,15 @@ foreach ($tickets as $t) {
     $duration = $this->convertDuration($t->processed_at, $t->done_at);
     $isOver = $this->isOverdue($t->due_date, $t->done_at);
 
-    // Evidence image
-    $evidenceHtml = '';
-    $evidence = $t->evidences->first();
-    if ($evidence) {
-        $imagePath = public_path($evidence->path);
-        if (file_exists($imagePath)) {
-            $evidenceHtml = '<img src="' . $imagePath . '" width="100">';
-        }
+     $evidenceHtml = '';
+$evidence = $t->evidences->first();
+
+if ($evidence) {
+    $serverPath = public_path($evidence->path); // cek file di server
+    if (file_exists($serverPath)) {
+        $evidenceHtml = '<img src="' . asset($evidence->path) . '" width="100">';
     }
+}
 
     $html .= '<tr>
         <td>' . $index . '</td>  <!-- gunakan index -->
