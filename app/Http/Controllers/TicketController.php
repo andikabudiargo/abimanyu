@@ -1206,12 +1206,15 @@ foreach ($tickets as $t) {
 $evidence = $t->evidences->first();
 
 if ($evidence) {
-    $serverPath = public_path($evidence->path); // path absolut di server
+    $serverPath = public_path($evidence->path);
     if (file_exists($serverPath)) {
-        // tambahkan file:// supaya mPDF bisa membaca file
-        $evidenceHtml = '<img src="file://' . $serverPath . '" width="100">';
+        $type = pathinfo($serverPath, PATHINFO_EXTENSION);
+        $data = file_get_contents($serverPath);
+        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        $evidenceHtml = '<img src="' . $base64 . '" width="100">';
     }
 }
+
 
 
     $html .= '<tr>
