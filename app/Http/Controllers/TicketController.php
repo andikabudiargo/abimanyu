@@ -1202,15 +1202,17 @@ foreach ($tickets as $t) {
     $duration = $this->convertDuration($t->processed_at, $t->done_at);
     $isOver = $this->isOverdue($t->due_date, $t->done_at);
 
-    $evidenceHtml = '';
+   $evidenceHtml = '';
 $evidence = $t->evidences->first();
 
 if ($evidence) {
-    $serverPath = public_path($evidence->path); // /home/user/public_html/evidence/xxx.JPG
+    $serverPath = public_path($evidence->path); // path absolut di server
     if (file_exists($serverPath)) {
-        $evidenceHtml = '<img src="' . $serverPath . '" width="100">';
+        // tambahkan file:// supaya mPDF bisa membaca file
+        $evidenceHtml = '<img src="file://' . $serverPath . '" width="100">';
     }
 }
+
 
     $html .= '<tr>
         <td>' . $index . '</td>  <!-- gunakan index -->
