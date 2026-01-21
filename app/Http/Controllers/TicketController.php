@@ -1206,12 +1206,13 @@ foreach ($tickets as $t) {
 $evidence = $t->evidences->first();
 
 if ($evidence) {
-    $serverPath = public_path($evidence->path); // cek file di server
+    $serverPath = public_path($evidence->path);
     if (file_exists($serverPath)) {
-        $evidenceHtml = '<img src="' . asset($evidence->path) . '" width="100">';
+        // langsung gunakan URL lengkap
+        $url = 'https://abimanyulive.cloud/' . str_replace(' ', '%20', $evidence->path); 
+        $evidenceHtml = '<img src="' . $url . '" width="100">';
     }
 }
-
     $html .= '<tr>
         <td>' . $index . '</td>  <!-- gunakan index -->
         <td>' . $t->title . '</td>
