@@ -101,7 +101,42 @@ $assignTickets = DB::table('tickets')
     ->get();
 
 
+$currentYear = now()->year;
 
+// Ambil data ticket per bulan & assignee
+$monthlyAssignedTickets = DB::table('tickets')
+    ->leftJoin('users', 'tickets.processed_by', '=', 'users.id')
+    ->selectRaw('
+        MONTH(tickets.created_at) as month,
+        COALESCE(users.name, "Not Assign") as assignee,
+        COUNT(tickets.id) as total
+    ')
+    ->whereYear('tickets.created_at', $currentYear)
+    ->groupByRaw('MONTH(tickets.created_at), assignee')
+    ->orderByRaw('MONTH(tickets.created_at)')
+    ->get();
+
+    $months = collect(range(1, 12))->map(fn ($m) =>
+    Carbon::create()->month($m)->format('M')
+);
+
+$assignees = $monthlyAssignedTickets
+    ->pluck('assignee')
+    ->unique()
+    ->values();
+
+$datasets = $assignees->map(function ($assignee) use ($monthlyAssignedTickets) {
+    return [
+        'label' => $assignee,
+        'data' => collect(range(1, 12))->map(function ($month) use ($monthlyAssignedTickets, $assignee) {
+            return $monthlyAssignedTickets
+                ->where('month', $month)
+                ->where('assignee', $assignee)
+                ->first()
+                ->total ?? 0;
+        }),
+    ];
+});
 
 
 
@@ -119,7 +154,9 @@ $assignTickets = DB::table('tickets')
         'totalThisMonth',
         'completedThisMonth',
         'completionPercentage',
-        'assignTickets'
+        'assignTickets',
+ 'months',
+        'datasets'
 
 
 

@@ -6,7 +6,20 @@
 @section('breadcrumb-active', 'Ticket Management')
 
 @section('content')
+@php
+    $allowedDepartments = ['Information & Technology', 'Maintenance'];
 
+    $userDepartments = auth()->user()
+        ->departments
+        ->pluck('name')
+        ->toArray();
+
+    $canViewTicketOverview = count(array_intersect(
+        $allowedDepartments,
+        $userDepartments
+    )) > 0;
+@endphp
+<div class=" {{ $canViewTicketOverview ? '' : 'hidden' }}" id="ticketOverviewWrapper">
  <div class="p-6 bg-white rounded-lg shadow-md mb-4">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
@@ -100,7 +113,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
     <!-- Kolom kiri: Ticket Assigned + Top 5 Issues -->
-    <div class="flex flex-col gap-2">
+
           <!-- Top 5 Issues -->
         <div class="bg-white p-6 rounded-2xl shadow-md h-full">
             <div class="flex items-center justify-between mb-4">
@@ -128,6 +141,14 @@
                 @endforeach
             </div>
         </div>
+          <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-md h-full">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-gray-800">Tickets by Department</h2>
+            <span class="text-xs text-gray-500">Based on department request</span>
+        </div>
+        <div class="border-t border-gray-200 mb-4"></div>
+        <canvas id="deptChart" height="100"></canvas>
+    </div>
         <!-- Ticket Assigned -->
         <div class="bg-white p-6 rounded-2xl shadow-md h-full">
             <div class="flex items-center justify-between mb-4">
@@ -159,20 +180,20 @@
                 </div>
             </div>
         </div>
-    </div>
     
 
     <!-- Kolom kanan: Bar Chart -->
-    <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-md h-full">
+      <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-md h-full">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-gray-800">Tickets by Department</h2>
-            <span class="text-xs text-gray-500">Based on department request</span>
+            <h2 class="text-lg font-bold text-gray-800">Monthly Ticket Trend</h2>
+            <span class="text-xs text-gray-500">Based on volume request</span>
         </div>
         <div class="border-t border-gray-200 mb-4"></div>
-        <canvas id="deptChart" height="200"></canvas>
+        <canvas id="monthlyTicketChart" height="100"></canvas>
     </div>
+  
 </div>
-
+</div>
 <div class="bg-white shadow rounded-xl p-6 mb-6">
     <h2 class="text-lg font-semibold mb-4">Filter Ticket</h2>
 
@@ -749,6 +770,51 @@ flatpickr("#due_date", {
     dateFormat: "Y-m-d H:i",
     time_24hr: true
 });
+
+const currentYear = {{ now()->year }};
+
+const ticketChartData = {
+    labels: @json($months),
+    datasets: @json($datasets).map((ds, i) => ({
+        ...ds,
+        backgroundColor: [
+            '#3b82f6','#10b981','#f59e0b',
+            '#ef4444','#8b5cf6','#14b8a6'
+        ][i % 6],
+        stack: 'tickets'
+    }))
+};
+
+new Chart(document.getElementById('monthlyTicketChart'), {
+    type: 'bar',
+    data: ticketChartData,
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' },
+            tooltip: { mode: 'index', intersect: false },
+            subtitle: {
+                display: true,
+                text: `${currentYear}`,
+                position: 'bottom',
+                padding: { top: 10 }
+            }
+        },
+        scales: {
+            x: { stacked: true },
+            y: {
+                stacked: true,
+                beginAtZero: true,
+                min: 0,
+                max: 50,
+                ticks: {
+                    stepSize: 5
+                }
+            }
+        }
+    }
+});
+
     const processedData = @json($processedTickets);
 
 const labels = processedData.map(item => item.processed_name);
