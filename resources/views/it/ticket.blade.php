@@ -815,7 +815,7 @@ new Chart(document.getElementById('monthlyTicketChart'), {
     }
 });
 
-    const processedData = @json($processedTickets);
+      const processedData = @json($processedTickets);
 
 const labels = processedData.map(item => item.processed_name);
 const data = processedData.map(item => item.total);
@@ -839,6 +839,9 @@ new Chart(ctxDonut, {
     options: {
         responsive: true,
         plugins: {
+            legend: {
+                display:false
+            },
             tooltip: {
                 callbacks: {
                     label: function(context) {
@@ -853,6 +856,7 @@ new Chart(ctxDonut, {
         }
     }
 });
+
   const ctxDept  = document.getElementById('deptChart').getContext('2d');
 
 new Chart(ctxDept , {
