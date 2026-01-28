@@ -42,7 +42,7 @@ class BarcodePartController extends Controller
 
     // Path absolut di server
 $photoDir = '/home/abimany3/public_html/barcode_part';
-$qrDir    = '/home/abimany3/public_html/tickets/qrcodes';
+$qrDir    = '/home/abimany3/public_html/barcode_part/qrcodes';
 
     File::ensureDirectoryExists($tempDir);
     File::ensureDirectoryExists($photoDir);
@@ -172,7 +172,9 @@ private function downloadQrZip($results)
 {
     $zipName = 'barcode_result_'.date('Ymd_His').'.zip';
 
-    $zipPath = storage_path('app/'.$zipName);
+    // ZIP hasil langsung di public_html/tickets
+    $zipPath = '/home/abimany3/public_html/barcode_part/'.$zipName;
+    File::ensureDirectoryExists('/home/abimany3/public_html/barcode_part/qrcodes');
 
     $zip = new \ZipArchive();
 
@@ -184,7 +186,7 @@ private function downloadQrZip($results)
 
         // Path file QR di server
         $qrFile = storage_path(
-            'app/public/uploads/qrcodes/'.$item['qr_file']
+            '/home/abimany3/public_html/barcode_part/qrcodes'.$item['qr_file']
         );
 
         if (file_exists($qrFile)) {
