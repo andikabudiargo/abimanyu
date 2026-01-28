@@ -174,7 +174,7 @@ private function downloadQrZip($results)
 
     // ZIP hasil langsung di public_html/tickets
     $zipPath = '/home/abimany3/public_html/barcode_part/'.$zipName;
-    File::ensureDirectoryExists('/home/abimany3/public_html/barcode_part/qrcodes');
+    File::ensureDirectoryExists('/home/abimany3/public_html/barcode_part');
 
     $zip = new \ZipArchive();
 
@@ -185,9 +185,8 @@ private function downloadQrZip($results)
     foreach ($results as $item) {
 
         // Path file QR di server
-        $qrFile = storage_path(
-            '/home/abimany3/public_html/barcode_part/qrcodes'.$item['qr_file']
-        );
+        // Path file QR di public_html
+$qrFile = '/home/abimany3/public_html/barcode_part/qrcodes/'.$item['qr_file'];
 
         if (file_exists($qrFile)) {
 
