@@ -131,6 +131,7 @@
             <li class="pc-item"><a class="pc-link" href="{{ route('ppic.transfer-in.index') }}">Transfer In</a></li>
              <li class="pc-item"><a class="pc-link" href="{{ route('ppic.transfer-out.index') }}">Transfer Out</a></li>
              <li class="pc-item"><a class="pc-link" href="{{ route('ppic.stock.index') }}">Stock</a></li>
+             <li class="pc-item"><a class="pc-link" href="{{ route('ppic.barcode-part.index') }}">Part Barcode</a></li>
              </ul>
             </li>
             

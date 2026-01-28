@@ -54,6 +54,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\PushTestController;
 use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\BarcodePartController;
 use App\Http\Controllers\CAPAController;
 use App\Http\Controllers\RekapBupotController;
 use App\Http\Controllers\RemoteAccessController;
@@ -289,6 +290,21 @@ Route::prefix('mr')->name('mr.')->group(function () {
     Route::post('/capa/{id}/posted', [CAPAController::class, 'posted'])->name('capa.posted');
     Route::put('/capa/verified-save/{id}', [CAPAController::class, 'updateVerified'])->name('capa.verified.save');
     Route::get('/capa/{id}/submit', [CAPAController::class, 'submit'])->name('capa.submit');
+    Route::put('/capa/submit-save/{id}', [CAPAController::class, 'updateSubmitted'])->name('capa.submitted.save');
+    Route::get('/capa/{id}/authorized', [CAPAController::class, 'authorized'])->name('capa.authorized');
+    Route::get('/capa/{capa_id}/comments', [CAPAController::class, 'getComments']);
+    Route::post('/capa/return', [CapaController::class, 'return'])->name('capa.return');
+    Route::post('/capa/authorized-save/{id}', [CAPAController::class, 'updateAuthorized'])->name('capa.authorized.save');
+    Route::delete('/capa/evidence-delete/{id}', [CAPAController::class, 'destroyEvidence'])->name('capa.evidence.destroy');
+    Route::get('/capa/{id}/pdf/download', [CAPAController::class, 'downloadPdf'])->name('capa.pdf.download');
+    Route::get('/capa/{id}/pdf', [CAPAController::class, 'pdf'])->name('mr.capa.pdf');
+    Route::get('/capa/{id}/detail', [CAPAController::class, 'detail'])->name('capa.detail');
+    Route::post('/capa/approve/{id}', [CAPAController::class, 'updateApprove'])->name('capa.approve');
+    Route::delete('/capa/delete/{id}', [CAPAController::class, 'destroy'])->name('capa.destroy');
+    Route::get('/capa/{id}/edit', [CAPAController::class, 'edit'])->name('capa.edit');
+    Route::put('/capa/{id}/update', [CAPAController::class, 'update'])->name('capa.update');
+     Route::get('/capa/{id}/process', [CAPAController::class, 'process'])->name('capa.process');
+     Route::put('/capa/submit-process/{id}', [CAPAController::class, 'updateProcess'])->name('capa.process.save');
 });
 
 Route::prefix('production')->name('production.')->group(function () {
@@ -352,6 +368,8 @@ Route::prefix('ppic')->name('ppic.')->group(function () {
     Route::get('/logistic/stock/data', [StockController::class, 'data'])->name('stock.data');
     Route::get('/logistic/stock/movement', [StockController::class, 'movement'])->name('stock.movement');
     Route::get('/logistic/stock/periodic', [StockController::class, 'periodic'])->name('stock.periodic');
+    Route::get('/generate-barcode-part/index', [BarcodePartController::class, 'index'])->name('barcode-part.index');
+    Route::post('/process-barcode-part', [BarcodePartController::class, 'process'])->name('barcode-part.process');
 });
 
 Route::prefix('purchasing')->name('purchasing.')->group(function () {
