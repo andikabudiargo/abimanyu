@@ -55,16 +55,16 @@ public function index()
     $userId = Auth::id();
 
     return match ($userId) {
-        55        => 'Raw Material',
-        44        => 'Finish Goods',
-        94        => 'Werate',
-       // 92        => 'WIP Buffing',
-        96        => 'WIP Touch Up',
-        95        => 'WIP Sanding',
-        63        => 'OT',
-        
-        67        => null,
-        53,2, 92    => null, // 🔥 BOLEH PILIH SENDIRI
+        44        => 'Raw Material',
+        68        => 'Finish Goods',
+        85        => 'Werate',
+        96        => 'WIP Buffing',
+        43,45        => 'WIP Touch Up',
+        92        => 'WIP Sanding',
+        94        => 'OT',
+        95        => 'Consumable',
+        67        => 'Chemical',
+        53,2,92    => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -306,6 +306,7 @@ public function datatables(Request $request)
     // =====================
     $query = DB::table('sto_items')
         ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+         ->where('stos.sto_number', 'like', '2026/%') // ✅ FILTER TAHUN
         ->leftJoin('articles', 'articles.article_code', '=', 'sto_items.article_code')
         ->leftJoin('users', 'users.id', '=', 'stos.created_by')
        ->select(

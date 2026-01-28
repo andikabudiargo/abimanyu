@@ -296,19 +296,46 @@ $ticketsToApprove = $canApprove
     class="w-full px-4 py-2 rounded-lg bg-white/90 text-gray-800 shadow-sm border border-transparent
            focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 transition-all duration-200"
   >
+   
     @php
-      $year  = 2025;
-      $month = '12';
+      $year  = 2026;
+      $month = '01';
+
+      // Mapping lokasi → range
+      $stoRange = [
+        'CM Dead Stock' => [1, 999],
+        'Chemical'   => [1000, 1999],
+        'Consumable'    => [2000, 2999],
+        'Raw Material'        => [3000, 3999],
+        'WIP Buffing'        => [4000, 4999],
+        'WIP Sanding'        => [5000, 5999],
+         'WIP Touch Up'        => [6000, 6999],
+          'Finish Goods'        => [7000, 7999],
+           'OT'        => [8000, 8999],
+            'Werate'        => [9000, 9999],
+      ];
+
+      // Default jika lokasi tidak ketemu
+      $start = 1;
+      $end   = 2000;
+
+      if (isset($stoRange[$warehouse])) {
+        $start = $stoRange[$warehouse][0];
+        $end   = $stoRange[$warehouse][1];
+      }
     @endphp
 
-    @for ($i = 1; $i <= 2000; $i++)
+
+    @for ($i = $start; $i <= $end; $i++)
       @php
         $number = str_pad($i, 4, '0', STR_PAD_LEFT);
         $val = "{$year}/{$month}/{$number}";
       @endphp
 
       @if (!in_array($val, $usedStoNumbers))
-        <option value="{{ $val }}">{{ $val }}</option>
+        <option value="{{ $val }}">
+          {{ $val }}
+        </option>
       @endif
     @endfor
   </select>
