@@ -58,13 +58,13 @@ public function index()
         44        => 'Raw Material',
         68        => 'Finish Goods',
         85        => 'Werate',
-        96        => 'WIP Buffing',
-        43,45        => 'WIP Touch Up',
-        92        => 'WIP Sanding',
+        96,100    => 'WIP Buffing',
+        43,45     => 'WIP Touch Up',
+        92,99     => 'WIP Sanding',
         94        => 'OT',
         95        => 'Consumable',
         67        => 'Chemical',
-        53,2,92    => null, // 🔥 BOLEH PILIH SENDIRI
+        53,2      => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -627,6 +627,4 @@ public function destroy($id)
         'message' => 'STO berhasil dihapus'
     ]);
 }
-
-
 }
