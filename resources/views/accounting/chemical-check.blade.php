@@ -65,6 +65,28 @@
 </div>
 
 
+<div class="bg-white shadow-md border-l-4 border-indigo-500 rounded-xl p-6 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+    <!-- Select Chemical (label + select dalam flex-1) -->
+    <div class="flex-1">
+        <label for="rmSelect" class="block text-sm font-medium text-gray-600 mb-2">
+            Select Raw Material
+        </label>
+        <select id="rmSelect"
+            class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition h-10 px-3">
+            <option value="">-- Choose Raw Material --</option>
+        </select>
+    </div>
+
+    <!-- Export Button -->
+    <div class="flex-shrink-0">
+        <button id="export-button-rm"
+            class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 h-10 flex items-center justify-center">
+            Export Excel
+        </button>
+    </div>
+</div>
+
+
 <div id="fg_table" class="mt-8">
     <h3 class="text-lg font-bold text-gray-800 mb-4">Finish Good List</h3>
 
@@ -170,8 +192,6 @@ $(document).ready(function() {
                         }
                     }
                 });
-
-                // refresh Select2 setelah append option
                 cmSelect.trigger('change');
             },
             error: function(err){
@@ -238,6 +258,104 @@ $(document).ready(function() {
 
     // Optional: load CM saat halaman ready jika sudah ada data di cache
     loadCM();
+
+     // Inisialisasi Select2
+    $('#rmSelect').select2({
+        placeholder: "-- Choose Raw Material --",
+        width: '100%'
+    });
+
+      loadRM();
+
+    function loadRM() {
+        $.ajax({
+            url: '/fa/excel/rm', // endpoint controller mengembalikan {code, name}
+            type: 'GET',
+            success: function(data) {
+                var rmSelect = $('#rmSelect');
+                rmSelect.empty(); // kosongkan dulu
+                rmSelect.append('<option></option>'); // placeholder untuk Select2
+
+                var seen = {};
+
+                $.each(data, function(index, item){
+                    if(item.code && item.name){
+                        var key = item.code + '|' + item.name;
+                        if(!seen[key]){
+                            seen[key] = true;
+                            var newOption = new Option(item.code + ' - ' + item.name, item.code, false, false);
+                            rmSelect.append(newOption);
+                        }
+                    }
+                });
+                rmSelect.trigger('change');
+            },
+            error: function(err){
+                console.error(err);
+            }
+        });
+    }
+
+     // ketika CM / chemical dipilih
+    $('#rmSelect').on('change', function() {
+        var rmCode = $(this).val();
+
+        var tbody = $('#fg_table_inner tbody');
+        tbody.empty(); // kosongkan tabel dulu
+
+        if(!rmCode){
+            return; // jika tidak ada yang dipilih, jangan tampilkan apapun
+        }
+
+        // ambil FG dari controller
+        $.ajax({
+            url: '/fa/excel/fgrm', // endpoint harus menerima ?cm=CM01
+            type: 'GET',
+            data: { rm: rmCode },
+            success: function(data) {
+                if(!data.length){
+                    tbody.append('<tr><td colspan="3" class="text-center py-2">Tidak ada FG untuk RM ini</td></tr>');
+                    return;
+                }
+
+                // hapus duplikat FG (kode + nama)
+                var seen = {};
+                var no = 1;
+
+              data.forEach(function(item){
+    var key = item.code + '|' + item.name;
+    if(!seen[key]){
+        seen[key] = true;
+
+        // tentukan warna baris ganjil/genap
+        var rowBg = (no % 2 === 1) ? 'bg-gray-50' : 'bg-white';
+
+        var row = '<tr class="'+rowBg+' hover:bg-indigo-100 transition-colors duration-200">'+
+            '<td class="px-4 py-2">'+ no +'</td>'+
+            '<td class="px-4 py-2">'+ item.code +'</td>'+
+            '<td class="px-4 py-2">'+ item.name +'</td>'+
+            '</tr>';
+        tbody.append(row);
+        no++;
+    }
+});
+
+            },
+            error: function(err){
+                console.error(err);
+            }
+        });
+
+    });
+
+     $('#export-button-rm').on('click', function() {
+        window.location.href = '/fa/excel/export-rm-fg';
+    });
+
+    // Optional: load CM saat halaman ready jika sudah ada data di cache
+    loadRM();
+
+
 });
 
 

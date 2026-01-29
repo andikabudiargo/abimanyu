@@ -143,8 +143,6 @@ Route::get('/security', [SecurityController::class, 'index'])
     Route::get('/security-goods/list', [SecurityController::class, 'getDataBarang'])->name('barang.list');
     Route::post('/security/catering/broadcast', [SecurityController::class, 'broadcastNewCatering']);
 
-
-
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
@@ -244,10 +242,9 @@ Route::get('/sto/data', [STOController::class, 'datatables'])->name('sto.data');
 Route::get('/sto/{id}/edit', [STOController::class, 'edit'])->name('sto.edit');
 Route::put('/sto/update/{id}', [StoController::class, 'update']);
 Route::delete('/sto/delete/{id}', [STOController::class, 'destroy'])->name('sto.destroy');
-// routes/web.php
+
 Route::get('/sto/select', [STOController::class, 'selectSto'])
      ->name('sto.select');
-     // routes/web.php
 Route::get('/article/select', [STOController::class, 'selectArticle'])
      ->name('article.select');
      Route::get('/articles/by-warehouse', [STOController::class, 'getArticlesByWarehouse']);
@@ -521,9 +518,12 @@ Route::post('agent/backup-log', [BackupAgentController::class, 'storeLog']);
     Route::get('data/rm-table', [CalculatorBOMController::class, 'getRMByFG'])->name('cabom.rm'); 
     Route::get('chemical-check', [CalculatorBOMController::class, 'cekcm'])->name('cmbom.index');
     Route::post('/excel/upload', [CalculatorBOMController::class, 'uploadCM'])->name('cmbom.upload');
+    Route::get('/excel/rm', [CalculatorBOMController::class, 'getRM']);
     Route::get('/excel/cm', [CalculatorBOMController::class, 'getCM']);
     Route::get('/excel/fg', [CalculatorBOMController::class, 'getFG']);
+    Route::get('/excel/fgrm', [CalculatorBOMController::class, 'getFGbyRM']);
     Route::get('/excel/export-cm-fg', [CalculatorBOMController::class, 'exportCMFG'])->name('cmbom.export');
+    Route::get('/excel/export-rm-fg', [CalculatorBOMController::class, 'exportRMFG'])->name('rmbom.export');
     Route::get('/excel/export-cm-summary', [CalculatorBOMController::class, 'exportChemicalSummaryFull'])->name('cabom.export');
     Route::get('calculator-fuel', [CalculatorFuelController::class, 'index'])->name('bbm.index');
     Route::post('/bbm/store', [CalculatorFuelController::class, 'storeBBM'])->name('bbm.store');

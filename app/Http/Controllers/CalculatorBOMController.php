@@ -25,6 +25,11 @@ class CalculatorBOMController extends Controller
         return view('accounting.calculator-bom');
     }
 
+     public function demo()
+    {
+        return view('it.demo-logistik');
+    }
+
      public function cekcm()
     {
         return view('accounting.chemical-check');
@@ -68,6 +73,21 @@ class CalculatorBOMController extends Controller
     return response()->json($cmList);
 }
 
+ public function getRM()
+{
+    $rmList = DB::table('boms')
+        ->select('article_rm as code', 'article_rm_desc as name')
+        ->whereNotNull('article_rm')
+        ->where('article_rm', '!=', '')
+        ->whereNotNull('article_rm_desc')
+        ->where('article_rm_desc', '!=', '')
+        ->groupBy('article_rm', 'article_rm_desc') // unik
+        ->orderBy('article_rm')
+        ->get();
+
+    return response()->json($rmList);
+}
+
 
 
     public function getFG(Request $request)
@@ -84,6 +104,31 @@ class CalculatorBOMController extends Controller
             'article_fg_desc as name'
         )
         ->where('article_cm', $cmCode)
+        ->whereNotNull('article_fg')
+        ->where('article_fg', '!=', '')
+        ->whereNotNull('article_fg_desc')
+        ->where('article_fg_desc', '!=', '')
+        ->groupBy('article_fg', 'article_fg_desc') // pastikan unik
+        ->orderBy('article_fg')
+        ->get();
+
+    return response()->json($fgList);
+}
+
+public function getFGbyRM(Request $request)
+{
+    $rmCode = $request->query('rm');
+
+    if (!$rmCode) {
+        return response()->json([]);
+    }
+
+    $fgList = DB::table('boms')
+        ->select(
+            'article_fg as code',
+            'article_fg_desc as name'
+        )
+        ->where('article_rm', $rmCode)
         ->whereNotNull('article_fg')
         ->where('article_fg', '!=', '')
         ->whereNotNull('article_fg_desc')
@@ -167,6 +212,81 @@ foreach(range('A','F') as $col){
 
     // Download file Excel
     $fileName = 'CM_FG_List.xlsx';
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="'. $fileName .'"');
+    header('Cache-Control: max-age=0');
+
+    $writer = new Xlsx($spreadsheet);
+    $writer->save('php://output');
+    exit;
+}
+
+
+public function exportRMFG()
+{
+     $rows = DB::table('boms')
+        ->select(
+            'article_rm as rm_code',
+            'article_rm_desc as rm_name',
+            'article_fg as fg_code',
+            'article_fg_desc as fg_name'
+        )
+        ->whereNotNull('article_rm')
+        ->whereNotNull('article_fg')
+        ->whereNotNull('article_fg_desc')
+        ->get();
+
+    $data = collect($rows)
+        ->unique(function ($item) {
+            // unik per kombinasi CM + FG
+            return $item->rm_code . '|' . $item->fg_code;
+        })
+        ->values();
+
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+
+   // Header
+$sheet->setCellValue('A1', 'RM Code')
+      ->setCellValue('B1', 'RM Name')
+      ->setCellValue('C1', 'FG Code')
+      ->setCellValue('D1', 'FG Name');
+
+// Styling header: background gelap dan teks cerah
+$headerStyle = [
+    'font' => [
+        'bold' => true,
+        'color' => ['rgb' => 'FFFFFF'], // teks putih
+    ],
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '4F81BD'], // biru gelap
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER,
+    ],
+];
+$sheet->getStyle('A1:D1')->applyFromArray($headerStyle);
+
+// Isi data
+$rowNumber = 2;
+foreach ($data as $item) {
+    $sheet->setCellValue('A'.$rowNumber, $item->rm_code);
+    $sheet->setCellValue('B'.$rowNumber, $item->rm_name);
+    $sheet->setCellValue('C'.$rowNumber, $item->fg_code);
+    $sheet->setCellValue('D'.$rowNumber, $item->fg_name);
+    $rowNumber++;
+}
+
+
+// Auto size kolom berdasarkan isi
+foreach(range('A','D') as $col){
+    $sheet->getColumnDimension($col)->setAutoSize(true);
+}
+
+    // Download file Excel
+    $fileName = 'RM_FG_List.xlsx';
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="'. $fileName .'"');
     header('Cache-Control: max-age=0');
