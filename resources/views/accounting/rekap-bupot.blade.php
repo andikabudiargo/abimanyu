@@ -19,10 +19,10 @@
         </p>
 
         <ul class="list-disc pl-6 space-y-1">
-            <li>Upload hanya file PDF Bukti Potong dari Coretax.</li>
-            <li>Anda dapat memilih lebih dari satu file sekaligus.</li>
+            <li>Ubah semua file PDF Bukti potong dari Coretax yang akan diupload ke dalam satu file Zip</li>
+            <li>Anda hanya dapat upload satu zip sekaligus.</li>
             <li>Jika salah pilih File, Gunakan tombol ❌ untuk menghapus file sebelum submit.</li>
-            <li>Pastikan semua dokumen benar sebelum klik Generate.</li>
+            <li>Pastikan dokumen zip benar sebelum klik Generate.</li>
             <li>Klik Clear untuk menghapus seluruh dokumen yang dipilih.</li>
         </ul>
     </div>
@@ -39,7 +39,7 @@
             <!-- HEADER -->
             <div class="px-6 py-3 border-b border-gray-300">
                 <label class="font-semibold text-white tracking-wide">
-                    Choose PDF Files
+                    Choose Zip Files
                 </label>
             </div>
 
@@ -47,11 +47,11 @@
             <div class="relative h-[300px] flex flex-col items-center bg-[#fdf9f3] rounded-b-xl justify-center text-center px-6 transition-all duration-200 hover:bg-[#fdf0d6] cursor-pointer">
                 <i class="fa-solid fa-file-arrow-up text-5xl text-pink-500 mb-4"></i>
                 <p class="font-semibold text-gray-700">Klik atau Drag & Drop File Disini.</p>
-                <p class="text-sm text-gray-500">Only PDF File</p>
+                <p class="text-sm text-gray-500">Only Zip File</p>
 
                 <!-- DUMMY BUTTON -->
                 <div class="px-4 py-2 mt-2 w-48 bg-white text-black font-semibold hover:bg-gray-50 border border-black transition-colors shadow-[2px_2px_0_0_rgba(0,0,0,0.8)]">
-                    Pilih File PDF
+                    Pilih File Zip
                 </div>
 
                 <!-- INPUT FILE Overlay -->
@@ -86,7 +86,7 @@
                 <div id="noFilesMessage" class="text-center mt-auto mb-auto">
                     <i class="fa-regular fa-folder-open text-4xl text-blue-500 mb-3"></i>
                     <p class="font-medium text-gray-900">Belum ada File yang dipilih, Nih.</p>
-                    <p class="text-xs text-gray-400">Your uploaded PDF list will appear here</p>
+                    <p class="text-xs text-gray-400">Your uploaded Zip list will appear here</p>
                 </div>
             </div>
 
@@ -125,6 +125,12 @@
 </div>
 
 <style>
+    @layer components {
+  .swal-bg-blue {
+    @apply bg-blue-500 text-white rounded-xl shadow-xl;
+  }
+}
+
     @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-5px); }
@@ -273,6 +279,9 @@ $('#uploadForm').on('submit', function(e) {
                 imageHeight: 300,
                 allowOutsideClick: false,
                 showConfirmButton: false,
+                customClass: {
+        popup: 'swal-bg-blue'
+    },
                 didOpen: () => {
                     loadingInterval = setInterval(() => {
                         dotCount = (dotCount + 1) % 4; // 0–3
@@ -286,25 +295,56 @@ $('#uploadForm').on('submit', function(e) {
             });
         },
 
-        success: function(blob) {
-            Swal.close();
+       success: function(blob, status, xhr) {
 
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: 'File Excel berhasil dibuat dan siap diunduh.',
-                timer: 1800,
-                showConfirmButton: false
-            });
+    Swal.close();
 
-            const fileName = "rekap_bukti_potong_" + Date.now() + ".xlsx";
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = fileName;
-            link.click();
+    /* =========================
+       DOWNLOAD EXCEL
+    ========================= */
 
-            $('#generateBtn').prop('disabled', false).text('Generate');
-        },
+    const excelName = "rekap_bukti_potong_" + Date.now() + ".xlsx";
+
+    const excelLink = document.createElement('a');
+    excelLink.href = URL.createObjectURL(blob);
+    excelLink.download = excelName;
+    excelLink.click();
+
+
+    /* =========================
+       DOWNLOAD ZIP
+    ========================= */
+
+    // ambil url zip dari response header
+    const zipUrl = xhr.getResponseHeader('X-Zip-Url');
+
+    if (zipUrl) {
+
+        setTimeout(() => {
+            window.location.href = zipUrl;
+        }, 1200);
+
+    }
+
+
+    /* =========================
+       NOTIF
+    ========================= */
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Excel & ZIP PDF berhasil diunduh.',
+        timer: 1800,
+        showConfirmButton: false
+    });
+
+
+    $('#generateBtn')
+        .prop('disabled', false)
+        .text('Generate');
+},
+
 
         error: function() {
             Swal.close();
@@ -312,7 +352,7 @@ $('#uploadForm').on('submit', function(e) {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops!',
-                text: 'Terjadi error saat memproses PDF.',
+                text: 'Terjadi error saat memproses Zip.',
             });
 
             $('#generateBtn').prop('disabled', false).text('Generate');

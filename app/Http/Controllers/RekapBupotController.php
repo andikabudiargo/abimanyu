@@ -19,62 +19,146 @@ class RekapBupotController extends Controller
     public function process(Request $request)
 {
     $request->validate([
-        'pdf_files' => 'required|mimes:zip|max:51200', // max 50MB
+        'pdf_files' => 'required|mimes:zip|max:51200',
     ]);
 
     $zipFile = $request->file('pdf_files');
 
-    // Folder sementara
-    $extractPath = base_path('tmp_zip_' . uniqid());
+    /* =========================
+       TEMP FOLDER
+    ========================= */
 
-    File::makeDirectory($extractPath, 0755, true);
+    $baseTemp   = base_path('tmp_' . uniqid());
+    $extractDir = $baseTemp . '/extract';
+    $resultDir  = $baseTemp . '/result';
 
-    // Ekstrak ZIP
+    File::makeDirectory($extractDir, 0755, true);
+    File::makeDirectory($resultDir, 0755, true);
+
+    /* =========================
+       EXTRACT ZIP
+    ========================= */
+
     $zip = new ZipArchive();
+
     if ($zip->open($zipFile->path()) !== true) {
         return back()->withErrors('Gagal membuka file ZIP');
     }
 
-    $zip->extractTo($extractPath);
+    $zip->extractTo($extractDir);
     $zip->close();
 
-    $parser = new Parser();
+    /* =========================
+       PARSE PDF
+    ========================= */
+
+    $parser  = new Parser();
     $allData = [];
 
-    // Ambil semua PDF (recursive)
-    $pdfFiles = File::allFiles($extractPath);
+    $pdfFiles = File::allFiles($extractDir);
 
     foreach ($pdfFiles as $file) {
+
         if (strtolower($file->getExtension()) !== 'pdf') {
             continue;
         }
 
         try {
-            $text = $parser->parseFile($file->getPathname())->getText();
-            $extracted = $this->extractData($text);
 
-            // Skip PDF yang gagal terbaca
-            if (empty($extracted['nomor'])) {
+            $text = $parser
+                ->parseFile($file->getPathname())
+                ->getText();
+
+            $data = $this->extractData($text);
+
+            if (empty($data['nomor'])) {
                 continue;
             }
 
-            $allData[] = $extracted;
+            $allData[] = $data;
+
+            /* =========================
+               RENAME & COPY PDF
+            ========================= */
+
+            $nomor   = $data['nomor'];
+            $tahun   = $data['tahun_pajak'];
+            $nama    = $this->sanitizeFileName($data['pemotong']);
+            $tanggal = str_replace('/', '-', $data['tanggal_dokumen']);
+
+            $newName = "{$nomor}_{$tahun}_{$nama}_{$tanggal}.pdf";
+
+            File::copy(
+                $file->getPathname(),
+                $resultDir . '/' . $newName
+            );
 
         } catch (\Exception $e) {
-            // skip PDF rusak
             continue;
         }
     }
 
-    // Bersihkan folder sementara
-    File::deleteDirectory($extractPath);
-
     if (empty($allData)) {
+        File::deleteDirectory($baseTemp);
         return back()->withErrors('Tidak ada data Zip yang berhasil diekstrak');
     }
 
-    return $this->exportExcel($allData);
+    /* =========================
+       BUAT ZIP PDF FINAL
+    ========================= */
+
+    $zipName = 'pdf_rename_' . date('Ymd_His') . '.zip';
+    $zipPath = public_path('downloads/' . $zipName);
+
+    File::ensureDirectoryExists(public_path('downloads'));
+
+    $zipFinal = new ZipArchive();
+    $zipFinal->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+    foreach (File::files($resultDir) as $file) {
+
+        if ($file->getExtension() === 'pdf') {
+
+            $zipFinal->addFile(
+                $file->getPathname(),
+                $file->getFilename()
+            );
+        }
+    }
+
+    $zipFinal->close();
+
+    /* =========================
+       SIMPAN LINK ZIP
+    ========================= */
+
+    $zipUrl = url('downloads/' . $zipName);
+
+
+    /* =========================
+       CLEANUP
+    ========================= */
+
+    File::deleteDirectory($baseTemp);
+
+    /* =========================
+       DOWNLOAD EXCEL
+    ========================= */
+
+    return $this->exportExcel($allData, $zipUrl);
+
 }
+
+private function sanitizeFileName($text)
+{
+    $text = trim($text);
+
+    $text = preg_replace('/[^A-Za-z0-9\s\-]/', '', $text);
+    $text = preg_replace('/\s+/', '_', $text);
+
+    return $text;
+}
+
 
     private function cleanNumber($value)
 {
@@ -188,7 +272,8 @@ $convert_tanggal_pemotong = $this->convertToExcelDate($tanggal_pemotong);
         return $m[1] ?? '';
     }
 
-    private function exportExcel($rows)
+    private function exportExcel($rows, $zipUrl)
+
     {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -232,8 +317,10 @@ $convert_tanggal_pemotong = $this->convertToExcelDate($tanggal_pemotong);
         $excelOutput = ob_get_clean();
 
         return response($excelOutput, 200, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="rekap_bukti_potong.xlsx"',
-        ]);
+    'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'Content-Disposition'=> 'attachment; filename="rekap_bukti_potong.xlsx"',
+    'X-Zip-Url'           => $zipUrl, // <-- ini kuncinya
+]);
+
     }
 }
