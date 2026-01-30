@@ -297,52 +297,58 @@ $ticketsToApprove = $canApprove
            focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 transition-all duration-200"
   >
    
-    @php
-      $year  = 2026;
-      $month = '01';
+        @php
+  $year  = 2026;
+  $month = '01';
 
-      // Mapping lokasi → range
-      $stoRange = [
-        'CM Dead Stock' => [1, 999],
-        'Chemical'   => [1000, 1999],
-        'Consumable'    => [2000, 2999],
-        'Raw Material'        => [3000, 3999],
-        'WIP Buffing'        => [4000, 4999],
-        'WIP Sanding'        => [5000, 5999],
-         'WIP Touch Up'        => [6000, 6999],
-          'Finish Goods'        => [7000, 7999],
-           'OT'        => [8000, 8999],
-            'Werate'        => [9000, 9999],
-      ];
+  // Mapping lokasi → range
+  $stoRange = [
+    'CM Dead Stock' => [1, 999],
+    'Chemical'     => [1000, 1999],
+    'Consumable'   => [2000, 2999],
+    'Raw Material' => [3000, 3999],
+    'WIP Buffing'  => [4000, 4999],
+    'WIP Sanding'  => [5000, 5999],
+    'WIP Touch Up' => [6000, 6999],
+    'Finish Goods' => [7000, 7999],
+    'OT'           => [8000, 8999],
+    'Werate'       => [9000, 9999],
+  ];
 
-      // Default jika lokasi tidak ketemu
-      $start = 1;
-      $end   = 2000;
+  $ranges = [];
 
-      if (isset($stoRange[$warehouse])) {
-        $start = $stoRange[$warehouse][0];
-        $end   = $stoRange[$warehouse][1];
+  // 🔒 User terkunci / mapped
+  if (is_array($allowedWarehouses)) {
+    foreach ($allowedWarehouses as $wh) {
+      if (isset($stoRange[$wh])) {
+        $ranges[] = $stoRange[$wh];
       }
+    }
+  }
+
+  // 🔥 User bebas → semua range
+  if (empty($ranges)) {
+    $ranges = array_values($stoRange);
+  }
+@endphp
+
+    @foreach ($ranges as [$start, $end])
+  @for ($i = $start; $i <= $end; $i++)
+    @php
+      $number = str_pad($i, 4, '0', STR_PAD_LEFT);
+      $val = "{$year}/{$month}/{$number}";
     @endphp
 
-
-    @for ($i = $start; $i <= $end; $i++)
-      @php
-        $number = str_pad($i, 4, '0', STR_PAD_LEFT);
-        $val = "{$year}/{$month}/{$number}";
-      @endphp
-
-      @if (!in_array($val, $usedStoNumbers))
-        <option value="{{ $val }}">
-          {{ $val }}
-        </option>
-      @endif
-    @endfor
+    @if (!in_array($val, $usedStoNumbers))
+      <option value="{{ $val }}">{{ $val }}</option>
+    @endif
+  @endfor
+@endforeach
   </select>
 
 
   <!-- Warehouse Selector untuk user 67 & 53 -->
-  @if(in_array(auth()->id(), [2, 67, 53, 92]))
+  @if(in_array(auth()->id(), [2, 68, 53, 92]))
 
     @if($warehouse === null)
       <select
