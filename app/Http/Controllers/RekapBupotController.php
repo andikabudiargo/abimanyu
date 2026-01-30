@@ -108,9 +108,11 @@ class RekapBupotController extends Controller
     ========================= */
 
     $zipName = 'pdf_rename_' . date('Ymd_His') . '.zip';
-    $zipPath = public_path('downloads/' . $zipName);
+    $downloadDir = '/home/abimany3/public_html/downloads';
 
-    File::ensureDirectoryExists(public_path('downloads'));
+File::ensureDirectoryExists($downloadDir);
+
+$zipPath = $downloadDir . '/' . $zipName;
 
     $zipFinal = new ZipArchive();
     $zipFinal->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
