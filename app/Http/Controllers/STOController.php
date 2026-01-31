@@ -495,23 +495,37 @@ public function edit($id)
 
     $items = $sto->items;
 
-    $warehouse = optional($sto->items->first())->location ?? null;
+    $warehouse = optional($items->first())->location ?? null;
 
-    $canChooseWarehouse = is_null($warehouse); // 🔥 logika sama seperti create
+    $canChooseWarehouse = is_null($warehouse);
 
     $allowedTypes = $this->allowedArticleTypes($warehouse);
 
-    $articles = Article::whereIn('article_type', $allowedTypes)
+    // 🔥 Ambil artikel yang sudah dipakai
+    $usedArticleCodes = $items->pluck('article_code')->toArray();
+
+    $query = Article::whereIn('article_type', $allowedTypes)
+        ->orWhereIn('article_code', $usedArticleCodes);
+
+    // ✅ Werate filter
+    if ($warehouse === 'Werate') {
+        $query->where(function ($q) use ($usedArticleCodes) {
+            $q->where('supplier_code', 'LIKE', '%WJI%')
+              ->orWhereIn('article_code', $usedArticleCodes);
+        });
+    }
+
+    $articles = $query
         ->select('id', 'article_code', 'description', 'unit', 'article_type')
         ->orderBy('description')
         ->get();
 
-    $allowedWarehouses = $this->allowedWarehouses(); // 🔥 KIRIM KE VIEW
+    $allowedWarehouses = $this->allowedWarehouses();
 
     return view('facility.edit-sto', compact(
         'sto',
         'items',
-         'articles',
+        'articles',
         'warehouse',
         'canChooseWarehouse',
         'allowedWarehouses'

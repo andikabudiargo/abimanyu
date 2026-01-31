@@ -67,7 +67,7 @@
       <option value="WIP Sanding">WIP Sanding</option>
       <option value="WIP Buffing">WIP Buffing</option>
       <option value="WIP Stripping">WIP Stripping</option>
-      <option value="WIP Touchup">WIP Touchup</option>
+      <option value="WIP Touch Up">WIP Touchup</option>
     </select>
   @endif
 </th>
@@ -139,11 +139,34 @@
 
   </td>
 
-  <td class="border px-2 py-2 text-center">
+ <td class="border px-2 py-2 text-center">
+
+@if(auth()->id() == 53)
+
+    {{-- ✅ Mode Admin (Dropdown) --}}
+    <select class="location-input w-full border rounded p-1">
+
+        @foreach($allowedWarehouses as $wh)
+            <option value="{{ $wh }}"
+                {{ $item->location == $wh ? 'selected' : '' }}>
+                {{ $wh }}
+            </option>
+        @endforeach
+
+    </select>
+
+@else
+
+    {{-- 🔒 Mode Readonly --}}
     <input type="text"
-           class="location-input w-full bg-gray-100 border rounded"
+           class="location-input w-full border bg-gray-100 rounded"
            value="{{ $item->location }}"
            readonly>
+
+@endif
+
+</td>
+
   </td>
 </tr>
 @endforeach
@@ -185,12 +208,34 @@
            >
   </td>
 
-  <td class="border px-2 py-2 text-center">
+ <td class="border px-2 py-2 text-center">
+
+@if(auth()->id() == 53)
+
+    {{-- ✅ Mode Admin (Dropdown) --}}
+    <select class="location-input w-full border rounded p-1">
+
+        @foreach($allowedWarehouses as $wh)
+            <option value="{{ $wh }}"
+                {{ $item->location == $wh ? 'selected' : '' }}>
+                {{ $wh }}
+            </option>
+        @endforeach
+
+    </select>
+
+@else
+
+    {{-- 🔒 Mode Readonly --}}
     <input type="text"
-           class="location-input w-full bg-gray-100 border rounded"
-           value="{{ $warehouse }}"
+           class="location-input w-full border bg-gray-100 rounded"
+           value="{{ $item->location }}"
            readonly>
-  </td>
+
+@endif
+
+</td>
+
 </tr>
 @endfor
 
