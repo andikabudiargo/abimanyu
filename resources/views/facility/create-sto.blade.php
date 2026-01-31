@@ -357,43 +357,48 @@ $(document).ready(function () {
       method: 'POST',
       data: payload,
       beforeSend: function () {
-        $('#btnSave').prop('disabled', true).text('Saving...');
+        $('#btnSave, #btnSaveMobile').prop('disabled', true).text('Saving...');
       },
-      success: function (res) {
+     success: function (res) {
 
-        Swal.fire({
-          icon: 'success',
-          title: 'Berhasil',
-          text: res.message,
-          timer: 2000,
-          showConfirmButton: false
-        });
- /* AMBIL VALUE STO YANG DIGUNAKAN SEBELUM DIHAPUS */
+  Swal.fire({
+    icon: 'success',
+    title: 'Berhasil',
+    text: res.message,
+    timer: 2000,
+    showConfirmButton: false
+  });
+
   const usedValue = payload.sto_number;
 
-  /* HAPUS OPTION YANG SUDAH DIPAKAI */
-  $('#sto_number_mobile').find(`option[value="${usedValue}"]`).remove();
-  $('#sto_number').find(`option[value="${usedValue}"]`).remove();
+  // Hapus option
+  $('#sto_number_mobile option[value="'+usedValue+'"]').remove();
+  $('#sto_number option[value="'+usedValue+'"]').remove();
 
-  /* RESET SELECT KE INDEX 0 */
-  $('#sto_number_mobile')[0].selectedIndex = 0;
-  $('#sto_number')[0].selectedIndex = 0;
+  // Reset select STO
+  $('#sto_number_mobile, #sto_number')
+    .val('')
+    .trigger('change');
 
-  /* RESET SEMUA ROW */
+  // Reset row
   $('.sto-row').each(function (i) {
+
     const $r = $(this);
 
-    $r.find('.part-select').val(null).trigger('change');
+    $r.find('.part-select')
+      .val('')
+      .trigger('change.select2')
+      .trigger('change');
+
     $r.find('.article-code').val('');
     $r.find('.part-uom').val('');
     $r.find('input[name$="[qty]"]').val('');
     $r.find('.location-input').val('{{ $warehouse }}');
 
-    // reset label header
     $r.find('.header-label').text(`Item ${i + 1}`);
   });
 
-  /* RESET NOTE */
+  // Reset note
   $('#note, #note_mobile').val('');
 },
       error: function (xhr) {
@@ -417,7 +422,7 @@ $(document).ready(function () {
         }
       },
       complete: function () {
-        $('#btnSave').prop('disabled', false).text('Save');
+        $('#btnSave, #btnSaveMobile').prop('disabled', false).text('Save');
       }
     });
   });
