@@ -19,7 +19,7 @@ class RekapBupotController extends Controller
     public function process(Request $request)
 {
     $request->validate([
-        'pdf_files' => 'required|mimes:zip|max:51200',
+        'pdf_files' => 'required|mimes:zip|max:1048576',
     ]);
 
     $zipFile = $request->file('pdf_files');
