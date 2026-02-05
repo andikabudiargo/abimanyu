@@ -1,0 +1,1032 @@
+@extends('layouts.app')
+
+@section('title', 'CAPA Authorized')
+@section('page-title', 'CAPA AUTHORIZED')
+@section('breadcrumb-item', 'CAPA Management')
+@section('breadcrumb-active', 'CAPA Authorized')
+@section('content')
+
+@php
+    $rca = $capa->actions->firstWhere('type', 'RCA');
+    $ca  = $capa->actions->firstWhere('type', 'CA');
+    $pa  = $capa->actions->firstWhere('type', 'PA');
+@endphp
+
+ <div class="flex flex-col md:flex-row gap-4">
+<div class="w-full md:w-1/3 bg-white rounded-xl border border-gray-200 shadow-sm">
+
+    <!-- HEADER -->
+    <div class="px-5 py-4 border-b border-gray-200">
+        <h2 class="text-sm font-semibold text-gray-800 uppercase tracking-wide">
+            Audit Assignment
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">
+            Auditor & Auditee Information
+        </p>
+</div>
+
+        <!-- AUDITOR -->
+        <div class="px-5 py-4 border-b border-gray-200">
+            <h3 class="text-sm font-medium text-gray-800">Auditor</h3>
+            <p class="text-xs text-gray-500 mb-3">Assigned audit team</p>
+
+            <div class="flex flex-col gap-2">
+                @if($capa->auditors && $capa->auditors->count() > 0)
+                    @foreach($capa->auditors as $auditor)
+                        <div class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50 shadow-sm">
+                            <i class="fa fa-user text-indigo-500 text-lg"></i>
+                            <div class="flex flex-col">
+                                <span class="text-gray-800 font-medium">{{ $auditor->users->name ?? '-' }}</span>
+                                <span class="text-xs text-gray-500">
+    @if($auditor->users && $auditor->users->departments && $auditor->users->departments->count() > 0)
+        {{ $auditor->users->departments->pluck('name')->join(', ') }}
+    @else
+        -
+    @endif
+</span>
+
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <span class="text-gray-400 italic text-sm">No auditors assigned</span>
+                @endif
+            </div>
+        </div>
+
+        <!-- AUDITEE -->
+        <div class="px-5 py-4">
+            <h3 class="text-sm font-medium text-gray-800">Auditee</h3>
+            <p class="text-xs text-gray-500 mb-3">Department involved in the audit</p>
+
+           @if($capa->dept_id && $capa->departemen)
+    <div class="p-3 rounded-lg border border-gray-100 bg-gray-50 shadow-sm flex flex-col gap-2">
+        <!-- Department -->
+        <div class="flex items-center gap-2">
+            <i class="fa fa-building text-indigo-500 text-sm"></i>
+            <span class="font-medium text-gray-800">Department:</span>
+            <span class="text-gray-700">{{ $capa->departemen->name }}</span>
+        </div>
+
+        <!-- Representative -->
+        <div class="flex items-center gap-2">
+            <i class="fa fa-user-tie text-indigo-500 text-sm"></i>
+            <span class="font-medium text-gray-800">Dept. Representative:</span>
+            <span class="text-gray-700">{{ $capa->representative->name ?? '-' }}</span>
+        </div>
+    </div>
+@else
+    <span class="text-gray-400 italic text-sm">No department assigned</span>
+@endif
+
+        </div>
+<div class="max-w-xl mx-auto border-t border-gray-200 p-4">
+
+  <!-- Header -->
+  <h3 class="text-sm font-medium text-gray-800">Commentary</h3>
+  <p class="text-xs text-gray-500 mb-6">Review Comment from Management Representative</p>
+
+  <!-- COMMENTS CONTAINER -->
+  <div id="comments-list" class="space-y-6">
+
+    @forelse($capa->comments as $comment)
+
+      <div class="flex relative old-comment"
+           data-id="{{ $comment->id }}"
+           data-user-id="{{ $comment->user_id }}">
+
+        <!-- Avatar -->
+        <div class="flex flex-col items-center mr-4">
+
+          <div class="w-10 h-10 rounded-full border-2 border-gray-300 overflow-hidden">
+            <img
+              src="{{ $comment->user->photo ?? asset('img/default.png') }}"
+              class="w-full h-full object-cover">
+          </div>
+
+          <div class="flex-1 w-px bg-gray-300 mt-1"></div>
+
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1">
+
+          <div class="flex items-center justify-between text-sm">
+
+            <div>
+              <span class="text-gray-900 font-semibold">
+                {{ $comment->user->name }}
+              </span>
+
+              <span class="font-medium text-gray-400 ml-1">
+                commented
+              </span>
+
+              <span class="text-xs text-gray-400 block">
+                {{ $comment->created_at->diffForHumans() }}
+              </span>
+            </div>
+
+          </div>
+
+          <div class="mt-1 p-3 bg-gray-50 rounded-lg text-gray-800 text-sm comment-text">
+            {{ $comment->comment }}
+          </div>
+
+        </div>
+
+      </div>
+
+    @empty
+
+      <p class="text-sm italic text-gray-400">
+        No comment yet.
+      </p>
+
+    @endforelse
+
+  </div> <!-- END comments-list -->
+
+
+  <!-- Add Comment -->
+  <div class="mt-6">
+
+    <label for="new-comment"
+      class="block text-sm font-medium text-gray-700 mb-1">
+      Add Comment
+    </label>
+
+    <textarea
+      id="new-comment"
+      rows="3"
+      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+      placeholder="Type your comment..."></textarea>
+
+    <button
+      id="add-comment-btn"
+      class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">
+
+      Comment
+    </button>
+
+  </div>
+
+</div>
+</div>
+
+
+
+<div class="w-full md:w-2/3 bg-white shadow-md rounded-xl p-6 space-y-6 mb-4">
+    <div class="flex flex-col gap-3
+            sm:flex-row sm:justify-between sm:items-start
+            border-b pb-4">
+
+    <!-- Title -->
+    <div class="min-w-0">
+        <h1 class="flex items-center gap-2
+                   text-xl sm:text-2xl
+                   font-semibold text-gray-800 tracking-tight">
+            CAPA Review & Authorized
+        </h1>
+
+        <p class="flex items-center gap-2
+                  text-sm text-gray-500 mt-1">
+            <i class="fa-solid fa-clipboard-check text-gray-400 text-sm"></i>
+            Corrective & Preventive Action Authorized
+        </p>
+    </div>
+
+    <!-- Status Badge -->
+   <!-- Status Badge -->
+<div class="flex sm:items-center">
+    <span class="inline-flex items-center justify-center gap-1.5
+        px-3 py-1 text-sm font-semibold rounded-full
+        bg-purple-100 text-purple-800 border border-purple-300
+        w-fit sm:w-28">
+        <i class="fa-regular fa-check-circle text-xs text-purple-600"></i>
+        Submitted
+    </span>
+</div>
+
+
+</div>
+
+   
+<!-- HEADER INFO -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  
+      <!-- CAPA Number -->
+<div class="p-3 rounded-xl border">
+    <div class="flex items-center justify-between">
+
+        <span class="text-sm font-semibold text-blue-700">
+            CAPA No.
+        </span>
+
+        <span class="text-sm font-semibold
+            {{ empty($capa->capa_number) ? 'text-gray-400 italic' : 'text-gray-800' }}">
+
+            {{ $capa->capa_number ?: 'Not Verified Yet' }}
+
+        </span>
+
+    </div>
+</div>
+
+
+<!-- Report Date -->
+<div class="p-3 rounded-xl border">
+    <div class="flex items-center justify-between">
+
+        <span class="text-sm font-semibold text-blue-700">
+            Report Date
+        </span>
+
+        <span class="text-sm font-semibold
+            {{ empty($capa->report_date) ? 'text-gray-400 italic' : 'text-gray-800' }}">
+
+            {{ $capa->report_date
+                ? \Carbon\Carbon::parse($capa->report_date)->format('d M Y')
+                : 'Not Verified Yet'
+            }}
+
+        </span>
+
+    </div>
+</div>
+
+</div>
+
+<!-- SOURCE & CATEGORY -->
+<div class="space-y-6 mb-8">
+
+  <div>
+    <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Source of Finding</p>
+
+    <div class="flex flex-wrap gap-2">
+
+        @php
+            $sources = [
+                'Audit' => 'fa-magnifying-glass',
+                'Complain' => 'fa-comment-dots',
+                'Non-Conformity' => 'fa-triangle-exclamation',
+                'Management Review' => 'fa-people-arrows',
+            ];
+        @endphp
+
+        @foreach($sources as $key => $icon)
+
+            @php
+                $active = ($capa->source_of_finding ?? '') === $key;
+            @endphp
+
+            <span
+                class="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium
+                {{ $active
+                    ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                    : 'bg-gray-50 border-gray-200 text-gray-400' }}
+                cursor-not-allowed">
+
+                <i class="fa-solid {{ $icon }} text-xs"></i>
+                {{ $key }}
+
+            </span>
+
+        @endforeach
+
+    </div>
+  </div>
+
+   <div>
+    <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Category</p>
+
+    <div class="flex flex-wrap gap-2">
+
+        @php
+            $categories = [
+                'Critical' => 'bg-red-50 border-red-300 text-red-700',
+                'Major' => 'bg-yellow-50 border-yellow-300 text-yellow-700',
+                'Minor' => 'bg-blue-50 border-blue-300 text-blue-700',
+                'Observation' => 'bg-green-50 border-green-300 text-green-700',
+            ];
+        @endphp
+
+        @foreach($categories as $key => $style)
+
+            @php
+                $active = ($capa->category ?? '') === $key;
+            @endphp
+
+            <span
+                class="px-4 py-2 border rounded-lg text-sm font-medium cursor-not-allowed
+                {{ $active
+                    ? $style
+                    : 'bg-gray-50 border-gray-200 text-gray-400' }}">
+
+                {{ $key }}
+
+            </span>
+
+        @endforeach
+
+    </div>
+  </div>
+
+</div>
+
+
+<!-- DETAIL, PROBLEM, RCA -->
+<div class="space-y-6 mb-6">
+
+  <!-- Detail of Information -->
+  <fieldset class="p-4 border rounded-md">
+    <legend class="px-2 text-sm font-semibold text-blue-700">
+      Detail of Information
+    </legend>
+
+    <p class="mt-2 text-md text-gray-800 leading-relaxed">
+      {{ $capa->detail_of_information ?? '-' }}
+    </p>
+  </fieldset>
+
+  <!-- Problem Statement -->
+  <fieldset class="p-4 border rounded-md">
+    <legend class="px-2 text-sm font-semibold text-blue-700">
+      Problem Statement
+    </legend>
+
+    <p class="mt-2 text-md text-gray-800 leading-relaxed">
+      {{ $capa->problem ?? '-' }}
+    </p>
+  </fieldset>
+
+ <!-- RCA -->
+  <fieldset class="p-4 border rounded-md">
+    <legend class="px-2 text-sm font-semibold text-blue-700">
+      Root Cause Analysis
+    </legend>
+
+    <p class="mt-2 text-md text-gray-800 leading-relaxed">
+      {{ $rca->description ?? '-' }}
+    </p>
+  </fieldset>
+</div>
+
+<!-- CA & PA -->
+<div class="grid grid-cols-1 gap-6 mb-6">
+
+    <!-- ================= CA ================= -->
+    <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
+
+        <!-- Header -->
+        <div class="px-5 py-3 border-b bg-gray-50 flex items-center gap-2">
+            <h3 class="text-sm font-semibold text-blue-700">
+                Corrective Action (CA)
+            </h3>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4">
+
+            <!-- Main Info -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <!-- Description (Rowspan Effect) -->
+                <div class="md:col-span-3 row-span-2">
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        Description
+                    </p>
+
+                    <div class="h-full bg-gray-50 border rounded-md p-3
+                                text-sm text-gray-800 whitespace-pre-line
+                                leading-relaxed">
+
+                        {{ $ca->description ?? '-' }}
+
+                    </div>
+
+                </div>
+
+                <!-- PIC -->
+                <div>
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        PIC
+                    </p>
+
+                    <div class="border rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-800">
+                        {{ $ca?->picUser?->name ?? '-' }}
+                    </div>
+
+                </div>
+
+                <!-- Due Date -->
+                <div>
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        Due Date
+                    </p>
+
+                    <div class="border rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-800">
+
+                        {{ $ca?->due_date
+                            ? \Carbon\Carbon::parse($ca->due_date)->format('d M Y')
+                            : '-' }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Document -->
+            <div class="pt-3 space-y-2">
+
+                <p class="text-[11px] text-gray-400 uppercase tracking-wide">
+                    Supporting Document
+                </p>
+
+                @if($capa->ca?->supporting_document)
+
+                    <div class="flex items-center justify-between
+                                px-3 py-2 border rounded-md bg-gray-50 text-sm">
+
+                        <div class="flex items-center gap-2 text-gray-700 truncate">
+
+                            <i class="fa-solid fa-file-lines text-indigo-500"></i>
+
+                            <span class="truncate max-w-[320px]">
+                                {{ $capa->ca->supporting_document }}
+                            </span>
+
+                        </div>
+
+                        <a href="{{ asset('capa_document/'.$capa->id.'/'.$capa->ca->supporting_document) }}"
+                           download
+                           class="text-indigo-600 hover:text-indigo-800">
+
+                            <i class="fa-solid fa-download"></i>
+
+                        </a>
+
+                    </div>
+
+                @else
+
+                    <p class="text-xs text-gray-400 italic">
+                        No document uploaded.
+                    </p>
+
+                @endif
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ================= PA ================= -->
+    <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
+
+        <!-- Header -->
+        <div class="px-5 py-3 border-b bg-gray-50 flex items-center gap-2">
+            <h3 class="text-sm font-semibold text-blue-700">
+                Preventive Action (PA)
+            </h3>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4">
+
+            <!-- Main Info -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <!-- Description -->
+                <div class="md:col-span-3 row-span-2">
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        Description
+                    </p>
+
+                    <div class="h-full bg-gray-50 border rounded-md p-3
+                                text-sm text-gray-800 whitespace-pre-line
+                                leading-relaxed">
+
+                        {{ $pa->description ?? '-' }}
+
+                    </div>
+
+                </div>
+
+                <!-- PIC -->
+                <div>
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        PIC
+                    </p>
+
+                    <div class="border rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-800">
+                        {{ $pa?->picUser?->name ?? '-' }}
+                    </div>
+
+                </div>
+
+                <!-- Due Date -->
+                <div>
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        Due Date
+                    </p>
+
+                    <div class="border rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-800">
+
+                        {{ $pa?->due_date
+                            ? \Carbon\Carbon::parse($pa->due_date)->format('d M Y')
+                            : '-' }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Document -->
+            <div class="pt-3 space-y-2">
+
+                <p class="text-[11px] text-gray-400 uppercase tracking-wide">
+                    Supporting Document
+                </p>
+
+                @if($capa->pa?->supporting_document)
+
+                    <div class="flex items-center justify-between
+                                px-3 py-2 border rounded-md bg-gray-50 text-sm">
+
+                        <div class="flex items-center gap-2 text-gray-700 truncate">
+
+                            <i class="fa-solid fa-file-lines text-indigo-500"></i>
+
+                            <span class="truncate max-w-[320px]">
+                                {{ $capa->pa->supporting_document }}
+                            </span>
+
+                        </div>
+
+                        <a href="{{ asset('capa_document/'.$capa->id.'/'.$capa->pa->supporting_document) }}"
+                           download
+                           class="text-indigo-600 hover:text-indigo-800">
+
+                            <i class="fa-solid fa-download"></i>
+
+                        </a>
+
+                    </div>
+
+                @else
+
+                    <p class="text-xs text-gray-400 italic">
+                        No document uploaded.
+                    </p>
+
+                @endif
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<!-- EVIDENCE -->
+<div class="bg-white border rounded-xl shadow-sm p-5">
+   <p class="text-sm font-semibold text-blue-700">List Evidences</p>
+
+  @if($capa->evidences->count())
+    <ul class="divide-y">
+      @foreach($capa->evidences as $evidence)
+        <li class="py-3 flex items-center gap-4">
+          <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
+            <i class="fa-solid fa-file-image text-indigo-600"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-800 truncate">
+              {{ $evidence->file_name }}
+            </p>
+            <p class="text-xs text-gray-400 uppercase">
+              {{ pathinfo($evidence->file_name, PATHINFO_EXTENSION) }}
+            </p>
+          </div>
+          <a href="{{ asset('evidence_capa/'.$capa->id.'/'.$evidence->file_name) }}"
+             target="_blank"
+             class="text-sm font-semibold text-indigo-600 hover:underline">
+            View
+          </a>
+        </li>
+      @endforeach
+    </ul>
+  @else
+    <p class="text-sm text-gray-400 italic">No evidence attached</p>
+  @endif
+
+      </div>
+
+      <hr class="my-4">
+
+      <div class="flex justify-start items-center gap-2 mt-4">
+         <a href="{{ route('mr.capa.index') }}" 
+           class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
+           ← Back
+         </a>
+
+         <button id="returnBtn"
+           class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-orange-700 hover:bg-orange-800 text-white rounded shadow">
+            <i class="fa-solid fa-rotate-left"></i>
+           Return
+         </button>
+
+         <button type="submit" id="submitBtn"
+           class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
+            <i class="fa-solid fa-thumbs-up"></i>
+           Authorized
+         </button>
+      </div>
+
+</div>
+    </div>
+
+ <!-- MODAL -->
+<div id="returnModal"
+  class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
+
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 relative animate-fadeIn">
+
+    <!-- Close Icon -->
+    <button id="closeModalBtn"
+      class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition">
+      ✕
+    </button>
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-4">
+
+      <div>
+        <h2 class="text-lg font-semibold text-gray-800">
+          Return Request
+        </h2>
+
+        <p class="text-sm text-gray-500">
+          Select revision type
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Divider -->
+    <div class="border-t mb-5"></div>
+
+    <!-- Description -->
+    <p class="text-sm text-gray-600 mb-6 leading-relaxed">
+      Choose how you would like this request to be returned for revision.
+      This helps ensure accurate follow-up and documentation.
+    </p>
+
+    <!-- Buttons -->
+    <div class="grid grid-cols-2 gap-4">
+
+      <!-- Revise Action -->
+      <button id="reviseActionBtn"
+        class="group flex flex-col items-center gap-2 px-4 py-4 border border-blue-500 text-blue-600 rounded-xl hover:bg-blue-50 transition">
+
+        <span class="text-xl">📝</span>
+
+        <span class="font-medium text-sm">
+          Revise Actions
+        </span>
+
+        <span class="text-xs text-gray-500 group-hover:text-blue-600">
+          Update action details
+        </span>
+
+      </button>
+
+      <!-- Revise Evidence -->
+      <button id="reviseEvidenceBtn"
+        class="group flex flex-col items-center gap-2 px-4 py-4 border border-green-500 text-green-600 rounded-xl hover:bg-green-50 transition">
+
+        <span class="text-xl">📎</span>
+
+        <span class="font-medium text-sm">
+          Revise Evidence
+        </span>
+
+        <span class="text-xs text-gray-500 group-hover:text-green-600">
+          Upload proof
+        </span>
+
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+
+<style>
+  @keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}
+    /* Supaya select2 full width */
+.select2-container {
+  width: 100% !important;
+}
+
+/* Supaya tinggi sama dengan input Tailwind */
+.select2-container .select2-selection--single {
+  height: 40px !important; /* total tinggi */
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 0.375rem;   /* rounded-md */
+  padding: 0 0.75rem !important; /* px-3 */
+  line-height: normal !important;
+}
+
+/* Hilangkan padding default di dalam text */
+.select2-container .select2-selection__rendered {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  line-height: 1.5rem !important; /* sama seperti input tailwind text-base */
+}
+
+
+/* Placeholder dan text select2 */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 42px !important;
+  font-size: 15px; /* tailwind text-base */
+  color: #374151;  /* tailwind text-gray-700 */
+}
+
+/* Tombol dropdown */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 42px !important;
+  right: 0.75rem;
+}
+</style>
+@push('scripts')
+<script>
+
+// Fungsi Toast menggunakan SweetAlert2
+function showToast(icon, title) {
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        icon: icon, // 'success', 'error', 'warning', 'info', 'question'
+        title: title
+    });
+}
+  const csrfToken = @json(csrf_token());
+const capaId = @json($capa->id);
+
+
+
+
+$(document).ready(function () {
+
+
+  const currentUser = @json($currentUser);
+
+
+    // Render comment
+    function renderComment(comment){
+        return `
+        <div class="flex relative new-comment" data-id="${comment.id}" data-user-id="${comment.user_id}">
+          <div class="flex flex-col items-center mr-4">
+            <div class="w-10 h-10 rounded-full border-2 border-gray-300 overflow-hidden">
+              <img src="${comment.photo}" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 w-px bg-gray-300 mt-1"></div>
+          </div>
+
+          <div class="flex-1">
+            <div class="flex items-center justify-between text-sm">
+              <div>
+                <span class="text-gray-900 font-semibold">${comment.name}</span>
+                <span class="font-medium text-gray-400 ml-1">commented</span>
+              </div>
+
+              <button class="delete-comment text-red-500 ml-2">
+                <i class="fa fa-trash cursor-pointer"></i>
+              </button>
+            </div>
+
+            <div class="mt-1 p-3 bg-gray-50 rounded-lg text-gray-800 text-sm comment-text">
+                ${comment.comment}
+            </div>
+          </div>
+        </div>
+        `;
+    }
+
+    // Add comment
+    $(document).on('click', '#add-comment-btn', function () {
+
+        const text = $('#new-comment').val().trim();
+
+        if (!text) {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Empty Comment',
+        text: 'Comment cannot be empty.',
+        confirmButtonText: 'OK'
+    });
+    return;
+}
+
+
+        const comment = {
+            id: Date.now(),
+            user_id: currentUser.id,
+            name: currentUser.name,
+            photo: currentUser.photo,
+            comment: text
+        };
+
+        $('#comments-list').append(renderComment(comment));
+
+        $('#new-comment').val('');
+
+    });
+
+    // Delete comment
+    $(document).on('click', '.delete-comment', function () {
+
+        $(this).closest('[data-id]').remove();
+
+    });
+
+});
+
+  // Tombol Return utama → buka modal
+    $('#returnBtn').on('click', function () {
+        $('#returnModal').removeClass('hidden').addClass('flex');
+    });
+
+    // Close modal
+    $('#closeModalBtn').on('click', function () {
+        $('#returnModal').addClass('hidden').removeClass('flex');
+    });
+
+    // Klik luar modal = close
+    $('#returnModal').on('click', function (e) {
+        if ($(e.target).is('#returnModal')) {
+            $('#returnModal').addClass('hidden').removeClass('flex');
+        }
+    });
+
+    // Ambil data komentar
+  function getComments() {
+    const comments = [];
+
+    $('#comments-list .new-comment').each(function () {
+
+        const $el = $(this);
+        const text = $el.find('.comment-text').text().trim();
+
+        if (text) {
+            comments.push({
+                user_id: $el.data('user-id'),
+                comment: text
+            });
+        }
+
+    });
+
+    return comments;
+}
+
+
+    // Fungsi umum untuk submit return
+    function submitReturn(url, btn) {
+        const comments = getComments();
+
+        if (comments.length === 0) {
+    Swal.fire({
+        icon: 'warning',
+        title: 'No Comment Found',
+        text: 'Please add at least one comment before returning.',
+        confirmButtonText: 'OK'
+    });
+    return;
+}
+
+
+        btn.prop('disabled', true).text('Returning...');
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {
+                _token: csrfToken,
+                capa_id: capaId,
+                comments: comments
+            },
+            success: function (res) {
+                if (res.success) {
+                    showToast('success', res.message || 'CAPA successfully returned!');
+                    setTimeout(() => {
+                        window.location.href = '{{ route("mr.capa.index") }}';
+                    }, 2000);
+                }
+            },
+            error: function (err) {
+                console.error(err.responseText);
+                const msg = err.responseJSON?.message || 'Terjadi kesalahan saat menyimpan.';
+                showToast('error', msg);
+                btn.prop('disabled', false).text('Return');
+            }
+        });
+    }
+
+    // Tombol Revise Actions
+    $('#reviseActionBtn').on('click', function () {
+        const $btn = $(this);
+        submitReturn('{{ route("mr.capa.returnAction") }}', $btn);
+        $('#returnModal').addClass('hidden').removeClass('flex');
+    });
+
+    // Tombol Revise Evidence
+    $('#reviseEvidenceBtn').on('click', function () {
+        const $btn = $(this);
+        submitReturn('{{ route("mr.capa.returnEvidence") }}', $btn);
+        $('#returnModal').addClass('hidden').removeClass('flex');
+    });
+
+
+$('#submitBtn').click(function(){
+
+    const $submitBtn = $(this); // 🔥 ini solusi paling aman
+
+    // Disable button
+    $submitBtn.prop('disabled', true).text('Authorizing...');
+
+    const url = "{{ route('mr.capa.authorized.save', ':id') }}"
+                    .replace(':id', capaId);
+
+    $.ajax({
+        url: url,
+        type: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            capa_id: capaId,
+        },
+        success: function(res){
+
+            if(res.success){
+
+                showToast('success', res.message || 'CAPA successfully Authorized!');
+
+                setTimeout(() => {
+                    window.location.href = '{{ route("mr.capa.index") }}';
+                }, 2000);
+
+            }
+
+        },
+        error: function(err){
+
+            console.error(err.responseText);
+
+            const msg = err.responseJSON?.message || 'Terjadi kesalahan saat menyimpan.';
+
+            showToast('error', msg);
+
+            // Aktifkan lagi kalau gagal
+            $submitBtn.prop('disabled', false).text('Authorize');
+
+        }
+    });
+});
+
+</script>
+
+@endpush
+
+@endsection
