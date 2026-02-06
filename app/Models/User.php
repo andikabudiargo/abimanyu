@@ -68,4 +68,12 @@ public function todos()
     {
         return $query->where('status', true);
     }
+
+    public function isMR()
+{
+    return $this->departments()
+        ->where('name', 'Management Representative & HSE')
+        ->exists();
+}
+
 }

@@ -14,7 +14,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
                 <label class="block text-sm mb-1 font-medium text-gray-700">CAPA Number</label>
-                <input type="text" placeholder="Masukan CAPA No..." id="filter-capa-number" class="w-full px-3 py-1 text-lg border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
+                <input type="text" placeholder="Masukan CAPA No..." id="filter-capa-number" class="w-full px-3 py-2 text-sm border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
             </div>
             <div>
                 <label class="block text-sm mb-1 font-medium text-gray-700">Category</label>
@@ -196,13 +196,62 @@
   </div>
 </div>
 
+ 
 
-
-   {{-- 📄 TABEL --}}
+{{-- 📄 TABEL --}}
 <div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
-    <h2 class="text-lg font-semibold mb-2">List of CAPA</h2>
+  {{-- Navigation / Title --}}
+
+@if(auth()->user()->isMR())
+
+    {{-- MR View → Tanpa Tab --}}
+    <h2 class="text-lg font-semibold mb-2">
+        List of CAPA
+    </h2>
+
+@else
+
+    {{-- Normal User → Pakai Tab --}}
+    <div class="mb-4 border-b border-gray-200">
+        <div class="flex">
+
+            {{-- Auditee --}}
+            <button id="tab-auditee"
+                class="flex-1 inline-flex items-center justify-center px-4 py-2 border-b-2 font-medium text-sm
+                       text-blue-600 border-blue-500 transition">
+
+                <i class="fa-solid fa-user-clock mr-2 hidden sm:inline"></i>
+
+                <span class="hidden sm:inline">
+                    CAPA as Auditee
+                </span>
+
+                <i class="fa-solid fa-user-clock sm:hidden"></i>
+            </button>
+
+
+            {{-- Auditor --}}
+            <button id="tab-auditor"
+                class="flex-1 inline-flex items-center justify-center px-4 py-2 border-b-2 font-medium text-sm
+                       text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 transition">
+
+                <i class="fa-solid fa-user-check mr-2 hidden sm:inline"></i>
+
+                <span class="hidden sm:inline">
+                    CAPA as Auditor
+                </span>
+
+                <i class="fa-solid fa-user-check sm:hidden"></i>
+            </button>
+
+        </div>
+    </div>
+
+@endif
+
+   
     <div class="w-full overflow-x-auto" id="capa-scroll-wrapper">
-    <table id="capa-table" class="min-w-full text-sm text-left whitespace-nowrap">
+        <table id="capa-table" class="min-w-full text-sm text-left whitespace-nowrap">
             <thead class="bg-blue-500 text-white uppercase text-xs font-bold tracking-wider">
                 <tr class="bg-blue-500 text-white text-xs uppercase font-bold">
                     <th class="px-4 py-2">Action</th>
@@ -213,26 +262,25 @@
                     <th class="px-4 py-2 !text-center">Report Date</th>
                     <th class="px-4 py-2 !text-center">Category</th>
                     <th class="px-4 py-2 !text-center">Status</th>
-                    <th class="px-4 py-2 ">Detail of Information</th>
-                    <th class="px-4 py-2 ">Created By</th>
-                    <th class="px-4 py-2 ">Created At</th>
-                    <th class="px-4 py-2 ">Posted By</th>
-                    <th class="px-4 py-2 ">Posted At</th>
-                    <th class="px-4 py-2 ">Verified By</th>
-                    <th class="px-4 py-2 ">Verified At</th>
-                    <th class="px-4 py-2 ">Processed By</th>
-                    <th class="px-4 py-2 ">Processed At</th>
-                    <th class="px-4 py-2 ">Submitted By</th>
-                    <th class="px-4 py-2 ">Submitted At</th>
-                    <th class="px-4 py-2 ">Authorized By</th>
-                    <th class="px-4 py-2 ">Authorized At</th>
-                    <th class="px-4 py-2 ">Approved By</th>
-                    <th class="px-4 py-2 ">Approved At</th>
-                    <th class="px-4 py-2 ">Returned By</th>
-                    <th class="px-4 py-2 ">Returned At</th>
+                    <th class="px-4 py-2">Detail of Information</th>
+                    <th class="px-4 py-2">Created By</th>
+                    <th class="px-4 py-2">Created At</th>
+                    <th class="px-4 py-2">Posted By</th>
+                    <th class="px-4 py-2">Posted At</th>
+                    <th class="px-4 py-2">Verified By</th>
+                    <th class="px-4 py-2">Verified At</th>
+                    <th class="px-4 py-2">Processed By</th>
+                    <th class="px-4 py-2">Processed At</th>
+                    <th class="px-4 py-2">Submitted By</th>
+                    <th class="px-4 py-2">Submitted At</th>
+                    <th class="px-4 py-2">Authorized By</th>
+                    <th class="px-4 py-2">Authorized At</th>
+                    <th class="px-4 py-2">Approved By</th>
+                    <th class="px-4 py-2">Approved At</th>
+                    <th class="px-4 py-2">Returned By</th>
+                    <th class="px-4 py-2">Returned At</th>
                 </tr>
             </thead>
-
             <tbody>
                 {{-- DataTables mengisi otomatis --}}
             </tbody>
@@ -574,6 +622,7 @@ div.dt-button-collection .dt-button:hover {
      });
     let today = new Date().toISOString().slice(0, 10); // Hasil: "2025-07-21"
  $(document).ready(function () {
+  let currentTab = 'auditee'; // default tab
    const table = $('#capa-table').DataTable({
         processing: true,
         serverSide: true,
@@ -586,6 +635,7 @@ div.dt-button-collection .dt-button:hover {
             url: '{{ route("mr.capa.data") }}',
             
             data: function (d) {
+                 d.tab = currentTab; // tambahkan tab ke server
                 d.capa_number = $('#filter-capa-number').val();
                 d.category = $('#filter-category').val();
                 d.status = $('#filter-status').val();
@@ -684,6 +734,51 @@ div.dt-button-collection .dt-button:hover {
             e.preventDefault();
             table.draw();
         });
+       
+/**
+ * ==============================
+ * TAB AUDITOR / AUDITEE HANDLER
+ * ==============================
+ */
+
+if ($('#tab-auditor').length && $('#tab-auditee').length) {
+
+    $('#tab-auditor').on('click', function(){
+
+        if(currentTab === 'auditor') return;
+
+        currentTab = 'auditor';
+
+        $(this)
+            .addClass('border-blue-500 text-blue-600')
+            .removeClass('text-gray-500 border-transparent');
+
+        $('#tab-auditee')
+            .removeClass('border-blue-500 text-blue-600')
+            .addClass('text-gray-500 border-transparent');
+
+        table.ajax.reload(null, false);
+    });
+
+
+    $('#tab-auditee').on('click', function(){
+
+        if(currentTab === 'auditee') return;
+
+        currentTab = 'auditee';
+
+        $(this)
+            .addClass('border-blue-500 text-blue-600')
+            .removeClass('text-gray-500 border-transparent');
+
+        $('#tab-auditor')
+            .removeClass('border-blue-500 text-blue-600')
+            .addClass('text-gray-500 border-transparent');
+
+        table.ajax.reload(null, false);
+    });
+
+}
   });
 
   let openDropdown = null;
@@ -841,6 +936,36 @@ $(document).ready(function () {
   });
 
 });
+
+// Navigation tab click
+    const tabAuditor = document.getElementById('tab-auditor');
+    const tabAuditee = document.getElementById('tab-auditee');
+
+    tabAuditor.addEventListener('click', function() {
+        // toggle active class
+        tabAuditor.classList.add('border-blue-500', 'text-blue-600');
+        tabAuditor.classList.remove('text-gray-500', 'border-transparent');
+
+        tabAuditee.classList.remove('border-blue-500', 'text-blue-600');
+        tabAuditee.classList.add('text-gray-500', 'border-transparent');
+
+        // reload / filter DataTable untuk Auditor
+        // $('#capa-table').DataTable().ajax.reload(); 
+        console.log('Filter CAPA as Auditor');
+    });
+
+    tabAuditee.addEventListener('click', function() {
+        // toggle active class
+        tabAuditee.classList.add('border-blue-500', 'text-blue-600');
+        tabAuditee.classList.remove('text-gray-500', 'border-transparent');
+
+        tabAuditor.classList.remove('border-blue-500', 'text-blue-600');
+        tabAuditor.classList.add('text-gray-500', 'border-transparent');
+
+        // reload / filter DataTable untuk Auditee
+        // $('#capa-table').DataTable().ajax.reload(); 
+        console.log('Filter CAPA as Auditee');
+    });
   </script>
 
 @endpush

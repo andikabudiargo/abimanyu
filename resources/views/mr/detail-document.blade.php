@@ -1,1230 +1,1022 @@
 @extends('layouts.app')
 
-@section('title', 'Document Submission Detail')
-@section('page-title', 'Document Submission Detail')
-@section('breadcrumb-item', 'Document Archive')
-@section('breadcrumb-active', 'Document Submission Detail')
-
+@section('title', 'CAPA Detail')
+@section('page-title', 'CAPA DETAIL')
+@section('breadcrumb-item', 'CAPA Management')
+@section('breadcrumb-active', 'CAPA Detail')
 @section('content')
+
 @php
-$latest = $document->latestRevision;
-$status = $document->status ?? '';
-$colorClass = match($status) {
-    'Draft'    => 'text-gray-600 bg-gray-200',
-    'Approved' => 'text-white bg-yellow-600',
-    'Under Review' => 'text-white bg-indigo-600',
-    'Resubmitted' => 'text-white bg-blue-600',
-    'Published' => 'text-white bg-green-600',
-    'Partially Socialized' => 'text-white bg-purple-600',
-    'Closed' => 'text-white bg-teal-600',
-    'Revision' => 'text-white bg-lime-600',
-    'Rejected' => 'text-white bg-red-600',
-    'Obsolete' => 'text-white bg-orange-600',
-    default    => 'text-gray-700 bg-gray-100',
-};
-$remarkClass = match($latest->remark ?? '') {
-    'New Release' => 'text-green-600',
-    'Revision' => 'text-purple-600',
-    'Obsolete' => 'text-red-600',
-    default => 'text-gray-800'
-};
-$latestRevision = $document->revisions->sortByDesc('version')->first();
+    $rca = $capa->actions->firstWhere('type', 'RCA');
+    $ca  = $capa->actions->firstWhere('type', 'CA');
+    $pa  = $capa->actions->firstWhere('type', 'PA');
 @endphp
 
-<div class="w-full bg-white shadow-md rounded-xl p-6 space-y-4 mb-2">
-  <div class="mb-6">
-    <!-- BARIS ATAS: Document Number + Status + Version -->
-    <div class="flex items-center gap-4 justify-between mb-2">
-        <div class="flex items-center gap-2">
-            <h1 class="text-3xl font-extrabold text-gray-900 uppercase">
-                {{ $document->document_number }}
-            </h1>
-            <span class="px-3 py-1 rounded-full font-semibold text-sm {{ $colorClass }}">
-                {{ strtoupper($document->status ?? '-') }}
-            </span>
-        </div>
-<!-- Version dropdown -->
-<div class="relative inline-block text-left">
-    <button id="revisionDropdownButton" data-current-version="{{ $document->current_version }}" type="button"
-        class="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1 hover:bg-blue-200 transition">
-        Document Version {{ str_pad($document->current_version, 2, '0', STR_PAD_LEFT) }}
-        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M19 9l-7 7-7-7"></path>
-        </svg>
-    </button>
+ <div class="flex flex-col md:flex-row gap-4">
+<div class="w-full md:w-1/3 bg-white rounded-xl border border-gray-200 shadow-sm">
 
-   <div id="revisionDropdownMenu"
-    class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 hidden">
+    <!-- HEADER -->
+    <div class="px-5 py-4 border-b border-gray-200">
+        <h2 class="text-sm font-semibold text-gray-800 uppercase tracking-wide">
+            Audit Assignment
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">
+            Auditor & Auditee Information
+        </p>
+</div>
 
-   @php
-// versi yang sedang aktif di halaman saat ini
-$currentVersion = $document->current_version;
+        <!-- AUDITOR -->
+        <div class="px-5 py-4 border-b border-gray-200">
+            <h3 class="text-sm font-medium text-gray-800">Auditor</h3>
+            <p class="text-xs text-gray-500 mb-3">Assigned audit team</p>
 
-// Urutkan revisi ascending
-$revisions = $document->revisions->sortBy('version');
-@endphp
-
-@foreach ($revisions as $rev)
-    @if($rev->version)
-        @php
-            $copiesJson = $rev->copies->map(function($c) use ($rev) {
-                return [
-                    'department' => $c->department_name ?? '-',
-                    'qty' => $c->qty,
-                    'date' => $c->date ? \Carbon\Carbon::parse($c->date)->format('d-m-Y') : null,
-                    'socialized' => $c->socialized->name ?? 'Not yet Socialized',
-                    'document_revision_id' => $rev->id,
-                ];
-            });
-        @endphp
-
-        <a href="#"
-           class="revision-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-           data-version="{{ $rev->version }}"
-           data-remark="{{ $rev->remark }}"
-           data-created-by="{{ $rev->created_by }}"
-           data-created-name="{{ $rev->requestor?->name ?? '' }}"
-           data-created-at="{{ $rev->created_at }}"
-           data-approved-by="{{ $rev->approved_by }}"
-           data-approved-name="{{ $rev->approval?->name ?? '' }}"
-            data-approved-at="{{ $rev->approved_at }}"
-   data-rejected-by="{{ $rev->rejected_by }}"
-   data-rejected-name="{{ $rev->reject?->name ?? '' }}"
-   data-rejected-at="{{ $rev->rejected_at }}"
-   data-review-by="{{ $rev->review_by }}"
-   data-review-name="{{ $rev->review?->name ?? '' }}"
-   data-review-at="{{ $rev->review_at }}"
-   data-authorized-by="{{ $rev->authorized_by }}"
-   data-authorized-name="{{ $rev->authorized?->name ?? '' }}"
-   data-authorized-at="{{ $rev->authorized_at }}"
-           data-file="{{ $rev->file ? asset('storage/' . $rev->file) : '' }}"
-           data-file-name="{{ $rev->file ? basename($rev->file) : '' }}"
-           data-file-ext="{{ $rev->file ? strtolower(pathinfo($rev->file, PATHINFO_EXTENSION)) : '' }}"
-           data-file-4m="{{ $rev->file_4m ? asset('storage/' . $rev->file_4m) : '' }}"
-           data-file-4m-name="{{ $rev->file_4m ? basename($rev->file_4m) : '' }}"
-           data-file-4m-ext="{{ $rev->file_4m ? strtolower(pathinfo($rev->file_4m, PATHINFO_EXTENSION)) : '' }}"
-           data-reason="{{ $rev->reason_revision ?? '' }}"
-           data-obsolete-reason="{{ $rev->obsolete_reason ?? '' }}"
-           data-revision-id="{{ $rev->id }}"
-           data-copies='@json($copiesJson)'>
-            Document Version {{ str_pad($rev->version, 2, '0', STR_PAD_LEFT) }}
-        </a>
+            <div class="flex flex-col gap-2">
+                @if($capa->auditors && $capa->auditors->count() > 0)
+                    @foreach($capa->auditors as $auditor)
+                        <div class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50 shadow-sm">
+                            <i class="fa fa-user text-indigo-500 text-lg"></i>
+                            <div class="flex flex-col">
+                                <span class="text-gray-800 font-medium">{{ $auditor->users->name ?? '-' }}</span>
+                                <span class="text-xs text-gray-500">
+    @if($auditor->users && $auditor->users->departments && $auditor->users->departments->count() > 0)
+        {{ $auditor->users->departments->pluck('name')->join(', ') }}
+    @else
+        -
     @endif
-@endforeach
-
-
-
-
-
-</div>
-
-</div>
-
-
-    </div>
-
-   <!-- BARIS BAWAH: Title, Requestor, Created At -->
-<div id="revisionInfo" class="flex flex-col gap-1 text-gray-600 mt-2">
-    <div class="text-sm flex gap-4 items-center">
-        <span class="flex items-center gap-1" id="revisionUser">
-            <i data-feather="user" class="w-4 h-4"></i>
-            {{ $latestRevision->requestor->name ?? 'Unknown' }}
-        </span>
-        <span class="flex items-center gap-1" id="revisionDate">
-            <i data-feather="calendar" class="w-4 h-4"></i>
-            {{ $latestRevision->created_at->format('d M Y H:i') }}
-        </span>
-    </div>
-</div>
-
-</div>
-
-<hr>
-
-<div class="flex gap-6 mb-2">
-  <!-- MAIN CONTENT: PO Info + Items -->
-  <div class="w-2/3 flex flex-col space-y-6">
-    
-    <!-- Purchase Order Information -->
-    <div class="border border-gray-200 bg-white shadow-md rounded-xl p-6">
-       <div class="flex justify-between items-center mb-8">
-        <h3 class="text-xl font-semibold text-gray-700">Document Information</h3>
-       @php
-    $remarkClasses = [
-        'New Release' => 'underline text-green-600',
-        'Revision' => 'underline text-purple-600',
-        'Obsolete' => 'underline text-red-600',
-    ];
-
-    $remarkClass = $remarkClasses[$document->remark] ?? 'text-gray-800';
-@endphp
-
-<span id="remark" class="inline-block {{ $remarkClass }} px-2 py-1 rounded-lg text-sm">
-    {{ $rev->remark }}
 </span>
 
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <span class="text-gray-400 italic text-sm">No auditors assigned</span>
+                @endif
+            </div>
+        </div>
+
+        <!-- AUDITEE -->
+        <div class="px-5 py-4">
+            <h3 class="text-sm font-medium text-gray-800">Auditee</h3>
+            <p class="text-xs text-gray-500 mb-3">Department involved in the audit</p>
+
+           @if($capa->dept_id && $capa->departemen)
+    <div class="p-3 rounded-lg border border-gray-100 bg-gray-50 shadow-sm flex flex-col gap-2">
+        <!-- Department -->
+        <div class="flex items-center gap-2">
+            <i class="fa fa-building text-indigo-500 text-sm"></i>
+            <span class="font-medium text-gray-800">Department:</span>
+            <span class="text-gray-700">{{ $capa->departemen->name }}</span>
+        </div>
+
+        <!-- Representative -->
+        <div class="flex items-center gap-2">
+            <i class="fa fa-user-tie text-indigo-500 text-sm"></i>
+            <span class="font-medium text-gray-800">Dept. Representative:</span>
+            <span class="text-gray-700">{{ $capa->representative->name ?? '-' }}</span>
+        </div>
+    </div>
+@else
+    <span class="text-gray-400 italic text-sm">No department assigned</span>
+@endif
+
+        </div>
+<div class="max-w-xl mx-auto border border-gray-200 p-4">
+
+  <!-- Header -->
+  <h3 class="text-sm font-medium text-gray-800">Commentary</h3>
+  <p class="text-xs text-gray-500 mb-6">Review Comment from Management Representative</p>
+
+  <!-- COMMENTS CONTAINER -->
+  <div id="comments-list" class="space-y-6">
+
+    @forelse($capa->comments as $comment)
+
+      <div class="flex relative"
+           data-id="{{ $comment->id }}"
+           data-user-id="{{ $comment->user_id }}">
+
+        <!-- Avatar -->
+        <div class="flex flex-col items-center mr-4">
+
+          <div class="w-10 h-10 rounded-full border-2 border-gray-300 overflow-hidden">
+            <img
+              src="{{ $comment->user->photo ?? asset('img/default.png') }}"
+              class="w-full h-full object-cover">
+          </div>
+
+          <div class="flex-1 w-px bg-gray-300 mt-1"></div>
+
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1">
+
+          <div class="flex items-center justify-between text-sm">
+
+            <div>
+              <span class="text-gray-900 font-semibold">
+                {{ $comment->user->name }}
+              </span>
+
+              <span class="font-medium text-gray-400 ml-1">
+                commented
+              </span>
+
+              <span class="text-xs text-gray-400 block">
+                {{ $comment->created_at->diffForHumans() }}
+              </span>
+            </div>
+
+          </div>
+
+          <div class="mt-1 p-3 bg-gray-50 rounded-lg text-gray-800 text-sm comment-text">
+            {{ $comment->comment }}
+          </div>
+
+        </div>
+
       </div>
 
-      <div class="text-sm mb-8">
-         <div class="grid grid-cols-2 gap-x-12 gap-y-6 text-sm mb-8">
-            <div class="col-span-2">
-          <div class="text-gray-500 font-medium mb-1">Document Title</div>
-          <div class="text-gray-800 font-semibold">{{ $document->title ?? 'No Title' }}</div>
-            </div>
-            <div>
-          <div class="text-gray-500 font-medium mb-1">Document Type</div>
-          <div class="text-gray-800">{{ $document->document_type ?? 'No Type' }}</div>
-            </div>
-               <div>
-          <div class="text-gray-500 font-medium mb-1">Document Version</div>
-          <div id="documentVersion" class="text-gray-800">{{ $document->current_version ?? '00' }}</div>
-            </div>
-        </div>
-        <div class="text-gray-500 font-medium mb-2">Document File</div>
+    @empty
 
-@php
-    $filename = $latest->file ? basename($latest->file) : basename($document->file);
-    $extension = strtolower(pathinfo($latest->file ?? $document->file, PATHINFO_EXTENSION));
+      <p class="text-sm italic text-gray-400">
+        No comment yet.
+      </p>
 
-    $filename4m = $latest->file_4m ? basename($latest->file_4m) : ($document->file_4m ? basename($document->file_4m) : null);
-    $extension4m = $latest->file_4m ? strtolower(pathinfo($latest->file_4m, PATHINFO_EXTENSION)) : ($document->file_4m ? strtolower(pathinfo($document->file_4m, PATHINFO_EXTENSION)) : null);
-@endphp
+    @endforelse
 
-{{-- File Utama --}}
-<div id="fileSection" class="flex items-center justify-between bg-gray-100 p-3 rounded shadow-sm mb-4">
-    <div>
-        <p id="documentFileName" class="text-sm font-medium text-gray-800">{{ $filename }}</p>
-        <p class="text-xs text-gray-500">Format: .<span id="documentFileExt">{{ $extension }}</span></p>
-    </div>
-    <div class="flex gap-2">
-        <a id="documentFileLink" 
-           href="{{ asset('document/' . ($latest->file ?? $document->file)) }}" 
-           download 
-           class="inline-flex items-center text-green-600 hover:underline">
-            <i data-feather="download" class="w-4 h-4 mr-1"></i> Download
-        </a>
-    </div>
+  </div> <!-- END comments-list -->
+
+</div>
 </div>
 
-{{-- Opsional: File 4M --}}
-@if($filename4m)
-<div id="fileSection4m" class="flex items-center justify-between bg-gray-100 p-3 rounded shadow-sm mb-4">
-    <div>
-        <p id="documentFile4MName" class="text-sm font-medium text-gray-800">{{ $filename4m }}</p>
-        <p class="text-xs text-gray-500">Format: .<span id="documentFile4MExt">{{ $extension4m }}</span></p>
+
+
+<div class="w-full md:w-2/3 bg-white shadow-md rounded-xl p-6 space-y-6 mb-4">
+    <div class="flex flex-col gap-3
+            sm:flex-row sm:justify-between sm:items-start
+            border-b pb-4">
+
+    <!-- Title -->
+    <div class="min-w-0">
+        <h1 class="flex items-center gap-2
+                   text-xl sm:text-2xl
+                   font-semibold text-gray-800 tracking-tight">
+            Corrective & Preventive Action Detail
+        </h1>
+
+        <p class="flex items-center gap-2
+                  text-sm text-gray-500 mt-1">
+            <i class="fa-solid fa-clipboard-check text-gray-400 text-sm"></i>
+            Check CAPA detailed Information
+        </p>
     </div>
-    <div class="flex gap-2">
-        <a id="documentFile4MLink" 
-           href="{{ asset('document/4m/' . ($latest->file_4m ?? $document->file_4m)) }}" 
-           download 
-           class="inline-flex items-center text-green-600 hover:underline">
-            <i data-feather="download" class="w-4 h-4 mr-1"></i> Download
-        </a>
-    </div>
-</div>
-@endif
 
-
-
-
-<div class="text-gray-500 font-medium mb-2">Reason for Submission</div>
-<div class="flex items-center justify-between bg-blue-50 p-3 text-gray-800 rounded shadow-sm mb-4">
-    {{ $document->reason ?? 'No Reason' }}
-</div>
-
-  @if($document->revisions->count() > 0)
+<div class="flex sm:items-center">
     @php
-        $latestRevision = $document->revisions->last();
+        if ($capa->status == 'Draft') {
+            $bg     = 'bg-gray-100';
+            $text   = 'text-gray-800';
+            $border = 'border-gray-300';
+            $icon   = 'fa-pen-to-square';
+            $iconColor = 'text-gray-600';
+
+        } elseif ($capa->status == 'Open') {
+            $bg     = 'bg-yellow-100';
+            $text   = 'text-yellow-800';
+            $border = 'border-yellow-300';
+            $icon   = 'fa-paste';
+            $iconColor = 'text-yellow-600';
+
+        } elseif ($capa->status == 'Verified') {
+            $bg     = 'bg-blue-100';
+            $text   = 'text-blue-800';
+            $border = 'border-blue-300';
+            $icon   = 'fa-clipboard-check';
+            $iconColor = 'text-blue-600';
+
+        } elseif ($capa->status == 'Submitted') {
+            $bg     = 'bg-purple-100';
+            $text   = 'text-purple-800';
+            $border = 'border-purple-300';
+            $icon   = 'fa-user-check';
+            $iconColor = 'text-purple-600';
+
+        } elseif (in_array($capa->status, ['Returned for Evidence', 'Returned for Action'])) {
+            $bg     = 'bg-red-100';
+            $text   = 'text-red-800';
+            $border = 'border-red-300';
+            $icon   = 'fa-rotate-left';
+            $iconColor = 'text-red-600';
+
+            } elseif ($capa->status == 'Authorized') {
+            $bg     = 'bg-green-100';
+            $text   = 'text-green-800';
+            $border = 'border-green-300';
+            $icon   = 'fa-thumbs-up';
+            $iconColor = 'text-green-600';
+
+            } elseif ($capa->status == 'Closed') {
+            $bg     = 'bg-teal-100';
+            $text   = 'text-teal-800';
+            $border = 'border-teal-300';
+            $icon   = 'fa-lock';
+            $iconColor = 'text-teal-600';
+
+            } elseif ($capa->status == 'In Progress') {
+            $bg = 'bg-orange-100';
+            $text = 'text-orange-800';
+            $border = 'border-orange-300';
+            $icon = 'fa-arrows-spin';
+            $iconColor = 'text-orange-600';
+
+        } else {
+            // Default
+            $bg     = 'bg-green-100';
+            $text   = 'text-green-800';
+            $border = 'border-green-300';
+            $icon   = 'fa-lock';
+            $iconColor = 'text-green-600';
+        }
     @endphp
-    <div id="reasonRevisionLabel" class="text-gray-500 font-medium mb-2 hidden">Reason for Revision</div>
-    <div id="reasonRevisionContainer" 
-         class="{{ $latestRevision->reason_revision ? '' : 'hidden' }} flex items-center justify-between bg-blue-50 p-3 text-gray-800 rounded shadow-sm mb-4">
-        <span class="reason-text">
-            {{ $latestRevision->reason_revision ?? '' }}
-        </span>
-    </div>
-@endif
+
+    <span class="inline-flex items-center justify-center gap-1.5
+        px-3 py-1 text-sm font-semibold rounded-full
+        {{ $bg }} {{ $text }} {{ $border }} border
+        w-fit">
+
+        <i class="fa-solid {{ $icon }} text-xs {{ $iconColor }}"></i>
+
+        {{ $capa->status }}
+    </span>
+</div>
 
 
 
-    </div>
-            <div class="flex justify-between items-center mb-2">
-    <h3 class="text-xl font-semibold text-gray-700">Application For Copies</h3>
-    <i data-feather="users" class="text-gray-700 w-5 h-5"></i>
-  </div>
-  <hr class="my-4">
+</div>
+
    
-@if($document && $document->copies->count())
-  @php
-    // Ambil ID revisi terbaru, jika ada
-    $latestRevisionId = $document->revisions->sortByDesc('version')->first()->id ?? null;
+<!-- HEADER INFO -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
 
-    // Filter copies hanya untuk revisi terbaru
-    $copiesToShow = $document->copies->filter(function($copy) use ($latestRevisionId) {
-        return $copy->document_revision_id == $latestRevisionId;
-    });
-  @endphp
+@if(in_array($capa->status, ['Returned for Evidence', 'Returned for Action']))
+    <div class="col-span-2 mb-4 text-sm text-yellow-600 bg-yellow-50 p-3 border border-yellow-600 rounded">
 
-<table id="copiesTable" class="w-full text-left border-collapse">
-    <thead>
-      <tr class="bg-blue-500 text-white">
-        <th class="p-2 border">Department</th>
-        <th class="p-2 border text-center">Qty</th>
-        <th class="p-2 border">Socialization Date</th>
-        <th class="p-2 border">Socialized by</th>
-        <th class="p-2 border">Evidence</th>
-      </tr>
-    </thead>
-    <tbody>
-      @forelse($copiesToShow as $copy)
-        <tr class="copy-row" data-version="{{ $copy->document_revision_id ?? 'original' }}">
-          <td class="p-2 border">{{ $copy->department_name ?? '-' }}</td>
-          <td class="p-2 border text-center">{{ $copy->qty }} Sheet</td>
-          <td class="p-2 border">
-            {{ optional($copy->date ? \Carbon\Carbon::parse($copy->date) : null)->format('d-m-Y') ?? 'Not yet socialized' }}
-          </td>
-          <td class="p-2 border">{{ $copy->socializedBy->name ?? 'Not yet Socialized' }}</td>
-          <td class="p-2 border text-center">
-            @if($copy->photo)
-              <a href="{{ asset('socialized/' . $copy->photo) }}" target="_blank" class="inline-block">
-                <img src="{{ asset('socialized/' . $copy->photo) }}" alt="Evidence" 
-                     class="w-12 h-12 object-cover rounded border hover:scale-105 transition">
-              </a>
-            @else
-              <span class="text-gray-400 text-sm italic">No evidence</span>
+        ⚠️ This CAPA was returned by MR. Please revise and resubmit according to the comments provided.
+          @if($capa->status === 'Returned for Action')
+                <a href="{{ route('mr.capa.process', $capa->id) }}"
+                   class="text-blue-600 underline hover:text-purple-600">
+                    Continue Action Process, Now!
+                </a>
+            @elseif($capa->status === 'Returned for Evidence')
+                <a href="{{ route('mr.capa.submit', $capa->id) }}"
+                   class="text-blue-600 underline hover:text-purple-600">
+                    Submit Evidence, Now!
+                </a>
             @endif
-          </td>
-        </tr>
-      @empty
-        <tr><td colspan="5" class="text-gray-500 p-2 text-center">No copies distributed.</td></tr>
-      @endforelse
-    </tbody>
-</table>
 
-@else
-  <p class="text-gray-500 mt-3">No copies distributed.</p>
+    </div>
 @endif
 
+  
+    <!-- CAPA Number -->
+<div class="p-3 rounded-xl border">
+    <div class="flex items-center justify-between">
 
+        <span class="text-sm font-semibold text-blue-700">
+            CAPA No.
+        </span>
 
-    </div>
-  </div>
+        <span class="text-sm font-semibold
+            {{ empty($capa->capa_number) ? 'text-gray-400 italic' : 'text-gray-800' }}">
 
-  <!-- SIDEBAR: Order History + Summary -->
-  <div class="w-1/3 flex flex-col space-y-6">
-    <!-- Order History -->
-    <div class="border border-gray-200 bg-white shadow-md rounded-xl p-6">
-  <div class="flex justify-between items-center mb-2">
-    <h3 class="text-xl font-semibold text-gray-700">Internal Notes</h3>
-    <i data-feather="file" class="text-gray-700 w-5 h-5"></i>
-</div>
-<hr class="my-4">
-<div class="{{ $document->status === 'Approved' ? 'max-h-[30vh]' : 'max-h-[60vh]' }} overflow-y-auto pr-2">
-    {{-- Reject --}}
-    @if($document->status === 'Rejected' && $document->rejected_reason)
-        <div class="flex items-start space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
-            <img src="{{ $document->reject->avatar ? asset('storage/' . $document->approval->avatar) : asset('img/avatar-dummy.png') }}" alt="Avatar" class="w-8 h-8 rounded-full">
-            <div>
-                <div class="font-semibold">{{ $document->reject->name ?? 'Unknown' }}</div>
-                <div class="text-xs text-gray-500">Rejected • {{ \Carbon\Carbon::parse($document->rejected_at)->format('d M Y H:i') }}</div>
-                <div class="mt-1 text-sm text-red-600"><strong>Reason:</strong> {{ $document->rejected_reason }}</div>
-            </div>
-        </div>
-    @endif
+            {{ $capa->capa_number ?: 'Not Verified Yet' }}
 
-    {{-- List Notes --}}
-    <div id="notes-list">
-        @forelse($document->notes as $note)
-            <div class="flex items-start space-x-3 mb-4 border border-gray-400 rounded-xl p-4">
-                <img src="{{ $note->user->avatar ? asset('storage/'.$note->user->avatar) : asset('img/avatar-dummy.png') }}" class="w-8 h-8 rounded-full border border-gray-800">
-                <div>
-                    <div class="font-semibold">{{ $note->user->name }}</div>
-                    <div class="text-xs text-gray-500">Note • {{ \Carbon\Carbon::parse($note->created_at)->format('d M Y H:i') }}</div>
-                    <div class="mt-1 text-sm">{!! $note->note !!}</div>
-                    @if($note->image)
-                        <a href="{{ asset('storage/'.$note->image) }}" target="_blank">
-                            <img src="{{ asset('storage/'.$note->image) }}" class="mt-2 max-w-full h-auto rounded object-contain cursor-pointer">
-                        </a>
-                    @endif
-                </div>
-            </div>
-        @empty
-            <div class="text-gray-500 text-center py-4 italic">No notes added.</div>
-        @endforelse
+        </span>
+
     </div>
 </div>
 
 
-   @if($document->status === 'Under Review' && auth()->user()->departments->contains('name', 'Management Representative'))
-    <form id="noteForm" action="{{ route('mr.add.note', $document->id) }}"  method="POST" enctype="multipart/form-data">
-    @csrf
-        <input type="hidden" name="document_id" value="{{ $document->id }}">
-        <textarea id="note" name="note" class="w-full"></textarea>
+<!-- Report Date -->
+<div class="p-3 rounded-xl border">
+    <div class="flex items-center justify-between">
 
-        <div class="mt-3">
-            <input type="file" name="image" accept="image/*" class="border rounded p-1">
-        </div>
+        <span class="text-sm font-semibold text-blue-700">
+            Report Date
+        </span>
 
-        <button type="submit" class="mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg">Add Note</button>
-    </form>
+        <span class="text-sm font-semibold
+            {{ empty($capa->report_date) ? 'text-gray-400 italic' : 'text-gray-800' }}">
 
-@endif
-</div>
+            {{ $capa->report_date
+                ? \Carbon\Carbon::parse($capa->report_date)->format('d M Y')
+                : 'Not Verified Yet'
+            }}
+
+        </span>
+
     </div>
-  </div>
-    <!-- Requestor 
-    <div class="flex items-center space-x-2">
-        <i data-feather="check-circle" class="w-6 h-6 text-green-500"></i>
-        <div>
-            <div class="text-sm font-semibold text-gray-800">Submitted by {{ $rev->requestor->name }}</div>
-            <div class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($rev->created_at)->format('d M Y H:i') }}</div>
-        </div>
-    </div>-->
+</div>
 
-  @php
-// Jika belum ada versi yang dipilih, pakai current_version
-$currentRevision = $document->revisions->where('version', $document->current_version)->first();
-@endphp
+</div>
 
-<div id="approval-status" class="flex items-center justify-start space-x-12 p-6 bg-gray-200 rounded-lg">
-    {{-- Approved / Rejected --}}
-    <div class="flex items-center space-x-2 mb-2">
+<!-- SOURCE & CATEGORY -->
+<div class="space-y-6 mb-8">
+
+  <div>
+    <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Source of Finding</p>
+
+    <div class="flex flex-wrap gap-2">
+
         @php
-            $isApproved = $currentRevision->approved_by !== null;
-            $isRejected = $currentRevision->rejected_by !== null;
+            $sources = [
+                'Audit' => 'fa-magnifying-glass',
+                'Complain' => 'fa-comment-dots',
+                'Non-Conformity' => 'fa-triangle-exclamation',
+                'Management Review' => 'fa-people-arrows',
+            ];
         @endphp
-        <i data-feather="{{ $isApproved ? 'check-circle' : ($isRejected ? 'x-circle' : 'x-circle') }}" 
-           class="w-6 h-6 text-{{ $isApproved ? 'green-500' : ($isRejected ? 'red-500' : 'gray-400') }}"></i>
-        <div>
-            <div class="text-sm font-semibold text-gray-800">
-                @if($isApproved)
-                    Approved by {{ $currentRevision->approval?->name ?? 'Unknown' }}
-                @elseif($isRejected)
-                    Rejected by {{ $currentRevision->reject?->name ?? 'Unknown' }}
-                @else
-                    Not yet Approved
-                @endif
-            </div>
-            <div class="text-xs text-gray-500">
-                @if($isApproved)
-                    {{ \Carbon\Carbon::parse($currentRevision->approved_at)->format('d M Y H:i') }}
-                @elseif($isRejected)
-                    {{ \Carbon\Carbon::parse($currentRevision->rejected_at)->format('d M Y H:i') }}
-                @else
-                    Pending
-                @endif
-            </div>
-        </div>
-    </div>
 
-    {{-- Review --}}
-    <div class="flex items-center space-x-2 mb-2">
-        <i data-feather="{{ $currentRevision->review_by ? 'check-circle' : 'x-circle' }}" 
-           class="w-6 h-6 text-{{ $currentRevision->review_by ? 'green-500' : 'gray-400' }}"></i>
-        <div>
-            <div class="text-sm font-semibold text-gray-800">
-                @if($currentRevision->review_by)
-                    Review by {{ $currentRevision->review?->name ?? 'Unknown' }}
-                @else
-                    Not yet Reviewed
-                @endif
-            </div>
-            <div class="text-xs text-gray-500">
-                {{ $currentRevision->review_at ? \Carbon\Carbon::parse($currentRevision->review_at)->format('d M Y H:i') : 'Pending' }}
-            </div>
-        </div>
-    </div>
+        @foreach($sources as $key => $icon)
 
-    {{-- Authorized --}}
-    <div class="flex items-center space-x-2">
-        <i data-feather="{{ $currentRevision->authorized_by ? 'check-circle' : 'x-circle' }}" 
-           class="w-6 h-6 text-{{ $currentRevision->authorized_by ? 'green-500' : 'gray-400' }}"></i>
-        <div>
-            <div class="text-sm font-semibold text-gray-800">
-                @if($currentRevision->authorized_by)
-                    Authorized by {{ $currentRevision->authorized?->name ?? 'Unknown' }}
-                @else
-                    Not yet Authorized
-                @endif
-            </div>
-            <div class="text-xs text-gray-500">
-                {{ $currentRevision->authorized_at ? \Carbon\Carbon::parse($currentRevision->authorized_at)->format('d M Y H:i') : 'Pending' }}
-            </div>
-        </div>
+            @php
+                $active = ($capa->source_of_finding ?? '') === $key;
+            @endphp
+
+            <span
+                class="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium
+                {{ $active
+                    ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                    : 'bg-gray-50 border-gray-200 text-gray-400' }}
+                cursor-not-allowed">
+
+                <i class="fa-solid {{ $icon }} text-xs"></i>
+                {{ $key }}
+
+            </span>
+
+        @endforeach
+
     </div>
+  </div>
+
+   <div>
+    <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Category</p>
+
+    <div class="flex flex-wrap gap-2">
+
+        @php
+            $categories = [
+                'Critical' => 'bg-red-50 border-red-300 text-red-700',
+                'Major' => 'bg-yellow-50 border-yellow-300 text-yellow-700',
+                'Minor' => 'bg-blue-50 border-blue-300 text-blue-700',
+                'Observation' => 'bg-green-50 border-green-300 text-green-700',
+            ];
+        @endphp
+
+        @foreach($categories as $key => $style)
+
+            @php
+                $active = ($capa->category ?? '') === $key;
+            @endphp
+
+            <span
+                class="px-4 py-2 border rounded-lg text-sm font-medium cursor-not-allowed
+                {{ $active
+                    ? $style
+                    : 'bg-gray-50 border-gray-200 text-gray-400' }}">
+
+                {{ $key }}
+
+            </span>
+
+        @endforeach
+
+    </div>
+  </div>
+
 </div>
-<hr>
-   <div class="flex justify-start space-x-2 mt-4">
-    <a href="{{ route('mr.doc.index') }}" class="w-28 text-center flex gap-2 items-center px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">← Back</a>
-@if($document->status == 'Draft' && $hasSameDepartment && collect($userRoles)->intersect(['Supervisor Special Access', 'Manager Special Access'])->isNotEmpty())
-    <button onclick="approveDOC({{ $document->id }})" class="w-28 text-center flex gap-2 items-center px-4 py-2 bg-green-600 text-white rounded">
-        <i data-feather="check-circle" class="w-4 h-4 inline"></i> <span>Approve</span>
-    </button>
-    <button onclick="rejectDOC({{ $document->id }})" class="w-28 text-center flex gap-2 items-center px-4 py-2 bg-red-600 text-white rounded">
-        <i data-feather="x-circle" class="w-4 h-4 inline"></i> <span>Reject</span>
-    </button>
-@endif
 
 
+<!-- DETAIL, PROBLEM, RCA -->
+<div class="space-y-6 mb-6">
 
-   @if(in_array('Management Representative', $userDepartments) && 
-    ($document->status === 'Approved' || $document->status === 'Resubmitted'))
-    <button onclick="reviewDOC({{ $document->id }})" 
-        class="w-28 text-center flex gap-2 items-center px-4 py-2 bg-green-600 text-white rounded">
-        <i data-feather="zoom-in" class="w-4 h-4 inline"></i>
-        <span>Review</span>
-    </button>
-@endif
+  <!-- Detail of Information -->
+  <fieldset class="p-4 border rounded-md">
+    <legend class="px-2 text-sm font-semibold text-blue-700">
+      Detail of Information
+    </legend>
 
+    <p class="mt-2 text-md text-gray-800 leading-relaxed">
+      {{ $capa->detail_of_information ?? '-' }}
+    </p>
+  </fieldset>
 
+  <!-- Problem Statement -->
+  <fieldset class="p-4 border rounded-md">
+    <legend class="px-2 text-sm font-semibold text-blue-700">
+      Problem Statement
+    </legend>
 
-  @if(in_array('Management Representative', $userDepartments) && $document->status === 'Under Review')
-    <button onclick="authorizedDOC({{ $document->id }})"
-        class="w-32 text-center flex gap-2 items-center px-4 py-2 bg-green-600 text-white rounded">
-        <i data-feather="edit-3" class="w-4 h-4 inline"></i>
-        <span>Authorized</span>
-    </button>
-@endif
+    <p class="mt-2 text-md text-gray-800 leading-relaxed">
+      {{ $capa->problem ?? '-' }}
+    </p>
+  </fieldset>
 
-@if($rev->created_by === Auth::id() && $document->status === 'Under Review')
-    <button onclick="resubmitDOC({{ $document->id }})"
-        class="w-32 text-center flex gap-2 items-center px-4 py-2 bg-blue-600 text-white rounded">
-        <i data-feather="refresh-ccw" class="w-4 h-4 inline"></i>
-        <span>Resubmit</span>
-    </button>
-@endif
+ <!-- RCA -->
+  <fieldset class="p-4 border rounded-md">
+    <legend class="px-2 text-sm font-semibold text-blue-700">
+      Root Cause Analysis
+    </legend>
 
-
-@if(in_array('Management Representative', $userDepartments) && $document->status === 'Closed')
-   <a href="{{ route('mr.doc.rev', ['id' => $document->id]) }}" 
-    class="w-28 text-center flex gap-2 items-center px-4 py-2 bg-purple-600 text-white rounded">
-    <i data-feather="refresh-ccw" class="w-4 h-4 inline"></i>
-    <span>Revision</span>
-</a>
-
-@endif
-
-@if(in_array('Management Representative', $userDepartments) && $document->status === 'Published')
-    <button onclick="updateDOC({{ $document->id }})" 
-        class="w-28 text-center flex gap-2 items-center px-4 py-2 bg-teal-600 text-white rounded">
-        <i data-feather="calendar" class="w-4 h-4 inline"></i>
-        <span>Socialize</span>
-    </button>
-@endif
-   </div>
+    <p class="mt-2 text-md text-gray-800 leading-relaxed">
+      {{ $rca->description ?? '-' }}
+    </p>
+  </fieldset>
 </div>
- </div>
-<!-- Modal Reject -->
-<div id="rejectModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl transform transition-all scale-95">
+
+<!-- CA & PA -->
+<div class="grid grid-cols-1 gap-6 mb-6">
+
+    <!-- ================= CA ================= -->
+    <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
+
+        <!-- Header -->
+        <div class="px-5 py-3 border-b bg-gray-50 flex items-center gap-2">
+            <h3 class="text-sm font-semibold text-blue-700">
+                Corrective Action (CA)
+            </h3>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4">
+
+            <!-- Main Info -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <!-- Description (Rowspan Effect) -->
+                <div class="md:col-span-3 row-span-2">
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        Description
+                    </p>
+
+                    <div class="h-full bg-gray-50 border rounded-md p-3
+                                text-sm text-gray-800 whitespace-pre-line
+                                leading-relaxed">
+
+                        {{ $ca->description ?? '-' }}
+
+                    </div>
+
+                </div>
+
+                <!-- PIC -->
+                <div>
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        PIC
+                    </p>
+
+                    <div class="border rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-800">
+                        {{ $ca?->picUser?->name ?? '-' }}
+                    </div>
+
+                </div>
+
+                <!-- Due Date -->
+                <div>
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        Due Date
+                    </p>
+
+                    <div class="border rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-800">
+
+                        {{ $ca?->due_date
+                            ? \Carbon\Carbon::parse($ca->due_date)->format('d M Y')
+                            : '-' }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Document -->
+            <div class="pt-3 space-y-2">
+
+                <p class="text-[11px] text-gray-400 uppercase tracking-wide">
+                    Supporting Document
+                </p>
+
+                @if($capa->ca?->supporting_document)
+
+                    <div class="flex items-center justify-between
+                                px-3 py-2 border rounded-md bg-gray-50 text-sm">
+
+                        <div class="flex items-center gap-2 text-gray-700 truncate">
+
+                            <i class="fa-solid fa-file-lines text-indigo-500"></i>
+
+                            <span class="truncate max-w-[320px]">
+                                {{ $capa->ca->supporting_document }}
+                            </span>
+
+                        </div>
+
+                        <a href="{{ asset('capa_document/'.$capa->id.'/'.$capa->ca->supporting_document) }}"
+                           download
+                           class="text-indigo-600 hover:text-indigo-800">
+
+                            <i class="fa-solid fa-download"></i>
+
+                        </a>
+
+                    </div>
+
+                @else
+
+                    <p class="text-xs text-gray-400 italic">
+                        No document uploaded.
+                    </p>
+
+                @endif
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ================= PA ================= -->
+    <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
+
+        <!-- Header -->
+        <div class="px-5 py-3 border-b bg-gray-50 flex items-center gap-2">
+            <h3 class="text-sm font-semibold text-blue-700">
+                Preventive Action (PA)
+            </h3>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4">
+
+            <!-- Main Info -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <!-- Description -->
+                <div class="md:col-span-3 row-span-2">
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        Description
+                    </p>
+
+                    <div class="h-full bg-gray-50 border rounded-md p-3
+                                text-sm text-gray-800 whitespace-pre-line
+                                leading-relaxed">
+
+                        {{ $pa->description ?? '-' }}
+
+                    </div>
+
+                </div>
+
+                <!-- PIC -->
+                <div>
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        PIC
+                    </p>
+
+                    <div class="border rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-800">
+                        {{ $pa?->picUser?->name ?? '-' }}
+                    </div>
+
+                </div>
+
+                <!-- Due Date -->
+                <div>
+
+                    <p class="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
+                        Due Date
+                    </p>
+
+                    <div class="border rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-800">
+
+                        {{ $pa?->due_date
+                            ? \Carbon\Carbon::parse($pa->due_date)->format('d M Y')
+                            : '-' }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Document -->
+            <div class="pt-3 space-y-2">
+
+                <p class="text-[11px] text-gray-400 uppercase tracking-wide">
+                    Supporting Document
+                </p>
+
+                @if($capa->pa?->supporting_document)
+
+                    <div class="flex items-center justify-between
+                                px-3 py-2 border rounded-md bg-gray-50 text-sm">
+
+                        <div class="flex items-center gap-2 text-gray-700 truncate">
+
+                            <i class="fa-solid fa-file-lines text-indigo-500"></i>
+
+                            <span class="truncate max-w-[320px]">
+                                {{ $capa->pa->supporting_document }}
+                            </span>
+
+                        </div>
+
+                        <a href="{{ asset('capa_document/'.$capa->id.'/'.$capa->pa->supporting_document) }}"
+                           download
+                           class="text-indigo-600 hover:text-indigo-800">
+
+                            <i class="fa-solid fa-download"></i>
+
+                        </a>
+
+                    </div>
+
+                @else
+
+                    <p class="text-xs text-gray-400 italic">
+                        No document uploaded.
+                    </p>
+
+                @endif
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<!-- EVIDENCE -->
+<div class="bg-white border rounded-xl shadow-sm p-5">
+   <p class="text-sm font-semibold text-blue-700">List Evidences</p>
+
+  @if($capa->evidences->count())
+    <ul class="divide-y">
+      @foreach($capa->evidences as $evidence)
+        <li class="py-3 flex items-center gap-4">
+          <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
+            <i class="fa-solid fa-file-image text-indigo-600"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-800 truncate">
+              {{ $evidence->file_name }}
+            </p>
+            <p class="text-xs text-gray-400 uppercase">
+              {{ pathinfo($evidence->file_name, PATHINFO_EXTENSION) }}
+            </p>
+          </div>
+          <a href="{{ asset('evidence_capa/'.$capa->id.'/'.$evidence->file_name) }}"
+             target="_blank"
+             class="text-sm font-semibold text-indigo-600 hover:underline">
+            View
+          </a>
+        </li>
+      @endforeach
+    </ul>
+  @else
+    <p class="text-sm text-gray-400 italic">No evidence attached</p>
+  @endif
+
+      </div>
+
+      <hr class="my-4">
+
+      <div class="flex justify-start items-center gap-2 mt-4">
+         <a href="{{ route('mr.capa.index') }}" 
+           class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
+           ← Back
+         </a>
+
+        @if($capa->status === 'Authorized')
+    <button type="submit" id="submitBtn"
+        class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
+        <i class="fa-solid fa-check-circle"></i>
+        Closed
+    </button>
+@endif
+
+      </div>
+
+</div>
+    </div>
+
+ <!-- Modal Overlay -->
+<div id="capaModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50">
+    <!-- Modal Content -->
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 transform transition-transform duration-300 scale-95 relative animate-bounceIn">
+        
+        <!-- Close Button -->
+        <button id="closeCapaModal" class="absolute top-4 right-4 text-gray-400 hover:text-red-700 text-3xl font-bold">&times;</button>
         
         <!-- Header -->
-        <div class="flex items-center gap-3 mb-5">
-            <div class="p-2 bg-red-100 text-red-600 rounded-full">
-               <i data-feather="alert-triangle"></i>
+        <div class="flex items-center gap-3 mb-6 border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Management Representative Statement</h2>
+        </div>
+        
+       <!-- Chat Bubbles -->
+<div class="flex flex-col gap-6">
+
+    <!-- CAPA Needed Bubble -->
+    <div class="flex flex-col self-start max-w-xl transition transform duration-500 animate-fadeIn">
+        <!-- Header: icon + MR -->
+        <div class="flex items-center gap-2 mb-1">
+            <div class="w-8 h-8 bg-green-100 text-green-700 flex items-center justify-center rounded-full">
+                <!-- User Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A7.966 7.966 0 0112 15c2.028 0 3.886.78 5.303 2.051M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
             </div>
-            <h2 class="text-xl font-semibold text-gray-800">Reject Document</h2>
+            <span class="font-semibold text-gray-700">Management Representative New CAPA Needed?</span>
+        </div>
+        
+        <!-- Bubble -->
+        @if($capa->new_capa_needed == 'yes')
+        <div class="bg-green-50 text-green-800 p-4 rounded-xl shadow-sm font-medium">
+            CAPA ini memerlukan CAPA baru. Alasannya <span class="font-semibold">{{ $capa->new_capa_reason ?? '-' }}</span>
+        </div>
+        @else
+        <div class="bg-red-50 text-red-800 p-4 rounded-xl shadow-sm font-medium line-through">
+            CAPA ini tidak memerlukan CAPA baru.
+        </div>
+        @endif
+
+        <!-- Timestamp -->
+        <div class="text-xs text-gray-400 mt-1 text-right">
+            {{ $capa->authorized_at ? \Carbon\Carbon::parse($capa->authorized_at)->format('d-m-Y H:i') : '-' }}
+        </div>
+    </div>
+
+    <!-- MR Statement Bubble -->
+    @if($capa->mr_statement)
+    <div class="flex flex-col self-start max-w-xl transition transform duration-500 animate-fadeIn">
+        <!-- Header: icon + MR -->
+        <div class="flex items-center gap-2 mb-1">
+            <div class="w-8 h-8 bg-green-100 text-green-700 flex items-center justify-center rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A7.966 7.966 0 0112 15c2.028 0 3.886.78 5.303 2.051M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            <span class="font-semibold text-gray-700">Management Representative Verification</span>
         </div>
 
-        <form id="rejectForm" class="space-y-4">
-            @csrf
-             <input type="hidden" name="document_id" id="reject_document_id">
-            <!-- Reason -->
-            <div>
-                <label for="rejected_reason" class="block text-sm font-medium text-gray-700 mb-1">
-                    Reason for Rejection
-                </label>
-                <textarea 
-                    name="rejected_reason" 
-                    id="rejected_reason" 
-                    rows="4" 
-                    required
-                   placeholder="e.g. Duplicate request, issue already resolved, invalid request details..."
-                    class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-300 focus:border-red-400 p-3 text-sm resize-y transition"
-                ></textarea>
-                <p class="mt-1 text-xs text-gray-400">Please be specific to help us improve future requests.</p>
-            </div>
+        <!-- Bubble -->
+        <div class="bg-green-50 text-green-800 p-4 rounded-xl shadow-sm font-medium">
+            {{ $capa->mr_statement }}
+        </div>
 
-            <!-- Action Buttons -->
-            <div class="flex justify-end gap-3 pt-2">
-                <button 
-                    type="button" 
-                    onclick="closeRejectModal()"
-                    class="px-4 py-2 rounded-lg bg-gray-300 border border-gray-300 text-white hover:bg-gray-400 transition"
-                >
-                    Cancel
-                </button>
-                <button 
-                    type="submit"
-                    class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-sm transition"
-                >
-                    Reject
-                </button>
-            </div>
-        </form>
+        <!-- Timestamp -->
+        <div class="text-xs text-gray-400 mt-1 text-right">
+            {{ $capa->authorized_at ? \Carbon\Carbon::parse($capa->authorized_at)->format('d-m-Y H:i') : '-' }}
+        </div>
+    </div>
+    @endif
+
+</div>
+
+
+        <!-- Footer -->
+        <div class="mt-6 text-center">
+            <button id="closeCapaModalBtn" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">
+                Close
+            </button>
+        </div>
     </div>
 </div>
+<style>
+    /* Supaya select2 full width */
+.select2-container {
+  width: 100% !important;
+}
 
-<!-- Modal -->
-<div id="socializeModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg shadow-lg w-1/3 p-6">
-    <h2 class="text-lg font-bold mb-4">Socialize Document</h2>
-    <form id="socializeForm">
-         @csrf
-      <input type="hidden" name="document_id" id="document_id">
+/* Supaya tinggi sama dengan input Tailwind */
+.select2-container .select2-selection--single {
+  height: 40px !important; /* total tinggi */
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 0.375rem;   /* rounded-md */
+  padding: 0 0.75rem !important; /* px-3 */
+  line-height: normal !important;
+}
 
-      <div id="docCopiesContainer" class="mb-4">
-        <!-- Data department & qty akan muncul di sini -->
-      </div>
+/* Hilangkan padding default di dalam text */
+.select2-container .select2-selection__rendered {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  line-height: 1.5rem !important; /* sama seperti input tailwind text-base */
+}
 
-      <div class="flex justify-end gap-2">
-        <button type="button" onclick="closeModal()" class="bg-gray-400 text-white px-4 py-2 rounded">Close</button>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Save</button>
-      </div>
-    </form>
-  </div>
-</div>
-<div id="socializeModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[70vh] flex flex-col" id="modalContent">
-    
-   <!-- Header -->
-<div class="relative p-4 bg-blue-500 rounded-t-2xl flex flex-col items-center justify-center">
-    
-    <!-- Tombol close tetap di pojok kanan -->
-    <button type="button" onclick="closeModal()" 
-            class="absolute top-3 right-3 text-white hover:text-red-400 transition text-lg font-bold">
-        ✕
-    </button>
 
-    <!-- Icon besar -->
-    <i data-feather="calendar" class="text-white" style="width:48px; height:48px;"></i>
+/* Placeholder dan text select2 */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 42px !important;
+  font-size: 15px; /* tailwind text-base */
+  color: #374151;  /* tailwind text-gray-700 */
+}
 
-    <!-- Teks utama -->
-    <h2 class="mt-2 text-white text-2xl font-semibold text-center">Socialize Document</h2>
+/* Tombol dropdown */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 42px !important;
+  right: 0.75rem;
+}
 
-    <!-- Teks tambahan kecil -->
-    <p class="text-white text-sm mt-1 text-center italic">Please input socialized date and evidence</p>
-</div>
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
 
-<div class="overflow-y-auto">
-    <!-- Form -->
-    <form id="socializeForm" class="flex-1 flex flex-col space-y-4  p-4" enctype="multipart/form-data">
-         @csrf
-      <input type="hidden" name="document_id" id="document_id">
+.animate-bounceIn {
+  animation: bounceIn 0.6s ease forwards;
+}
 
-      <!-- Container untuk data department & qty, scrollable -->
-      <div id="docCopiesContainer" class="flex-1 space-y-3">
-        <!-- Data akan di-render di sini -->
-      </div>
- </div>
-      <!-- Footer -->
-      <div class="flex justify-end gap-3 p-4 border-t mt-2">
-        <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition">Cancel</button>
-        <button type="submit" class="px-5 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition">Save</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="resubmitModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
-        <h2 class="text-lg font-semibold mb-4" id="resubmitTitle">Resubmit Document</h2>
-
-        <form id="resubmitForm" enctype="multipart/form-data">
-            @csrf
-            @method('PUT')
-
-            <!-- Upload File -->
-            <div class="mb-4">
-                <label for="document_file" class="block text-sm font-medium text-gray-700 mb-1">
-                    Upload New File
-                </label>
-                <input type="file" name="file" id="document_file"
-                       class="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300"
-                       required>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex justify-end space-x-2">
-                <button type="button" id="cancelResubmit"
-                        class="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400">
-                    Cancel
-                </button>
-                <button type="submit"
-                        class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
-                    Submit
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
+.animate-bounceIn.delay-200 {
+  animation-delay: 0.2s;
+}
+</style>
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-   ClassicEditor
-    .create(document.querySelector('#note'), {
-        toolbar: [
-            'heading', '|',
-            'bold', 'italic', 'underline', 'strikethrough', '|',
-            'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
-            'link', 'bulletedList', 'numberedList', 'blockQuote', '|',
-            'insertTable', 'mediaEmbed', '|',
-            'undo', 'redo', 'code'
-        ]
-    })
-    .then(editor => {
-        $('#noteForm').on('submit', function (e) {
-            e.preventDefault();
 
-            // Ambil konten dari CKEditor
-            let noteContent = editor.getData();
-            if (!noteContent.trim()) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'warning',
-                    title: 'Note tidak boleh kosong!',
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-                return;
-            }
-
-            // Ambil URL dan FormData
-            let url = $(this).attr('action');
-            let formData = new FormData(this);
-            formData.append('content', noteContent);
-
-            $.ajax({
-                url: url,
-                method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (data) {
-                    if (data.success) {
-                        // Tambah note ke list
-                        let noteItem = `
-                            <div class="note-item p-3 border-b">
-                                <div class="flex items-center mb-2">
-                                    <img src="${data.note.avatar}" class="w-8 h-8 rounded-full mr-2">
-                                    <span class="font-bold">${data.note.user}</span>
-                                    <span class="text-gray-500 text-sm ml-2">${data.note.created_at}</span>
-                                </div>
-                                <div class="note-content">${data.note.content}</div>
-                            </div>
-                        `;
-                        $('#noteList').prepend(noteItem);
-
-                        // Reset CKEditor dan Form
-                        editor.setData('');
-                        $('#noteForm')[0].reset();
-
-                        // Tampilkan Toast Success
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'success',
-                            title: 'Note berhasil ditambahkan!',
-                            showConfirmButton: false,
-                            timer: 2000
-                        }).then(() => {
-                            // Reload halaman setelah toast hilang
-                            location.reload();
-                        });
-
-                    } else {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'error',
-                            title: 'Gagal menambahkan note!',
-                            showConfirmButton: false,
-                            timer: 2000
-                        });
-                    }
-                },
-                error: function () {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'error',
-                        title: 'Terjadi kesalahan server!',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                }
-            });
-        });
-    })
-    .catch(error => console.error(error));
-});
-    
-    function showToast(type, message) {
+// Fungsi Toast menggunakan SweetAlert2
+function showToast(icon, title) {
     Swal.fire({
         toast: true,
         position: 'top-end',
-        icon: type, // success, error, info, warning
-        title: message,
         showConfirmButton: false,
         timer: 3000,
-        timerProgressBar: true
+        icon: icon, // 'success', 'error', 'warning', 'info', 'question'
+        title: title
     });
 }
-
-    function rejectDOC(id) {
-        document.getElementById('reject_document_id').value = id;
-        document.getElementById('reject_reason').value = '';
-        document.getElementById('rejectModal').classList.remove('hidden');
-    }
-
-    function closeRejectModal() {
-        document.getElementById('rejectModal').classList.add('hidden');
-    }
-
-   // ✅ Approve Ticket
-function approveDOC(docID) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "Approve this Document?",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#16a34a',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, Approve'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post(`/mr/document/${docID}/approve`, {
-                _token: '{{ csrf_token() }}'
-            }, function (res) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: res.message || 'Document approved!',
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-                setTimeout(() => location.reload(), 1200);
-            }).fail(function () {
-                Swal.fire('Error', 'Gagal approve.', 'error');
-            });
-        }
-    });
-}
-
-// ✅ Reject Ticket
-$('#rejectForm').on('submit', function (e) {
-    e.preventDefault();
-    let form = $(this);
-    let docID = $('#reject_document_id').val();
-    let data = form.serialize();
-
-    $.post(`/mr/document/${docID}/reject`, data, function (res) {
-        if (res.success) {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: res.message,
-                showConfirmButton: false,
-                timer: 2000
-            });
-            setTimeout(() => location.reload(), 1200);
-        } else {
-            Swal.fire('Failed', res.message, 'error');
-        }
-    }).fail(function () {
-        Swal.fire('Error', 'An error occurred.', 'error');
-    });
-});
-
-function authorizedDOC(id, docNumber) {
-feather.replace();
-    Swal.fire({
-        title: 'Authorize Document',
-        html: `Authorize this Document?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, Authorized it!',
-        cancelButtonText: 'Cancel'
-     }).then(result => {
-        if (result.isConfirmed) {
-            $.post(`/mr/document/${id}/authorized`, {
-                _token: '{{ csrf_token() }}'
-            }, function(res) {
-                // ✅ res tersedia di sini
-                showToast('success', 'Document has been Authorized: ' + res.document_number);
-                setTimeout(() => location.reload(), 3000);
-            }).fail(function() {
-                showToast('error', 'Terjadi kesalahan saat mengesahkan Document.');
-            });
-        }
-    });
-}
+  const csrfToken = @json(csrf_token());
+const capaId = @json($capa->id);
 
 
-$(function () {
-    const $button = $('#revisionDropdownButton');
-    const $menu = $('#revisionDropdownMenu');
-    const $approvalStatus = $('#approval-status');
 
-    // 🔄 Update tombol
-    function updateButton(version) {
-        $button.html(
-            'Document Version ' + String(version).padStart(2, '0') +
-            '<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>' +
-            '</svg>'
-        );
-        $button.data('current-version', version);
-    }
 
-     function updateApprovalStatus(data) {
-        // Approved / Rejected
-        const isApproved = data.approvedBy;
-        const isRejected = data.rejectedBy;
+$(document).ready(function () {
 
-        let approvedHtml = `
-        <div class="flex items-center space-x-2 mb-2">
-            <i data-feather="${isApproved ? 'check-circle' : (isRejected ? 'x-circle' : 'x-circle')}" 
-               class="w-6 h-6 text-${isApproved ? 'green-500' : (isRejected ? 'red-500' : 'gray-400')}"></i>
-            <div>
-                <div class="text-sm font-semibold text-gray-800">
-                    ${isApproved ? `Approved by ${data.approvedName}` : (isRejected ? `Rejected by ${data.rejectedName}` : 'Not yet Approved')}
-                </div>
-                <div class="text-xs text-gray-500">
-                    ${isApproved ? data.approvedAtFormatted : (isRejected ? data.rejectedAtFormatted : 'Pending')}
-                </div>
+
+  const currentUser = @json($currentUser);
+
+
+    // Render comment
+    function renderComment(comment){
+        return `
+        <div class="flex relative" data-id="${comment.id}" data-user-id="${comment.user_id}">
+          <div class="flex flex-col items-center mr-4">
+            <div class="w-10 h-10 rounded-full border-2 border-gray-300 overflow-hidden">
+              <img src="${comment.photo}" class="w-full h-full object-cover">
             </div>
+            <div class="flex-1 w-px bg-gray-300 mt-1"></div>
+          </div>
+
+          <div class="flex-1">
+            <div class="flex items-center justify-between text-sm">
+              <div>
+                <span class="text-gray-900 font-semibold">${comment.name}</span>
+                <span class="font-medium text-gray-400 ml-1">commented</span>
+              </div>
+
+              <button class="delete-comment text-red-500 ml-2">
+                <i class="fa fa-trash cursor-pointer"></i>
+              </button>
+            </div>
+
+            <div class="mt-1 p-3 bg-gray-50 rounded-lg text-gray-800 text-sm">
+                ${comment.comment}
+            </div>
+          </div>
         </div>
         `;
-
-        let reviewHtml = `
-        <div class="flex items-center space-x-2 mb-2">
-            <i data-feather="${data.reviewBy ? 'check-circle' : 'x-circle'}" 
-               class="w-6 h-6 text-${data.reviewBy ? 'green-500' : 'gray-400'}"></i>
-            <div>
-                <div class="text-sm font-semibold text-gray-800">
-                    ${data.reviewBy ? `Review by ${data.reviewName}` : 'Not yet Reviewed'}
-                </div>
-                <div class="text-xs text-gray-500">
-                    ${data.reviewAtFormatted}
-                </div>
-            </div>
-        </div>
-        `;
-
-        let authorizedHtml = `
-        <div class="flex items-center space-x-2">
-            <i data-feather="${data.authorizedBy ? 'check-circle' : 'x-circle'}" 
-               class="w-6 h-6 text-${data.authorizedBy ? 'green-500' : 'gray-400'}"></i>
-            <div>
-                <div class="text-sm font-semibold text-gray-800">
-                    ${data.authorizedBy ? `Authorized by ${data.authorizedName}` : 'Not yet Authorized'}
-                </div>
-                <div class="text-xs text-gray-500">
-                    ${data.authorizedAtFormatted}
-                </div>
-            </div>
-        </div>
-        `;
-
-        $approvalStatus.html(approvedHtml + reviewHtml + authorizedHtml);
-
-        // Re-init feather icons
-        feather.replace();
     }
 
-    // 🔄 Update tabel copies
-    function updateCopies(copies, revisionId) {
-        const $tbody = $('#copiesTable tbody').empty();
+    // Add comment
+    $(document).on('click', '#add-comment-btn', function () {
 
-        if (!copies || copies.length === 0) {
-            $tbody.append('<tr><td colspan="4" class="text-gray-500 p-2 text-center">No copies distributed.</td></tr>');
+        const text = $('#new-comment').val().trim();
+
+        if (!text) {
+            alert('Comment cannot be empty');
             return;
         }
 
-        // Pastikan revisionId string
-        revisionId = String(revisionId);
-
-        // Filter berdasarkan revisionId
-        const filtered = copies.filter(c => String(c.document_revision_id) === revisionId);
-
-        if (filtered.length > 0) {
-            filtered.forEach(c => {
-                $tbody.append(
-                    '<tr>' +
-                        `<td class="p-2 border">${c.department}</td>` +
-                        `<td class="p-2 border text-center">${c.qty} Sheet</td>` +
-                        `<td class="p-2 border">${c.date ?? 'Not yet socialized'}</td>` +
-                        `<td class="p-2 border">${c.socialized}</td>` +
-                    '</tr>'
-                );
-            });
-        } else {
-            $tbody.append('<tr><td colspan="4" class="text-gray-500 p-2 text-center">No copies distributed.</td></tr>');
-        }
-    }
-
-    // 🔄 Update seluruh document
-    function updateDocument(data) {
-        $('#documentVersion').text(String(data.version).padStart(2, '0'));
-        $('#documentTitle').text(data.title);
-
-        // File utama
-        if (data.file) {
-            $('#documentFileLink').attr('href', data.file).show();
-            $('#documentFileName').text(data.fileName || 'Unknown File');
-            $('#documentFileExt').text(data.fileExt || '');
-        } else {
-            $('#documentFileLink').hide();
-            $('#documentFileName').text('');
-            $('#documentFileExt').text('');
-        }
-
-        // File 4M
-        if (data.file4m) {
-            $('#documentFile4MLink').attr('href', data.file4m).show();
-            $('#documentFile4MName').text(data.file4mName || 'Unknown File');
-            $('#documentFile4MExt').text(data.file4mExt || '');
-        } else {
-            $('#documentFile4MLink').hide();
-            $('#documentFile4MName').text('');
-            $('#documentFile4MExt').text('');
-        }
-
-         // Reason revisi
-        if (data.remark) {
-            $('#remark').show().text(data.remark || 'Unknown');
-        } else {
-            $('#remark').hide();
-        }
-
-        // Reason revisi
-      if (data.reason && data.reason.trim() !== '' && data.reason.toLowerCase() !== 'null') {
-    $('#reasonRevisionLabel').show();
-    $('#reasonRevisionContainer').show().find('.reason-text').text(data.reason);
-} else {
-    $('#reasonRevisionLabel').hide();
-    $('#reasonRevisionContainer').hide().find('.reason-text').text('');
-}
-
-        // Update copies
-        updateCopies(data.copies, data.revisionId ?? 'original');
-    }
-
-    // Toggle dropdown
-    $button.on('click', function (e) {
-        e.preventDefault();
-        $menu.toggleClass('hidden');
-    });
-
-    // Klik di luar dropdown
-    $(document).on('click', function (e) {
-        if (!$button.is(e.target) && $button.has(e.target).length === 0 &&
-            !$menu.is(e.target) && $menu.has(e.target).length === 0) {
-            $menu.addClass('hidden');
-        }
-    });
-
-    // Pilih versi
-    $menu.on('click', '.revision-item', function (e) {
-        e.preventDefault();
-        const $selected = $(this);
-
-        // Parse copies aman
-        let copies = $selected.data('copies');
-        if (typeof copies === 'string') copies = JSON.parse(copies);
-
-        const newData = {
-            version: $selected.data('version'),
-            title: $selected.data('title'),
-            file: $selected.data('file'),
-            remark: $selected.data('remark'),
-            fileName: $selected.data('file-name'),
-            fileExt: $selected.data('file-ext'),
-            file4m: $selected.data('file-4m'),
-            file4mName: $selected.data('file-4m-name'),
-            file4mExt: $selected.data('file-4m-ext'),
-            reason: $selected.data('reason'),
-            copies: copies,
-            revisionId: String($selected.data('revision-id') ?? 'original'),
+        const comment = {
+            id: Date.now(),
+            user_id: currentUser.id,
+            name: currentUser.name,
+            photo: currentUser.photo,
+            comment: text
         };
 
-        // Update tombol & document
-        updateButton(newData.version);
-        updateDocument(newData);
+        $('#comments-list').append(renderComment(comment));
 
-        $menu.addClass('hidden');
+        $('#new-comment').val('');
+
     });
+
+    // Delete comment
+    $(document).on('click', '.delete-comment', function () {
+
+        $(this).closest('[data-id]').remove();
+
+    });
+
 });
 
 
-function reviewDOC(id, docNumber) {
 
-    Swal.fire({
-        title: 'Review Document?',
-        html: `Review this Document?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, Review it!',
-        cancelButtonText: 'Cancel'
-     }).then(result => {
-        if (result.isConfirmed) {
-            $.post(`/mr/document/${id}/review`, {
-                _token: '{{ csrf_token() }}'
-            }, function(res) {
-                // ✅ res tersedia di sini
-                showToast('success', 'Document has been Review: ' + res.document_number);
-                 setTimeout(() => location.reload(), 1200);
-            }).fail(function() {
-                showToast('error', 'Terjadi kesalahan saat review document.');
-            });
-        }
-    });
-}
+$('#submitBtn').click(function(){
 
- // Animasi ketika modal dibuka
-  function openModal() {
-    document.getElementById('socializeModal').classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('modalContent').classList.remove('scale-95', 'opacity-0');
-      document.getElementById('modalContent').classList.add('scale-100', 'opacity-100');
-    }, 10);
-  }
+    const $submitBtn = $(this); // 🔥 ini solusi paling aman
 
-  // Animasi ketika modal ditutup
-  function closeModal() {
-    const modalContent = document.getElementById('modalContent');
-    modalContent.classList.add('scale-95', 'opacity-0');
-    modalContent.classList.remove('scale-100', 'opacity-100');
-    setTimeout(() => {
-      document.getElementById('socializeModal').classList.add('hidden');
-    }, 200);
-  }
+    // Disable button
+    $submitBtn.prop('disabled', true).text('Closing...');
 
-// Open modal dan ambil data dari backend
-function updateDOC(documentId) {
-    $('#document_id').val(documentId);
-    $('#docCopiesContainer').html('<div class="text-center text-gray-500">Loading...</div>');
-
-    $.get('/mr/document/copies/' + documentId, function (data) {
-        if (!data || data.length === 0) {
-            $('#docCopiesContainer').html('<p class="text-gray-500">No department copies found.</p>');
-            return;
-        }
-
-      let html = '';
-data.forEach(item => {
-    html += `
-    <div class="p-4 bg-white rounded-xl bg-blue-50 shadow-sm mb-3 border border-blue-100">
-        <div class="flex justify-between items-center mb-2">
-            <span class="font-semibold text-gray-800">${item.department_name}</span>
-            <span class="text-sm text-gray-500 underline">${item.qty} Salinan</span>
-        </div>
-
-        <!-- Input tanggal -->
-        <input type="date" name="dates[${item.id}]" value="${item.date ? item.date : ''}" 
-               class="w-full px-3 py-2 mb-3 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
-
-        <!-- Input file bukti -->
-        <input type="file" name="photos[${item.id}]" accept="image/*"
-               class="w-full px-3 py-2 mb-1 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
-        <p class="text-xs text-gray-400 italic">Wajib unggah bukti sosialisasi.</p>
-    </div>
-    `;
-});
-
-
-        $('#docCopiesContainer').html(html);
-        openModal(); // gunakan animasi modal yang sebelumnya kita buat
-    }).fail(() => {
-        $('#docCopiesContainer').html('<p class="text-red-500">Failed to load data.</p>');
-    });
-}
-
-// Close modal
-function closeModal() {
-    const modalContent = $('#modalContent');
-    modalContent.removeClass('scale-100 opacity-100').addClass('scale-95 opacity-0');
-    setTimeout(() => {
-        $('#socializeModal').addClass('hidden');
-    }, 200);
-}
-
-$('#socializeForm').on('submit', function (e) {
-    e.preventDefault();
-
-    // Gunakan FormData agar file bisa dikirim
-    const formData = new FormData(this);
+    const url = "{{ route('mr.capa.approve', ':id') }}"
+                    .replace(':id', capaId);
 
     $.ajax({
-        url: '/mr/document/save-socialize',
+        url: url,
         type: 'POST',
-        data: formData,
-        processData: false,  // penting agar jQuery tidak mengubah data
-        contentType: false,  // penting agar header multipart/form-data otomatis
-        success: function(res) {
-            if (res.success) {
-                showToast('success', 'Socialization dates saved successfully!');
-                closeModal();
-                setTimeout(() => location.reload(), 1200);
-            } else {
-                showToast('error', res.message || 'Failed to save socialize dates.');
-            }
+        data: {
+            _token: '{{ csrf_token() }}',
+            capa_id: capaId,
         },
-        error: function() {
-            showToast('error', 'Server error while saving dates.');
-        }
-    });
-});
+        success: function(res){
 
-function resubmitDOC(id, docNumber) {
-    currentDocId = id;
-    $("#resubmitTitle").text(`Resubmit Document`);
-    $("#resubmitModal").removeClass("hidden");
-}
+            if(res.success){
 
-// tutup modal
-$("#cancelResubmit").on("click", function () {
-    $("#resubmitModal").addClass("hidden");
-    $("#resubmitForm")[0].reset();
-});
+                showToast('success', res.message || 'CAPA successfully Closed!');
 
-// submit form via AJAX
-$("#resubmitForm").on("submit", function (e) {
-    e.preventDefault();
+                setTimeout(() => {
+                    window.location.href = '{{ route("mr.capa.index") }}';
+                }, 2000);
 
-    let formData = new FormData(this);
-
-    $.ajax({
-        url: `/mr/document/${currentDocId}/resubmit`,
-        type: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function (res) {
-            if (res.success) {
-                $("#resubmitModal").addClass("hidden");
-                showToast('success', 'Document has been Resubmit');
-                setTimeout(() => location.reload(), 1200);
-            } else {
-                 showToast('error', res.message || 'Failed to save socialize dates.');
             }
+
+        },
+        error: function(err){
+
+            console.error(err.responseText);
+
+            const msg = err.responseJSON?.message || 'Terjadi kesalahan saat close CAPA.';
+
+            showToast('error', msg);
+
+            // Aktifkan lagi kalau gagal
+            $submitBtn.prop('disabled', false).text('Closed');
+
         }
     });
 });
 
-feather.replace();
+$(document).ready(function(){
+    // Auto open modal jika sudah authorized
+    @if($capa->authorized_at)
+        $('#capaModal').fadeIn(200).css('display','flex').addClass('scale-100');
+    @endif
+
+    // Close modal
+    $('#closeCapaModal, #closeCapaModalBtn').click(function(){
+        $('#capaModal').fadeOut(200).removeClass('scale-100');
+    });
+});
+
+
 
 </script>
+
 @endpush
 
 @endsection

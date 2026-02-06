@@ -98,6 +98,37 @@ class CAPAController extends Controller
 
   $query = CAPA::with(['user', 'departemen', 'representative', 'auditors.users','postedBy','verifiedBy','processedBy','submittedBy','returnedBy','authorizedBy','approvedBy'])
     ->orderBy('created_at', 'desc');
+
+  $currentUserId = Auth::id();
+$tab = $request->tab ?? 'auditor';
+
+/**
+ * Cek apakah user adalah MR
+ */
+$isMRCapa = Auth::user()
+    ->departments() // sesuaikan dengan relasi kamu
+    ->where('name', 'Management Representative')
+    ->exists();
+
+
+if (!$isMRCapa) {
+
+    // Kalau BUKAN MR → baru difilter
+    if ($tab === 'auditor') {
+
+        $query->whereHas('auditors', function ($q) use ($currentUserId) {
+            $q->where('user_id', $currentUserId);
+        });
+
+    } else {
+
+        $query->whereHas('departemen.users', function ($q) use ($currentUserId) {
+            $q->where('user_id', $currentUserId);
+        });
+
+    }
+
+}
     // Filter document_number
 if ($request->capa_number) {
     $query->where('capa_number', 'like', '%' . $request->capa_number . '%');
