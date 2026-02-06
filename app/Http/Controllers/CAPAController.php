@@ -149,7 +149,7 @@ if ($request->report_date) {
     $pdf_url = route('mr.capa.pdf', ['id' => $row->id]); 
     $print_url = route('mr.capa.print', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $isMR = $user->departments()
-    ->where('name', 'Management Representative & HSE')
+    ->where('name', 'Management Representative')
     ->exists();
     $isAuditor = in_array($userId, $row->auditors->pluck('user_id')->toArray());
    $isAuditee = $user->departments()
