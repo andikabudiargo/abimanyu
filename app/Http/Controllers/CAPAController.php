@@ -235,8 +235,6 @@ if ($row->status == 'Closed') {
     return $actionButtons;
 })
 
-
-
 ->addColumn('created_by', function ($row) {
     return $row->user ? $row->user->name : '-';
 })
@@ -1548,11 +1546,8 @@ public function process($id)
         'comments.user' // relasi
     ])->findOrFail($id);
 
-    $users = User::whereHas('departments', function ($q) use ($capa) {
-                    $q->where('department_id', $capa->dept_id);
-                })
-                ->orderBy('name')
-                ->get();
+    $users = User::select('id', 'name')->orderBy('name')->get();
+
 
     return view('mr.process-capa', compact('capa', 'users'));
 }
