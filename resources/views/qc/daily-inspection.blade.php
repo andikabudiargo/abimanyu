@@ -611,6 +611,20 @@ function getActiveDate() {
     return $('#filter-inspection_date').val();
 }
 
+function getFilterLabel() {
+
+    const date = $('#filter-inspection_date').val();
+
+    if (!date) {
+        return 'Hari Ini';
+    }
+
+    if (date.includes(' to ')) {
+        return date.replace(' to ', ' s/d ');
+    }
+
+    return date;
+}
 
 
 $(document).on('click', '.btn-delete-inspection', function () {
@@ -722,7 +736,10 @@ $(document).on('click', '.btn-delete-inspection', function () {
             $('#top-part-list').html('<li>Loading...</li>');
         },
         success: function(res) {
-            $('#modal-pos').text('Pos: ' + pos);
+           const label = getFilterLabel();
+
+$('#modal-title').text('Top Defect ' + label);
+$('#modal-pos').text('Pos: ' + pos);
 
 // FINTECH STYLE LIST ITEM
 let defectHtml = '';
