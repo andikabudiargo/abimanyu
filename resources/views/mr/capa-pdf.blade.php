@@ -375,9 +375,9 @@
     </tr>
     
 </table>
-<p style="font-size:9px; color:#6b7280;">
+<!--<p style="font-size:9px; color:#6b7280;">
     <em>*NOTE : New CAPA will be raised if action has been done and the problem not solved</em>
-</p>
+</p>-->
 
 <!-- ================= FOOTER ================= -->
 @if(!empty($evidenceImages))
