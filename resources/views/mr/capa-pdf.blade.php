@@ -137,7 +137,7 @@
     </tr>
     <tr>
         <th width="25%">Report Date</th>
-        <td colspan="3">{{ $capa->report_date }}</td>
+        <td colspan="3">{{ $capa->report_date ? \Carbon\Carbon::parse($capa->report_date)->format('d-m-Y') : '-' }}</td>
     </tr>
 
     <tr>
@@ -273,7 +273,7 @@
     </tr>
     <tr>
         <td colspan="3" rowspan="3" width="70%">{{ $capa->ca?->description }}</td>
-        <td style="text-align:center;">{{ $capa->ca?->due_date }}</td>
+        <td style="text-align:center;">{{ $capa->ca?->due_date ? \Carbon\Carbon::parse($capa->ca?->due_date)->format('d-m-Y') : '-' }}</td>
     </tr>
     <tr>
         <th style="background-color:yellow; text-align:center;">PIC</th>
@@ -302,7 +302,9 @@
     </tr>
     <tr>
         <td colspan="3" rowspan="3" width="70%">{{ $capa->pa?->description }}</td>
-        <td style="text-align:center;">{{ $capa->pa?->due_date }}</td>
+       <td style="text-align:center;">
+    {{ $capa->pa?->due_date ? \Carbon\Carbon::parse($capa->pa?->due_date)->format('d-m-Y') : '-' }}
+</td>
     </tr>
     <tr>
         
@@ -333,12 +335,32 @@
         <th colspan="2" style="background-color:yellow; text-align:center;">New CAPA Needed</th>
     </tr>
     <tr>
-        <td colspan="2" rowspan="2" width="60%" style="text-align:center;">{{ $capa->verifiedBy->name ?? '-' }}</td>
-        <td style="text-align: center;"><b>Yes / No</b></td>
+       <td colspan="2" rowspan="2" width="60%" style="text-align: center; vertical-align: middle;">
+    <p>{{ $capa->mr_statement ?? '' }}</p>
+    <p style="color: #1E40AF; text-decoration: underline;">
+    {{ $capa->authorized_at ? \Carbon\Carbon::parse($capa->authorized_at)->format('d-m-Y') : '-' }}
+</p>
+
+</td>
+
+
+      <td style="text-align: center;">
+    @php
+        $yesStyle = $capa->new_capa_needed == 'yes' ? '' : 'text-decoration: line-through;';
+        $noStyle  = $capa->new_capa_needed == 'no'  ? '' : 'text-decoration: line-through;';
+    @endphp
+
+    <b>
+        <span style="{{ $yesStyle }}">Yes</span> / 
+        <span style="{{ $noStyle }}">No</span>
+    </b>
+</td>
+
+
         <td style="text-align: center;"><b>If yes, why?</b></td>
     </tr>
     <tr>
-        <td colspan="2">
+        <td colspan="2">{{ $capa->new_capa_reason ?? '' }}
         </td>
     </tr>
     <tr>
@@ -394,13 +416,6 @@
 
 @endif
 
-
-
-
-
-<div class="footer">
-    This PDF Generated on {{ now()->format('d M Y H:i') }} | Abimanyu Live System
-</div>
 
 @if(request()->routeIs('mr.capa.print'))
 <script>
