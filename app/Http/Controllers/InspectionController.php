@@ -265,7 +265,7 @@ public function getTopDefect(Request $request)
         ->whereDate('i.inspection_date', $today)
         ->groupBy('f.defect')
         ->orderByDesc('total_qty')
-        ->limit(3)
+        ->limit(10)
         ->get();
 
     $topPart = DB::table('inspection_defects as d')
@@ -279,7 +279,7 @@ public function getTopDefect(Request $request)
     ->whereDate('i.inspection_date', $today)
     ->groupBy('a.description')
     ->orderByDesc('total_qty')
-    ->limit(3)
+    ->limit(10)
     ->get();
 
 
