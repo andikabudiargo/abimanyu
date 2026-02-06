@@ -18,6 +18,8 @@
     <div
       class="flex justify-between items-start p-6 border-b bg-white/80 backdrop-blur sticky top-0 z-10 rounded-t-2xl">
 
+    
+
       <div>
         <h2 id="modal-title"
             class="text-xl font-bold text-gray-800 tracking-tight">
@@ -34,20 +36,44 @@
       </button>
     </div>
 
+  <!-- Info Keterangan -->
 
     <!-- ================= BODY (SCROLL) ================= -->
     <div class="flex-1 overflow-y-auto p-6 space-y-6">
+<div
+  class="p-3 bg-yellow-50 border border-yellow-500 rounded-lg text-sm text-yellow-800 leading-relaxed">
 
-      <!-- Top Defect -->
-      <div>
-        <h3 class="text-sm font-semibold text-gray-700 mb-2">
-          Top 10 Defect
-        </h3>
+  <span class="font-medium">
+    Berikut ranking 10 defect tertinggi dan persentasenya
+    sesuai rentang waktu yang dipilih.
+  </span>
 
-        <ul id="top-defect-list" class="space-y-2">
-          <li class="text-sm text-gray-700">Loading...</li>
-        </ul>
-      </div>
+</div>
+    <!-- Top Defect -->
+<div>
+
+  <!-- Judul + Summary (Sejajar) -->
+  <div class="flex items-center justify-between mb-2">
+
+    <h3 class="text-sm font-semibold text-gray-700">
+      Top 10 Defect
+    </h3>
+
+    <!-- Keterangan summary -->
+    <p id="defect-summary"
+       class="text-xs text-gray-500 italic text-right">
+       Loading summary...
+    </p>
+
+  </div>
+
+  <ul id="top-defect-list" class="space-y-2">
+    <li class="text-sm text-gray-700">Loading...</li>
+  </ul>
+
+</div>
+
+
 
 
       <!-- Top Parts -->
@@ -548,6 +574,7 @@ div.dt-button-collection .dt-button:hover {
         $('#filter-form').on('submit', function (e) {
             e.preventDefault();
             table.draw();
+            loadSummary();
         });
   });
 
@@ -714,11 +741,6 @@ $(document).on('click', '.btn-delete-inspection', function () {
     // load awal tanpa filter
     loadSummary();
 
-    // jika ada input tanggal
-   $('#filter-date').on('change', function() {
-    loadSummary();
-});
-
 
     $('.open-defect-modal').on('click', function () {
     const pos = $(this).data('pos');
@@ -741,18 +763,41 @@ $(document).on('click', '.btn-delete-inspection', function () {
 $('#modal-title').text('Top Defect ' + label);
 $('#modal-pos').text('Pos: ' + pos);
 
+$('#defect-summary').html(
+  `Total <b>${res.total_defect}</b> Defect dari 
+   <b>${res.total_part_type}</b> Jenis Part`
+);
 // FINTECH STYLE LIST ITEM
 let defectHtml = '';
 let partHtml = '';
 
 res.top_defect.forEach((d, i) => {
     defectHtml += `
-        <li class="flex items-center justify-between bg-white/60 backdrop-blur-md border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-md">${i + 1}</span>
-                <span class="font-medium text-gray-800">${d.defect_name} ( ${d.category})</span>
+        <li class="flex items-center bg-white/60 backdrop-blur-md border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+
+            <!-- KIRI: Rank + Nama -->
+            <div class="flex items-center gap-2 flex-1">
+
+                <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-md">
+                    ${i + 1}
+                </span>
+
+                <span class="font-medium text-gray-800">
+                    ${d.defect_name} (${d.category})
+                </span>
+
             </div>
-            <span class="text-gray-700 font-semibold">${d.total_qty} Pcs</span>
+
+            <!-- TENGAH: Persentase -->
+            <div class="w-20 text-center text-sm font-semibold text-indigo-600">
+                ${d.percentage}%
+            </div>
+
+            <!-- KANAN: Qty -->
+            <div class="w-20 text-right text-gray-700 font-semibold">
+                ${d.total_qty} Pcs
+            </div>
+
         </li>
     `;
 });

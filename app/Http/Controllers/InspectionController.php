@@ -263,20 +263,22 @@ public function getTopDefect(Request $request)
 {
     $pos = $request->pos;
 
-    /* ================= TENTUKAN RANGE TANGGAL ================= */
+    /* ================= RANGE TANGGAL ================= */
 
     if ($request->inspection_date) {
-
-        // dari filter
         [$start, $end] = explode(' to ', $request->inspection_date);
-
     } else {
-
-        // default hari ini
         $start = now()->toDateString();
         $end   = now()->toDateString();
-
     }
+
+    /* ================= TOTAL SEMUA DEFECT ================= */
+
+    $totalDefect = DB::table('inspection_defects as d')
+        ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+        ->where('i.inspection_post', $pos)
+        ->whereBetween('i.inspection_date', [$start, $end])
+        ->sum('d.qty');
 
 
     /* ================= TOP DEFECT ================= */
@@ -297,6 +299,18 @@ public function getTopDefect(Request $request)
         ->get();
 
 
+    /* ================= TAMBAH PERSENTASE ================= */
+
+    $topDefect = $topDefect->map(function ($item) use ($totalDefect) {
+
+        $item->percentage = $totalDefect > 0
+            ? round(($item->total_qty / $totalDefect) * 100, 0)
+            : 0;
+
+        return $item;
+    });
+
+
     /* ================= TOP PART ================= */
 
     $topPart = DB::table('inspection_defects as d')
@@ -313,14 +327,33 @@ public function getTopDefect(Request $request)
         ->limit(10)
         ->get();
 
+        /* ================= TOTAL DEFECT & PART ================= */
+
+$summary = DB::table('inspection_defects as d')
+    ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+    ->selectRaw('
+        SUM(d.qty) as total_defect,
+        COUNT(DISTINCT i.part_name) as total_part_type
+    ')
+    ->where('i.inspection_post', $pos)
+    ->whereBetween('i.inspection_date', [$start, $end])
+    ->first();
+
+
 
     return response()->json([
-        'start_date' => $start,
-        'end_date'   => $end,
-        'top_defect' => $topDefect,
-        'top_part'   => $topPart
+        'start_date'   => $start,
+        'end_date'     => $end,
+        'total_defect' => $totalDefect,
+         'summary' => [
+        'total_defect'    => $summary->total_defect ?? 0,
+        'total_part_type'=> $summary->total_part_type ?? 0,
+    ],
+        'top_defect'   => $topDefect,
+        'top_part'     => $topPart
     ]);
 }
+
 
 
  public function getDataChart(Request $request)
