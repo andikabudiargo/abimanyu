@@ -80,7 +80,17 @@
         </div>
     </form>
 </div>
-<div class="p-6 bg-white rounded-lg shadow-md mb-4">
+
+@php
+    $isMR = auth()->check() &&
+        auth()->user()
+            ->departments()
+            ->whereRaw('LOWER(name) = ?', ['management representative'])
+            ->exists();
+@endphp
+
+
+<div class="p-6 bg-white rounded-lg shadow-md mb-4 {{ $isMR ? '' : 'hidden' }}">
 
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
