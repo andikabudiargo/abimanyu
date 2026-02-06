@@ -718,6 +718,89 @@
 
 </div>
     </div>
+
+ <!-- Modal Overlay -->
+<div id="capaModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50">
+    <!-- Modal Content -->
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 transform transition-transform duration-300 scale-95 relative animate-bounceIn">
+        
+        <!-- Close Button -->
+        <button id="closeCapaModal" class="absolute top-4 right-4 text-gray-400 hover:text-red-700 text-3xl font-bold">&times;</button>
+        
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-6 border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Management Representative Statement</h2>
+        </div>
+        
+       <!-- Chat Bubbles -->
+<div class="flex flex-col gap-6">
+
+    <!-- CAPA Needed Bubble -->
+    <div class="flex flex-col self-start max-w-xl transition transform duration-500 animate-fadeIn">
+        <!-- Header: icon + MR -->
+        <div class="flex items-center gap-2 mb-1">
+            <div class="w-8 h-8 bg-green-100 text-green-700 flex items-center justify-center rounded-full">
+                <!-- User Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A7.966 7.966 0 0112 15c2.028 0 3.886.78 5.303 2.051M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            <span class="font-semibold text-gray-700">Management Representative New CAPA Needed?</span>
+        </div>
+        
+        <!-- Bubble -->
+        @if($capa->new_capa_needed == 'yes')
+        <div class="bg-green-50 text-green-800 p-4 rounded-xl shadow-sm font-medium">
+            CAPA ini memerlukan CAPA baru. Alasannya <span class="font-semibold">{{ $capa->new_capa_reason ?? '-' }}</span>
+        </div>
+        @else
+        <div class="bg-red-50 text-red-800 p-4 rounded-xl shadow-sm font-medium line-through">
+            CAPA ini tidak memerlukan CAPA baru.
+        </div>
+        @endif
+
+        <!-- Timestamp -->
+        <div class="text-xs text-gray-400 mt-1 text-right">
+            {{ $capa->authorized_at ? \Carbon\Carbon::parse($capa->authorized_at)->format('d-m-Y H:i') : '-' }}
+        </div>
+    </div>
+
+    <!-- MR Statement Bubble -->
+    @if($capa->mr_statement)
+    <div class="flex flex-col self-start max-w-xl transition transform duration-500 animate-fadeIn">
+        <!-- Header: icon + MR -->
+        <div class="flex items-center gap-2 mb-1">
+            <div class="w-8 h-8 bg-green-100 text-green-700 flex items-center justify-center rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A7.966 7.966 0 0112 15c2.028 0 3.886.78 5.303 2.051M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            <span class="font-semibold text-gray-700">Management Representative Verification</span>
+        </div>
+
+        <!-- Bubble -->
+        <div class="bg-green-50 text-green-800 p-4 rounded-xl shadow-sm font-medium">
+            {{ $capa->mr_statement }}
+        </div>
+
+        <!-- Timestamp -->
+        <div class="text-xs text-gray-400 mt-1 text-right">
+            {{ $capa->authorized_at ? \Carbon\Carbon::parse($capa->authorized_at)->format('d-m-Y H:i') : '-' }}
+        </div>
+    </div>
+    @endif
+
+</div>
+
+
+        <!-- Footer -->
+        <div class="mt-6 text-center">
+            <button id="closeCapaModalBtn" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
 <style>
     /* Supaya select2 full width */
 .select2-container {
@@ -754,6 +837,31 @@
 .select2-container--default .select2-selection--single .select2-selection__arrow {
   height: 42px !important;
   right: 0.75rem;
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounceIn {
+  animation: bounceIn 0.6s ease forwards;
+}
+
+.animate-bounceIn.delay-200 {
+  animation-delay: 0.2s;
 }
 </style>
 @push('scripts')
@@ -892,6 +1000,20 @@ $('#submitBtn').click(function(){
         }
     });
 });
+
+$(document).ready(function(){
+    // Auto open modal jika sudah authorized
+    @if($capa->authorized_at)
+        $('#capaModal').fadeIn(200).css('display','flex').addClass('scale-100');
+    @endif
+
+    // Close modal
+    $('#closeCapaModal, #closeCapaModalBtn').click(function(){
+        $('#capaModal').fadeOut(200).removeClass('scale-100');
+    });
+});
+
+
 
 </script>
 
