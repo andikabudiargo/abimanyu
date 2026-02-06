@@ -264,7 +264,7 @@ public function getTopDefect(Request $request)
         )
         ->where('i.inspection_post', $pos)
         ->whereDate('i.inspection_date', $today)
-        ->groupBy('f.defect')
+         ->groupBy('f.defect', 'f.category') // ✅ FIX UTAMA
         ->orderByDesc('total_qty')
         ->limit(10)
         ->get();
