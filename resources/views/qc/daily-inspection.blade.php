@@ -7,7 +7,7 @@
 
 @section('content')
 <!-- Modal Top Defect -->
-<div id="defectModal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
+<div id="defectModal" class="fixed inset-0 z-50 hidden bg-black/40 max-h-[70vh] max-w-2xl backdrop-blur-sm flex items-center justify-center px-4">
 
   <div class="w-full max-w-xl bg-white/80 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 border border-gray-200 relative">
 
@@ -30,7 +30,7 @@
 
       <!-- Top Defect -->
       <div class="mt-4">
-          <h3 class="text-sm font-semibold text-gray-700 mb-2">Top 3 Defect</h3>
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">Top 10 Defect</h3>
           <ul id="top-defect-list" class="space-y-2">
               <li class="text-sm text-gray-700">Loading...</li>
           </ul>
@@ -38,7 +38,7 @@
 
       <!-- Top Parts -->
       <div class="mt-6">
-          <h3 class="text-sm font-semibold text-gray-700 mb-2">Top 3 Part dengan NG Tertinggi</h3>
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">Top 10 Part dengan NG Tertinggi</h3>
           <ul id="top-part-list" class="space-y-2">
               <li class="text-sm text-gray-700">Loading...</li>
           </ul>
@@ -132,7 +132,7 @@
 <div class="w-full mb-6">
 
     <!-- QC Cards Section -->
-    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-4">
 
        <div class="qc-card group p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200 shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all cursor-pointer" data-pos="Incoming">
         <div class="flex justify-between items-center">
@@ -146,7 +146,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Incoming">
-            Top 3 Defect
+            Detail
         </button>
     </div>
 
@@ -162,7 +162,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Unloading">
-            Top 3 Defect
+            Detail
         </button>
     </div>
 
@@ -178,7 +178,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Buffing">
-            Top 3 Defect
+            Detail
         </button>
     </div>
 
@@ -194,7 +194,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Touch Up">
-            Top 3 Defect
+            Detail
         </button>
     </div>
 
@@ -211,7 +211,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Final">
-            Top 3 Defect
+            Detail
         </button>
     </div>
 
@@ -227,7 +227,7 @@
         </div>
 
         <button class="open-defect-modal mt-3 w-full py-2 text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-sm group-hover:from-blue-600 group-hover:to-blue-700" data-pos="Outgoing">
-            Top 3 Defect
+            Detail
         </button>
     </div>
 
@@ -256,7 +256,6 @@
                      <th class="px-4 py-2 text-center">Inspection Post</th>
                     <th class="px-4 py-2">Supplier/Customer</th>
                     <th class="px-4 py-2 ">Part Name</th>
-                    <th class="px-4 py-2 ">Inspection Method</th>
                     <th class="px-4 py-2 text-center">Total Check</th>
                     <th class="px-4 py-2 text-center">Total OK</th>
                     <th class="px-4 py-2 text-center">Total NG</th>
@@ -501,7 +500,6 @@ div.dt-button-collection .dt-button:hover {
   { data: 'inspection_post', name: 'inspection_post', className: 'text-center', orderable: false },
   { data: 'partner_name', className: 'text-left', orderable: false},
   { data: 'part_name', name: 'part_name', className: 'text-left', orderable: false },
-  { data: 'check_method', name: 'check_method', className: 'text-center', orderable: false },
   { data: 'total_check', name: 'total_check', className: 'text-center', orderable: false },
   { data: 'total_ok', name: 'total_ok', className: 'text-center', orderable: false },
   { data: 'total_ng', name: 'total_ng', className: 'text-center', orderable: false },
