@@ -577,10 +577,9 @@ $('#filter-form').on('submit', function (e) {
 });
 
 function getActiveDate() {
-    const date = $('#filter-date').val();
-
-    return date && date !== '' ? date : null;
+    return $('#filter-inspection_date').val();
 }
+
 
 
 $(document).on('click', '.btn-delete-inspection', function () {
@@ -678,13 +677,14 @@ $(document).on('click', '.btn-delete-inspection', function () {
 
     $('.open-defect-modal').on('click', function () {
     const pos = $(this).data('pos');
+     const date = getActiveDate(); // ambil dari filter
 
     $.ajax({
         url: '/qc/inspection/top-defect',
         type: 'GET',
        data: {
     pos: pos,
-    inspection_date: getActiveDate()
+     inspection_date: date // kirim manual
 },
         beforeSend: function() {
             $('#top-defect-list').html('<li>Loading...</li>');
