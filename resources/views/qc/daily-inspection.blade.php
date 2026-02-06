@@ -684,9 +684,9 @@ res.top_defect.forEach((d, i) => {
         <li class="flex items-center justify-between bg-white/60 backdrop-blur-md border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
             <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-md">${i + 1}</span>
-                <span class="font-medium text-gray-800">${d.defect_name}</span>
+                <span class="font-medium text-gray-800">${d.defect_name} ( ${d.category})</span>
             </div>
-            <span class="text-gray-700 font-semibold">${d.total_qty} Part</span>
+            <span class="text-gray-700 font-semibold">${d.total_qty} Pcs</span>
         </li>
     `;
 });

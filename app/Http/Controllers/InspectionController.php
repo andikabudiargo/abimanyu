@@ -253,12 +253,13 @@ public function getTopDefect(Request $request)
     $pos = $request->pos;
     $today = now()->toDateString();
 
-    // Top 3 defect berdasarkan total qty
+    
     $topDefect = DB::table('inspection_defects as d')
         ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
         ->join('defects as f', 'f.id', '=', 'd.defect_id')
         ->select(
             'f.defect as defect_name',
+            'f.category as category',
             DB::raw('SUM(d.qty) as total_qty')
         )
         ->where('i.inspection_post', $pos)
