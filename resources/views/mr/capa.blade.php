@@ -202,7 +202,13 @@
 <div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
   {{-- Navigation / Title --}}
 
-@if(auth()->user()->isMR())
+@if(
+    auth()->user()
+        ->departments()
+        ->where('name','Management Representative')
+        ->exists()
+)
+
 
     {{-- MR View → Tanpa Tab --}}
     <h2 class="text-lg font-semibold mb-2">
