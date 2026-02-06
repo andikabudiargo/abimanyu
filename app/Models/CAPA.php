@@ -14,7 +14,9 @@ class CAPA extends Model
         'audit_id','capa_number','report_date','source_of_finding','category',
         'dept_id','dept_representative','detail_of_information','problem',
         'status','created_by', 'posted_by', 'posted_at', 'verified_by', 'verified_at', 'processed_by', 'processed_at',
-        'submitted_by','submitted_at','returned_by','returned_at','authorized_by','authorized_at', 'approved_by', 'approved_at'
+        'submitted_by','submitted_at','returned_by','returned_at','authorized_by','authorized_at', 'approved_by', 'approved_at','new_capa_needed',
+        'new_capa_reason',
+        'mr_statement',
     ];
 
      public function user()

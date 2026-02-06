@@ -648,7 +648,7 @@
            Return
          </button>
 
-         <button type="submit" id="submitBtn"
+         <button id="submitBtn"
            class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
             <i class="fa-solid fa-thumbs-up"></i>
            Authorized
@@ -660,10 +660,11 @@
 
  <!-- MODAL -->
 <div id="returnModal"
-  class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
+  class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-md"
+>
 
   <div
-    class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 relative animate-fadeIn">
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 relative animate-fadeIn">
 
     <!-- Close Icon -->
     <button id="closeModalBtn"
@@ -734,6 +735,183 @@
 
   </div>
 </div>
+
+<!-- MR Verification Modal - Enterprise Edition -->
+<div
+    id="mrVerifyModal"
+    class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-md"
+>
+
+    <!-- Main Container -->
+    <div
+        class="relative bg-white w-full max-w-3xl rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] overflow-hidden"
+    >
+
+
+        <!-- Header -->
+        <div class="px-8 py-6 border-b bg-gradient-to-r from-slate-50 to-gray-100">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-900 tracking-wide">
+                        Management Review Verification
+                    </h3>
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        CAPA Authorization & Compliance Assessment
+                    </p>
+                </div>
+
+                <button
+                    id="closeMrModal"
+                    class="text-gray-400 hover:text-red-600 text-xl transition"
+                >
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Body -->
+        <div class="px-8 py-7 space-y-8 text-sm text-gray-700 bg-white">
+
+            <!-- Section : New CAPA -->
+            <div class="space-y-3">
+
+                <div class="flex items-center gap-2 text-gray-800 font-medium">
+
+                    <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
+
+                    <span>New CAPA Required?</span>
+
+                </div>
+
+
+                <div class="bg-gray-50 rounded-xl p-4 border">
+
+                    <p class="text-xs text-gray-500 mb-3">
+                        Indicate whether a new corrective/preventive action is required.
+                    </p>
+
+                    <div class="flex gap-8">
+
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="radio"
+                                name="new_capa_needed"
+                                value="yes"
+                                class="accent-indigo-600"
+                            >
+                            <span class="font-medium">Yes, Required</span>
+                        </label>
+
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="radio"
+                                name="new_capa_needed"
+                                value="no"
+                                class="accent-indigo-600"
+                            >
+                            <span class="font-medium">No, Not Required</span>
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Reason -->
+            <div
+                id="reasonBox"
+                class="hidden space-y-2"
+            >
+
+                <div class="flex items-center gap-2 text-gray-800 font-medium">
+
+                    <i class="fa-solid fa-circle-exclamation text-amber-500"></i>
+
+                    <span>Justification</span>
+
+                </div>
+
+
+                <textarea
+                    id="newCapaReason"
+                    rows="4"
+                    class="w-full rounded-xl p-2 border border-gray-300 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                    placeholder="Provide formal justification for initiating a new CAPA..."
+                ></textarea>
+
+            </div>
+
+
+            <!-- MR Statement -->
+            <div class="space-y-2">
+
+                <div class="flex items-center gap-2 text-gray-800 font-medium">
+
+                    <i class="fa-solid fa-file-signature text-emerald-600"></i>
+
+                    <span>Management Review Statement</span>
+
+                </div>
+
+
+                <textarea
+                    id="mrStatement"
+                    rows="4"
+                    class="w-full rounded-xl p-2 border border-gray-300 bg-slate-50 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 text-sm"
+                    placeholder="Enter formal management verification statement..."
+                ></textarea>
+
+            </div>
+
+        </div>
+
+
+        <!-- Footer -->
+        <div class="px-8 py-5 border-t bg-gradient-to-r from-gray-50 to-slate-100">
+
+            <div class="flex justify-between items-center">
+
+                <p class="text-xs text-gray-500">
+                    <i class="fa-solid fa-lock mr-1"></i>
+                    This action will be permanently recorded
+                </p>
+
+
+                <div class="flex gap-3">
+
+                    <button
+                        id="cancelMrVerify"
+                        class="px-4 py-2 text-sm rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        id="submitMrVerify"
+                        class="px-6 py-2 text-sm rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:from-indigo-700 hover:to-blue-700 shadow-lg transition"
+                    >
+                        Authorize, Now!
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 
 
 <style>
@@ -979,16 +1157,47 @@ $(document).ready(function () {
         $('#returnModal').addClass('hidden').removeClass('flex');
     });
 
+    // Tombol Return utama → buka modal
+    $('#submitBtn').on('click', function () {
+        $('#mrVerifyModal').removeClass('hidden').addClass('flex');
+    });
 
-$('#submitBtn').click(function(){
+    // Close modal
+    $('#closeMrModal, #cancelMrVerify').on('click', function () {
+        $('#mrVerifyModal').addClass('hidden').removeClass('flex');
+    });
 
-    const $submitBtn = $(this); // 🔥 ini solusi paling aman
+    // Toggle Reason Box
+    $('input[name="new_capa_needed"]').on('change', function () {
 
-    // Disable button
+        if ($(this).val() === 'yes') {
+            $('#reasonBox').slideDown(200).removeClass('hidden');
+        } else {
+            $('#reasonBox').slideUp(200);
+        }
+
+    });
+
+    // Klik luar modal = close
+    $('#mrVerifyModal').on('click', function (e) {
+        if ($(e.target).is('#returnModal')) {
+            $('#mrVerifyModal').addClass('hidden').removeClass('flex');
+        }
+    });
+
+
+$('#submitMrVerify').click(function(){
+
+    const $submitBtn = $(this);
     $submitBtn.prop('disabled', true).text('Authorizing...');
 
     const url = "{{ route('mr.capa.authorized.save', ':id') }}"
                     .replace(':id', capaId);
+
+    // Ambil value dari modal
+    const newCapaNeeded = $('input[name="new_capa_needed"]:checked').val(); // yes/no
+    const newCapaReason = $('#newCapaReason').val();
+    const mrStatement   = $('#mrStatement').val();
 
     $.ajax({
         url: url,
@@ -996,34 +1205,27 @@ $('#submitBtn').click(function(){
         data: {
             _token: '{{ csrf_token() }}',
             capa_id: capaId,
+            new_capa_needed: newCapaNeeded,
+            new_capa_reason: newCapaReason,
+            mr_statement: mrStatement
         },
         success: function(res){
-
             if(res.success){
-
                 showToast('success', res.message || 'CAPA successfully Authorized!');
-
                 setTimeout(() => {
                     window.location.href = '{{ route("mr.capa.index") }}';
                 }, 2000);
-
             }
-
         },
         error: function(err){
-
             console.error(err.responseText);
-
             const msg = err.responseJSON?.message || 'Terjadi kesalahan saat menyimpan.';
-
             showToast('error', msg);
-
-            // Aktifkan lagi kalau gagal
             $submitBtn.prop('disabled', false).text('Authorize');
-
         }
     });
 });
+
 
 </script>
 
