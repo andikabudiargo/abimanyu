@@ -149,7 +149,7 @@ if ($request->report_date) {
     $pdf_url = route('mr.capa.pdf', ['id' => $row->id]); 
     $print_url = route('mr.capa.print', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $isMR = $user->departments()
-    ->where('name', 'Management Representative')
+    ->where('name', 'Management Representative & HSE')
     ->exists();
     $isAuditor = in_array($userId, $row->auditors->pluck('user_id')->toArray());
    $isAuditee = $user->departments()
@@ -943,17 +943,33 @@ public function authorized($id)
 
 public function updateAuthorized(Request $request, $id)
 {
+    // Validasi input
+    $validated = $request->validate([
+        'new_capa_needed' => 'required|in:yes,no',
+        'new_capa_reason' => 'nullable|required_if:new_capa_needed,yes|string',
+        'mr_statement'    => 'required|string',
+    ]);
+
     // Ambil data CAPA
     $capa = CAPA::findOrFail($id);
 
-    // Update status + authorized info
-    $capa->status = 'Authorized';
+    // Update data utama
+    $capa->status        = 'Authorized';
     $capa->authorized_by = Auth::id();
     $capa->authorized_at = now();
 
+    // Simpan data dari modal
+    $capa->new_capa_needed = $validated['new_capa_needed'];
+    $capa->new_capa_reason = $validated['new_capa_reason'] ?? null;
+    $capa->mr_statement    = $validated['mr_statement'];
+
     $capa->save();
 
-     // Setup WebPush
+
+    /* ============================
+       Setup WebPush
+    ============================ */
+
     $webPush = new WebPush([
         'VAPID' => [
             'subject' => 'mailto:it2@asnusantara.co.id',
@@ -963,52 +979,51 @@ public function updateAuthorized(Request $request, $id)
         'automaticPadding' => true
     ]);
 
-   // Ambil user auditor sesuai capa_id
-$targetUsers = User::join('capa_auditors', 'users.id', '=', 'capa_auditors.user_id')
-    ->where('capa_auditors.capa_id', $capa->id)
-    ->select('users.*')
-    ->distinct()
-    ->get();
 
-// Loop user auditor
-foreach ($targetUsers as $user) {
-
-    // Ambil subscription per user
-    $subscriptions = DB::table('subscriptions')
-        ->where('user_id', $user->id)
+    // Ambil auditor
+    $targetUsers = User::join('capa_auditors', 'users.id', '=', 'capa_auditors.user_id')
+        ->where('capa_auditors.capa_id', $capa->id)
+        ->select('users.*')
+        ->distinct()
         ->get();
 
-    if ($subscriptions->isEmpty()) {
-        continue;
+
+    foreach ($targetUsers as $user) {
+
+        $subscriptions = DB::table('subscriptions')
+            ->where('user_id', $user->id)
+            ->get();
+
+        if ($subscriptions->isEmpty()) continue;
+
+
+        foreach ($subscriptions as $subRow) {
+
+            $subData = json_decode($subRow->subscription, true);
+            if (!$subData) continue;
+
+            $sub = Subscription::create($subData);
+
+            $webPush->sendOneNotification(
+                $sub,
+                json_encode([
+                    'title' => "✅ CAPA Authorized",
+                    'body'  => "MR telah menyetujui CAPA. Klik untuk detail.",
+                    'url'   => url("/mr/capa/{$capa->id}/detail")
+                ])
+            );
+        }
     }
 
-    foreach ($subscriptions as $subRow) {
-
-        $subData = json_decode($subRow->subscription, true);
-        if (!$subData) continue;
-
-        $sub = Subscription::create($subData);
-
-        $webPush->sendOneNotification(
-            $sub,
-            json_encode([
-                'title' => "✅ CAPA telah disetujui | Abimanyu Live",
-                'body'  => "MR telah menyetujui CAPA. Klik Disini untuk closed!",
-                'url'   => url("/mr/capa/{$capa->id}/detail")
-            ])
-        );
-    }
-}
-
-
-    // Flush push
     $webPush->flush();
+
 
     return response()->json([
         'success' => true,
         'message' => 'CAPA successfully authorized.'
     ]);
 }
+
 
 public function getComments($capa_id)
     {
@@ -1280,9 +1295,8 @@ public function pdf($id, Request $request)
 
     foreach ($capa->evidences as $evidence) {
 
-        $path = public_path(
-            'evidence_capa/'.$capa->id.'/'.$evidence->file_name
-        );
+       $path = '/home/abimany3/public_html/evidence_capa/'.$capa->id.'/'.$evidence->file_name;
+
 
         if (file_exists($path)) {
 
