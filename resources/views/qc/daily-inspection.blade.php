@@ -7,9 +7,9 @@
 
 @section('content')
 <!-- Modal Top Defect -->
-<div id="defectModal" class="fixed inset-0 z-50 hidden bg-black/40 max-h-[70vh] max-w-2xl backdrop-blur-sm flex items-center justify-center px-4">
+<div id="defectModal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
 
-  <div class="w-full max-w-xl bg-white/80 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 border border-gray-200 relative">
+  <div class="w-full max-w-2xl max-h-[70vh] overflow-y-auto bg-white/80 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 border border-gray-200 relative">
 
       <!-- Header -->
       <div class="flex justify-between items-start">
