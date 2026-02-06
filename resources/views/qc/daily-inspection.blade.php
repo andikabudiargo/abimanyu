@@ -681,7 +681,7 @@ $(document).on('click', '.btn-delete-inspection', function () {
         url: '/qc/inspection/summary',
         type: 'GET',
         data: {
-            date: date
+            inspection_date: date
         },
         beforeSend: function() {
             $('.qc-card .qc-total').text('...');

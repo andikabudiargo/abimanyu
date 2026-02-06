@@ -215,8 +215,18 @@ public function getSummary(Request $request)
 {
     $positions = ['Incoming', 'Unloading', 'Buffing', 'Touch Up', 'Final', 'Outgoing'];
 
-    // kalau user tidak mengisi date, pakai current date
-    $date = $request->date ?? date('Y-m-d');
+     if ($request->inspection_date) {
+
+        // dari filter
+        [$start, $end] = explode(' to ', $request->inspection_date);
+
+    } else {
+
+        // default hari ini
+        $start = now()->toDateString();
+        $end   = now()->toDateString();
+
+    }
 
     $result = [];
 
@@ -230,7 +240,7 @@ public function getSummary(Request $request)
                 SUM(total_ng) AS total_ng
             ")
             ->where('inspection_post', $pos)
-            ->whereDate('inspection_date', $date)   // selalu pakai current date jika tidak ada input
+           ->whereBetween('inspection_date', [$start, $end])
             ->first();
 
         $result[$pos] = [
@@ -243,7 +253,8 @@ public function getSummary(Request $request)
     }
 
     return response()->json([
-        'date_used' => $date,
+        'start_date' => $start,
+        'end_date'   => $end,
         'summary'   => $result
     ]);
 }
