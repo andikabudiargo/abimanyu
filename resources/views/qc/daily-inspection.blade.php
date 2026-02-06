@@ -7,50 +7,81 @@
 
 @section('content')
 <!-- Modal Top Defect -->
-<div id="defectModal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
+<div id="defectModal"
+     class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
 
-  <div class="w-full max-w-2xl max-h-[70vh] overflow-y-auto bg-white/80 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-6 border border-gray-200 relative">
+  <div
+    class="w-full max-w-2xl bg-white/90 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-200 flex flex-col max-h-[75vh]"
+  >
 
-      <!-- Header -->
-      <div class="flex justify-between items-start">
-          <div>
-              <h2 class="text-xl font-bold text-gray-800 tracking-tight">
-                  Top Defect Hari Ini
-              </h2>
-              <p id="modal-pos" class="text-sm text-gray-600 mt-1"></p>
-          </div>
+    <!-- ================= HEADER ================= -->
+    <div
+      class="flex justify-between items-start p-6 border-b bg-white/80 backdrop-blur sticky top-0 z-10 rounded-t-2xl">
 
-          <!-- Close icon -->
-          <button id="closeDefectModal" class="p-2 rounded-full hover:bg-gray-200 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
-          </button>
+      <div>
+        <h2 id="modal-title"
+            class="text-xl font-bold text-gray-800 tracking-tight">
+          Top Defect Hari Ini
+        </h2>
+
+        <p id="modal-pos"
+           class="text-sm text-gray-600 mt-1"></p>
       </div>
+
+      <button id="closeDefectModal"
+              class="p-2 rounded-full hover:bg-gray-200 transition">
+        ✖
+      </button>
+    </div>
+
+
+    <!-- ================= BODY (SCROLL) ================= -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-6">
 
       <!-- Top Defect -->
-      <div class="mt-4">
-          <h3 class="text-sm font-semibold text-gray-700 mb-2">Top 10 Defect</h3>
-          <ul id="top-defect-list" class="space-y-2">
-              <li class="text-sm text-gray-700">Loading...</li>
-          </ul>
+      <div>
+        <h3 class="text-sm font-semibold text-gray-700 mb-2">
+          Top 10 Defect
+        </h3>
+
+        <ul id="top-defect-list" class="space-y-2">
+          <li class="text-sm text-gray-700">Loading...</li>
+        </ul>
       </div>
+
 
       <!-- Top Parts -->
-      <div class="mt-6">
-          <h3 class="text-sm font-semibold text-gray-700 mb-2">Top 10 Part dengan NG Tertinggi</h3>
-          <ul id="top-part-list" class="space-y-2">
-              <li class="text-sm text-gray-700">Loading...</li>
-          </ul>
+      <div>
+        <h3 class="text-sm font-semibold text-gray-700 mb-2">
+          Top 10 Part dengan NG Tertinggi
+        </h3>
+
+        <ul id="top-part-list" class="space-y-2">
+          <li class="text-sm text-gray-700">Loading...</li>
+        </ul>
       </div>
 
-      <!-- Footer Button -->
-      <button id="closeDefectModalBtn" class="closeDefectModal mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow hover:from-blue-700 hover:to-blue-800 transition">
-          Tutup
+    </div>
+
+
+    <!-- ================= FOOTER ================= -->
+    <div
+      class="p-4 border-t bg-white/80 backdrop-blur sticky bottom-0 rounded-b-2xl">
+
+      <button id="closeDefectModalBtn"
+              class="closeDefectModal w-full py-3 rounded-xl
+                     bg-gradient-to-r from-blue-600 to-blue-700
+                     text-white font-medium shadow
+                     hover:from-blue-700 hover:to-blue-800 transition">
+
+        Tutup
       </button>
+
+    </div>
 
   </div>
 </div>
+
 
 
    <div class="bg-white shadow rounded-xl p-6 mb-4">
