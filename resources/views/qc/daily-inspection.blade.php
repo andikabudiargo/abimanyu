@@ -764,8 +764,8 @@ $('#modal-title').text('Top Defect ' + label);
 $('#modal-pos').text('Pos: ' + pos);
 
 $('#defect-summary').html(
-  `Total <b>${res.total_defect}</b> Defect dari 
-   <b>${res.total_part_type}</b> Jenis Part`
+  `Total <b>${res.summary.total_defect}</b> Defect dari 
+   <b>${res.summary.total_part_type}</b> Jenis Part`
 );
 // FINTECH STYLE LIST ITEM
 let defectHtml = '';
@@ -809,7 +809,7 @@ res.top_part.forEach((p, i) => {
                 <span class="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-md">${i + 1}</span>
                 <span class="font-medium text-gray-800">${p.part_name}</span>
             </div>
-            <span class="text-gray-700 font-semibold">${p.total_qty} NG</span>
+            <span class="text-gray-700 font-semibold">${p.total_qty} Defect</span>
         </li>
     `;
 });
