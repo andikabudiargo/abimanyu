@@ -251,9 +251,25 @@ public function getSummary(Request $request)
 public function getTopDefect(Request $request)
 {
     $pos = $request->pos;
-    $today = now()->toDateString();
 
-    
+    /* ================= TENTUKAN RANGE TANGGAL ================= */
+
+    if ($request->inspection_date) {
+
+        // dari filter
+        [$start, $end] = explode(' to ', $request->inspection_date);
+
+    } else {
+
+        // default hari ini
+        $start = now()->toDateString();
+        $end   = now()->toDateString();
+
+    }
+
+
+    /* ================= TOP DEFECT ================= */
+
     $topDefect = DB::table('inspection_defects as d')
         ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
         ->join('defects as f', 'f.id', '=', 'd.defect_id')
@@ -263,32 +279,38 @@ public function getTopDefect(Request $request)
             DB::raw('SUM(d.qty) as total_qty')
         )
         ->where('i.inspection_post', $pos)
-        ->whereDate('i.inspection_date', $today)
-         ->groupBy('f.defect', 'f.category') // ✅ FIX UTAMA
+        ->whereBetween('i.inspection_date', [$start, $end])
+        ->groupBy('f.id', 'f.defect', 'f.category')
         ->orderByDesc('total_qty')
         ->limit(10)
         ->get();
 
+
+    /* ================= TOP PART ================= */
+
     $topPart = DB::table('inspection_defects as d')
-    ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
-    ->join('articles as a', 'a.article_code', '=', 'i.part_name')
-    ->select(
-        'a.description as part_name',
-        DB::raw('SUM(d.qty) as total_qty')
-    )
-    ->where('i.inspection_post', $pos)
-    ->whereDate('i.inspection_date', $today)
-    ->groupBy('a.description')
-    ->orderByDesc('total_qty')
-    ->limit(10)
-    ->get();
+        ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+        ->join('articles as a', 'a.article_code', '=', 'i.part_name')
+        ->select(
+            'a.description as part_name',
+            DB::raw('SUM(d.qty) as total_qty')
+        )
+        ->where('i.inspection_post', $pos)
+        ->whereBetween('i.inspection_date', [$start, $end])
+        ->groupBy('a.description')
+        ->orderByDesc('total_qty')
+        ->limit(10)
+        ->get();
 
 
     return response()->json([
+        'start_date' => $start,
+        'end_date'   => $end,
         'top_defect' => $topDefect,
-        'top_part' => $topPart
+        'top_part'   => $topPart
     ]);
 }
+
 
  public function getDataChart(Request $request)
 {

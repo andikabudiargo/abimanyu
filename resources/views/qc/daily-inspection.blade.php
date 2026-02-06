@@ -576,6 +576,13 @@ $('#filter-form').on('submit', function (e) {
     $('#inspection-table').DataTable().ajax.reload();
 });
 
+function getActiveDate() {
+    const date = $('#filter-date').val();
+
+    return date && date !== '' ? date : null;
+}
+
+
 $(document).on('click', '.btn-delete-inspection', function () {
       $.ajaxSetup({
         headers: {
@@ -622,44 +629,52 @@ $(document).on('click', '.btn-delete-inspection', function () {
     });
 });
 
- function loadSummary(date = null) {
+ function loadSummary() {
 
-        $.ajax({
-            url: '/qc/inspection/summary',
-            type: 'GET',
-            data: { date: date },
-            beforeSend: function() {
-                // tampilkan animasi loading ringan
-                $('.qc-card .qc-total').text('...');
-            },
-            success: function(res) {
+    const date = getActiveDate();
 
-    const summary = res.summary; // ambil object summary
+    $.ajax({
+        url: '/qc/inspection/summary',
+        type: 'GET',
+        data: {
+            date: date
+        },
+        beforeSend: function() {
+            $('.qc-card .qc-total').text('...');
+            $('.qc-card .qc-ok').text('...');
+            $('.qc-card .qc-ng').text('...');
+        },
+        success: function(res) {
 
-    Object.keys(summary).forEach(function(pos) {
+            const summary = res.summary;
 
-        const card = $('.qc-card[data-pos="' + pos + '"]');
+            Object.keys(summary).forEach(function(pos) {
 
-        card.find('.qc-total').text(summary[pos].total + ' Part');
-        card.find('.qc-ok').text('OK: ' + summary[pos].ok);
-        card.find('.qc-ng').text('NG: ' + summary[pos].ng);
+                const card = $('.qc-card[data-pos="' + pos + '"]');
 
+                card.find('.qc-total').text(summary[pos].total + ' Part');
+                card.find('.qc-ok').text('OK: ' + summary[pos].ok);
+                card.find('.qc-ng').text('NG: ' + summary[pos].ng);
+
+            });
+
+        },
+        error: function() {
+            alert('Gagal mengambil data summary');
+        }
     });
-},
-            error: function() {
-                alert('Gagal mengambil data summary');
-            }
-        });
 
-    }
+}
+
 
     // load awal tanpa filter
     loadSummary();
 
     // jika ada input tanggal
-    $('#filter-date').on('change', function() {
-        loadSummary($(this).val());
-    });
+   $('#filter-date').on('change', function() {
+    loadSummary();
+});
+
 
     $('.open-defect-modal').on('click', function () {
     const pos = $(this).data('pos');
@@ -667,7 +682,10 @@ $(document).on('click', '.btn-delete-inspection', function () {
     $.ajax({
         url: '/qc/inspection/top-defect',
         type: 'GET',
-        data: { pos: pos },
+       data: {
+    pos: pos,
+    inspection_date: getActiveDate()
+},
         beforeSend: function() {
             $('#top-defect-list').html('<li>Loading...</li>');
             $('#top-part-list').html('<li>Loading...</li>');
