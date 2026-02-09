@@ -491,7 +491,7 @@ public function monthlyTrend(Request $request)
      public function create() {
          $suppliers = Supplier::orderBy('name')->get();
             $customers = Customer::orderBy('name')->get();
-        return view('qc.staff-daily-inspection', compact('suppliers','customers'));
+        return view('qc.create-daily-inspection', compact('suppliers','customers'));
     }
 
     public function store(Request $request)
