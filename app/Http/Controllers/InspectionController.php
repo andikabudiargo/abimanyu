@@ -491,7 +491,7 @@ public function monthlyTrend(Request $request)
      public function create() {
          $suppliers = Supplier::orderBy('name')->get();
             $customers = Customer::orderBy('name')->get();
-        return view('qc.create-daily-inspection', compact('suppliers','customers'));
+        return view('qc.staff-daily-inspection', compact('suppliers','customers'));
     }
 
     public function store(Request $request)
@@ -502,6 +502,7 @@ public function monthlyTrend(Request $request)
     'part_name' => 'required|string',
     'total_check' => 'required|integer',
     'check_method' => 'nullable|string',
+    'spraybooth' => 'nullable|string',
     'defect_id' => 'nullable|array',
     'defect_id.*' => 'required|integer|exists:defects,id',
 
@@ -531,6 +532,7 @@ public function monthlyTrend(Request $request)
             'supplier_code' => $request->supplier_code,
             'inspection_post' => $request->inspection_post,
             'check_method' => $request->check_method,
+             'spraybooth' => $request->spraybooth,
             'note' => $request->note,
             'qty_received' => $request->qty_received,
             'total_check' => $request->total_check,
@@ -594,7 +596,7 @@ public function monthlyTrend(Request $request)
 
     $sequence = str_pad($count + 1, 3, '0', STR_PAD_LEFT);
 
-    return "{$prefix}{$code}-ASN-{$tahun}-{$bulanRomawi}-{$shiftCode}-{$sequence}";
+    return "{$prefix}{$code}-ASN-{$tahun}-{$bulanRomawi}-{$sequence}";
 }
 
 public function getInspectionNumbers(Request $request)
