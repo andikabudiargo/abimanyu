@@ -152,22 +152,25 @@ $(document).ready(function () {
         const $btn = $('#btn-submit');
         $btn.prop('disabled', true).text('Processing...');
 
-        $(this).find('input, select, textarea').each(function () {
-            const name = $(this).attr('name');
-            const type = $(this).attr('type');
+       $(this).find('input, textarea').each(function () {
+    const name = $(this).attr('name');
+    const type = $(this).attr('type');
 
-            if (!name || name === 'as_customer') return;
+    if (!name || name === 'as_customer') return;
+
+  
+
 
             if (isReadonly && !['password', 'confirm_password', 'avatar', 'departments[]', 'roles[]', '_token', '_method', 'email', 'username', 'name'].includes(name)) {
                 return;
             }
 
-            if (type === 'file') {
-                if (this.files.length > 0) formData.append(name, this.files[0]);
-            } else {
-                formData.append(name, $(this).val());
-            }
-        });
+             if (type === 'file') {
+        if (this.files.length > 0) formData.append(name, this.files[0]);
+    } else {
+        formData.append(name, $(this).val());
+    }
+});
 
         const departments = $('#departments').val() || [];
         const roles = $('#roles').val() || [];
