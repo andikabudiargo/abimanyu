@@ -92,36 +92,6 @@ Route::post('/save-subscription', function(Request $request){
     return response()->json(['success' => true]);
 });
 
-Route::get('/send-push', function () {
-    $path = storage_path('app/public/subscription.json'); // path lengkap
-
-    if (!file_exists($path)) return '❌ subscription.json tidak ditemukan.';
-
-    $subscriptionArray = json_decode(file_get_contents($path), true);
-    if (!$subscriptionArray) return '❌ JSON subscription tidak valid.';
-
-    $sub = Subscription::create($subscriptionArray);
-
-    $webPush = new WebPush([
-        'VAPID' => [
-            'subject' => 'mailto:it2@asnusantara.co.id',
-            'publicKey' => env('VAPID_PUBLIC_KEY'),
-            'privateKey' => env('VAPID_PRIVATE_KEY'),
-        ],
-        'automaticPadding' => true
-    ]);
-
-    $webPush->sendOneNotification($sub, json_encode([
-        'title' => 'Test Notification',
-        'body'  => 'Push berjalan di Laravel',
-        'url'   => '/'
-    ]));
-
-    $webPush->flush();
-
-    return 'Push dikirim!';
-});
-
 
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -496,6 +466,7 @@ Route::post('agent/backup-log', [BackupAgentController::class, 'storeLog']);
     Route::get('/inspections/dashboard', [InspectionController::class, 'index'])->name('inspections.index');
     Route::get('/inspections/data', [InspectionController::class, 'data'])->name('inspections.data');
     Route::get('/inspections/create', [InspectionController::class, 'create'])->name('inspections.create');
+    Route::get('/inspections/operator/create', [InspectionController::class, 'createOperator'])->name('inspections.create.op');
     Route::post('/inspections/store', [InspectionController::class, 'store'])->name('inspections.store');
     Route::get('/inspections/{id}/detail', [InspectionController::class, 'show'])->name('inspections.show');
     Route::put('/inspections/{id}/update', [InspectionController::class, 'update'])->name('inspections.update');

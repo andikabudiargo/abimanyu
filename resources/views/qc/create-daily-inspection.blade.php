@@ -1,131 +1,50 @@
 @extends('layouts.app-op-qc')
 
-@section('title', 'Quality Inspection')
-@section('page-title', 'QUALITY INSPECTION')
+@section('title', 'Create Daily Inspection')
+@section('page-title', 'CREATE DAILY INSPECTION')
 @section('breadcrumb-item', 'Quality Control')
-@section('breadcrumb-active', 'Quality Inspection')
+@section('breadcrumb-active', 'Create Quality Inspection')
 
 @section('content')
-<div class="flex flex-col md:flex-row gap-6">
-  <!-- Sidebar -->
-  <div class="w-full md:w-1/4 bg-white shadow-lg rounded-2xl p-4 md:p-6 space-y-6">
+<div class="space-y-4">
+  <div class="w-full bg-white shadow-md rounded-xl px-8 space-y-4 pt-6 pb-12">
+   <div class="flex items-center gap-2 border-b border-gray-200 pb-3 mb-6">
+  <i class="fa-solid fa-pen-to-square text-indigo-700 text-sm"></i>
+
+  <h2 class="text-base font-semibold text-indigo-700 tracking-wide">
+    Create Daily Inspection
+  </h2>
+</div>
+
+    <form id="inspectionForm" class="space-y-4">
+        @csrf
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-1">
     <div>
-      <h2 class="text-lg font-semibold text-gray-700">Inspection Overview</h2>
-    </div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+      Inspection Date<span class="text-red-600"> *</span>
+    </label>
 
-    <!-- Operator Info -->
-    <div class="space-y-2">
-      <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Operator Information</h3>
-      <div class="flex justify-between text-sm text-gray-600">
-        <span class="font-medium text-gray-500">Operator Name:</span>
-        <span class="text-gray-800">{{ Auth::user()->name }}</span>
-      </div>
-      <div class="flex justify-between text-sm text-gray-600">
-        <span class="font-medium text-gray-500">Shift:</span>
-        <span id="shift-label" class="text-gray-800">-</span>
-      </div>
-      <div class="flex justify-between text-sm text-gray-600">
-        <span class="font-medium text-gray-500">Inspection Date:</span>
-        <span id="inspection-date" class="text-gray-800">-</span>
-      </div>
-    </div>
-
-    <!-- Part Info -->
-    <div class="space-y-2">
-      <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Part Information</h3>
-      <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
-        <span class="font-medium text-gray-500 whitespace-nowrap">Part Name:</span>
-        <span data-info="part-name" class="text-gray-800 text-right max-w-[65%] break-words">-</span>
-      </div>
-      <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
-        <span class="font-medium text-gray-500 whitespace-nowrap">Supplier:</span>
-        <span data-info="supplier" class="text-gray-800 text-right max-w-[65%] break-words">-</span>
-      </div>
-      <input type="hidden" id="supplier_code" name="supplier_code">
-    </div>
-
-    <!-- Summary & Percentage Inspection -->
-    <div class="space-y-3">
-      <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Summary Inspection</h3>
-      <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2 text-sm">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-gray-500">
-            <i data-feather="search" class="w-4 h-4"></i>
-            <span class="font-medium">Total Check</span>
-          </div>
-          <span data-info="total-check" class="text-gray-800 font-semibold">0</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-green-600">
-            <i data-feather="check-circle" class="w-4 h-4"></i>
-            <span class="font-medium">Total OK</span>
-          </div>
-          <span data-info="total-ok" class="text-green-600 font-semibold">-</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-yellow-500">
-            <i data-feather="tool" class="w-4 h-4"></i>
-            <span class="font-medium">Total OK Repair</span>
-          </div>
-          <span data-info="total-ok-repair" class="text-yellow-500 font-semibold">0</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-red-600">
-            <i data-feather="x-circle" class="w-4 h-4"></i>
-            <span class="font-medium">Total NG</span>
-          </div>
-          <span data-info="total-ng" class="text-red-600 font-semibold">-</span>
-        </div>
-      </div>
-
-      <h3 class="text-md font-semibold text-gray-700 border-b pb-1 mt-4">Percentage Inspection</h3>
-      <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2 text-sm">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-green-500">
-            <i data-feather="check-circle" class="w-4 h-4"></i>
-            <span class="font-medium">Pass Rate</span>
-          </div>
-          <span data-info="pass-rate" class="text-green-500 font-semibold">0</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-blue-500">
-            <i data-feather="check-circle" class="w-4 h-4"></i>
-            <span class="font-medium"  data-label="pass-trough-label">Pass Trough</span>
-          </div>
-          <span data-info="pass-trough" class="text-blue-500 font-semibold">0</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-yellow-500">
-            <i data-feather="tool" class="w-4 h-4"></i>
-            <span class="font-medium">OK Repair</span>
-          </div>
-          <span data-info="ok-repair-rate" class="text-yellow-500 font-semibold">-</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-red-600">
-            <i data-feather="x-circle" class="w-4 h-4"></i>
-            <span class="font-medium">NG Rate</span>
-          </div>
-          <span data-info="ng-rate" class="text-red-600 font-semibold">-</span>
-        </div>
-      </div>
-    </div>
+    <input type="date" name="inspection_date" id="inspection_date" max="{{ date('Y-m-d') }}"
+  class="w-full px-3 py-2
+         bg-gray-50
+         border border-gray-300
+         rounded-lg
+         shadow-sm
+         focus:outline-none
+         focus:ring-2 focus:ring-blue-400
+         focus:border-blue-400
+         transition"
+  required>
   </div>
-
-  <!-- Main Panel -->
-  <div class="w-full md:w-3/4 bg-white shadow-md rounded-xl p-4 space-y-4">
-    <h2 class="text-lg font-semibold text-gray-700">Quality Inspection</h2>
-    <form id="inspection-form" class="space-y-4">
-
-    <!-- Row 1 -->
-<div class="flex flex-col md:flex-row gap-4">
-  <div class="w-full md:w-1/2">
+  <div>
     <label class="block text-sm font-medium text-gray-700 mb-1">
       Inspection Post <span class="text-red-600">*</span>
     </label>
+
     <select name="inspection_post" id="inspection_post"
       class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm"
       required>
+
       <option value="">-- Choose Post --</option>
       <option value="Incoming">Incoming</option>
       <option value="Unloading">Unloading</option>
@@ -133,47 +52,93 @@
       <option value="Touch Up">Touch Up</option>
       <option value="Final">Final</option>
       <option value="Outgoing">Outgoing</option>
+
     </select>
   </div>
 
-  <!-- SUPPLIER -->
-  <div class="w-full md:w-1/2" id="supplier-wrapper">
+  <!-- Spray Booth -->
+  <div id="spraybooth-wrapper">
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+      Spray Booth <span class="text-red-600">*</span>
+    </label>
+
+    <select name="spraybooth" id="spraybooth"
+      class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm">
+
+      <option value="">-- Pilih Booth --</option>
+      <option value="Spraybooth 1A">Spraybooth 1A</option>
+      <option value="Spraybooth 1B">Spraybooth 1B</option>
+      <option value="Spraybooth 1C">Spraybooth 1C</option>
+      <option value="Spraybooth 2A">Spraybooth 2A</option>
+      <option value="Spraybooth 2B">Spraybooth 2B</option>
+      <option value="Spraybooth 2C">Spraybooth 2C</option>
+      <option value="Spraybooth 3A">Spraybooth 3A</option>
+      <option value="Spraybooth 3B">Spraybooth 3B</option>
+      <option value="Spraybooth 3C">Spraybooth 3C</option>
+      <option value="Spraybooth 4A">Spraybooth 4A</option>
+      <option value="Spraybooth 4B">Spraybooth 4B</option>
+      <option value="Spraybooth 4C">Spraybooth 4C</option>
+      <option value="Spraybooth 5A">Spraybooth 5A</option>
+      <option value="Spraybooth 5B">Spraybooth 5B</option>
+      <option value="Spraybooth 5C">Spraybooth 5C</option>
+    </select>
+  </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-2">
+  <!-- Supplier -->
+  <div id="supplier-wrapper">
     <label class="block text-sm font-medium text-gray-700 mb-1">
       Supplier <span class="text-red-600">*</span>
     </label>
+
     <select name="supplier" id="supplier" class="select2 w-full">
       <option value="">-- Pilih Supplier --</option>
+
       @foreach ($suppliers as $supplier)
-        <option value="{{ $supplier->code }}">{{ $supplier->name }}</option>
+        <option value="{{ $supplier->code }}">
+          {{ $supplier->name }}
+        </option>
       @endforeach
     </select>
   </div>
 
-  <!-- CUSTOMER -->
-  <div class="w-full md:w-1/2 hidden" id="customer-wrapper">
+
+  <!-- Customer -->
+  <div id="customer-wrapper" class="hidden">
     <label class="block text-sm font-medium text-gray-700 mb-1">
       Customer <span class="text-red-600">*</span>
     </label>
+
     <select name="customer" id="customer" class="select2 w-full">
       <option value="">-- Pilih Customer --</option>
+
       @foreach ($customers as $customer)
-        <option value="{{ $customer->code }}">{{ $customer->name }}</option>
+        <option value="{{ $customer->code }}">
+          {{ $customer->name }}
+        </option>
       @endforeach
     </select>
   </div>
-</div>
 
-
-<!-- Row 2 -->
-<div class="flex flex-col md:flex-row gap-4">
-  <div class="w-full md:w-1/2">
+   <div class="w-full">
     <label class="block text-sm font-medium text-gray-700 mb-1">Part Name <span class="text-red-600">*</span></label>
-    <select name="part_name" id="part_name" class="select2 w-full" required>
+    <select name="part_name" id="part_name" class="select2 w-full">
       <option value="">-- Select Part --</option>
     </select>
   </div>
-
-  <div class="w-full md:w-1/2 hidden" id="qty-received-wrapper">
+        </div>
+ <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-3">
+  <!-- Check Method & Total Check -->
+        <div id="check_method_container" class="w-full hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Inspection Method <span class="text-red-600">*</span></label>
+          <select name="check_method" id="check_method" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+            <option value="">-- Choose Method --</option>
+            <option value="100%">100% (A)</option>
+            <option value="Sampling">Sampling (S)</option>
+          </select>
+        </div>
+        
+  <div class="w-full hidden" id="qty-received-wrapper">
   <label class="block text-sm font-medium text-gray-700 mb-1">
     Qty Received <span class="text-red-600">*</span>
   </label>
@@ -182,52 +147,196 @@
     name="qty_received"
     id="qty_received"
     placeholder="Masukan Qty Total Kedatangan Barang ..."
-    class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm"
-  />
+    class="w-full px-3 py-2
+         bg-gray-50
+         border border-gray-300
+         rounded-lg
+         shadow-sm
+         focus:outline-none
+         focus:ring-2 focus:ring-blue-400
+         focus:border-blue-400
+         transition"
+  required>
 </div>
+ </div>
+ <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-4">
+  <div
+    class="col-span-2
+           flex items-center gap-6
+           bg-gray-50
+           border border-gray-200
+           rounded-lg
+           px-5 py-3
+           transition
+           focus-within:border-blue-400
+           focus-within:ring-1 focus-within:ring-blue-300">
+
+    <!-- Label -->
+    <label for="total_check"
+      class="text-sm font-medium text-gray-700 min-w-[110px]">
+      Total Check <span class="text-red-500">*</span>
+    </label>
+
+    <!-- Input -->
+    <input
+      type="number"
+      name="total_check"
+      id="total_check"
+      placeholder="Masukan Qty. . ."
+      class="flex-1
+             px-3 py-2
+             bg-white
+             border border-gray-300
+             rounded-md
+             text-sm
+             focus:outline-none
+             focus:border-blue-400
+             focus:ring-1 focus:ring-blue-300
+             transition"/>
+  </div>
 </div>
 
 
-      <!-- Check Method & Total Check -->
-      <div class="flex flex-col md:flex-row gap-4">
-        <div id="check_method_container" class="w-full md:w-1/2 hidden">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Inspection Method <span class="text-red-600">*</span></label>
-          <select name="check_method" id="check_method" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-            <option value="">-- Choose Method --</option>
-            <option value="100%">100% (A)</option>
-            <option value="Sampling">Sampling (S)</option>
-          </select>
-        </div>
-        <div class="w-full md:w-1/2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Total Check <span class="text-red-600">*</span></label>
-          <input type="number" name="total_check" id="total_check" placeholder="Masukan Total Qty Part ..." class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
-        </div>
-      </div>
+</div>
+
+
+
+      <div class="w-full bg-white shadow-md rounded-xl p-8 space-y-4">
+       <div class="flex items-center gap-2 border-b border-gray-200 pb-2 mb-4">
+  <i class="fa-solid fa-circle-exclamation text-indigo-700 text-sm"></i>
+
+  <h2 class="text-base font-semibold text-indigo-700 tracking-wide">
+    Add List Defect
+  </h2>
+</div>
+
 
       <!-- Table -->
-      <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400">
-        <table id="itemTable" class="min-w-full bg-white border border-gray-200">
-          <thead class="bg-red-800 text-white">
-            <tr>
-             <th class="p-2 border text-center min-w-[40px]">No.</th>
-        <th class="p-2 border min-w-[140px]">Defect</th>
-        <th class="p-2 border min-w-[80px]">Qty</th>
-        <th class="p-2 border min-w-[80px] ok-repair-wrapper">OK Repair</th>
-        <th class="p-2 border min-w-[120px]">Note</th>
-        <th class="p-2 border text-center min-w-[60px]">Action</th>
-            </tr>
-          </thead>
-          <tbody id="defectTableBody"></tbody>
-        </table>
-        <button type="button" id="addRowBtn" class="mt-2 w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Add Row</button>
+     <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+  <table id="itemTable" class="min-w-full text-sm text-gray-700">
+    <thead class="bg-gray-100 border-b border-gray-200">
+      <tr>
+        <th class="px-3 py-2 text-center font-medium min-w-[20px]">No</th>
+        <th class="px-3 py-2 font-medium min-w-[160px]">Defect</th>
+        <th class="px-3 py-2 text-center font-medium min-w-[60px]">Qty</th>
+        <th class="px-3 py-2 text-center font-medium min-w-[60px] ok-repair-wrapper">
+          OK Repair
+        </th>
+        <th class="px-3 py-2 font-medium min-w-[180px]">Note</th>
+        <th class="px-3 py-2 text-center font-medium min-w-[72px]">Action</th>
+      </tr>
+    </thead>
+
+    <tbody id="defectTableBody"
+      class="divide-y divide-gray-100">
+      <!-- rows injected here -->
+    </tbody>
+  </table>
+</div>
+
+<div class="mt-3 flex justify-end">
+  <button
+    type="button"
+    id="addRowBtn"
+    class="inline-flex items-center gap-2
+           bg-blue-600 text-white
+           text-sm font-medium
+           px-4 py-2
+           rounded-md
+           hover:bg-blue-700
+           focus:outline-none focus:ring-2 focus:ring-blue-400">
+    <span class="text-lg leading-none">+</span>
+    Add Row
+  </button>
+</div>
+
+<!-- Inspection Summary -->
+<div class="mt-6 flex justify-start">
+  <div class="w-full md:w-96 border border-gray-200 bg-white px-2 rounded-md pb-8">
+
+   <div class="flex items-center gap-2 border-b border-gray-200 py-3 px-2 mb-6">
+  <i class="fa-solid fa-file text-indigo-700 text-sm"></i>
+
+  <h2 class="text-base font-semibold text-indigo-700 tracking-wide">
+    Inspection Summary
+  </h2>
+   </div>
+
+    <div class="divide-y divide-gray-100 text-sm">
+
+      <div class="flex justify-between px-4 py-2 hidden">
+  <span class="text-gray-600">Total Defect Qty</span>
+  <span class="font-medium text-gray-900">
+    <span id="totalDefectQty">0</span>
+    <span class="text-gray-500">(<span id="totalDefectPercent">0</span>%)</span>
+  </span>
+</div>
+
+ <div class="flex justify-between px-4 py-2 border-t border-gray-200 mt-4">
+  <span class="text-sm text-gray-600">Total Check</span>
+  <span class="text-sm font-semibold text-gray-900">
+    <span id="totalCheckDisplay">0</span>
+  </span>
+</div>
+
+
+<div class="flex justify-between px-4 py-2">
+  <span class="text-sm text-gray-600">Total OK</span>
+  <span class="text-sm font-semibold text-gray-900">
+    <span id="totalOkDisplay">0</span>
+    <span class="text-gray-500">
+      (<span id="totalOkPercent">0</span>%)
+    </span>
+  </span>
+</div>
+
+
+      <div class="flex justify-between px-4 py-2">
+  <span class="text-sm text-gray-600">Total NG</span>
+  <span class="text-sm font-semibold text-gray-900">
+    <span id="totalNGDisplay">0</span>
+    <span class="text-gray-500">
+      (<span id="totalNGPercent">0</span>%)
+    </span>
+  </span>
+</div>
+
+
+      <div class="flex justify-between px-4 py-2">
+  <span id="totalNCLabel" class="text-sm text-gray-600">Total NC / OK Repair</span>
+  <span class="text-sm font-semibold text-gray-900">
+    <span id="totalNCDisplay">0</span>
+    <span class="text-gray-500">
+      (<span id="totalNCPercent">0</span>%)
+    </span>
+  </span>
+</div>
+
+     <div id="totalPTWrapper" class="flex justify-between px-4 py-2">
+  <span class="text-gray-600">Total Pass Through</span>
+  <span id="totalPTDisplay" class="font-medium text-gray-900">0</span>
+</div>
+
+      <div class="flex justify-between px-4 py-2">
+        <span class="text-gray-600">Pass Rate</span>
+        <span id="passRate" class="font-medium text-gray-900">0</span>
       </div>
 
+        <div class="flex justify-between px-4 py-2">
+        <span id="passTroughLabel" class="text-gray-600">Pass Trough / Performance</span>
+        <span id="passTroughDisplay" class="font-medium text-gray-900">0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="mt-8">
       <!-- Buttons -->
       <div class="flex flex-col md:flex-row gap-2 mt-4">
         <button id="resetBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
           <i data-feather="refresh-cw" class="h-4 w-4"></i> Reset
         </button>
-        <button id="submitBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
+        <button type="submit" id="submitBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
           <i data-feather="save" class="h-4 w-4"></i> Save
         </button>
       </div>
@@ -302,10 +411,27 @@
     overflow-x: auto;
   }
 
-  .select2-container .select2-selection--single {
-  min-height: 2.4rem;
-  line-height: 1rem;
+ .select2-container .select2-selection--single {
+  height: 42px;
+  background-color: #f9fafb; /* gray-50 */
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 0.5rem;
 }
+
+.select2-container--default
+.select2-selection--single
+.select2-selection__rendered {
+  line-height: 40px;
+}
+
+.select2-container--default
+.select2-selection--single:focus,
+.select2-container--default.select2-container--focus
+.select2-selection--single {
+  border-color: #60a5fa; /* blue-400 */
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4);
+}
+
 
  .defect-select {
   min-height: 1.8rem;
@@ -325,121 +451,344 @@ select:disabled {
   
 
 $(document).ready(function () {
-  toggleOkRepair(); // 🔥 INI WAJIB
-  const $checkMethod = $('#check_method');
-  const $qtyReceiving = $('#qty_received');
-  const $totalCheck = $('#total_check');
-  const $totalCheckLabel = $('[data-info="total-check"]');
-  const $totalNgLabel = $('[data-info="total-ng"]');
-  const $totalOkLabel = $('[data-info="total-ok"]');
-  const $totalOkRepairLabel = $('[data-info="total-ok-repair"]');
-  const $passRate = $('[data-info="pass-rate"]');
-  const $passTrough = $('[data-info="pass-trough"]');
-  const $NGRate = $('[data-info="ng-rate"]');
-  const $okRepairRate = $('[data-info="ok-repair-rate"]');
-  let articleMap = {};
-  let rowIndex = 1;
 
-  
+  /* =====================================================
+   * DOM REFERENCES
+   * ===================================================== */
+  const $checkMethod        = $('#check_method');
+  const $qtyReceiving       = $('#qty_received');
+  const $totalCheck         = $('#total_check');
+  const $totalCheckDisplay  = $('#totalCheckDisplay');
 
-  // ================== Helper ==================
+  const $postSelect         = $('#inspection_post');
+
+  const $totalNGDisplay     = $('#totalNGDisplay');
+  const $totalNGPercent     = $('#totalNGPercent');
+
+  const $totalOkDisplay     = $('#totalOkDisplay');
+  const $totalOkPercent     = $('#totalOkPercent');
+
+  const $totalNCLabel       = $('#totalNCLabel');
+  const $totalNCDisplay     = $('#totalNCDisplay');
+  const $totalNCPercent     = $('#totalNCPercent');
+
+  const $totalPTWrapper     = $('#totalPTWrapper');
+  const $totalPTDisplay     = $('#totalPTDisplay');
+
+  const $passRate = $('#passRate');
+
+  const $passTroughLabel = $('#passTroughLabel');
+  const $passTroughDisplay = $('#passTroughDisplay');
+
+
+  /* =====================================================
+   * HELPER
+   * ===================================================== */
   function getSamplingCheck(qty) {
     if (qty >= 2 && qty <= 8) return 2;
-    if (qty >= 9 && qty <= 15) return 3;
-    if (qty >= 16 && qty <= 25) return 5;
-    if (qty >= 26 && qty <= 50) return 8;
-    if (qty >= 51 && qty <= 90) return 13;
-    if (qty >= 91 && qty <= 150) return 20;
-    if (qty >= 151 && qty <= 280) return 32;
-    if (qty >= 281 && qty <= 500) return 50;
-    if (qty >= 501 && qty <= 1200) return 80;
-    if (qty >= 1201 && qty <= 3200) return 125;
-    if (qty >= 3201 && qty <= 10000) return 200;
-    if (qty >= 10001 && qty <= 35000) return 315;
+    if (qty <= 15) return 3;
+    if (qty <= 25) return 5;
+    if (qty <= 50) return 8;
+    if (qty <= 90) return 13;
+    if (qty <= 150) return 20;
+    if (qty <= 280) return 32;
+    if (qty <= 500) return 50;
+    if (qty <= 1200) return 80;
+    if (qty <= 3200) return 125;
+    if (qty <= 10000) return 200;
+    if (qty <= 35000) return 315;
     return 0;
   }
 
+
+  /* =====================================================
+   * TOTAL CHECK
+   * ===================================================== */
   function updateTotalCheck() {
     const method = $checkMethod.val();
-    const qty = parseInt($qtyReceiving.val()) || 0;
-    let val = '';
+    const qty    = parseInt($qtyReceiving.val()) || 0;
 
+    let val = '';
     if (method === '100%') val = qty;
-    else if (method === 'Sampling') val = getSamplingCheck(qty) || '';
+    if (method === 'Sampling') val = getSamplingCheck(qty) || '';
 
     $totalCheck.val(val).trigger('input');
   }
 
-  function updateTotals() {
-    let totalNg = 0, totalOkRepair = 0;
-
-    $('input[name="qty[]"]').each(function () {
-      totalNg += parseInt($(this).val()) || 0;
-    });
-
-    $('input[name="ok_repair[]"]').each(function () {
-      totalOkRepair += parseInt($(this).val()) || 0;
-    });
-
-    const totalNgAfterRepair = Math.max(totalNg - totalOkRepair, 0);
-    const totalCheck = parseInt($totalCheck.val()) || 0;
-    const totalOk = Math.max(totalCheck - totalNg, 0);
-
-    $totalCheckLabel.text(totalCheck || '-');
-    $totalNgLabel.text(totalNgAfterRepair);
-    $totalOkRepairLabel.text(totalOkRepair);
-    $totalOkLabel.text(totalOk);
-
-    if (totalNg > totalCheck) {
-      Swal.fire('Peringatan', 'Jumlah defect melebihi total check!', 'warning');
-    }
-
- // Hitung persentase
-const passRate = totalCheck
-  ? (((totalOk + totalOkRepair) / totalCheck) * 100).toFixed(0)
-  : 0;
-
-const passTrough = totalCheck
-  ? ((totalOk / totalCheck) * 100).toFixed(0)
-  : 0;
-
-const ngRate = totalCheck
-  ? (((totalNg - totalOkRepair) / totalCheck) * 100).toFixed(0)
-  : 0;
-
-const okRepairRate = totalCheck
-  ? ((totalOkRepair / totalCheck) * 100).toFixed(0)
-  : 0;
-
-
-$passRate.text(passRate + '%');
-$passTrough.text(passTrough + '%');
-$NGRate.text(ngRate + '%');
-$okRepairRate.text(okRepairRate + '%');
-
+  function syncTotalCheckDisplay() {
+    $totalCheckDisplay.text(parseInt($totalCheck.val()) || 0);
   }
 
-  // ================== Event ==================
-  $checkMethod.on('change', updateTotalCheck);
-  $qtyReceiving.on('input', updateTotalCheck);
-  $totalCheck.on('input', updateTotals);
 
-  $(document).on('input', 'input[name="qty[]"], input[name="ok_repair[]"]', updateTotals);
+  /* =====================================================
+   * TOTAL DEFECT (VALIDASI)
+   * ===================================================== */
+  function updateTotalDefectSummary() {
+    let totalDefect = 0;
 
-  $(document).on('input', '.qty-ok-repair', function () {
-    const qtyDefect = parseInt($(this).closest('tr').find('.qty-defect').val()) || 0;
-    const qtyOkRepair = parseInt($(this).val()) || 0;
-    if (qtyOkRepair > qtyDefect) {
-      Swal.fire('Error', 'Qty OK Repair tidak boleh melebihi Qty Defect', 'error');
-      $(this).val(qtyDefect);
+    $('input[name="qty[]"]').each(function () {
+      totalDefect += parseInt($(this).val()) || 0;
+    });
+
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+
+    if (totalCheck > 0 && totalDefect > totalCheck) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validasi Gagal',
+        text: 'Total Defect Qty melebihi Total Check. Nilai akan direset.'
+      });
+
+      $('input[name="qty[]"]').val(0);
+      totalDefect = 0;
     }
-  });
 
-  $(document).on('click', '.removeBtn', function () {
-    $(this).closest('tr').remove();
-    updateTotals();
-  });
+    $('#totalDefectQty').text(totalDefect);
 
+    const percent = totalCheck > 0
+      ? ((totalDefect / totalCheck) * 100).toFixed(0)
+      : 0;
+
+    $('#totalDefectPercent').text(percent);
+  }
+
+
+  /* =====================================================
+   * TOTAL NG
+   * ===================================================== */
+  function updateTotalNG() {
+    let totalNG = 0;
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+
+    $('#defectTableBody tr').each(function () {
+      const defectText = $(this)
+        .find('.defect-select option:selected')
+        .text()
+        .trim();
+
+      const qty = parseInt($(this).find('.qty-defect').val()) || 0;
+
+      if (defectText.startsWith('NG')) {
+        totalNG += qty;
+      }
+    });
+
+    $totalNGDisplay.text(totalNG);
+
+    const percent = totalCheck > 0
+      ? ((totalNG / totalCheck) * 100).toFixed(0)
+      : 0;
+
+    $totalNGPercent.text(percent);
+  }
+
+
+  /* =====================================================
+   * TOTAL OK
+   * ===================================================== */
+  function updateTotalOK() {
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const totalNG    = parseInt($totalNGDisplay.text()) || 0;
+
+    const totalOK = Math.max(totalCheck - totalNG, 0);
+    $totalOkDisplay.text(totalOK);
+
+    const percent = totalCheck > 0
+      ? ((totalOK / totalCheck) * 100).toFixed(0)
+      : 0;
+
+    $totalOkPercent.text(percent);
+  }
+
+
+  /* =====================================================
+   * NC / OK REPAIR
+   * ===================================================== */
+  function updateNcOrOkRepair() {
+    const post = $postSelect.val();
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    let totalValue = 0;
+
+    if (post === 'Incoming') {
+      $totalNCLabel.text('Total OK Repair');
+
+      $('input[name="ok_repair[]"]').each(function () {
+        totalValue += parseInt($(this).val()) || 0;
+      });
+
+    } else {
+      $totalNCLabel.text('Total NC');
+
+      $('#defectTableBody tr').each(function () {
+        const defectText = $(this)
+          .find('.defect-select option:selected')
+          .text()
+          .trim();
+
+        const qty = parseInt($(this).find('.qty-defect').val()) || 0;
+
+        if (defectText.startsWith('NC')) {
+          totalValue += qty;
+        }
+      });
+    }
+
+    $totalNCDisplay.text(totalValue);
+
+    const percent = totalCheck > 0
+      ? ((totalValue / totalCheck) * 100).toFixed(0)
+      : 0;
+
+    $totalNCPercent.text(percent);
+  }
+
+
+  /* =====================================================
+   * TOTAL PASS THROUGH
+   * ===================================================== */
+  function updateTotalPassThrough() {
+    const post = $postSelect.val();
+
+    if (post === 'Incoming') {
+      $totalPTWrapper.addClass('hidden');
+      return;
+    }
+
+    $totalPTWrapper.removeClass('hidden');
+
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const totalNG    = parseInt($totalNGDisplay.text()) || 0;
+    const totalNC    = parseInt($totalNCDisplay.text()) || 0;
+
+    const passThrough = Math.max(
+      totalCheck - totalNG - totalNC,
+      0
+    );
+
+    $totalPTDisplay.text(passThrough);
+  }
+
+  /*======================================================
+   * PASS RATE
+   * ===================================================== */
+  function updatePassRate() {
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+  const totalOK    = parseInt($totalOkDisplay.text()) || 0;
+
+  let passRate = 0;
+
+  if (totalCheck > 0) {
+    passRate = ((totalOK / totalCheck) * 100).toFixed(0);
+  }
+
+  $passRate.text(`${passRate}%`);
+  }
+
+   /* =====================================================
+   * PASS THROUGH
+   * ===================================================== */
+
+    function updatePassTrough() {
+    const post       = $postSelect.val();
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+
+    let numerator = 0;
+    let percent   = 0;
+
+  if (totalCheck <= 0) {
+    $passTroughDisplay.text('0%');
+    return;
+  }
+
+  if (post === 'Incoming') {
+    // ================= PERFORMANCE =================
+    $passTroughLabel.text('Performa');
+
+    const totalOK       = parseInt($totalOkDisplay.text()) || 0;
+    const totalOkRepair = parseInt($totalNCDisplay.text()) || 0;
+
+    numerator = totalOK - totalOkRepair;
+
+  } else {
+    // ================= PASS THROUGH =================
+    $passTroughLabel.text('Pass Through');
+
+    const totalPassThrough =
+      parseInt($totalPTDisplay.text()) || 0;
+
+    numerator = totalPassThrough;
+  }
+
+  if (numerator < 0) numerator = 0;
+
+  percent = ((numerator / totalCheck) * 100).toFixed(0);
+  $passTroughDisplay.text(`${percent}%`);
+}
+
+/* =====================================================
+   * RESET SUMMARY
+   * ===================================================== */
+function resetSummary() {
+  $totalNGDisplay.text(0);
+  $totalNGPercent.text(0);
+
+  $totalOkDisplay.text(0);
+  $totalOkPercent.text(0);
+
+  $totalNCDisplay.text(0);
+  $totalNCPercent.text(0);
+
+  $totalPTDisplay.text(0);
+  $passTroughDisplay.text('0%');
+}
+
+
+  /* =====================================================
+   * MASTER UPDATE
+   * ===================================================== */
+  function updateAllSummary() {
+    updateTotalNG();
+    updateTotalOK();
+    updateNcOrOkRepair();
+    updateTotalPassThrough();
+    updatePassRate();
+    updatePassTrough();
+  }
+
+
+
+ /* =====================================================
+ * EVENTS
+ * ===================================================== */
+$checkMethod.on('change', updateTotalCheck);
+$qtyReceiving.on('input', updateTotalCheck);
+
+$totalCheck.on('input', function () {
+  syncTotalCheckDisplay();
+  updateAllSummary();
+});
+
+$(document).on(
+  'input change',
+  '.qty-defect, .defect-select, .qty-ok-repair',
+  updateAllSummary
+);
+
+$(document).on('click', '.removeBtn', function () {
+  $(this).closest('tr').remove();
+  updateAllSummary();
+});
+
+/* ===== POST CHANGE (FIXED) ===== */
+$postSelect.on('change', function () {
+  resetSummary();       // ⬅️ WAJIB
+  updateAllSummary();   // ⬅️ HITUNG ULANG SESUAI POST BARU
+});
+
+
+   /* =====================================================
+   * INIT SELECT 2
+   * ===================================================== */
 
 $('#inspection_post').select2({
   placeholder: "-- Pilih Inspection Post --",
@@ -460,22 +809,26 @@ $('#customer').select2({
 });
 
 
- 
-
-
-
-  // ================== Initial ==================
-  updateTotals();
-  toggleOkRepair();
-  feather.replace();
+ $('#check_method').select2({
+  placeholder: "-- Pilih Metode Inspection --",
+  allowClear: true,
+  width: '100%'
 });
 
+$('#spraybooth').select2({
+  placeholder: "-- Pilih Booth --",
+  allowClear: true,
+  width: '100%'
+});
+
+ feather.replace();
 
 
 
-
+ /* =====================================================
+   * DEFECT TABLE HANDLE
+   * ===================================================== */
  let rowIndex = 1;
-
 // Function buat row
 function createRow(index, defects = []) {
     const $row = $('<tr>');
@@ -492,27 +845,91 @@ defects.forEach(defect => {
 
 
     $row.html(`
-        <td class="border p-2 text-center min-w-[40px]">${index}</td>
+        <td class="border p-2 text-center w-[20px]">${index}</td>
         <td class="border p-2 min-w-[140px]">
-            <select name="defect_id[]" class="w-full border rounded p-1 defect-select">
+            <select name="defect_id[]" class="w-full border rounded defect-select">
                 ${defectOptions}
             </select>
         </td>
-        <td class="border p-2 min-w-[80px]">
-            <input type="number" name="qty[]" min="1" class="w-full border rounded p-1 qty-defect" required>
-        </td>
-     <td class="border p-2 min-w-[80px] ok-repair-wrapper">
+       <td class="border p-2 w-[60px]">
+  <div class="flex items-stretch">
+    <input
+      type="number"
+      name="qty[]"
+      min="1"
+      class="flex-1
+             border border-gray-300
+             border-r-0
+             rounded-l-md
+             px-3 py-2
+             text-sm
+             focus:outline-none
+             focus:border-blue-400
+             focus:ring-1 focus:ring-blue-300
+             qty-defect
+             text-right"
+      required
+    >
+    <span
+      class="inline-flex
+             items-center
+             px-3
+             text-sm
+             text-gray-600
+             bg-gray-100
+             border border-gray-300
+             border-l-0
+             rounded-r-md">
+      PCS
+    </span>
+  </div>
+</td>
+
+     <td class="border p-2 w-[60px] ok-repair-wrapper">
+     <div class="flex items-stretch">
     <input type="number"
            name="ok_repair[]"
-           class="w-full border rounded p-1 qty-ok-repair">
+           class="flex-1
+             border border-gray-300
+             border-r-0
+             rounded-l-md
+             px-3 py-2
+             text-sm
+             focus:outline-none
+             focus:border-blue-400
+             focus:ring-1 focus:ring-blue-300
+             qty-ok-repair
+             text-right"
+    >
+     <span
+      class="inline-flex
+             items-center
+             px-3
+             text-sm
+             text-gray-600
+             bg-gray-100
+             border border-gray-300
+             border-l-0
+             rounded-r-md">
+      PCS
+    </span>
+  </div>
 </td>
 
 
         <td class="border p-2 min-w-[120px]">
-            <input type="text" name="note_defect[]" class="w-full border rounded p-1">
+            <input type="text" name="note_defect[]" class="w-full px-3 py-2
+         bg-gray-50
+         border border-gray-300
+         rounded-lg
+         shadow-sm
+         focus:outline-none
+         focus:ring-2 focus:ring-blue-400
+         focus:border-blue-400
+         transition"">
         </td>
         <td class="border p-2 text-center min-w-[60px]">
-            <button type="button" class="removeBtn text-red-600 hover:text-red-800"><i data-feather="trash-2"></i></button>
+            <button type="button" class="removeBtn text-red-600 hover:text-red-800">X</button>
         </td>
     `);
 
@@ -639,50 +1056,73 @@ function toggleOkRepair() {
 
 
 
-      $('#inspection_post').on('change', function () {
-   
+    $('#inspection_post').on('change', function () {
+
   const post = $(this).val();
 
-  if (post === 'Incoming') {
-    // ================= Incoming =================
-    // Supplier ON
-    $('#supplier-wrapper').removeClass('hidden');
-    $('#customer-wrapper').addClass('hidden');
+  // === Element cache ===
+  const supplierWrap = $('#supplier-wrapper');
+  const customerWrap = $('#customer-wrapper');
+  const qtyWrap      = $('#qty-received-wrapper');
+  const checkMethod  = $('#check_method_container');
+  const sprayboothWrap = $('#spraybooth-wrapper');
 
-    $('#customer').val(null).trigger('change');
+  // ================= RESET SEMUA =================
+  supplierWrap.addClass('hidden');
+  customerWrap.addClass('hidden');
+  qtyWrap.addClass('hidden');
+  checkMethod.addClass('hidden');
+  sprayboothWrap.addClass('hidden');
+
+  $('#supplier, #customer').prop('required', false);
+  $('#qty_received').prop('required', false).val('');
+  $('#check_method').prop('required', false).val('');
+  $('#spraybooth').prop('required', false).val('');
+
+  // ================= LOGIC =================
+  if (post === 'Incoming') {
+
+    // Supplier ON
+    supplierWrap.removeClass('hidden');
     $('#supplier').prop('required', true);
-    $('#customer').prop('required', false);
 
     // Qty Received ON
-    $('#qty-received-wrapper').removeClass('hidden');
+    qtyWrap.removeClass('hidden');
     $('#qty_received').prop('required', true);
 
-  } else if (post) {
-    // ================= Selain Incoming =================
-    // Customer ON
-    $('#supplier-wrapper').addClass('hidden');
-    $('#customer-wrapper').removeClass('hidden');
+    // Check Method ON
+    checkMethod.removeClass('hidden');
+    $('#check_method').prop('required', true);
 
-    $('#supplier').val(null).trigger('change');
-    $('#supplier').prop('required', false);
+    sprayboothWrap.addClass('hidden');
+    $('#spraybooth').val(null).trigger('change');
+
+    // Customer OFF
+    customerWrap.addClass('hidden');
+    $('#customer').val(null).trigger('change');
+
+    
+
+  } else if (post) {
+
+    // Customer ON
+    customerWrap.removeClass('hidden');
     $('#customer').prop('required', true);
 
-    // Qty Received OFF
-    $('#qty-received-wrapper').addClass('hidden');
-    $('#qty_received').prop('required', false).val('');
+    // Supplier OFF
+    supplierWrap.addClass('hidden');
+    $('#supplier').val(null).trigger('change');
 
-  } else {
-    // ================= Reset =================
-    $('#supplier-wrapper, #customer-wrapper').addClass('hidden');
-    $('#supplier, #customer').prop('required', false);
+     sprayboothWrap.removeClass('hidden');
+    $('spraybooth').prop('required', true);
 
-    $('#qty-received-wrapper').addClass('hidden');
-    $('#qty_received').prop('required', false).val('');
   }
 
   // Reset Part setiap ganti post
   $('#part_name').val(null).trigger('change');
+
 });
+
 
    // ===== DEFAULT ROW SAAT PAGE LOAD =====
 const post = $('#inspection_post').val();
@@ -747,25 +1187,6 @@ $('#defectTableBody').on('click', '.removeBtn', function () {
 
 let articleMap = {};
 
-// ================== Select2 Basic ==================
-$('#inspection_post').select2({
-  placeholder: "-- Pilih Inspection Post --",
-  allowClear: true,
-  width: '100%'
-});
-
-$('#supplier').select2({
-  placeholder: "-- Pilih Supplier --",
-  allowClear: true,
-  width: '100%'
-});
-
-$('#customer').select2({
-  placeholder: "-- Pilih Customer --",
-  allowClear: true,
-  width: '100%'
-});
-
 // ================== PART SELECT2 ==================
 
 $('#part_name').select2({
@@ -787,7 +1208,6 @@ $('#part_name').select2({
       };
     },
     processResults: data => {
-       console.log('📥 Response from backend →', data);
       articleMap = {};
 
       data.forEach(item => {
@@ -823,124 +1243,121 @@ $('#part_name').on('change', function () {
 });
 
 
-  const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-    document.getElementById("inspection-date").textContent = formattedDate;
-
-   function getCurrentShift() {
-    const now = new Date();
-    const hour = now.getHours();
-
-    if (hour >= 8 && hour < 17) {
-      return 'Shift 1';
-    }
-
-    // Shift 2: 17.00 - 23.59 atau 00.00 - 02.59
-    if (hour >= 17 || hour < 8) {
-      return 'Shift 2';
-    }
-
-    return 'Unknown';
-  }
-
-  document.getElementById('shift-label').textContent = getCurrentShift();
-
-   // Gunakan event 'change.select2' khusus
-$('#inspection_post').on('change', function() {
-    const typeValue = $(this).val();
-    const methodField = document.getElementById('check_method_container');
-
-    if (typeValue === 'Incoming') {
-        methodField.classList.remove('hidden');
-    } else {
-        methodField.classList.add('hidden');
-    }
-});
-
-
-
-$('#submitBtn').on('click', function (e) {
+$('#inspectionForm').off('submit').on('submit', function (e) {
     e.preventDefault();
 
-    const formData = new FormData();
+    const $form = $(this);
+    const $btn = $('#submitBtn');
 
-    formData.append('_token', '{{ csrf_token() }}');
-    formData.append('inspection_post', $('#inspection_post').val());
-    formData.append('part_name', $('#part_name').val());
-  const post = $('#inspection_post').val();
+    // ===== Disable Button + Spinner =====
+    const originalHtml = $btn.html();
+    $btn.prop('disabled', true)
+        .addClass('opacity-50 cursor-not-allowed')
+        .html('<i class="fa fa-spinner fa-spin mr-1"></i> Saving...');
 
-const supplierCode = (post === 'Incoming')
-    ? $('#supplier').val()
-    : $('#customer').val();
+    const formData = new FormData(this);
 
-formData.append('supplier_code', supplierCode);
+    // ===== Incoming vs Non Incoming =====
+    const post = $('#inspection_post').val();
+    const supplierCode = (post === 'Incoming')
+        ? $('#supplier').val()
+        : $('#customer').val();
 
-    formData.append('qty_received', $('#qty_received').val());
-    formData.append('shift', $('#shift-label').text());
-    formData.append('inspection_date', $('#inspection-date').text());
-    formData.append('check_method', $('#check_method').val());
-    formData.append('total_check', $('#total_check').val());
-    formData.append('total_ok', $('[data-info="total-ok"]').text());
-    formData.append('total_ok_repair', $('[data-info="total-ok-repair"]').text());
-    formData.append('total_ng', $('[data-info="total-ng"]').text());
-$('#defectTableBody tr').each(function () {
-    const select = $(this).find('.defect-select');
+    formData.set('supplier_code', supplierCode);
 
-    const defect = select.val(); // ✅ FIX
-    const qty = $(this).find('input[name="qty[]"]').val();
-    const ok_repair = $(this).find('input[name="ok_repair[]"]').val();
-    const note = $(this).find('input[name="note_defect[]"]').val();
-
-    if (!defect || !qty) return;
-
-    formData.append('defect_id[]', defect);
-    formData.append('qty[]', qty);
-    formData.append('ok_repair[]', ok_repair || 0);
-    formData.append('note_defect[]', note || '');
-});
-
-
-
-    console.log('Payload sending to server...');
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-    }
+    // ===== Summary (text → backend) =====
+    formData.set('total_check', $('#totalCheckDisplay').text());
+    formData.set('total_ok', $('#totalOkDisplay').text());
+    formData.set('total_ng', $('#totalNGDisplay').text());
+    formData.set('total_ok_repair', $('#totalNCDisplay').text());
 
     $.ajax({
         url: '/qc/inspections/store',
         method: 'POST',
         data: formData,
-        processData: false, // ⬅️ penting agar FormData tidak diubah
-        contentType: false, // ⬅️ penting agar boundary content dikirim otomatis
+        processData: false,
+        contentType: false,
+
         success: function (res) {
             Swal.fire({
-            title: 'Success',
-            text: res.message,
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
-        }).then(() => {
-            location.reload(); // ⬅️ Reload halaman setelah sukses
-        });
-    },
+                icon: 'success',
+                title: 'Saved',
+                text: res.message,
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => location.reload());
+        },
+
         error: function (xhr) {
+            let msg = 'Something went wrong';
+
             if (xhr.status === 422) {
-                let errors = xhr.responseJSON.errors;
-                let msg = Object.values(errors).map(e => e.join(', ')).join('<br>');
-                Swal.fire('Validation Error', msg, 'error');
-            } else {
-                Swal.fire('Error', 'Something went wrong', 'error');
+                msg = Object.values(xhr.responseJSON.errors)
+                    .map(e => e.join(', '))
+                    .join('<br>');
             }
+
+            Swal.fire('Error', msg, 'error');
+
+            // re-enable button
+            $btn.prop('disabled', false)
+                .removeClass('opacity-50 cursor-not-allowed')
+                .html(originalHtml);
         }
     });
 });
 
+// ===============================
+// VALIDASI TOTAL QTY DEFECT
+// ===============================
 
-    // saat load
-    toggleOkRepair();
+function calculateTotalQty() {
+    let total = 0;
+    $('.qty-defect').each(function () {
+        const val = parseInt($(this).val()) || 0;
+        total += val;
+    });
+    return total;
+}
 
-    
-    
+function validateTotalQty(changedInput = null) {
+    const totalCheck = parseInt($('#total_check').val()) || 0;
+    const totalQty   = calculateTotalQty();
+
+    if (totalCheck === 0) return; // kalau belum isi total_check, skip dulu
+
+    if (totalQty > totalCheck) {
+
+        if (changedInput) {
+            const currentVal = parseInt($(changedInput).val()) || 0;
+            const selisih = totalQty - totalCheck;
+            const corrected = currentVal - selisih;
+
+            $(changedInput).val(corrected > 0 ? corrected : 0);
+        }
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Qty Melebihi Total Check',
+            text: 'Akumulasi Qty Defect tidak boleh lebih dari Total Check.',
+            confirmButtonColor: '#2563eb'
+        });
+    }
+}
+
+// Trigger saat qty berubah
+$(document).on('input', '.qty-defect', function () {
+    validateTotalQty(this);
+});
+
+// Trigger juga kalau total_check berubah
+$('#total_check').on('input', function () {
+    validateTotalQty();
+});
+
+
+});
+
 
 </script>
 @endpush

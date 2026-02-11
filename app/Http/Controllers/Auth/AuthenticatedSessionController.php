@@ -39,7 +39,7 @@ $hasRole = $user->roles->pluck('name')->contains('Operator Level Access');
 $hasDepartment = $user->departments->pluck('name')->contains('Quality Control');
 
 if ($hasRole && $hasDepartment) {
-    return redirect()->route('qc.inspections.create');
+    return redirect()->route('qc.inspections.create.operator');
 }
 
 

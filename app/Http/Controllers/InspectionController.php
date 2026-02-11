@@ -491,78 +491,117 @@ public function monthlyTrend(Request $request)
      public function create() {
          $suppliers = Supplier::orderBy('name')->get();
             $customers = Customer::orderBy('name')->get();
+        return view('qc.staff-daily-inspection', compact('suppliers','customers'));
+    }
+
+     public function createOperator() {
+         $suppliers = Supplier::orderBy('name')->get();
+            $customers = Customer::orderBy('name')->get();
         return view('qc.create-daily-inspection', compact('suppliers','customers'));
     }
 
-    public function store(Request $request)
-    {
+   public function store(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'inspection_post' => 'required|string',
+        'inspection_date' => 'required|date',
+        'part_name'       => 'required|string',
+        'supplier_code'   => 'required|string',
 
-        $validator = Validator::make($request->all(), [
-    'inspection_post' => 'required|string',
-    'part_name' => 'required|string',
-    'total_check' => 'required|integer',
-    'check_method' => 'nullable|string',
-    'spraybooth' => 'nullable|string',
-    'defect_id' => 'nullable|array',
-    'defect_id.*' => 'required|integer|exists:defects,id',
+        'check_method' => 'nullable|string',
+        'spraybooth'   => 'nullable|string',
+        'qty_received' => 'nullable|integer|min:1',
 
-    'qty' => 'required|array',
-    'qty.*' => 'required|integer|min:1',
+        'total_check'      => 'required|integer|min:1',
+        'total_ok'         => 'nullable|integer|min:0',
+        'total_ok_repair'  => 'nullable|integer|min:0',
+        'total_ng'         => 'nullable|integer|min:0',
 
-    'ok_repair' => 'nullable|array',
-    'ok_repair.*' => 'nullable|integer|min:0',
+        'defect_id'        => 'nullable|array',
+        'defect_id.*'      => 'required|integer|exists:defects,id',
 
-    'note_defect' => 'nullable|array',
-    'note_defect.*' => 'nullable|string',
-]);
+        'qty'              => 'nullable|array',
+        'qty.*'            => 'required|integer|min:1',
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+        'ok_repair'        => 'nullable|array',
+        'ok_repair.*'      => 'nullable|integer|min:0',
 
-       $inspection_number = $this->generateInspectionNumber($request->inspection_post, $request->shift, $request->inspection_date ?? now()->toDateString());
+        'note_defect'      => 'nullable|array',
+        'note_defect.*'    => 'nullable|string',
+    ]);
 
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    DB::beginTransaction();
+
+    try {
+
+        $inspectionNumber = $this->generateInspectionNumber(
+            $request->inspection_post,
+            $request->inspection_date
+        );
 
         $inspection = Inspection::create([
-            'inspection_number' => $inspection_number, // ✅ tambahkan ini
-            'user_id' => Auth::id(),
-            'shift' => $request->shift,
-            'inspection_date' => $request->inspection_date ?? now()->toDateString(),
-            'part_name' => $request->part_name,
-            'supplier_code' => $request->supplier_code,
-            'inspection_post' => $request->inspection_post,
-            'check_method' => $request->check_method,
-             'spraybooth' => $request->spraybooth,
-            'note' => $request->note,
-            'qty_received' => $request->qty_received,
-            'total_check' => $request->total_check,
-            'total_ok' => $request->total_ok ?? 0,
-            'total_ok_repair' => $request->total_ok_repair ?? 0,
-            'total_ng' => $request->total_ng ?? 0,
+            'inspection_number' => $inspectionNumber,
+            'user_id'           => Auth::id(),
+            'inspection_date'   => $request->inspection_date,
+            'inspection_post'   => $request->inspection_post,
+            'supplier_code'     => $request->supplier_code,
+            'part_name'         => $request->part_name,
+            'check_method'      => $request->check_method,
+            'spraybooth'        => $request->spraybooth,
+            'qty_received'      => $request->qty_received,
+            'total_check'       => $request->total_check,
+            'total_ok'          => $request->total_ok ?? 0,
+            'total_ok_repair'   => $request->total_ok_repair ?? 0,
+            'total_ng'          => $request->total_ng ?? 0,
         ]);
 
-  if ($request->defect_id) {
-    foreach ($request->defect_id as $i => $defectId) {
-        InspectionDefect::create([
-            'inspection_id' => $inspection->id,
-            'defect_id' => $defectId,
-            'qty' => $request->qty[$i],
-            'ok_repair' => $request->ok_repair[$i] ?? 0,
-            'note_defect' => $request->note_defect[$i] ?? null,
+        if ($request->filled('defect_id')) {
+            foreach ($request->defect_id as $i => $defectId) {
+
+                if (!isset($request->qty[$i])) {
+                    continue; // safety net
+                }
+
+                InspectionDefect::create([
+                    'inspection_id' => $inspection->id,
+                    'defect_id'     => $defectId,
+                    'qty'           => $request->qty[$i],
+                    'ok_repair'     => $request->ok_repair[$i] ?? 0,
+                    'note_defect'   => $request->note_defect[$i] ?? null,
+                ]);
+            }
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Inspection saved successfully',
+            'inspection_number' => $inspectionNumber
         ]);
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'message' => 'Failed to save inspection',
+            'error'   => $e->getMessage()
+        ], 500);
     }
-
 }
 
-        return response()->json(['message' => 'Inspection saved successfully']);
-    }
 
-    function generateInspectionNumber($inspection_post, $shift, $inspection_date)
+   protected function generateInspectionNumber($inspection_post, $inspection_date)
 {
     $prefix = 'QC';
+
     $romawiBulan = [
-        1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
-        7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+        1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV',
+        5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII',
+        9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
     ];
 
     $postMapping = [
@@ -571,27 +610,18 @@ public function monthlyTrend(Request $request)
         'BUFFING'   => 'B',
         'TOUCH UP'  => 'T',
         'FINAL'     => 'F',
-        'OUTGOING'     => 'O'
+        'OUTGOING'  => 'O',
     ];
 
-    $shiftMapping = [
-        'Shift 1' => 'S1',
-        'Shift 2' => 'S2',
-        'Shift 3' => 'S3'
-    ];
-
-    $inspection_post = strtoupper(trim($inspection_post));
-    $code = $postMapping[$inspection_post] ?? 'X';
-    $shiftCode = $shiftMapping[$shift] ?? strtoupper($shift); // fallback jika shift tidak dikenal
+    $post = strtoupper(trim($inspection_post));
+    $code = $postMapping[$post] ?? 'X';
 
     $bulan = (int) date('m', strtotime($inspection_date));
     $tahun = date('Y', strtotime($inspection_date));
     $bulanRomawi = $romawiBulan[$bulan];
 
-    // Hitung jumlah existing inspection pada hari dan shift yang sama
-    $count = Inspection::where('inspection_date', $inspection_date)
+    $count = Inspection::whereDate('inspection_date', $inspection_date)
         ->where('inspection_post', $inspection_post)
-        ->where('shift', $shift)
         ->count();
 
     $sequence = str_pad($count + 1, 3, '0', STR_PAD_LEFT);
@@ -599,16 +629,13 @@ public function monthlyTrend(Request $request)
     return "{$prefix}{$code}-ASN-{$tahun}-{$bulanRomawi}-{$sequence}";
 }
 
+
 public function getInspectionNumbers(Request $request)
 {
-
-    \Log::info('Incoming getInspectionNumbers request', $request->all()); // cek request masuk
     $year = $request->input('year');
     $month = $request->input('month');
     $supplier = $request->input('supplier_code');
     $articleCode = $request->input('article_code');
-
-     \Log::info("Filter: year=$year, month=$month, supplier=$supplier, article=$articleCode");
 
    $inspections = Inspection::with(['inspection_defects.defect'])
     ->select('id', 'inspection_number', 'inspection_date', 'qty_received', 'total_ok', 'total_check', 'total_ng', 'total_ok_repair')
