@@ -738,11 +738,11 @@
         
         <!-- Bubble -->
         @if($capa->new_capa_needed == 'yes')
-        <div class="bg-green-50 text-green-800 p-4 rounded-xl shadow-sm font-medium">
+        <div class="bg-red-50 text-red-800 p-4 rounded-xl shadow-sm font-medium">
             CAPA ini memerlukan CAPA baru. Alasannya <span class="font-semibold">{{ $capa->new_capa_reason ?? '-' }}</span>
         </div>
         @else
-        <div class="bg-red-50 text-red-800 p-4 rounded-xl shadow-sm font-medium line-through">
+        <div class="bg-green-50 text-green-800 p-4 rounded-xl shadow-sm font-medium">
             CAPA ini tidak memerlukan CAPA baru.
         </div>
         @endif

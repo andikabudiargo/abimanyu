@@ -270,7 +270,7 @@
     <span class="inline-flex items-center justify-center gap-1.5
         px-3 py-1 text-sm font-semibold rounded-full
         {{ $bg }} {{ $text }} {{ $border }} border
-        w-fit sm:w-32">
+        w-fit">
 
         <i class="fa-solid {{ $icon }} text-xs {{ $iconColor }}"></i>
 
