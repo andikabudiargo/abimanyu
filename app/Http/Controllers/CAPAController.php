@@ -717,7 +717,8 @@ public function updateVerified(Request $request, $id)
         'automaticPadding' => true
     ]);
 
-   $deptGroupIds = resolveDepartmentGroup($capa->dept_id);
+  $deptGroupIds = $this->resolveDepartmentGroup($capa->dept_id);
+
 
 $targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
         $q->whereIn('departments.id', $deptGroupIds);
@@ -836,7 +837,8 @@ public function updateReview(Request $request, $id)
         'automaticPadding' => true
     ]);
 
-  $deptGroupIds = resolveDepartmentGroup($capa->dept_id);
+  $deptGroupIds = $this->resolveDepartmentGroup($capa->dept_id);
+
 
 $targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
         $q->whereIn('departments.id', $deptGroupIds);
@@ -1292,7 +1294,8 @@ public function getComments($capa_id)
         'automaticPadding' => true
     ]);
 
-   $deptGroupIds = resolveDepartmentGroup($capa->dept_id);
+  $deptGroupIds = $this->resolveDepartmentGroup($capa->dept_id);
+
 
 $targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
         $q->whereIn('departments.id', $deptGroupIds);
@@ -1383,7 +1386,8 @@ public function returnEvidence(Request $request)
         'automaticPadding' => true
     ]);
 
-    $deptGroupIds = resolveDepartmentGroup($capa->dept_id);
+   $deptGroupIds = $this->resolveDepartmentGroup($capa->dept_id);
+
 
 $targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
         $q->whereIn('departments.id', $deptGroupIds);

@@ -741,10 +741,10 @@ div.dt-button-collection .dt-button:hover {
   { data: 'submitted_at', name: 'submitted_at', orderable: false, searchable: false },
   { data: 'authorized_by', name: 'authorized_by', orderable: false, searchable: false },
   { data: 'authorized_at', name: 'authorized_at', orderable: false, searchable: false },
-  { data: 'returned_by', name: 'returned_by', orderable: false, searchable: false },
-  { data: 'returned_at', name: 'returned_at', orderable: false, searchable: false },
   { data: 'approved_by', name: 'approved_by', orderable: false, searchable: false },
   { data: 'approved_at', name: 'approved_at', orderable: false, searchable: false },
+  { data: 'returned_by', name: 'returned_by', orderable: false, searchable: false },
+  { data: 'returned_at', name: 'returned_at', orderable: false, searchable: false },
 ]
 
     });
