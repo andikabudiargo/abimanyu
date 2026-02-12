@@ -287,6 +287,8 @@
                     <th class="px-4 py-2">Verified At</th>
                     <th class="px-4 py-2">Processed By</th>
                     <th class="px-4 py-2">Processed At</th>
+                    <th class="px-4 py-2">Review By</th>
+                    <th class="px-4 py-2">Review At</th>
                     <th class="px-4 py-2">Submitted By</th>
                     <th class="px-4 py-2">Submitted At</th>
                     <th class="px-4 py-2">Authorized By</th>
@@ -733,6 +735,8 @@ div.dt-button-collection .dt-button:hover {
   { data: 'verified_at', name: 'verified_at', orderable: false, searchable: false },
   { data: 'processed_by', name: 'submitted_by', orderable: false, searchable: false },
   { data: 'processed_at', name: 'submitted_at', orderable: false, searchable: false },
+  { data: 'review_by', name: 'review_by', orderable: false, searchable: false },
+  { data: 'review_at', name: 'review_at', orderable: false, searchable: false },
   { data: 'submitted_by', name: 'submitted_by', orderable: false, searchable: false },
   { data: 'submitted_at', name: 'submitted_at', orderable: false, searchable: false },
   { data: 'authorized_by', name: 'authorized_by', orderable: false, searchable: false },
@@ -980,7 +984,6 @@ $(document).ready(function () {
 
         // reload / filter DataTable untuk Auditee
         // $('#capa-table').DataTable().ajax.reload(); 
-        console.log('Filter CAPA as Auditee');
     });
   </script>
 

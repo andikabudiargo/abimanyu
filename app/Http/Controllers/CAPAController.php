@@ -27,6 +27,48 @@ use function Symfony\Component\Clock\now;
 
 class CAPAController extends Controller
 {
+
+private function resolveDepartmentGroup($deptId)
+{
+    $groups = [
+        'HRGAIT' => [2,3,5],
+    ];
+
+    // Kalau string HRGAIT
+    if (array_key_exists($deptId, $groups)) {
+        return $groups[$deptId];
+    }
+
+    // Kalau numeric dan termasuk dalam group
+    foreach ($groups as $group) {
+        if (in_array($deptId, $group)) {
+            return $group;
+        }
+    }
+
+    return [$deptId];
+}
+
+
+public function userList($id)
+{
+    $deptIds = $this->resolveDepartmentGroup($id);
+
+    $users = User::whereHas('departments', function ($q) use ($deptIds) {
+            $q->whereIn('departments.id', $deptIds);
+        })
+        ->whereDoesntHave('roles', function ($q) {
+            $q->where('roles.id', 9); // exclude Operator
+        })
+        ->where('status', '!=', 0) // ⛔ exclude status 0
+        ->select('users.id', 'users.name')
+        ->get();
+
+    return response()->json($users);
+}
+
+
+
     public function index()
 {
     $departments = Department::orderBy('name')->get();
@@ -122,9 +164,20 @@ if (!$isMRCapa) {
 
     } else {
 
-        $query->whereHas('departemen.users', function ($q) use ($currentUserId) {
-            $q->where('user_id', $currentUserId);
-        });
+       // Ambil semua department user login
+$userDeptIds = Auth::user()
+    ->departments()
+    ->pluck('departments.id')
+    ->toArray();
+
+// Kalau termasuk HRGAIT family → anggap punya semuanya
+if (array_intersect($userDeptIds, [2,3,5])) {
+    $userDeptIds = [2,3,5];
+}
+
+// Filter CAPA berdasarkan dept_id
+$query->whereIn('dept_id', $userDeptIds);
+
 
     }
 
@@ -177,14 +230,20 @@ if ($request->report_date) {
     $process_url = route('mr.capa.process', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $submit_url = route('mr.capa.submit', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $authorized_url = route('mr.capa.authorized', ['id' => $row->id]); // ✅ Diganti $ticket jadi $ro
+    $review_url = route('mr.capa.review', ['id' => $row->id]); // ✅ Diganti $ticket jadi $ro
     $pdf_url = route('mr.capa.pdf', ['id' => $row->id]); 
     $print_url = route('mr.capa.print', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $isMR = $user->departments()
     ->where('name', 'Management Representative')
     ->exists();
     $isAuditor = in_array($userId, $row->auditors->pluck('user_id')->toArray());
-   $isAuditee = $user->departments()
-    ->where('departments.id', $row->dept_id)
+   $deptGroupIds = in_array($row->dept_id, [2,3,5])
+    ? [2,3,5]
+    : [$row->dept_id];
+
+
+$isAuditee = $user->departments()
+    ->whereIn('departments.id', $deptGroupIds)
     ->exists();
 
 $actionButtons = '
@@ -230,7 +289,13 @@ if ($isAuditee && in_array($row->status, ['Verified', 'Returned for Action'])) {
                 <i data-feather="refresh-cw" class="w-4 h-4 inline mr-2"></i>Process
             </a>';
 }      
-if ($isAuditee && in_array ($row->status, ['In Progress', 'Returned for Evidence'])) {
+if ($isMR && $row->status == 'In Progress') {
+      $actionButtons .= '
+         <a href="'. $review_url .'" class="block px-4 py-2 hover:bg-lime-100 text-lime-700">
+                <i data-feather="message-circle" class="w-4 h-4 inline mr-2"></i>Review
+            </a>';
+}
+if ($isAuditee && in_array ($row->status, ['Approved', 'Returned for Evidence'])) {
       $actionButtons .= '
          <a href="'. $submit_url .'" class="block px-4 py-2 hover:bg-purple-100 text-purple-700">
                 <i data-feather="send" class="w-4 h-4 inline mr-2"></i>Submit
@@ -287,6 +352,9 @@ if ($row->status == 'Closed') {
 ->addColumn('processed_by', function ($row) {
     return $row->processedBy ? $row->processedBy->name : '-';
 })
+->addColumn('review_by', function ($row) {
+    return $row->reviewBy ? $row->reviewBy->name : '-';
+})
 ->addColumn('submitted_by', function ($row) {
     return $row->submittedBy ? $row->submittedBy->name : '-';
 })
@@ -330,13 +398,23 @@ $auditorList .= '</div>';
         return '<span class="italic text-xs text-gray-400">No Department</span>';
     }
 
+    $deptId = $row->dept_id;
+
+    // Jika termasuk HRGAIT group
+    if (in_array($deptId, [2,3,5])) {
+        $deptName = 'HRGAIT';
+    } else {
+        $deptName = $row->departemen->name;
+    }
+
     return '
         <div class="flex items-center justify-start gap-2 text-sm text-gray-700 font-medium">
             <i class="fa-solid fa-building text-slate-500"></i>
-            <span>'.e($row->departemen->name).'</span>
+            <span>'.e($deptName).'</span>
         </div>
     ';
 })
+
 
 ->editColumn('dept_representative', function ($row) {
 
@@ -383,6 +461,7 @@ $auditorList .= '</div>';
         'posted'      => 'bg-yellow-500',
         'verified'    => 'bg-blue-500',
         'in progress' => 'bg-orange-500',
+        'approved' => 'bg-lime-300',
         'submitted'      => 'bg-indigo-500',
         'returned for evidence' => 'bg-red-500',
         'returned for action'   => 'bg-red-500',
@@ -411,6 +490,7 @@ $auditorList .= '</div>';
         'posted'      => 'bg-yellow-500',
         'verified'    => 'bg-blue-500',
         'in progress' => 'bg-orange-500',
+        'approved' => 'bg-lime-300',
         'submitted'      => 'bg-indigo-500',
         'returned for evidence' => 'bg-red-500',
         'returned for action'   => 'bg-red-500',
@@ -453,8 +533,9 @@ $auditorList .= '</div>';
 }
 
       public function create()
-    {
-        $departments = Department::orderBy('name')->get(); // ambil semua department
+    {$departments = Department::whereNotIn('id', [2,3,5])
+    ->orderBy('name')
+    ->get();
         $users = User::orderBy('name')->get(); // ambil semua department
         // Mengembalikan view resources/views/accounting/bbm.blade.php
         return view('mr.create-capa',compact('departments','users'));
@@ -636,15 +717,16 @@ public function updateVerified(Request $request, $id)
         'automaticPadding' => true
     ]);
 
-    // Ambil semua user sesuai department di CAPA
-$targetUsers = User::join('department_user', 'users.id', '=', 'department_user.user_id')
-    ->where('department_user.department_id', $capa->dept_id)
-    ->select('users.*')
+   $deptGroupIds = resolveDepartmentGroup($capa->dept_id);
+
+$targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
+        $q->whereIn('departments.id', $deptGroupIds);
+    })
+    ->where('status', 1)
     ->distinct()
     ->get();
 
 
-    // Loop user MR
     foreach ($targetUsers as $user) {
 
         // Ambil subscription per user
@@ -709,13 +791,116 @@ private function generateIndexedFilename($directory, $originalName)
     return $filename;
 }
 
+public function review($id)
+{
+    $capa = CAPA::with([
+        'user',               // created_by
+        'departemen',
+        'representative',
+        'auditors.users',
+        'rca',
+        'ca',
+         'comments.user', // 👈 penting: relasi user komentar
+        'pa',
+        'evidences'
+    ])->findOrFail($id);
+
+     $currentUser = [
+        'id' => auth()->id(),
+        'name' => auth()->user()->name,
+        'photo' => auth()->user()->avatar ?? 'https://via.placeholder.com/40',
+    ];
+
+    return view('mr.review-capa', compact('capa','currentUser'));
+}
+
+public function updateReview(Request $request, $id)
+{
+    // Ambil data CAPA
+    $capa = CAPA::findOrFail($id);
+
+    // Update status + authorized info
+    $capa->status = 'Approved';
+    $capa->review_by = Auth::id();
+    $capa->review_at = now();
+
+    $capa->save();
+
+       // Setup WebPush
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => 'mailto:it2@asnusantara.co.id',
+            'publicKey' => env('VAPID_PUBLIC_KEY'),
+            'privateKey' => env('VAPID_PRIVATE_KEY'),
+        ],
+        'automaticPadding' => true
+    ]);
+
+  $deptGroupIds = resolveDepartmentGroup($capa->dept_id);
+
+$targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
+        $q->whereIn('departments.id', $deptGroupIds);
+    })
+    ->where('status', 1)
+    ->distinct()
+    ->get();
+
+
+
+
+    // Loop user MR
+    foreach ($targetUsers as $user) {
+
+        // Ambil subscription per user
+        $subscriptions = DB::table('subscriptions')
+            ->where('user_id', $user->id)
+            ->get();
+
+        if ($subscriptions->isEmpty()) {
+            continue; // skip kalau tidak ada subscription
+        }
+
+        foreach ($subscriptions as $subRow) {
+
+            $subData = json_decode($subRow->subscription, true);
+            if (!$subData) continue;
+
+            $sub = Subscription::create($subData);
+
+            $webPush->sendOneNotification(
+                $sub,
+                json_encode([
+                    'title' => "✅ Action CAPA telah disetujui MR | Abimanyu Live",
+                    'body'  => "Segera lengkapi Evidencenya dan Submit. Klik Disini!",
+                    'url'   => url("/mr/capa/{$capa->id}/process")
+                ])
+            );
+        }
+    }
+
+    // Flush push
+    $webPush->flush();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'CAPA successfully approved.'
+    ]);
+}
 
 public function submit($id)
 {
-    $capa = CAPA::with([
-        'rca','ca','pa','evidences',
-        'comments.user' // relasi
-    ])->findOrFail($id);
+  $capa = CAPA::with([
+    'rca',
+    'ca',
+    'pa',
+    'evidences',
+    'comments' => function ($q) {
+        $q->where('type', 'Returned for Evidence')
+          ->with('user')
+          ->orderBy('created_at', 'desc');
+    }
+])->findOrFail($id);
+
 
     $users = User::whereHas('departments', function ($q) use ($capa) {
                     $q->where('department_id', $capa->dept_id);
@@ -955,7 +1140,11 @@ public function authorized($id)
         'auditors.users',
         'rca',
         'ca',
-         'comments.user', // 👈 penting: relasi user komentar
+          'comments' => function ($q) {
+        $q->where('type', 'Returned for Evidence')
+          ->with('user')
+          ->orderBy('created_at', 'desc');
+    }, // 👈 penting: relasi user komentar
         'pa',
         'evidences'
     ])->findOrFail($id);
@@ -1079,7 +1268,8 @@ public function getComments($capa_id)
         $comment = CAPACommentary::create([
             'capa_id' => $request->capa_id,
             'user_id' => $c['user_id'],
-            'comment' => $c['comment']
+            'comment' => $c['comment'],
+            'type'    => 'Returned for Action' // 👈 otomatis isi type
         ]);
         $comment->load('user');
         $savedComments[] = $comment;
@@ -1102,12 +1292,15 @@ public function getComments($capa_id)
         'automaticPadding' => true
     ]);
 
-    // Ambil semua user sesuai department di CAPA
-$targetUsers = User::join('department_user', 'users.id', '=', 'department_user.user_id')
-    ->where('department_user.department_id', $capa->dept_id)
-    ->select('users.*')
+   $deptGroupIds = resolveDepartmentGroup($capa->dept_id);
+
+$targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
+        $q->whereIn('departments.id', $deptGroupIds);
+    })
+    ->where('status', 1)
     ->distinct()
     ->get();
+
 
 
     // Loop user MR
@@ -1166,7 +1359,8 @@ public function returnEvidence(Request $request)
         $comment = CAPACommentary::create([
             'capa_id' => $request->capa_id,
             'user_id' => $c['user_id'],
-            'comment' => $c['comment']
+            'comment' => $c['comment'],
+            'type'    => 'Returned for Evidence' // 👈 otomatis isi type
         ]);
         $comment->load('user');
         $savedComments[] = $comment;
@@ -1189,12 +1383,15 @@ public function returnEvidence(Request $request)
         'automaticPadding' => true
     ]);
 
-    // Ambil semua user sesuai department di CAPA
-$targetUsers = User::join('department_user', 'users.id', '=', 'department_user.user_id')
-    ->where('department_user.department_id', $capa->dept_id)
-    ->select('users.*')
+    $deptGroupIds = resolveDepartmentGroup($capa->dept_id);
+
+$targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
+        $q->whereIn('departments.id', $deptGroupIds);
+    })
+    ->where('status', 1)
     ->distinct()
     ->get();
+
 
 
     // Loop user MR
@@ -1574,10 +1771,17 @@ public function process($id)
 {
     $capa = CAPA::with([
         'rca','ca','pa',
-        'comments.user' // relasi
+          'comments' => function ($q) {
+        $q->where('type', 'Returned for Action')
+          ->with('user')
+          ->orderBy('created_at', 'desc');
+    }, // 👈 penting: relasi user komentar // relasi
     ])->findOrFail($id);
 
-    $users = User::select('id', 'name')->orderBy('name')->get();
+  $users = User::where('status', '!=', 0)
+    ->select('id', 'name')
+    ->orderBy('name')
+    ->get();
 
 
     return view('mr.process-capa', compact('capa', 'users'));
@@ -1641,6 +1845,56 @@ public function updateProcess(Request $request, $id)
         }
 
         DB::commit();
+
+              // Setup WebPush
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => 'mailto:it2@asnusantara.co.id',
+            'publicKey' => env('VAPID_PUBLIC_KEY'),
+            'privateKey' => env('VAPID_PRIVATE_KEY'),
+        ],
+        'automaticPadding' => true
+    ]);
+
+    // Ambil user MR (department_id = 8)
+    $targetUsers = User::join('department_user', 'users.id', '=', 'department_user.user_id')
+        ->where('department_user.department_id', 8)
+        ->select('users.*')
+        ->distinct()
+        ->get();
+
+    // Loop user MR
+    foreach ($targetUsers as $user) {
+
+        // Ambil subscription per user
+        $subscriptions = DB::table('subscriptions')
+            ->where('user_id', $user->id)
+            ->get();
+
+        if ($subscriptions->isEmpty()) {
+            continue; // skip kalau tidak ada subscription
+        }
+
+        foreach ($subscriptions as $subRow) {
+
+            $subData = json_decode($subRow->subscription, true);
+            if (!$subData) continue;
+
+            $sub = Subscription::create($subData);
+
+            $webPush->sendOneNotification(
+                $sub,
+                json_encode([
+                    'title' => "✅ CAPA telah diproses | Abimanyu Live",
+                    'body'  => "Auditee telah melengkapi action, segera review sebelum user submit evidence. Klik Disini!",
+                    'url'   => url("/mr/capa/{$capa->id}/review")
+                ])
+            );
+        }
+    }
+
+    // Flush push
+    $webPush->flush();
 
         return response()->json([
             'success' => true,

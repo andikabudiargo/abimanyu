@@ -69,7 +69,7 @@
         <div class="flex items-center gap-2">
             <i class="fa fa-building text-indigo-500 text-sm"></i>
             <span class="font-medium text-gray-800">Department:</span>
-            <span class="text-gray-700">{{ $capa->departemen->name }}</span>
+             <span class="text-gray-700">{{ $capa->department_display }}</span>
         </div>
 
         <!-- Representative -->
@@ -207,6 +207,14 @@
             $icon   = 'fa-clipboard-check';
             $iconColor = 'text-blue-600';
 
+            
+        } elseif ($capa->status == 'Approved') {
+            $bg     = 'bg-lime-100';
+            $text   = 'text-lime-800';
+            $border = 'border-lime-300';
+            $icon   = 'fa-clipboard-check';
+            $iconColor = 'text-lime-600';
+
         } elseif ($capa->status == 'Submitted') {
             $bg     = 'bg-purple-100';
             $text   = 'text-purple-800';
@@ -214,14 +222,21 @@
             $icon   = 'fa-user-check';
             $iconColor = 'text-purple-600';
 
-        } elseif ($capa->status == 'Returned') {
+        } elseif ($capa->status == 'Returned for Evidence') {
+            $bg     = 'bg-red-100';
+            $text   = 'text-red-800';
+            $border = 'border-red-300';
+            $icon   = 'fa-rotate-left';
+            $iconColor = 'text-red-600';
+        
+        } elseif ($capa->status == 'Returned for Action') {
             $bg     = 'bg-red-100';
             $text   = 'text-red-800';
             $border = 'border-red-300';
             $icon   = 'fa-rotate-left';
             $iconColor = 'text-red-600';
 
-            } elseif ($capa->status == 'Authorized') {
+        } elseif ($capa->status == 'Authorized') {
             $bg     = 'bg-green-100';
             $text   = 'text-green-800';
             $border = 'border-green-300';
@@ -269,7 +284,7 @@
    
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 
- @if($capa->status == 'Returned')
+ @if($capa->status == 'Returned for Evidence')
 <div class="col-span-2 mb-4 text-sm text-yellow-600 bg-yellow-50 p-2 border border-yellow-600 rounded">
  ⚠️ This CAPA was returned by MR. Please revise and resubmit according to the comments provided.
 </div>

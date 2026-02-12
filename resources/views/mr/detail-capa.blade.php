@@ -65,7 +65,7 @@
         <div class="flex items-center gap-2">
             <i class="fa fa-building text-indigo-500 text-sm"></i>
             <span class="font-medium text-gray-800">Department:</span>
-            <span class="text-gray-700">{{ $capa->departemen->name }}</span>
+            <span class="text-gray-700">{{ $capa->department_display }}</span>
         </div>
 
         <!-- Representative -->
@@ -263,18 +263,6 @@
     <div class="col-span-2 mb-4 text-sm text-yellow-600 bg-yellow-50 p-3 border border-yellow-600 rounded">
 
         ⚠️ This CAPA was returned by MR. Please revise and resubmit according to the comments provided.
-          @if($capa->status === 'Returned for Action')
-                <a href="{{ route('mr.capa.process', $capa->id) }}"
-                   class="text-blue-600 underline hover:text-purple-600">
-                    Continue Action Process, Now!
-                </a>
-            @elseif($capa->status === 'Returned for Evidence')
-                <a href="{{ route('mr.capa.submit', $capa->id) }}"
-                   class="text-blue-600 underline hover:text-purple-600">
-                    Submit Evidence, Now!
-                </a>
-            @endif
-
     </div>
 @endif
 
@@ -1002,16 +990,17 @@ $('#submitBtn').click(function(){
 });
 
 $(document).ready(function(){
-    // Auto open modal jika sudah authorized
-    @if($capa->authorized_at)
+
+    @if($capa->status === 'Authorized')
         $('#capaModal').fadeIn(200).css('display','flex').addClass('scale-100');
     @endif
 
-    // Close modal
     $('#closeCapaModal, #closeCapaModalBtn').click(function(){
         $('#capaModal').fadeOut(200).removeClass('scale-100');
     });
+
 });
+
 
 
 

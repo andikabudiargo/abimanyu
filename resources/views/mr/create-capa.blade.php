@@ -252,6 +252,7 @@
                 class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
                 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">Select department</option>
+                 <option value="2">HRGAIT</option>
                 @foreach ($departments as $dept)
                     <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                 @endforeach
@@ -448,7 +449,7 @@ $('#department').on('change', function () {
     }
 
     $.ajax({
-        url: `/it/departments/${deptId}/users`,
+        url: `/mr/capa/${deptId}/users`,
         type: 'GET',
         dataType: 'json',
         success: function (users) {

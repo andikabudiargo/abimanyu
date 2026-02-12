@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'CAPA Authorized')
-@section('page-title', 'CAPA AUTHORIZED')
+@section('title', 'CAPA Action Review')
+@section('page-title', 'CAPA ACTION REVIEW')
 @section('breadcrumb-item', 'CAPA Management')
-@section('breadcrumb-active', 'CAPA Authorized')
+@section('breadcrumb-active', 'CAPA Action Review')
 @section('content')
 
 @php
@@ -65,7 +65,7 @@
         <div class="flex items-center gap-2">
             <i class="fa fa-building text-indigo-500 text-sm"></i>
             <span class="font-medium text-gray-800">Department:</span>
-             <span class="text-gray-700">{{ $capa->department_display }}</span>
+            <span class="text-gray-700">{{ $capa->department_display }}</span>
         </div>
 
         <!-- Representative -->
@@ -186,13 +186,13 @@
         <h1 class="flex items-center gap-2
                    text-xl sm:text-2xl
                    font-semibold text-gray-800 tracking-tight">
-            CAPA Review & Authorized
+            CAPA Review
         </h1>
 
         <p class="flex items-center gap-2
                   text-sm text-gray-500 mt-1">
             <i class="fa-solid fa-clipboard-check text-gray-400 text-sm"></i>
-            Corrective & Preventive Action Authorized
+            Corrective & Preventive Action Review
         </p>
     </div>
 
@@ -201,10 +201,10 @@
 <div class="flex sm:items-center">
     <span class="inline-flex items-center justify-center gap-1.5
         px-3 py-1 text-sm font-semibold rounded-full
-        bg-purple-100 text-purple-800 border border-purple-300
-        w-fit sm:w-28">
-        <i class="fa-regular fa-check-circle text-xs text-purple-600"></i>
-        Submitted
+        bg-orange-100 text-orange-800 border border-orange-300
+        w-fit">
+        <i class="fa-regular fa-check-circle text-xs text-orange-600"></i>
+        In Progress
     </span>
 </div>
 
@@ -598,42 +598,6 @@
 
 </div>
 
-
-
-
-<!-- EVIDENCE -->
-<div class="bg-white border rounded-xl shadow-sm p-5">
-   <p class="text-sm font-semibold text-blue-700">List Evidences</p>
-
-  @if($capa->evidences->count())
-    <ul class="divide-y">
-      @foreach($capa->evidences as $evidence)
-        <li class="py-3 flex items-center gap-4">
-          <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
-            <i class="fa-solid fa-file-image text-indigo-600"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-800 truncate">
-              {{ $evidence->file_name }}
-            </p>
-            <p class="text-xs text-gray-400 uppercase">
-              {{ pathinfo($evidence->file_name, PATHINFO_EXTENSION) }}
-            </p>
-          </div>
-          <a href="{{ asset('evidence_capa/'.$capa->id.'/'.$evidence->file_name) }}"
-             target="_blank"
-             class="text-sm font-semibold text-indigo-600 hover:underline">
-            View
-          </a>
-        </li>
-      @endforeach
-    </ul>
-  @else
-    <p class="text-sm text-gray-400 italic">No evidence attached</p>
-  @endif
-
-      </div>
-
       <hr class="my-4">
 
       <div class="flex justify-start items-center gap-2 mt-4">
@@ -651,266 +615,12 @@
          <button id="submitBtn"
            class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
             <i class="fa-solid fa-thumbs-up"></i>
-           Authorized
+           Approve
          </button>
       </div>
 
 </div>
     </div>
-
- <!-- MODAL -->
-<div id="returnModal"
-  class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-md"
->
-
-  <div
-    class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 relative animate-fadeIn">
-
-    <!-- Close Icon -->
-    <button id="closeModalBtn"
-      class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition">
-      ✕
-    </button>
-
-    <!-- Header -->
-    <div class="flex items-center gap-3 mb-4">
-
-      <div>
-        <h2 class="text-lg font-semibold text-gray-800">
-          Return Request
-        </h2>
-
-        <p class="text-sm text-gray-500">
-          Select revision type
-        </p>
-      </div>
-
-    </div>
-
-    <!-- Divider -->
-    <div class="border-t mb-5"></div>
-
-    <!-- Description -->
-    <p class="text-sm text-gray-600 mb-6 leading-relaxed">
-      Choose how you would like this request to be returned for revision.
-      This helps ensure accurate follow-up and documentation.
-    </p>
-
-    <!-- Buttons -->
-    <div class="grid grid-cols-2 gap-4">
-
-      <!-- Revise Action -->
-      <button id="reviseActionBtn"
-        class="group flex flex-col items-center gap-2 px-4 py-4 border border-blue-500 text-blue-600 rounded-xl hover:bg-blue-50 transition">
-
-        <span class="text-xl">📝</span>
-
-        <span class="font-medium text-sm">
-          Revise Actions
-        </span>
-
-        <span class="text-xs text-gray-500 group-hover:text-blue-600">
-          Update action details
-        </span>
-
-      </button>
-
-      <!-- Revise Evidence -->
-      <button id="reviseEvidenceBtn"
-        class="group flex flex-col items-center gap-2 px-4 py-4 border border-green-500 text-green-600 rounded-xl hover:bg-green-50 transition">
-
-        <span class="text-xl">📎</span>
-
-        <span class="font-medium text-sm">
-          Revise Evidence
-        </span>
-
-        <span class="text-xs text-gray-500 group-hover:text-green-600">
-          Upload proof
-        </span>
-
-      </button>
-
-    </div>
-
-  </div>
-</div>
-
-<!-- MR Verification Modal - Enterprise Edition -->
-<div
-    id="mrVerifyModal"
-    class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-md"
->
-
-    <!-- Main Container -->
-    <div
-        class="relative bg-white w-full max-w-3xl rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] overflow-hidden"
-    >
-
-
-        <!-- Header -->
-        <div class="px-8 py-6 border-b bg-gradient-to-r from-slate-50 to-gray-100">
-
-            <div class="flex items-center justify-between">
-
-                <div>
-                    <h3 class="text-xl font-semibold text-gray-900 tracking-wide">
-                        Management Review Verification
-                    </h3>
-
-                    <p class="text-xs text-gray-500 mt-1">
-                        CAPA Authorization & Compliance Assessment
-                    </p>
-                </div>
-
-                <button
-                    id="closeMrModal"
-                    class="text-gray-400 hover:text-red-600 text-xl transition"
-                >
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <!-- Body -->
-        <div class="px-8 py-7 space-y-8 text-sm text-gray-700 bg-white">
-
-            <!-- Section : New CAPA -->
-            <div class="space-y-3">
-
-                <div class="flex items-center gap-2 text-gray-800 font-medium">
-
-                    <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
-
-                    <span>New CAPA Required?</span>
-
-                </div>
-
-
-                <div class="bg-gray-50 rounded-xl p-4 border">
-
-                    <p class="text-xs text-gray-500 mb-3">
-                        Indicate whether a new corrective/preventive action is required.
-                    </p>
-
-                    <div class="flex gap-8">
-
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                name="new_capa_needed"
-                                value="yes"
-                                class="accent-indigo-600"
-                            >
-                            <span class="font-medium">Yes, Required</span>
-                        </label>
-
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                name="new_capa_needed"
-                                value="no"
-                                class="accent-indigo-600"
-                            >
-                            <span class="font-medium">No, Not Required</span>
-                        </label>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Reason -->
-            <div
-                id="reasonBox"
-                class="hidden space-y-2"
-            >
-
-                <div class="flex items-center gap-2 text-gray-800 font-medium">
-
-                    <i class="fa-solid fa-circle-exclamation text-amber-500"></i>
-
-                    <span>Justification</span>
-
-                </div>
-
-
-                <textarea
-                    id="newCapaReason"
-                    rows="4"
-                    class="w-full rounded-xl p-2 border border-gray-300 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                    placeholder="Provide formal justification for initiating a new CAPA..."
-                ></textarea>
-
-            </div>
-
-
-            <!-- MR Statement -->
-            <div class="space-y-2">
-
-                <div class="flex items-center gap-2 text-gray-800 font-medium">
-
-                    <i class="fa-solid fa-file-signature text-emerald-600"></i>
-
-                    <span>Management Review Statement</span>
-
-                </div>
-
-
-                <textarea
-                    id="mrStatement"
-                    rows="4"
-                    class="w-full rounded-xl p-2 border border-gray-300 bg-slate-50 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 text-sm"
-                    placeholder="Enter formal management verification statement..."
-                ></textarea>
-
-            </div>
-
-        </div>
-
-
-        <!-- Footer -->
-        <div class="px-8 py-5 border-t bg-gradient-to-r from-gray-50 to-slate-100">
-
-            <div class="flex justify-between items-center">
-
-                <p class="text-xs text-gray-500">
-                    <i class="fa-solid fa-lock mr-1"></i>
-                    This action will be permanently recorded
-                </p>
-
-
-                <div class="flex gap-3">
-
-                    <button
-                        id="cancelMrVerify"
-                        class="px-4 py-2 text-sm rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
-                    >
-                        Cancel
-                    </button>
-
-                    <button
-                        id="submitMrVerify"
-                        class="px-6 py-2 text-sm rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:from-indigo-700 hover:to-blue-700 shadow-lg transition"
-                    >
-                        Authorize, Now!
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
 
 
 
@@ -1062,7 +772,6 @@ $(document).ready(function () {
 
 });
 
-
     // Ambil data komentar
   function getComments() {
     const comments = [];
@@ -1085,7 +794,6 @@ $(document).ready(function () {
 }
 
 
-    
   $('#returnBtn').on('click', function () {
     const capaId = $(this).data('id');
     submitReturn($(this), capaId);
@@ -1108,7 +816,7 @@ function submitReturn(btn, capaId) {
     btn.prop('disabled', true).text('Returning...');
 
     $.ajax({
-        url: "{{ route('mr.capa.returnEvidence') }}",
+        url: "{{ route('mr.capa.returnAction') }}",
         type: 'POST',
         data: {
             _token: csrfToken,
@@ -1132,46 +840,14 @@ function submitReturn(btn, capaId) {
     });
 }
 
- // Tombol Return utama → buka modal
-    $('#submitBtn').on('click', function () {
-        $('#mrVerifyModal').removeClass('hidden').addClass('flex');
-    });
 
-    // Close modal
-    $('#closeMrModal, #cancelMrVerify').on('click', function () {
-        $('#mrVerifyModal').addClass('hidden').removeClass('flex');
-    });
-
-    // Toggle Reason Box
-    $('input[name="new_capa_needed"]').on('change', function () {
-
-        if ($(this).val() === 'yes') {
-            $('#reasonBox').slideDown(200).removeClass('hidden');
-        } else {
-            $('#reasonBox').slideUp(200);
-        }
-
-    });
-
-    // Klik luar modal = close
-    $('#mrVerifyModal').on('click', function (e) {
-        if ($(e.target).is('#mrVerifyModal')) {
-            $('#mrVerifyModal').addClass('hidden').removeClass('flex');
-        }
-    });
-
-$('#submitMrVerify').click(function(){
+$('#submitBtn').click(function(){
 
     const $submitBtn = $(this);
-    $submitBtn.prop('disabled', true).text('Authorizing...');
+    $submitBtn.prop('disabled', true).text('Approve...');
 
-    const url = "{{ route('mr.capa.authorized.save', ':id') }}"
+    const url = "{{ route('mr.capa.review.save', ':id') }}"
                     .replace(':id', capaId);
-
-    // Ambil value dari modal
-    const newCapaNeeded = $('input[name="new_capa_needed"]:checked').val(); // yes/no
-    const newCapaReason = $('#newCapaReason').val();
-    const mrStatement   = $('#mrStatement').val();
 
     $.ajax({
         url: url,
@@ -1179,13 +855,10 @@ $('#submitMrVerify').click(function(){
         data: {
             _token: '{{ csrf_token() }}',
             capa_id: capaId,
-            new_capa_needed: newCapaNeeded,
-            new_capa_reason: newCapaReason,
-            mr_statement: mrStatement
         },
         success: function(res){
             if(res.success){
-                showToast('success', res.message || 'CAPA successfully Authorized!');
+                showToast('success', res.message || 'CAPA Action successfully Approved!');
                 setTimeout(() => {
                     window.location.href = '{{ route("mr.capa.index") }}';
                 }, 2000);
@@ -1195,7 +868,7 @@ $('#submitMrVerify').click(function(){
             console.error(err.responseText);
             const msg = err.responseJSON?.message || 'Terjadi kesalahan saat menyimpan.';
             showToast('error', msg);
-            $submitBtn.prop('disabled', false).text('Authorize');
+            $submitBtn.prop('disabled', false).text('Approve');
         }
     });
 });

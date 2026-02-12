@@ -62,7 +62,7 @@
         <div class="flex items-center gap-2">
             <i class="fa fa-building text-indigo-500 text-sm"></i>
             <span class="font-medium text-gray-800">Department:</span>
-            <span class="text-gray-700">{{ $capa->departemen->name }}</span>
+             <span class="text-gray-700">{{ $capa->department_display }}</span>
         </div>
 
         <!-- Representative -->

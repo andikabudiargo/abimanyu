@@ -263,12 +263,14 @@ Route::prefix('mr')->name('mr.')->group(function () {
     Route::post('/capa/save', [CAPAController::class, 'store'])->name('capa.store');
     Route::post('/capa/{id}/posted', [CAPAController::class, 'posted'])->name('capa.posted');
     Route::put('/capa/verified-save/{id}', [CAPAController::class, 'updateVerified'])->name('capa.verified.save');
+    Route::get('/capa/{id}/review', [CAPAController::class, 'review'])->name('capa.review');
+    Route::post('/capa/review-save/{id}', [CAPAController::class, 'updateReview'])->name('capa.review.save');
     Route::get('/capa/{id}/submit', [CAPAController::class, 'submit'])->name('capa.submit');
     Route::put('/capa/submit-save/{id}', [CAPAController::class, 'updateSubmitted'])->name('capa.submitted.save');
     Route::get('/capa/{id}/authorized', [CAPAController::class, 'authorized'])->name('capa.authorized');
     Route::get('/capa/{capa_id}/comments', [CAPAController::class, 'getComments']);
-    Route::post('/capa/return-action', [CapaController::class, 'returnAction'])->name('capa.returnAction');
-    Route::post('/capa/return-evidence', [CapaController::class, 'returnEvidence'])->name('capa.returnEvidence');
+    Route::post('/capa/return-action', [CAPAController::class, 'returnAction'])->name('capa.returnAction');
+    Route::post('/capa/return-evidence', [CAPAController::class, 'returnEvidence'])->name('capa.returnEvidence');
     Route::post('/capa/authorized-save/{id}', [CAPAController::class, 'updateAuthorized'])->name('capa.authorized.save');
     Route::delete('/capa/evidence-delete/{id}', [CAPAController::class, 'destroyEvidence'])->name('capa.evidence.destroy');
     Route::get('/capa/{id}/pdf', [CAPAController::class, 'pdf'])->name('capa.pdf');
@@ -281,6 +283,7 @@ Route::prefix('mr')->name('mr.')->group(function () {
     Route::get('/capa/{id}/process', [CAPAController::class, 'process'])->name('capa.process');
     Route::put('/capa/submit-process/{id}', [CAPAController::class, 'updateProcess'])->name('capa.process.save');
     Route::delete('/capa/{capa}/document/{type}',[CAPAController::class, 'deleteDocument'])->name('capa.document.delete');
+    Route::get('/capa/{deptId}/users', [CAPAController::class, 'userList'])->name('capa.user');
 
 });
 

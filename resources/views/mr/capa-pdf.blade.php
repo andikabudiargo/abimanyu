@@ -226,7 +226,7 @@
     </tr>
       <tr>
         <th width="25%">Department</th>
-        <td width="25%">{{ $capa->departemen->name }}</td>
+        <td width="25%">{{ $capa->department_display }}</td>
         <th width="25%">Auditor</th>
         <td width="25%">
           @if($capa->auditors && $capa->auditors->count())
