@@ -227,41 +227,36 @@
 
 @else
 
-    {{-- Normal User → Pakai Tab --}}
-    <div class="mb-4 border-b border-gray-200">
-        <div class="flex">
+    {{-- Navigation Tab --}}
+<div class="mb-6">
+    <div class="flex bg-gray-100 p-1 rounded-xl shadow-inner">
 
-            {{-- Auditee --}}
-            <button id="tab-auditee"
-                class="flex-1 inline-flex items-center justify-center px-4 py-2 border-b-2 font-medium text-sm
-                       text-blue-600 border-blue-500 transition">
+        {{-- Auditee --}}
+        <button id="tab-auditee"
+            class="tab-btn flex-1 flex items-center justify-center gap-2
+                   px-4 py-2.5 rounded-lg text-sm font-semibold
+                   transition-all duration-200
+                   bg-blue-600 text-white shadow hover:text-blue-600
+                   ">
 
-                <i class="fa-solid fa-user-clock mr-2 hidden sm:inline"></i>
+            <i class="fa-solid fa-user-clock"></i>
+            <span class="hidden sm:inline">CAPA as Auditee</span>
+        </button>
 
-                <span class="hidden sm:inline">
-                    CAPA as Auditee
-                </span>
+        {{-- Auditor --}}
+        <button id="tab-auditor"
+            class="tab-btn flex-1 flex items-center justify-center gap-2
+                   px-4 py-2.5 rounded-lg text-sm font-semibold
+                   transition-all duration-200
+                   text-gray-600 hover:text-blue-600">
 
-                <i class="fa-solid fa-user-clock sm:hidden"></i>
-            </button>
+            <i class="fa-solid fa-user-check"></i>
+            <span class="hidden sm:inline">CAPA as Auditor</span>
+        </button>
 
-
-            {{-- Auditor --}}
-            <button id="tab-auditor"
-                class="flex-1 inline-flex items-center justify-center px-4 py-2 border-b-2 font-medium text-sm
-                       text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 transition">
-
-                <i class="fa-solid fa-user-check mr-2 hidden sm:inline"></i>
-
-                <span class="hidden sm:inline">
-                    CAPA as Auditor
-                </span>
-
-                <i class="fa-solid fa-user-check sm:hidden"></i>
-            </button>
-
-        </div>
     </div>
+</div>
+
 
 @endif
 
@@ -957,34 +952,24 @@ $(document).ready(function () {
 
 });
 
-// Navigation tab click
-    const tabAuditor = document.getElementById('tab-auditor');
-    const tabAuditee = document.getElementById('tab-auditee');
+const tabs = document.querySelectorAll('.tab-btn');
 
-    tabAuditor.addEventListener('click', function() {
-        // toggle active class
-        tabAuditor.classList.add('border-blue-500', 'text-blue-600');
-        tabAuditor.classList.remove('text-gray-500', 'border-transparent');
+tabs.forEach(tab => {
+    tab.addEventListener('click', function () {
 
-        tabAuditee.classList.remove('border-blue-500', 'text-blue-600');
-        tabAuditee.classList.add('text-gray-500', 'border-transparent');
+        // Reset semua tab
+        tabs.forEach(t => {
+            t.classList.remove('bg-blue-600', 'text-white', 'shadow');
+            t.classList.add('text-gray-600');
+        });
 
-        // reload / filter DataTable untuk Auditor
-        // $('#capa-table').DataTable().ajax.reload(); 
-        console.log('Filter CAPA as Auditor');
+        // Aktifkan yang diklik
+        this.classList.add('bg-blue-600', 'text-white', 'shadow');
+        this.classList.remove('text-gray-600');
+
     });
+});
 
-    tabAuditee.addEventListener('click', function() {
-        // toggle active class
-        tabAuditee.classList.add('border-blue-500', 'text-blue-600');
-        tabAuditee.classList.remove('text-gray-500', 'border-transparent');
-
-        tabAuditor.classList.remove('border-blue-500', 'text-blue-600');
-        tabAuditor.classList.add('text-gray-500', 'border-transparent');
-
-        // reload / filter DataTable untuk Auditee
-        // $('#capa-table').DataTable().ajax.reload(); 
-    });
   </script>
 
 @endpush
