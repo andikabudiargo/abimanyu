@@ -479,7 +479,7 @@ Route::post('agent/backup-log', [BackupAgentController::class, 'storeLog']);
     Route::get('/inspections/dashboard', [InspectionController::class, 'index'])->name('inspections.index');
     Route::get('/inspections/data', [InspectionController::class, 'data'])->name('inspections.data');
     Route::get('/inspections/create', [InspectionController::class, 'create'])->name('inspections.create');
-    Route::get('/inspections/operator/create', [InspectionController::class, 'createOperator'])->name('inspections.create.op');
+    Route::get('/inspections/operator/create', [InspectionController::class, 'createOperator'])->name('inspections.create.operator');
     Route::post('/inspections/store', [InspectionController::class, 'store'])->name('inspections.store');
     Route::get('/inspections/{id}/detail', [InspectionController::class, 'show'])->name('inspections.show');
     Route::put('/inspections/{id}/update', [InspectionController::class, 'update'])->name('inspections.update');
