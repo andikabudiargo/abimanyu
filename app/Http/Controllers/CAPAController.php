@@ -533,7 +533,7 @@ $auditorList .= '</div>';
 }
 
       public function create()
-    {$departments = Department::whereNotIn('id', [2,3,5])
+    {$departments = Department::whereNotIn('id', [2,3,5,11,15,18,20,21])
     ->orderBy('name')
     ->get();
         $users = User::orderBy('name')->get(); // ambil semua department
