@@ -71,6 +71,16 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->midd
 Route::get('/login-magang', function () {
     return view('auth.login-magang'); })->name('login.magang');
 
+Route::get('/download/security-app', function () {
+
+    $filePath = '/home/abimany3/public_html/downloads/security-app.rar';
+
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+
+    return response()->download($filePath, 'security-app.rar');
+});
 
 Route::get('/check-session', function () {
     if (!auth()->check()) {
