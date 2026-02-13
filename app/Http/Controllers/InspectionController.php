@@ -356,13 +356,14 @@ public function getTopDefect(Request $request)
 
     $isSingleDay = ($start === $end);
 
-    $dateFilter = function ($query) use ($start, $end, $isSingleDay) {
-        if ($isSingleDay) {
-            $query->whereDate('i.inspection_date', $start);
-        } else {
-            $query->whereBetween('i.inspection_date', [$start, $end]);
-        }
-    };
+  $dateFilter = function ($query) use ($start, $end, $isSingleDay) {
+    if ($isSingleDay) {
+        // ⛔ JANGAN whereDate
+        $query->where('i.inspection_date', '=', $start);
+    } else {
+        $query->whereBetween('i.inspection_date', [$start, $end]);
+    }
+};
 
     /* ================= TOTAL DEFECT ================= */
 
