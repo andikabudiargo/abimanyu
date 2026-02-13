@@ -16,8 +16,28 @@ use Carbon\Carbon;
 
 class InspectionController extends Controller
 {
-      public function index()
+      public function index(Request $request)
 {
+    // Ambil range tahun dari DB
+    $range = Inspection::selectRaw('
+            MIN(YEAR(inspection_date)) as min_year,
+            MAX(YEAR(inspection_date)) as max_year
+        ')->first();
+
+    $years = range($range->min_year, $range->max_year);
+
+    // DEFAULT year = current year (WAJIB)
+    $selectedYear  = $request->year ?? now()->year;
+    $selectedMonth = $request->month; // boleh null
+
+    $query = Inspection::query()
+        ->whereYear('inspection_date', $selectedYear);
+
+    if (!empty($selectedMonth)) {
+        $query->whereMonth('inspection_date', $selectedMonth);
+    }
+
+    $data = $query->get();
     $suppliers = Supplier::orderBy('name')->get();
     $customers = Customer::orderBy('name')->get();
 
@@ -27,7 +47,11 @@ class InspectionController extends Controller
 
     return view(
         'qc.daily-inspection',
-        compact('suppliers', 'customers', 'articles')
+        compact('suppliers', 'customers', 'articles',
+'years',
+        'selectedYear',
+        'selectedMonth',
+        'data')
     );
 }
 
