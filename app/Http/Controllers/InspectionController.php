@@ -103,7 +103,7 @@ $query->orderBy('created_at', 'desc');
     $totalCheck = $row->total_check ?: 1;
 
     // Hitung pass rate sesuai rumus baru
-    $totalPass = ($row->total_ok + $row->total_ok_repair);
+    $totalPass = $row->total_ok;
 
     $passRate = ($totalPass / $totalCheck) * 100;
 
@@ -114,8 +114,9 @@ $query->orderBy('created_at', 'desc');
  // Tambahkan kolom persentase
 ->addColumn('pass_trough', function ($row) {
     $totalCheck = $row->total_check ?: 1;
-    $passRate = ($row->total_ok / $totalCheck) * 100;
-    return '<span class="text-yellow-600 font-semibold">' . number_format($passRate, 0) . '%</span>';
+    $totalPassTrough = $row->total_ok - $row->total_ng - $row->total_ok_repair;
+    $passTrough = ($totalPassTrough / $totalCheck) * 100;
+    return '<span class="text-yellow-600 font-semibold">' . number_format($passTrough, 0) . '%</span>';
 })
 
 ->addColumn('ok_repair_rate', function ($row) {
@@ -215,49 +216,90 @@ public function getSummary(Request $request)
 {
     $positions = ['Incoming', 'Unloading', 'Buffing', 'Touch Up', 'Final', 'Outgoing'];
 
-     if ($request->inspection_date) {
+    /* ================= RANGE DATE ================= */
+    $dateFilter = $request->inspection_date;
 
-        // dari filter
-        [$start, $end] = explode(' to ', $request->inspection_date);
+if (!empty($dateFilter)) {
+
+    // jika ada format range: "YYYY-MM-DD to YYYY-MM-DD"
+    if (str_contains($dateFilter, ' to ')) {
+
+        [$start, $end] = explode(' to ', $dateFilter);
 
     } else {
 
-        // default hari ini
-        $start = now()->toDateString();
-        $end   = now()->toDateString();
-
+        // ✅ hanya satu tanggal
+        $start = $dateFilter;
+        $end   = $dateFilter;
     }
+
+} else {
+
+    // default hari ini
+    $start = now()->toDateString();
+    $end   = now()->toDateString();
+}
+
+$isSingleDay = ($start === $end);
+
+
+    $supplier = $request->supplier;
+    $spraybooth = $request->spraybooth;
+    $part_name = $request->part_name;
 
     $result = [];
 
     foreach ($positions as $pos) {
 
-        $data = DB::table('inspections')
+        $query = DB::table('inspections')
             ->selectRaw("
                 SUM(total_check) AS total_part,
                 SUM(total_ok) AS total_ok,
                 SUM(total_ok_repair) AS total_ok_repair,
                 SUM(total_ng) AS total_ng
             ")
-            ->where('inspection_post', $pos)
-           ->whereBetween('inspection_date', [$start, $end])
-            ->first();
+            ->where('inspection_post', $pos);
+
+        /* ================= DATE FILTER ================= */
+        if ($isSingleDay) {
+            // ✅ hanya 1 hari
+            $query->whereDate('inspection_date', $start);
+        } else {
+            // ✅ range tanggal
+            $query->whereBetween('inspection_date', [$start, $end]);
+        }
+
+        /* ================= SUPPLIER FILTER ================= */
+        if (!empty($supplier)) {
+            $query->where('supplier_code', $supplier);
+        }
+ /* ================= SPRAYBOOTH FILTER ================= */
+        if (!empty($spraybooth)) {
+            $query->where('spraybooth', $spraybooth);
+        }
+        /* ================= PART NAME FILTER ================= */
+        if (!empty($part_name)) {
+            $query->where('part_name', $part_name);
+        }
+
+        $data = $query->first();
 
         $result[$pos] = [
-            'pos'           => $pos,
-            'total'         => $data->total_part ?? 0,
-            'ok'            => $data->total_ok ?? 0,
-            'ok_repair'     => $data->total_ok_repair ?? 0,
-            'ng'            => $data->total_ng ?? 0,
+            'pos'       => $pos,
+            'total'     => $data->total_part ?? 0,
+            'ok'        => $data->total_ok ?? 0,
+            'ok_repair' => $data->total_ok_repair ?? 0,
+            'ng'        => $data->total_ng ?? 0,
         ];
     }
 
     return response()->json([
         'start_date' => $start,
         'end_date'   => $end,
-        'summary'   => $result
+        'summary'    => $result
     ]);
 }
+
 
 public function getTopDefect(Request $request)
 {
@@ -358,32 +400,100 @@ $summary = DB::table('inspection_defects as d')
 
  public function getDataChart(Request $request)
 {
-    // Jika user kirim yyyy-mm maka gunakan itu
-    // Jika tidak, pakai bulan berjalan
+   /* ================= RANGE TANGGAL FLEXIBLE ================= */
+
+$start = null;
+$end   = null;
+
+if ($request->inspection_date) {
+
+    $range = explode(' to ', $request->inspection_date);
+
+    if (count($range) == 2) {
+        $start = $range[0] ?: null;
+        $end   = $range[1] ?: null;
+    } else {
+        // jika hanya satu tanggal dikirim
+        $start = $range[0];
+        $end   = $range[0];
+    }
+}
+
+// Jika hanya start
+if ($start && !$end) {
+    $end = $start;
+}
+
+// Jika hanya end
+if (!$start && $end) {
+    $start = $end;
+}
+
+// Jika keduanya kosong → default bulan aktif
+if (!$start && !$end) {
     $monthParam = $request->date ?? date('Y-m');
-    $year = substr($monthParam, 0, 4);
+    $year  = substr($monthParam, 0, 4);
     $month = substr($monthParam, 5, 2);
 
-    // Jumlah hari di bulan tersebut
+    $start = date('Y-m-01', strtotime("$year-$month-01"));
+    $end   = date('Y-m-t', strtotime("$year-$month-01"));
+}
+
+    $monthParam = $request->date ?? date('Y-m');
+    $year  = substr($monthParam, 0, 4);
+    $month = substr($monthParam, 5, 2);
+
     $totalDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
-    // Ambil data hanya untuk bulan itu
-    $rows = DB::table('inspections')
+    /* ================= QUERY BASE ================= */
+
+    $query = DB::table('inspections')
         ->select(
             'inspection_date',
-            'total_check',
-            'total_ok',
-            'total_ok_repair'
+            DB::raw('SUM(total_check) as total_check'),
+            DB::raw('SUM(total_ok) as total_ok'),
+            DB::raw('SUM(total_ok_repair) as total_ok_repair')
         )
         ->whereYear('inspection_date', $year)
-        ->whereMonth('inspection_date', $month)
+        ->whereMonth('inspection_date', $month);
+
+    /* ================= FILTER DINAMIS ================= */
+
+    if ($request->category) {
+        $query->where('category', $request->category);
+    }
+
+    if ($request->part_name) {
+        $query->where('part_name', $request->part_name);
+    }
+
+    if ($request->inspection_post) {
+        $query->where('inspection_post', $request->inspection_post);
+    }
+
+    if ($request->spraybooth) {
+        $query->where('spraybooth', $request->spraybooth);
+    }
+
+    // Supplier / Customer tergantung inspection_post
+    if ($request->supplier_customer) {
+        if ($request->inspection_post === 'Incoming') {
+            $query->where('supplier', $request->supplier_customer);
+        } else {
+            $query->where('customer', $request->supplier_customer);
+        }
+    }
+
+    $rows = $query
+        ->groupBy('inspection_date')
         ->orderBy('inspection_date', 'ASC')
         ->get()
-        ->keyBy(function($item) {
-            return date('j', strtotime($item->inspection_date)); // hanya tanggal 1..31
+        ->keyBy(function ($item) {
+            return date('j', strtotime($item->inspection_date));
         });
 
-    // Normalisasi struktur 1..totalDays
+    /* ================= NORMALISASI 1..TOTALDAYS ================= */
+
     $days = [];
     $passRate = [];
     $passTrough = [];
@@ -394,13 +504,9 @@ $summary = DB::table('inspection_defects as d')
             $r = $rows[$day];
             $totalCheck = $r->total_check ?: 1;
 
-            // Hitung pass rate
             $pr = ($r->total_ok + $r->total_ok_repair) / $totalCheck * 100;
-
-            // Hitung pass trough
             $pt = ($r->total_ok / $totalCheck) * 100;
         } else {
-            // Jika tidak ada data
             $pr = 0;
             $pt = 0;
         }
@@ -411,12 +517,83 @@ $summary = DB::table('inspection_defects as d')
     }
 
     return response()->json([
-        'month' => date('F', strtotime("$year-$month-01")),
-        'days' => $days,
-        'pass_rate' => $passRate,
-        'pass_trough' => $passTrough
+        'month'        => date('F', strtotime("$year-$month-01")),
+        'days'         => $days,
+        'pass_rate'    => $passRate,
+        'pass_trough'  => $passTrough,
+        'start_date'   => $start,
+        'end_date'     => $end,
     ]);
 }
+
+public function getPerformanceChart(Request $request)
+{
+    /* ================= RANGE TANGGAL ================= */
+
+    $monthParam = $request->date ?? date('Y-m');
+    $year  = substr($monthParam, 0, 4);
+    $month = substr($monthParam, 5, 2);
+
+    $start = date('Y-m-01', strtotime("$year-$month-01"));
+    $end   = date('Y-m-t', strtotime("$year-$month-01"));
+
+    $totalDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+    /* ================= QUERY ================= */
+
+    $rows = DB::table('inspections')
+        ->select(
+            'inspection_date',
+            'spraybooth',
+            DB::raw('SUM(total_check) as total_check'),
+            DB::raw('SUM(total_ok) as total_ok')
+        )
+        ->whereBetween('inspection_date', [$start, $end])
+        ->groupBy('inspection_date', 'spraybooth')
+        ->orderBy('inspection_date')
+        ->get();
+
+    /* ================= PREPARE DATA ================= */
+
+    $sprayList = [];
+
+    for ($i = 1; $i <= 5; $i++) {
+        foreach (['A','B','C'] as $g) {
+            $sprayList[] = "Spraybooth {$i}{$g}";
+        }
+    }
+
+    $chartData = [];
+
+    foreach ($sprayList as $spray) {
+        $chartData[$spray] = array_fill(1, $totalDays, 0);
+    }
+
+    foreach ($rows as $r) {
+
+        $day = date('j', strtotime($r->inspection_date));
+
+        if ($r->total_check > 0) {
+            $pt = ($r->total_ok / $r->total_check) * 100;
+        } else {
+            $pt = 0;
+        }
+
+        if (isset($chartData[$r->spraybooth])) {
+            $chartData[$r->spraybooth][$day] = round($pt, 1);
+        }
+    }
+
+    $days = range(1, $totalDays);
+
+    return response()->json([
+        'days' => $days,
+        'datasets' => $chartData
+    ]);
+}
+
+
+
 
 
 public function monthlyTrend(Request $request)

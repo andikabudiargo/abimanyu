@@ -100,7 +100,7 @@
                      text-white font-medium shadow
                      hover:from-blue-700 hover:to-blue-800 transition">
 
-        Tutup
+        Close
       </button>
 
     </div>
@@ -140,7 +140,7 @@
         <!-- SUPPLIER / CUSTOMER COMBINED -->
 <div>
   <label class="block text-sm font-medium text-gray-700 mb-1">
-    Supplier / Customer <span class="text-red-600">*</span>
+    Supplier / Customer
   </label>
 
   <select name="supplier" id="filter-supplier" class="supplier w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
@@ -168,6 +168,37 @@
 </div>
 
         <div>
+            <label class="block text-sm mb-1 font-medium text-gray-700">Category</label>
+            <select id="filter-jenis_part" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">-- All Part --</option>
+                <option value="Buffing">Buffing</option>
+                <option value="Non-Buffing">Non-Buffing</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm mb-1 font-medium text-gray-700">Spray Booth</label>
+            <select id="filter-spraybooth" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">-- All Booth --</option>
+                <option value="Spraybooth 1A">Spraybooth 1A</option>
+                <option value="Spraybooth 1B">Spraybooth 1B</option>
+                <option value="Spraybooth 1C">Spraybooth 1C</option>
+                <option value="Spraybooth 2A">Spraybooth 2A</option>
+                <option value="Spraybooth 2B">Spraybooth 2B</option>
+                <option value="Spraybooth 2C">Spraybooth 2C</option>
+                <option value="Spraybooth 3A">Spraybooth 3A</option>
+                <option value="Spraybooth 3B">Spraybooth 3B</option>
+                <option value="Spraybooth 3C">Spraybooth 3C</option>
+                <option value="Spraybooth 4A">Spraybooth 4A</option>
+                <option value="Spraybooth 4B">Spraybooth 4B</option>
+                <option value="Spraybooth 4C">Spraybooth 4C</option>
+                <option value="Spraybooth 5A">Spraybooth 5A</option>
+                <option value="Spraybooth 5B">Spraybooth 5B</option>
+                <option value="Spraybooth 5C">Spraybooth 5C</option>
+            </select>
+        </div>
+
+         <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Part Name</label>
             <select id="filter-part_name" class="part-name w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">-- All Part --</option>
@@ -186,17 +217,24 @@
 
 </div>
 
+<!-- ================= TAB NAVIGATION ================= 
+
+
+</div>-->
+
+
+
 <div class="w-full mb-6">
 
     <!-- QC Cards Section -->
-    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-4">
+    <div class="grid grid-cols-2 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
 
        <div class="qc-card group p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200 shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all cursor-pointer" data-pos="Incoming">
         <div class="flex justify-between items-center">
             <h3 class="text-xs font-semibold text-gray-500">Incoming</h3>
             <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
         </div>
-        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="mt-2 text-lg font-bold text-gray-800 qc-total">0</div>
         <div class="flex justify-between mt-1 text-sm">
             <span class="text-green-600 qc-ok">OK: 0</span>
             <span class="text-red-600 qc-ng">NG: 0</span>
@@ -212,7 +250,7 @@
             <h3 class="text-xs font-semibold text-gray-500">Unloading</h3>
             <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
         </div>
-        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="mt-2 text-lg font-bold text-gray-800 qc-total">0</div>
         <div class="flex justify-between mt-1 text-sm">
             <span class="text-green-600 qc-ok">OK: 0</span>
             <span class="text-red-600 qc-ng">NG: 0</span>
@@ -228,7 +266,7 @@
             <h3 class="text-xs font-semibold text-gray-500">Buffing</h3>
             <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
         </div>
-        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="mt-2 text-lg font-bold text-gray-800 qc-total">0</div>
         <div class="flex justify-between mt-1 text-sm">
             <span class="text-green-600 qc-ok">OK: 0</span>
             <span class="text-red-600 qc-ng">NG: 0</span>
@@ -244,7 +282,7 @@
             <h3 class="text-xs font-semibold text-gray-500">Touch Up</h3>
             <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
         </div>
-        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="mt-2 text-lg font-bold text-gray-800 qc-total">0</div>
         <div class="flex justify-between mt-1 text-sm">
             <span class="text-green-600 qc-ok">OK: 0</span>
             <span class="text-red-600 qc-ng">NG: 0</span>
@@ -261,7 +299,7 @@
             <h3 class="text-xs font-semibold text-gray-500">Final</h3>
             <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
         </div>
-        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="mt-2 text-lg font-bold text-gray-800 qc-total">0</div>
         <div class="flex justify-between mt-1 text-sm">
             <span class="text-green-600 qc-ok">OK: 0</span>
             <span class="text-red-600 qc-ng">NG: 0</span>
@@ -277,7 +315,7 @@
             <h3 class="text-xs font-semibold text-gray-500">Outgoing</h3>
             <span class="text-[10px] px-2 py-1 bg-green-100 text-green-700 rounded-full">Live</span>
         </div>
-        <div class="mt-2 text-3xl font-bold text-gray-800 qc-total">0</div>
+        <div class="mt-2 text-lg font-bold text-gray-800 qc-total">0</div>
         <div class="flex justify-between mt-1 text-sm">
             <span class="text-green-600 qc-ok">OK: 0</span>
             <span class="text-red-600 qc-ng">NG: 0</span>
@@ -291,13 +329,72 @@
 
     </div>
 
-    <!-- Chart Section -->
-    <h2 class="font-bold text-lg mb-3">Chart Pass Rate & Pass Trough/Performance</h2>
-    <div class="bg-white p-4 rounded-lg shadow-md">
-        <canvas id="passChart" height="100"></canvas>
-    </div>
+
+
+    <!-- ================= PASS RATE CHART ================= -->
+    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 mb-8">
+       <div class="flex justify-between items-center mb-4">
+ <div class="bg-gray-100 rounded-lg p-1 inline-flex text-xs font-medium">
+
+    <button data-type="performance"
+        class="chart-tab active px-4 py-1.5 rounded-md transition">
+        Performance
+    </button>
+
+    <button data-type="pareto"
+        class="chart-tab px-4 py-1.5 rounded-md transition">
+        Pareto Defect
+    </button>
 
 </div>
+
+
+    <div class="flex items-center gap-3">
+
+        <!-- Segmented Toggle -->
+      
+
+        <!-- Month Year Filter -->
+        <div class="flex gap-2">
+            <select id="filter-month"
+                class="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500">
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+            </select>
+
+            <select id="filter-year"
+                class="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500">
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+            </select>
+        </div>
+
+    </div>
+
+
+
+        </div>
+       <div id="filter-wrapper" class="mb-3 text-xs text-gray-600 hidden">
+    <span class="mr-2 font-medium text-gray-500">Active Filter :</span>
+    <div id="active-filters" class="flex flex-wrap gap-2 mt-1"></div>
+</div>
+
+        <canvas id="passChart" height="130"></canvas>
+    </div>
+
+    <!-- ================= PERFORMANCE CHART ================= 
+    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold text-gray-700">
+                Performa Painting (Stacked by Spraybooth)
+            </h3>
+            <span class="text-xs text-gray-400">
+                Spraybooth 1–5 (A,B,C)
+            </span>
+        </div>
+        <canvas id="performanceChart" height="130"></canvas>
+    </div>-->
 
 
    {{-- 📄 TABEL --}}
@@ -310,16 +407,16 @@
                     <th class="px-4 py-2">Action</th>
                     <th class="px-4 py-2 text-center">Inspection Number</th>
                     <th class="px-4 py-2 text-center">Inspection Date</th>
-                     <th class="px-4 py-2 text-center">Inspection Post</th>
+                    <th class="px-4 py-2 text-center">Inspection Post</th>
+                    <th class="px-4 py-2">Booth</th>
                     <th class="px-4 py-2">Supplier/Customer</th>
                     <th class="px-4 py-2 ">Part Name</th>
                     <th class="px-4 py-2 text-center">Total Check</th>
                     <th class="px-4 py-2 text-center">Total OK</th>
                     <th class="px-4 py-2 text-center">Total NG</th>
+                    <th class="px-4 py-2 text-center">Total NC/OK Repair</th>
                     <th class="px-4 py-2 text-center">Pass Rate</th>
                     <th class="px-4 py-2 text-center">Pass Trough/Performance</th>
-                    <th class="px-4 py-2 text-center">NG Rate</th>
-                    <th class="px-4 py-2 ">Note</th>
                     <th class="px-4 py-2 ">Operator</th>
                     <th class="px-4 py-2 text-center">Created at</th>
                 </tr>
@@ -446,6 +543,16 @@ div.dt-button-collection .dt-button:hover {
         top: 1px;
     }
 
+    .chart-tab {
+    color: #6b7280;
+}
+
+.chart-tab.active {
+    background: white;
+    color: #111827;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
 
 </style>
 <script>
@@ -470,6 +577,21 @@ div.dt-button-collection .dt-button:hover {
         placeholder: '-- All Part --',
         allowClear: true
     });
+      $('#filter-inspection_post').select2({
+        width: '100%',
+        placeholder: '-- All Post --',
+        allowClear: true
+    });
+      $('#filter-jenis_part').select2({
+        width: '100%',
+        placeholder: '-- All Part --',
+        allowClear: true
+    });
+    $('#filter-spraybooth').select2({
+        width: '100%',
+        placeholder: '-- All Booth --',
+        allowClear: true
+    });
 
     $('.supplier').select2({
         width: '100%',
@@ -490,6 +612,8 @@ div.dt-button-collection .dt-button:hover {
             
             data: function (d) {
                 d.inspection_number = $('#filter-inspection-number').val();
+                d.spraybooth = $('#filter-spraybooth').val();
+                d.category = $('#filter-category').val();
                 d.inspection_post = $('#filter-inspection_post').val();
                 d.inspection_date = $('#filter-inspection_date').val();
                 d.supplier_code = $('#filter-supplier').val();
@@ -555,15 +679,15 @@ div.dt-button-collection .dt-button:hover {
   { data: 'inspection_number', name: 'inspection_number', orderable: false },
   { data: 'inspection_date', name: 'inspection_date', className: 'text-center', orderable: false },
   { data: 'inspection_post', name: 'inspection_post', className: 'text-center', orderable: false },
+  { data: 'spraybooth', name: 'spraybooth', className: 'text-left', orderable: false},
   { data: 'partner_name', className: 'text-left', orderable: false},
   { data: 'part_name', name: 'part_name', className: 'text-left', orderable: false },
   { data: 'total_check', name: 'total_check', className: 'text-center', orderable: false },
   { data: 'total_ok', name: 'total_ok', className: 'text-center', orderable: false },
   { data: 'total_ng', name: 'total_ng', className: 'text-center', orderable: false },
+  { data: 'total_ok_repair', name: 'total_ok_repair', className: 'text-center', orderable: false },
   { data: 'pass_rate', name: 'pass_rate', className: 'text-center', orderable: false },
   { data: 'pass_trough', name: 'pass_trough', className: 'text-center', orderable: false },
-  { data: 'ng_rate', name: 'ng_rate', className: 'text-center', orderable: false },
-  { data: 'note', name: 'note', orderable: false },
   { data: 'user_id', name: 'user_id', className: 'text-center', orderable: false },
   { data: 'created_at', name: 'created_at', className: 'text-center', orderable: false },
 ]
@@ -575,6 +699,7 @@ div.dt-button-collection .dt-button:hover {
             e.preventDefault();
             table.draw();
             loadSummary();
+             updateActiveFilters();
         });
   });
 
@@ -708,7 +833,10 @@ $(document).on('click', '.btn-delete-inspection', function () {
         url: '/qc/inspection/summary',
         type: 'GET',
         data: {
-            inspection_date: date
+            inspection_date: date,
+            supplier: $('#filter-supplier').val(),
+            spraybooth: $('#filter-spraybooth').val(),
+            part_name: $('#filter-part_name').val()
         },
         beforeSend: function() {
             $('.qc-card .qc-total').text('...');
@@ -723,7 +851,7 @@ $(document).on('click', '.btn-delete-inspection', function () {
 
                 const card = $('.qc-card[data-pos="' + pos + '"]');
 
-                card.find('.qc-total').text(summary[pos].total + ' Part');
+                card.find('.qc-total').text(summary[pos].total + ' PCS');
                 card.find('.qc-ok').text('OK: ' + summary[pos].ok);
                 card.find('.qc-ng').text('NG: ' + summary[pos].ng);
 
@@ -731,8 +859,17 @@ $(document).on('click', '.btn-delete-inspection', function () {
 
         },
         error: function() {
-            alert('Gagal mengambil data summary');
-        }
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Gagal mengambil data summary',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+}
+
     });
 
 }
@@ -831,105 +968,301 @@ $('#closeDefectModalBtn').on('click', function () {
     $('#defectModal').removeClass('flex').addClass('hidden');
 });
 
- fetch('{{ route("qc.inspection.chart") }}')
+Chart.register(ChartDataLabels);
+let passChartInstance = null;
+
+function renderPerformanceChart() {
+
+    fetch('{{ route("qc.inspection.chart") }}')
     .then(res => res.json())
     .then(data => {
 
         const ctx = document.getElementById('passChart').getContext('2d');
 
-        // GRADIENT STYLE ala Fintech/SaaS
+        if (passChartInstance) {
+            passChartInstance.destroy();
+        }
+
         const gradientGreen = ctx.createLinearGradient(0, 0, 0, 300);
-        gradientGreen.addColorStop(0, 'rgba(0,196,140,1)');   
-        gradientGreen.addColorStop(1, 'rgba(0,196,140,0.25)'); 
+        gradientGreen.addColorStop(0, 'rgba(0,196,140,0.25)');
+        gradientGreen.addColorStop(1, 'rgba(0,196,140,0)');
 
         const gradientYellow = ctx.createLinearGradient(0, 0, 0, 300);
-        gradientYellow.addColorStop(0, 'rgba(254,207,77,1)');
-        gradientYellow.addColorStop(1, 'rgba(254,207,77,0.25)');
+        gradientYellow.addColorStop(0, 'rgba(254,207,77,0.25)');
+        gradientYellow.addColorStop(1, 'rgba(254,207,77,0)');
 
-        new Chart(ctx, {
-            type: 'bar',
+        passChartInstance = new Chart(ctx, {
+            type: 'line',
             data: {
                 labels: data.days,
                 datasets: [
+
+                    // ================= PASS RATE =================
                     {
                         label: 'Pass Rate',
                         data: data.pass_rate,
+                        borderColor: '#00c48c',
                         backgroundColor: gradientGreen,
-                        borderRadius: 8,
-                        barPercentage: 0.55,
-                        categoryPercentage: 0.55
+                        tension: 0.35,
+                        borderWidth: 3,
+                        spanGaps: false,
+                        pointStyle: ctx => ctx.raw === null ? 'cross' : 'circle',
+                        pointRadius: ctx => ctx.raw === null ? 6 : 0,
+                        pointBorderWidth: ctx => ctx.raw === null ? 2 : 0,
+                        pointBackgroundColor: ctx => ctx.raw === null ? '#999' : '#00c48c',
+                        pointBorderColor: ctx => ctx.raw === null ? '#999' : '#00c48c',
+                        borderCapStyle: 'butt',
+                        borderJoinStyle: 'miter',
+                        fill: true
                     },
+
+                    // ================= PASS THROUGH =================
                     {
-                        label: 'Pass Trough/Performance',
+                        label: 'Pass Through',
                         data: data.pass_trough,
+                        borderColor: '#fecf4d',
                         backgroundColor: gradientYellow,
-                        borderRadius: 8,
-                        barPercentage: 0.55,
-                        categoryPercentage: 0.55
+                        tension: 0.35,
+                        borderWidth: 3,
+                        spanGaps: false,
+                        pointStyle: ctx => ctx.raw === null ? 'cross' : 'circle',
+                        pointRadius: ctx => ctx.raw === null ? 6 : 0,
+                        pointBorderWidth: ctx => ctx.raw === null ? 2 : 0,
+                        pointBackgroundColor: ctx => ctx.raw === null ? '#999' : '#fecf4d',
+                        pointBorderColor: ctx => ctx.raw === null ? '#999' : '#fecf4d',
+                        borderCapStyle: 'butt',
+                        borderJoinStyle: 'miter',
+                        fill: true
+                    },
+
+                    // ================= TARGET PR =================
+                    {
+                        label: 'Target PR',
+                        data: data.days.map(() => 94),
+                        borderColor: '#00c48c',
+                        borderDash: [4,4],
+                        borderWidth: 2,
+                        tension: 0,
+                        pointRadius: ctx =>
+                            ctx.dataIndex === ctx.dataset.data.length - 1 ? 5 : 0,
+                        pointBackgroundColor: '#00c48c',
+                        borderCapStyle: 'butt',
+                        borderJoinStyle: 'miter',
+                        fill: false,
+                        datalabels: {
+                             display: (ctx) => ctx.dataIndex === ctx.dataset.data.length - 1,
+                             align: 'left',
+                             anchor: 'end',
+                             offset: 8,
+                             clamp: true,
+                             clip: false,
+                             color: '#00c48c',
+                             font: { size: 11, weight: '500' },
+                             formatter: () => 'Target Pass Rate 94%' 
+                            }
+                        },
+
+                    // ================= TARGET PT =================
+                    {
+                        label: 'Target PT',
+                        data: data.days.map(() => 65),
+                        borderColor: '#d4a600',
+                        borderDash: [4,4],
+                        borderWidth: 2,
+                        tension: 0,
+                        pointRadius: ctx =>
+                            ctx.dataIndex === ctx.dataset.data.length - 1 ? 5 : 0,
+                        pointBackgroundColor: '#d4a600',
+                        borderCapStyle: 'butt',
+                        borderJoinStyle: 'miter',
+                        fill: false,
+                        datalabels: {
+                             display: (ctx) => ctx.dataIndex === ctx.dataset.data.length - 1,
+                             align: 'left',
+                             anchor: 'end',
+                             offset: 8,
+                             clamp: true,
+                             clip: false,
+                             color: '#d4a600',
+                             font: { size: 11, weight: '500' },
+                             formatter: () => 'Target Pass Through 65%' 
+                            }
                     }
                 ]
             },
+
             options: {
                 responsive: true,
-                animation: {
-                    duration: 900,
-                    easing: 'easeOutQuart'
+                interaction: {
+                    mode: 'index',
+                    intersect: false
                 },
+                layout: {
+                    padding: { right: 30 }
+                },
+
                 plugins: {
+
+                    // 🔥 Hide target from legend
                     legend: {
                         labels: {
-                            color: '#444',
-                            font: { size: 12, weight: '600' },
-                            padding: 16
+                            color: '#444', font: { size: 12, weight: '600' },
+                            filter: item => !item.text.includes('Target')
                         }
                     },
+
+                    // 🔥 Hide target from tooltip
                     tooltip: {
-                        backgroundColor: 'rgba(20,20,20,0.85)',
-                        padding: 12,
-                        cornerRadius: 8,
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        displayColors: false,
                         callbacks: {
-                            label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}%`
+                            label: ctx => {
+                                if (ctx.dataset.label.includes('Target')) {
+                                    return null;
+                                }
+                                return `${ctx.dataset.label}: ${Math.round(ctx.raw)}%`;
+                            }
                         }
-                    }
+                    },
+                    datalabels: {
+                        display: (ctx) => !ctx.dataset.label.includes('Target'),
+                        align: 'top',
+                        anchor: 'end',
+                        color: 'rgba(0,0,0,0.6)',
+                        font: { size: 9, weight: '400' },
+                        formatter: (value) => Math.round(value) + '%' }
+
                 },
+
                 scales: {
                     x: {
-                        title: {
-                            display: true,
-                            text: data.month,
-                            color: "#555",
-                            font: { size: 14, weight: '600' }
-                        },
-                        ticks: {
-                            color: "#777",
-                            font: { size: 10 },
-                            maxRotation: 45,
-                            minRotation: 45
-                        },
-                        grid: {
-                            display: false
-                        }
+                        grid: { display: false },
+                        title: { display: true, text: 'February',
+}
                     },
                     y: {
                         beginAtZero: true,
                         max: 100,
                         ticks: {
-                            callback: val => val + "%",
-                            color: "#777",
-                            font: { size: 10 }
+                            stepSize: 10,
+                            callback: val => val + "%"
                         },
                         grid: {
-                            color: "rgba(0,0,0,0.06)",
+                            color: 'rgba(0,0,0,0.04)',
                             drawBorder: false
                         }
                     }
                 }
             }
         });
+
     });
+}
+
+ 
+function renderParetoChart() {
+    console.log("pareto belum dibuat");
+}
+
+
+ function updateActiveFilters() {
+
+    const container = $('#active-filters');
+    const wrapper = $('#filter-wrapper');
+
+    container.html('');
+
+    const filters = [
+        {
+            label: 'Inspection Post',
+            value: $('#filter-inspection_post').val(),
+            text: $('#filter-inspection_post option:selected').text()
+        },
+        {
+            label: 'Supplier / Customer',
+            value: $('#filter-supplier').val(),
+            text: $('#filter-supplier option:selected').text()
+        },
+        {
+            label: 'Category',
+            value: $('#filter-jenis_part').val(),
+            text: $('#filter-jenis_part option:selected').text()
+        },
+        {
+            label: 'Spray Booth',
+            value: $('#filter-spraybooth').val(),
+            text: $('#filter-spraybooth option:selected').text()
+        },
+        {
+            label: 'Part Name',
+            value: $('#filter-part_name').val(),
+            text: $('#filter-part_name option:selected').text()
+        }
+    ];
+
+    let activeCount = 0;
+
+    filters.forEach(f => {
+
+        if (!f.value || f.value === '') return;
+
+        const displayValue = f.text ? f.text : f.value;
+        if (displayValue.includes('--')) return;
+
+        activeCount++;
+
+        const badge = $(`
+            <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-200 flex items-center gap-2">
+                ${f.label}: ${displayValue}
+            </span>
+        `);
+
+        container.append(badge);
+    });
+
+    // Show / Hide wrapper
+    if (activeCount > 0) {
+        wrapper.removeClass('hidden');
+    } else {
+        wrapper.addClass('hidden');
+    }
+}
+
+let activeChart = 'performance';
+
+$(document).ready(function () {
+
+    // load default chart
+    loadChart(activeChart);
+
+    $('.chart-tab').on('click', function () {
+
+        const type = $(this).data('type');
+        activeChart = type;
+
+        // switch active tab UI
+        $('.chart-tab').removeClass('active');
+        $(this).addClass('active');
+
+        // load chart
+        loadChart(type);
+    });
+
+    function loadChart(type) {
+
+    if(type === 'performance') {
+        renderPerformanceChart();
+    }
+
+    if(type === 'pareto') {
+        renderParetoChart();
+    }
+}
+
+});
+
+
+
+
+
 
 
 
