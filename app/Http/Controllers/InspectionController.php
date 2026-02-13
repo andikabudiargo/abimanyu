@@ -546,8 +546,8 @@ if (!$start && !$end) {
             $r = $rows[$day];
             $totalCheck = $r->total_check ?: 1;
 
-            $pr = ($r->total_ok + $r->total_ok_repair) / $totalCheck * 100;
-            $pt = ($r->total_ok / $totalCheck) * 100;
+            $pr = ($r->total_ok / $totalCheck) * 100;
+            $pt = ($r->total_ok - $r->total_ok_repair) / $totalCheck * 100;
         } else {
             $pr = 0;
             $pt = 0;
