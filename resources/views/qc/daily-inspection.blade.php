@@ -27,7 +27,7 @@
     <div class="space-y-1">
   <h2 id="modal-title"
       class="text-lg font-semibold text-slate-800 tracking-tight">
-    Top Defect Hari Ini
+    Pos Overview
   </h2>
 
   <p id="modal-pos"
@@ -37,7 +37,6 @@
 
   <p id="modal-period"
      class="text-[11px] text-slate-400 flex items-center gap-1">
-     <span>📅</span>
      <span>Periode: -</span>
   </p>
 </div>
@@ -1138,7 +1137,7 @@ function renderPerformanceChart() {
 
                 plugins: {
 
-                    // 🔥 Hide target from legend
+                    
                     legend: {
                         labels: {
                             color: '#444', font: { size: 12, weight: '600' },
@@ -1146,7 +1145,7 @@ function renderPerformanceChart() {
                         }
                     },
 
-                    // 🔥 Hide target from tooltip
+                   
                     tooltip: {
                         callbacks: {
                             label: ctx => {
