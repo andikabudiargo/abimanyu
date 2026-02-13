@@ -6,101 +6,114 @@
 @section('breadcrumb-active', 'Daily Inspection')
 
 @section('content')
-<!-- Modal Top Defect -->
 <div id="defectModal"
-     class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
+     class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-md
+            flex items-center justify-center px-4">
 
   <div
-    class="w-full max-w-2xl bg-white/90 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-200 flex flex-col max-h-[75vh]"
-  >
+    class="w-full max-w-2xl bg-white rounded-2xl
+           shadow-[0_20px_50px_rgba(15,23,42,0.25)]
+           border border-slate-200
+           flex flex-col max-h-[80vh]
+           animate-scaleIn">
 
     <!-- ================= HEADER ================= -->
     <div
-      class="flex justify-between items-start p-6 border-b bg-white/80 backdrop-blur sticky top-0 z-10 rounded-t-2xl">
-
-    
+      class="flex justify-between items-start px-6 py-5
+             border-b border-slate-200
+             bg-gradient-to-r from-white to-slate-50
+             sticky top-0 z-10 rounded-t-2xl">
 
       <div>
         <h2 id="modal-title"
-            class="text-xl font-bold text-gray-800 tracking-tight">
+            class="text-lg font-semibold text-slate-800 tracking-tight">
           Top Defect Hari Ini
         </h2>
 
         <p id="modal-pos"
-           class="text-sm text-gray-600 mt-1"></p>
+           class="text-xs text-slate-500 mt-1">
+           Production Line Overview
+        </p>
       </div>
 
       <button id="closeDefectModal"
-              class="p-2 rounded-full hover:bg-gray-200 transition">
-        ✖
+              class="p-2 rounded-lg text-slate-500
+                     hover:bg-slate-100 hover:text-slate-700
+                     transition">
+        ✕
       </button>
     </div>
 
-  <!-- Info Keterangan -->
+    <!-- ================= BODY ================= -->
+    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-6">
 
-    <!-- ================= BODY (SCROLL) ================= -->
-    <div class="flex-1 overflow-y-auto p-6 space-y-6">
-<div
-  class="p-3 bg-yellow-50 border border-yellow-500 rounded-lg text-sm text-yellow-800 leading-relaxed">
+      <!-- Info Box -->
+      <div
+        class="flex gap-3 p-4 rounded-xl
+               bg-amber-50 border border-amber-200
+               text-amber-900 text-sm">
 
-  <span class="font-medium">
-    Berikut ranking 10 defect tertinggi dan persentasenya
-    sesuai rentang waktu yang dipilih.
-  </span>
+        <span class="mt-0.5">⚠️</span>
+        <p class="leading-relaxed">
+          Ranking <b>10 defect tertinggi</b> dan persentasenya
+          berdasarkan rentang waktu yang dipilih.
+        </p>
+      </div>
 
-</div>
-    <!-- Top Defect -->
-<div>
-
-  <!-- Judul + Summary (Sejajar) -->
-  <div class="flex items-center justify-between mb-2">
-
-    <h3 class="text-sm font-semibold text-gray-700">
-      Top 10 Defect
-    </h3>
-
-    <!-- Keterangan summary -->
-    <p id="defect-summary"
-       class="text-xs text-gray-500 italic text-right">
-       Loading summary...
-    </p>
-
-  </div>
-
-  <ul id="top-defect-list" class="space-y-2">
-    <li class="text-sm text-gray-700">Loading...</li>
-  </ul>
-
-</div>
-
-
-
-
-      <!-- Top Parts -->
+      <!-- ================= TOP DEFECT ================= -->
       <div>
-        <h3 class="text-sm font-semibold text-gray-700 mb-2">
+
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-slate-700">
+            Top 10 Defect
+          </h3>
+
+          <span id="defect-summary"
+                class="text-xs text-slate-400 italic">
+            Loading summary...
+          </span>
+        </div>
+
+        <ul id="top-defect-list"
+            class="space-y-2 text-sm">
+          <li class="p-3 rounded-lg bg-slate-50 text-slate-600">
+            Loading...
+          </li>
+        </ul>
+
+      </div>
+
+      <!-- ================= TOP PART ================= -->
+      <div>
+
+        <h3 class="text-sm font-semibold text-slate-700 mb-3">
           Top 10 Part dengan NG Tertinggi
         </h3>
 
-        <ul id="top-part-list" class="space-y-2">
-          <li class="text-sm text-gray-700">Loading...</li>
+        <ul id="top-part-list"
+            class="space-y-2 text-sm">
+          <li class="p-3 rounded-lg bg-slate-50 text-slate-600">
+            Loading...
+          </li>
         </ul>
+
       </div>
 
     </div>
 
-
     <!-- ================= FOOTER ================= -->
     <div
-      class="p-4 border-t bg-white/80 backdrop-blur sticky bottom-0 rounded-b-2xl">
+      class="px-6 py-4 border-t border-slate-200
+             bg-slate-50 sticky bottom-0 rounded-b-2xl">
 
       <button id="closeDefectModalBtn"
               class="closeDefectModal w-full py-3 rounded-xl
-                     bg-gradient-to-r from-blue-600 to-blue-700
-                     text-white font-medium shadow
-                     hover:from-blue-700 hover:to-blue-800 transition">
-
-        Close
+                     bg-gradient-to-r from-blue-600 to-indigo-600
+                     text-white text-sm font-medium
+                     shadow-lg shadow-blue-600/20
+                     hover:from-blue-700 hover:to-indigo-700
+                     transition">
+        Close Dashboard
       </button>
 
     </div>
