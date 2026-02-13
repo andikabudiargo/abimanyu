@@ -305,35 +305,45 @@ public function getTopDefect(Request $request)
 {
     $pos = $request->pos;
 
-    /* ================= RANGE TANGGAL ================= */
+    /* ================= RANGE DATE ================= */
 
-    /* ================= RANGE TANGGAL ================= */
+    $dateFilter = trim($request->inspection_date ?? '');
 
-if ($request->filled('inspection_date')) {
+    if ($dateFilter !== '') {
 
-    if (str_contains($request->inspection_date, ' to ')) {
-        // RANGE DATE (contoh: 2025-02-01 to 2025-02-07)
-        [$start, $end] = explode(' to ', $request->inspection_date);
+        if (str_contains($dateFilter, ' to ')) {
+            [$start, $end] = array_map('trim', explode(' to ', $dateFilter));
+        } else {
+            // single date
+            $start = $dateFilter;
+            $end   = $dateFilter;
+        }
+
     } else {
-        // SINGLE DATE (contoh: 2025-02-01)
-        $start = $request->inspection_date;
-        $end   = $request->inspection_date;
+        // default hari ini
+        $start = now()->toDateString();
+        $end   = now()->toDateString();
     }
 
-} else {
-    // DEFAULT: hari ini
-    $start = now()->toDateString();
-    $end   = now()->toDateString();
-}
+    $isSingleDay = ($start === $end);
 
-    /* ================= TOTAL SEMUA DEFECT ================= */
+    /* ================= DATE FILTER CLOSURE ================= */
+
+    $applyDateFilter = function ($query) use ($start, $end, $isSingleDay) {
+        if ($isSingleDay) {
+            $query->whereDate('i.inspection_date', $start);
+        } else {
+            $query->whereBetween('i.inspection_date', [$start, $end]);
+        }
+    };
+
+    /* ================= TOTAL DEFECT ================= */
 
     $totalDefect = DB::table('inspection_defects as d')
         ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
         ->where('i.inspection_post', $pos)
-        ->whereBetween('i.inspection_date', [$start, $end])
+        ->where($applyDateFilter)
         ->sum('d.qty');
-
 
     /* ================= TOP DEFECT ================= */
 
@@ -346,24 +356,20 @@ if ($request->filled('inspection_date')) {
             DB::raw('SUM(d.qty) as total_qty')
         )
         ->where('i.inspection_post', $pos)
-        ->whereBetween('i.inspection_date', [$start, $end])
+        ->where($applyDateFilter)
         ->groupBy('f.id', 'f.defect', 'f.category')
         ->orderByDesc('total_qty')
         ->limit(10)
         ->get();
 
-
     /* ================= TAMBAH PERSENTASE ================= */
 
     $topDefect = $topDefect->map(function ($item) use ($totalDefect) {
-
         $item->percentage = $totalDefect > 0
             ? round(($item->total_qty / $totalDefect) * 100, 0)
             : 0;
-
         return $item;
     });
-
 
     /* ================= TOP PART ================= */
 
@@ -375,39 +381,35 @@ if ($request->filled('inspection_date')) {
             DB::raw('SUM(d.qty) as total_qty')
         )
         ->where('i.inspection_post', $pos)
-        ->whereBetween('i.inspection_date', [$start, $end])
+        ->where($applyDateFilter)
         ->groupBy('a.description')
         ->orderByDesc('total_qty')
         ->limit(10)
         ->get();
 
-        /* ================= TOTAL DEFECT & PART ================= */
+    /* ================= SUMMARY ================= */
 
-$summary = DB::table('inspection_defects as d')
-    ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
-    ->selectRaw('
-        SUM(d.qty) as total_defect,
-        COUNT(DISTINCT i.part_name) as total_part_type
-    ')
-    ->where('i.inspection_post', $pos)
-    ->whereBetween('i.inspection_date', [$start, $end])
-    ->first();
-
-
+    $summary = DB::table('inspection_defects as d')
+        ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+        ->selectRaw('
+            SUM(d.qty) as total_defect,
+            COUNT(DISTINCT i.part_name) as total_part_type
+        ')
+        ->where('i.inspection_post', $pos)
+        ->where($applyDateFilter)
+        ->first();
 
     return response()->json([
-        'start_date'   => $start,
-        'end_date'     => $end,
-        'total_defect' => $totalDefect,
-         'summary' => [
-        'total_defect'    => $summary->total_defect ?? 0,
-        'total_part_type'=> $summary->total_part_type ?? 0,
-    ],
-        'top_defect'   => $topDefect,
-        'top_part'     => $topPart
+        'start_date' => $start,
+        'end_date'   => $end,
+        'summary' => [
+            'total_defect'     => $summary->total_defect ?? 0,
+            'total_part_type' => $summary->total_part_type ?? 0,
+        ],
+        'top_defect' => $topDefect,
+        'top_part'   => $topPart
     ]);
 }
-
 
 
  public function getDataChart(Request $request)
