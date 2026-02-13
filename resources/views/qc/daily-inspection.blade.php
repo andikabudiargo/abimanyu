@@ -367,28 +367,36 @@
 </div>
 
 
-    <div class="flex items-center gap-3">
+  <div class="flex items-center gap-3 bg-white px-3 py-2 rounded-xl shadow-sm border border-slate-200">
 
-        <!-- Segmented Toggle -->
-      
+    <span class="text-xs text-slate-500 font-medium">
+        Filter Periode
+    </span>
 
-        <!-- Month Year Filter -->
-        <div class="flex gap-2">
-            <select id="filter-month"
-                class="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500">
-                <option value="02">February</option>
-                <option value="03">March</option>
-                <option value="04">April</option>
-            </select>
+    <!-- Month (boleh kosong = semua bulan) -->
+    <select name="month"
+        class="text-xs border border-slate-300 rounded-lg px-2 py-1">
+        <option value="">All Month</option>
+        @for ($m = 1; $m <= 12; $m++)
+            <option value="{{ $m }}"
+                {{ $selectedMonth == $m ? 'selected' : '' }}>
+                {{ \Carbon\Carbon::create()->month($m)->format('F') }}
+            </option>
+        @endfor
+    </select>
 
-            <select id="filter-year"
-                class="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500">
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-            </select>
-        </div>
+    <!-- Year (WAJIB, NO ALL YEAR) -->
+    <select name="year"
+        class="text-xs border border-slate-300 rounded-lg px-2 py-1">
+        @foreach ($years as $year)
+            <option value="{{ $year }}"
+                {{ $selectedYear == $year ? 'selected' : '' }}>
+                {{ $year }}
+            </option>
+        @endforeach
+    </select>
 
-    </div>
+</div>
 
 
 
