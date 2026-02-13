@@ -307,12 +307,24 @@ public function getTopDefect(Request $request)
 
     /* ================= RANGE TANGGAL ================= */
 
-    if ($request->inspection_date) {
+    /* ================= RANGE TANGGAL ================= */
+
+if ($request->filled('inspection_date')) {
+
+    if (str_contains($request->inspection_date, ' to ')) {
+        // RANGE DATE (contoh: 2025-02-01 to 2025-02-07)
         [$start, $end] = explode(' to ', $request->inspection_date);
     } else {
-        $start = now()->toDateString();
-        $end   = now()->toDateString();
+        // SINGLE DATE (contoh: 2025-02-01)
+        $start = $request->inspection_date;
+        $end   = $request->inspection_date;
     }
+
+} else {
+    // DEFAULT: hari ini
+    $start = now()->toDateString();
+    $end   = now()->toDateString();
+}
 
     /* ================= TOTAL SEMUA DEFECT ================= */
 
