@@ -567,6 +567,20 @@ div.dt-button-collection .dt-button:hover {
     box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
 
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-scaleIn {
+  animation: scaleIn 0.25s ease-out;
+}
+
 </style>
 <script>
 
