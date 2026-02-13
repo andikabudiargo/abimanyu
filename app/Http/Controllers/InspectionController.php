@@ -301,35 +301,62 @@ $isSingleDay = ($start === $end);
 }
 
 
+private function resolveInspectionDate(Request $request, string $pos)
+{
+    $dateFilter = trim($request->inspection_date ?? '');
+
+    // 1️⃣ User pilih tanggal / range
+    if ($dateFilter !== '') {
+        if (str_contains($dateFilter, ' to ')) {
+            [$start, $end] = array_map('trim', explode(' to ', $dateFilter));
+        } else {
+            $start = $dateFilter;
+            $end   = $dateFilter;
+        }
+        return [$start, $end, 'user'];
+    }
+
+    // 2️⃣ Default hari ini
+    $today = now()->toDateString();
+
+    $hasTodayData = DB::table('inspections')
+        ->where('inspection_post', $pos)
+        ->whereDate('inspection_date', $today)
+        ->exists();
+
+    if ($hasTodayData) {
+        return [$today, $today, 'today'];
+    }
+
+    // 3️⃣ Fallback ke tanggal TERAKHIR ada data
+    $latestDate = DB::table('inspections')
+        ->where('inspection_post', $pos)
+        ->max('inspection_date');
+
+    if ($latestDate) {
+        return [$latestDate, $latestDate, 'latest'];
+    }
+
+    // 4️⃣ DB kosong total
+    return [null, null, 'empty'];
+}
+
 public function getTopDefect(Request $request)
 {
     $pos = $request->pos;
 
-    /* ================= RANGE DATE ================= */
+    [$start, $end, $mode] = $this->resolveInspectionDate($request, $pos);
 
-    $dateFilter = trim($request->inspection_date ?? '');
-
-    if ($dateFilter !== '') {
-
-        if (str_contains($dateFilter, ' to ')) {
-            [$start, $end] = array_map('trim', explode(' to ', $dateFilter));
-        } else {
-            // single date
-            $start = $dateFilter;
-            $end   = $dateFilter;
-        }
-
-    } else {
-        // default hari ini
-        $start = now()->toDateString();
-        $end   = now()->toDateString();
+    if (!$start || !$end) {
+        return response()->json([
+            'mode' => 'empty',
+            'message' => 'Belum ada data inspection'
+        ]);
     }
 
     $isSingleDay = ($start === $end);
 
-    /* ================= DATE FILTER CLOSURE ================= */
-
-    $applyDateFilter = function ($query) use ($start, $end, $isSingleDay) {
+    $dateFilter = function ($query) use ($start, $end, $isSingleDay) {
         if ($isSingleDay) {
             $query->whereDate('i.inspection_date', $start);
         } else {
@@ -342,7 +369,7 @@ public function getTopDefect(Request $request)
     $totalDefect = DB::table('inspection_defects as d')
         ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
         ->where('i.inspection_post', $pos)
-        ->where($applyDateFilter)
+        ->where($dateFilter)
         ->sum('d.qty');
 
     /* ================= TOP DEFECT ================= */
@@ -352,21 +379,21 @@ public function getTopDefect(Request $request)
         ->join('defects as f', 'f.id', '=', 'd.defect_id')
         ->select(
             'f.defect as defect_name',
-            'f.category as category',
+            'f.category',
             DB::raw('SUM(d.qty) as total_qty')
         )
         ->where('i.inspection_post', $pos)
-        ->where($applyDateFilter)
+        ->where($dateFilter)
         ->groupBy('f.id', 'f.defect', 'f.category')
         ->orderByDesc('total_qty')
         ->limit(10)
         ->get();
 
-    /* ================= TAMBAH PERSENTASE ================= */
+    /* ================= PERCENTAGE ================= */
 
     $topDefect = $topDefect->map(function ($item) use ($totalDefect) {
         $item->percentage = $totalDefect > 0
-            ? round(($item->total_qty / $totalDefect) * 100, 0)
+            ? round(($item->total_qty / $totalDefect) * 100)
             : 0;
         return $item;
     });
@@ -381,7 +408,7 @@ public function getTopDefect(Request $request)
             DB::raw('SUM(d.qty) as total_qty')
         )
         ->where('i.inspection_post', $pos)
-        ->where($applyDateFilter)
+        ->where($dateFilter)
         ->groupBy('a.description')
         ->orderByDesc('total_qty')
         ->limit(10)
@@ -396,12 +423,13 @@ public function getTopDefect(Request $request)
             COUNT(DISTINCT i.part_name) as total_part_type
         ')
         ->where('i.inspection_post', $pos)
-        ->where($applyDateFilter)
+        ->where($dateFilter)
         ->first();
 
     return response()->json([
-        'start_date' => $start,
-        'end_date'   => $end,
+        'mode'        => $mode, // today | latest | user
+        'start_date'  => $start,
+        'end_date'    => $end,
         'summary' => [
             'total_defect'     => $summary->total_defect ?? 0,
             'total_part_type' => $summary->total_part_type ?? 0,
@@ -410,7 +438,6 @@ public function getTopDefect(Request $request)
         'top_part'   => $topPart
     ]);
 }
-
 
  public function getDataChart(Request $request)
 {
