@@ -11,7 +11,7 @@ class Inspection extends Model
 
     protected $fillable = [
         'user_id', 'shift', 'inspection_date', 'part_name', 'supplier_code', 'qty_received',
-        'inspection_post', 'check_method', 'note',
+        'inspection_post', 'check_method', 'note', 'spraybooth',
         'total_check', 'total_ok', 'total_ok_repair', 'total_ng',
         'inspection_number' // ✅ tambahkan ini
     ];
