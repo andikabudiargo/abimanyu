@@ -25,7 +25,7 @@
              sticky top-0 z-10 rounded-t-2xl">
 
     <div class="space-y-1">
-  <h2 id="modal-title"
+  <h2
       class="text-lg font-semibold text-slate-800 tracking-tight">
     Pos Overview
   </h2>
