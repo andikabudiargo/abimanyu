@@ -24,17 +24,23 @@
              bg-gradient-to-r from-white to-slate-50
              sticky top-0 z-10 rounded-t-2xl">
 
-      <div>
-        <h2 id="modal-title"
-            class="text-lg font-semibold text-slate-800 tracking-tight">
-          Top Defect Hari Ini
-        </h2>
+    <div class="space-y-1">
+  <h2 id="modal-title"
+      class="text-lg font-semibold text-slate-800 tracking-tight">
+    Top Defect Hari Ini
+  </h2>
 
-        <p id="modal-pos"
-           class="text-xs text-slate-500 mt-1">
-           Production Line Overview
-        </p>
-      </div>
+  <p id="modal-pos"
+     class="text-xs text-slate-500">
+     Pos: -
+  </p>
+
+  <p id="modal-period"
+     class="text-[11px] text-slate-400 flex items-center gap-1">
+     <span>📅</span>
+     <span>Periode: -</span>
+  </p>
+</div>
 
       <button id="closeDefectModal"
               class="p-2 rounded-lg text-slate-500
@@ -922,10 +928,12 @@ $(document).on('click', '.btn-delete-inspection', function () {
             $('#top-part-list').html('<li>Loading...</li>');
         },
         success: function(res) {
-           const label = getFilterLabel();
+           const label = getFilterLabel();   // contoh: "Hari Ini", "Bulan Ini"
+const period = getActiveDate();   // contoh: "2025-02-01 s/d 2025-02-07"
 
 $('#modal-title').text('Top Defect ' + label);
 $('#modal-pos').text('Pos: ' + pos);
+$('#modal-period span:last-child').text('Periode: ' + period);
 
 $('#defect-summary').html(
   `Total <b>${res.summary.total_defect}</b> Defect dari 
