@@ -114,7 +114,7 @@ $query->orderBy('created_at', 'desc');
  // Tambahkan kolom persentase
 ->addColumn('pass_trough', function ($row) {
     $totalCheck = $row->total_check ?: 1;
-    $totalPassTrough = $row->total_ok - $row->total_ng - $row->total_ok_repair;
+    $totalPassTrough = $row->total_check - $row->total_ng - $row->total_ok_repair;
     $passTrough = ($totalPassTrough / $totalCheck) * 100;
     return '<span class="text-yellow-600 font-semibold">' . number_format($passTrough, 0) . '%</span>';
 })
