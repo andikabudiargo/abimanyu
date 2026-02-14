@@ -1282,7 +1282,7 @@ function renderParetoChart() {
     $('#pareto-warning').hide();
     canvas.show();
 
-    fetch(`/pareto-defect?inspection_post=${post}&month=${month}&year=${year}`)
+    fetch(`/qc/inspection/pareto?inspection_post=${post}&month=${month}&year=${year}`)
         .then(res => res.json())
         .then(data => {
 
