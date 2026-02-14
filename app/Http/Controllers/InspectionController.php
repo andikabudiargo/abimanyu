@@ -523,6 +523,10 @@ public function getTopDefect(Request $request)
         $query->where('spraybooth', $request->spraybooth);
     }
 
+if ($request->supplier) {
+        $query->where('supplier_code', $request->supplier);
+    }
+
     /* ========================================================= */
     /* ================= MODE: PER BULAN ======================= */
     /* ========================================================= */
