@@ -374,27 +374,26 @@
     </span>
 
     <!-- Month (boleh kosong = semua bulan) -->
-    <select name="month"
-        class="text-xs border border-slate-300 rounded-lg px-2 py-1">
-        <option value="">All Month</option>
-        @for ($m = 1; $m <= 12; $m++)
-            <option value="{{ $m }}"
-                {{ $selectedMonth == $m ? 'selected' : '' }}>
-                {{ \Carbon\Carbon::create()->month($m)->format('F') }}
-            </option>
-        @endfor
-    </select>
+  <select id="filter-month" name="month"
+    class="text-xs border border-slate-300 rounded-lg px-2 py-1">
+    <option value="">All Month</option>
+    @for ($m = 1; $m <= 12; $m++)
+        <option value="{{ $m }}"
+            {{ $selectedMonth == $m ? 'selected' : '' }}>
+            {{ \Carbon\Carbon::create()->month($m)->format('F') }}
+        </option>
+    @endfor
+</select>
 
-    <!-- Year (WAJIB, NO ALL YEAR) -->
-    <select name="year"
-        class="text-xs border border-slate-300 rounded-lg px-2 py-1">
-        @foreach ($years as $year)
-            <option value="{{ $year }}"
-                {{ $selectedYear == $year ? 'selected' : '' }}>
-                {{ $year }}
-            </option>
-        @endforeach
-    </select>
+<select id="filter-year" name="year"
+    class="text-xs border border-slate-300 rounded-lg px-2 py-1">
+    @foreach ($years as $year)
+        <option value="{{ $year }}"
+            {{ $selectedYear == $year ? 'selected' : '' }}>
+            {{ $year }}
+        </option>
+    @endforeach
+</select>
 
 </div>
 
@@ -1235,6 +1234,11 @@ function renderParetoChart() {
     console.log("pareto belum dibuat");
 }
 
+document.getElementById('filter-month')
+    .addEventListener('change', renderPerformanceChart);
+
+document.getElementById('filter-year')
+    .addEventListener('change', renderPerformanceChart);
 
  function updateActiveFilters() {
 
