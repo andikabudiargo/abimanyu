@@ -1109,7 +1109,7 @@ if (!selectedMonth) {
                     // ================= TARGET PR =================
                     {
                         label: 'Target PR',
-                        data: data.days.map(() => 94),
+                        data: data.labels.map(() => 94),
                         borderColor: '#00c48c',
                         borderDash: [4,4],
                         borderWidth: 2,
@@ -1136,7 +1136,7 @@ if (!selectedMonth) {
                     // ================= TARGET PT =================
                     {
                         label: 'Target PT',
-                        data: data.days.map(() => 65),
+                        data: data.labels.map(() => 65),
                         borderColor: '#d4a600',
                         borderDash: [4,4],
                         borderWidth: 2,
@@ -1209,7 +1209,6 @@ if (!selectedMonth) {
                         title: { 
     display: true, 
     text: xTitle 
-},
 }
                     },
                     y: {
