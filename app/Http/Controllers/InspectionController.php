@@ -485,10 +485,9 @@ public function getTopDefect(Request $request)
 {
     $year  = $request->year ?? now()->year;
 
-    // Bedakan antara tidak dikirim & dikirim kosong
-    $month = $request->has('month')
-        ? ($request->month !== '' ? (int)$request->month : null)
-        : now()->month;
+    $month = $request->filled('month')
+    ? (int) $request->month
+    : null;
 
     /* ================= QUERY BASE ================= */
 
