@@ -24,34 +24,51 @@ class InspectionController extends Controller
             MAX(YEAR(inspection_date)) as max_year
         ')->first();
 
-    $years = range($range->min_year, $range->max_year);
+    // Fallback kalau DB masih kosong
+    $minYear = $range->min_year ?? now()->year;
+    $maxYear = $range->max_year ?? now()->year;
 
-    // DEFAULT year = current year (WAJIB)
-    $selectedYear  = $request->year ?? now()->year;
-    $selectedMonth = $request->month; // boleh null
+    $years = range($minYear, $maxYear);
 
+    // ================= DEFAULT FILTER =================
+    $selectedYear = $request->year 
+        ? (int) $request->year 
+        : now()->year;
+
+    // Kalau month tidak dikirim → default bulan sekarang
+    // Tapi kalau dikirim kosong ("") → artinya All Month
+    $selectedMonth = $request->has('month')
+        ? ($request->month !== '' ? (int)$request->month : null)
+        : now()->month;
+
+    // ================= QUERY =================
     $query = Inspection::query()
         ->whereYear('inspection_date', $selectedYear);
 
-    if (!empty($selectedMonth)) {
+    if (!is_null($selectedMonth)) {
         $query->whereMonth('inspection_date', $selectedMonth);
     }
 
     $data = $query->get();
+
     $suppliers = Supplier::orderBy('name')->get();
     $customers = Customer::orderBy('name')->get();
 
     $articles = Article::whereIn('article_type', ['RMP', 'RMNP', 'FG'])
-                       ->orderBy('description')
-                       ->get();
+        ->orderBy('description')
+        ->get();
 
     return view(
         'qc.daily-inspection',
-        compact('suppliers', 'customers', 'articles',
-'years',
-        'selectedYear',
-        'selectedMonth',
-        'data')
+        compact(
+            'suppliers',
+            'customers',
+            'articles',
+            'years',
+            'selectedYear',
+            'selectedMonth',
+            'data'
+        )
     );
 }
 
