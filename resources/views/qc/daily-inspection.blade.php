@@ -1024,7 +1024,7 @@ const params = new URLSearchParams({
         supplier_customer: document.getElementById('filter-supplier').value,
     });
 
-    fetch('{{ route("qc.inspection.chart") }}')
+    fetch('{{ route("qc.inspection.chart") }}?' + params.toString())
     .then(res => res.json())
     .then(data => {
 
