@@ -1015,17 +1015,24 @@ let passChartInstance = null;
 
 function renderPerformanceChart() {
 
-const params = new URLSearchParams({
-year:
-document.querySelector('[name="year"]').value,
-    month:
-document.querySelector('[name="month"]').value,
-        inspection_post: document.getElementById('filter-inspection_post').value,
-        spraybooth: document.getElementById('filter-spraybooth').value,
-        category: document.getElementById('filter-jenis_part').value,
-        part_name: document.getElementById('filter-part_name').value,
-        supplier: document.getElementById('filter-supplier').value,
-    });
+const params = new URLSearchParams();
+
+params.append('year', document.querySelector('[name="year"]').value);
+
+const monthValue = document.querySelector('[name="month"]').value;
+
+// PAKSA selalu kirim month
+if (monthValue === '') {
+    params.append('month', '');
+} else {
+    params.append('month', monthValue);
+}
+
+params.append('inspection_post', document.getElementById('filter-inspection_post').value);
+params.append('spraybooth', document.getElementById('filter-spraybooth').value);
+params.append('category', document.getElementById('filter-jenis_part').value);
+params.append('part_name', document.getElementById('filter-part_name').value);
+params.append('supplier', document.getElementById('filter-supplier').value);
 
     fetch('{{ route("qc.inspection.chart") }}?' + params.toString())
     .then(res => res.json())
