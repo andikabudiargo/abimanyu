@@ -1017,6 +1017,10 @@ let passChartInstance = null;
 function renderPerformanceChart() {
 
 const params = new URLSearchParams({
+year:
+document.querySelector('[name="year"]').value,
+    month:
+document.querySelector('[name="month"]').value,
         inspection_post: document.getElementById('filter-inspection_post').value,
         spraybooth: document.getElementById('filter-spraybooth').value,
         category: document.getElementById('filter-jenis_part').value,
@@ -1027,6 +1031,22 @@ const params = new URLSearchParams({
     fetch('{{ route("qc.inspection.chart") }}?' + params.toString())
     .then(res => res.json())
     .then(data => {
+
+const selectedMonth = document.querySelector('[name="month"]').value;
+const selectedYear  = document.querySelector('[name="year"]').value;
+
+let xTitle = '';
+
+if (!selectedMonth) {
+    // All Month → tampilkan tahun
+    xTitle = selectedYear;
+} else {
+    // Bulan tertentu → ambil nama bulan
+    const monthName = new Date(selectedYear, selectedMonth - 1)
+        .toLocaleString('default', { month: 'long' });
+
+    xTitle = monthName + ' ' + selectedYear;
+}
 
         const ctx = document.getElementById('passChart').getContext('2d');
 
@@ -1045,7 +1065,7 @@ const params = new URLSearchParams({
         passChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.days,
+                labels: data.labels,
                 datasets: [
 
                     // ================= PASS RATE =================
@@ -1186,7 +1206,10 @@ const params = new URLSearchParams({
                 scales: {
                     x: {
                         grid: { display: false },
-                        title: { display: true, text: 'February',
+                        title: { 
+    display: true, 
+    text: xTitle 
+},
 }
                     },
                     y: {
