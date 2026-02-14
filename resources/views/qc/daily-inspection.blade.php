@@ -1024,7 +1024,7 @@ document.querySelector('[name="month"]').value,
         spraybooth: document.getElementById('filter-spraybooth').value,
         category: document.getElementById('filter-jenis_part').value,
         part_name: document.getElementById('filter-part_name').value,
-        supplier_customer: document.getElementById('filter-supplier').value,
+        supplier: document.getElementById('filter-supplier').value,
     });
 
     fetch('{{ route("qc.inspection.chart") }}?' + params.toString())
