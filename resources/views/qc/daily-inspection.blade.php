@@ -1036,11 +1036,9 @@ const selectedYear  = document.querySelector('[name="year"]').value;
 
 let xTitle = '';
 
-if (!selectedMonth) {
-    // All Month → tampilkan tahun
+if (data.mode === 'year') {
     xTitle = selectedYear;
 } else {
-    // Bulan tertentu → ambil nama bulan
     const monthName = new Date(selectedYear, selectedMonth - 1)
         .toLocaleString('default', { month: 'long' });
 
