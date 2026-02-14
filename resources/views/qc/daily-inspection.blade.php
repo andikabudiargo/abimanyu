@@ -406,6 +406,18 @@
 </div>
 
         <canvas id="passChart" height="130"></canvas>
+
+{{-- PARETO CHART --}}
+    <div id="pareto-container" class="hidden">
+
+        <div id="pareto-warning"
+            class="hidden text-center py-10 text-slate-500 text-sm">
+            Silahkan pilih post terlebih dahulu
+        </div>
+
+        <canvas id="paretoChart" height="130"></canvas>
+
+    </div>
     </div>
 
     <!-- ================= PERFORMANCE CHART ================= 
@@ -1235,8 +1247,157 @@ if (data.mode === 'year') {
 }
 
  
+let paretoChart;
+
 function renderParetoChart() {
-    console.log("pareto belum dibuat");
+
+    const post  = $('#filter-inspection_post').val();
+    const month = $('#filter-month').val();
+    const year  = $('#filter-year').val();
+
+    const container = $('#pareto-container');
+    const canvas    = $('#paretoChart');
+
+    // kalau belum ada warning element, buat otomatis
+    if ($('#pareto-warning').length === 0) {
+        container.prepend(`
+            <div id="pareto-warning"
+                class="text-center py-10 text-slate-500 text-sm">
+                Silahkan pilih post terlebih dahulu
+            </div>
+        `);
+    }
+
+    // 🔥 WAJIB PILIH POST
+    if (!post) {
+
+        canvas.hide();
+        $('#pareto-warning').show();
+
+        return; // stop di sini, jangan fetch
+    }
+
+    $('#pareto-warning').hide();
+    canvas.show();
+
+    fetch(`/pareto-defect?inspection_post=${post}&month=${month}&year=${year}`)
+        .then(res => res.json())
+        .then(data => {
+
+            if (paretoChart) {
+                paretoChart.destroy();
+            }
+
+            const total = data.values.reduce((a, b) => a + b, 0);
+
+            const percentages = data.values.map(val =>
+                total > 0 ? ((val / total) * 100).toFixed(2) : 0
+            );
+
+            const ctx = canvas.getContext('2d');
+
+            paretoChart = new Chart(ctx, {
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Total Defect',
+                            data: data.values,
+                            backgroundColor: '#1e3a8a',
+                            borderRadius: 4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Kumulatif %',
+                            data: data.cumulative,
+                            borderColor: '#dc2626',
+                            backgroundColor: '#dc2626',
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#dc2626',
+                            yAxisID: 'y1'
+                        },
+                        {
+                            type: 'line',
+                            label: '80% Threshold',
+                            data: Array(data.labels.length).fill(80),
+                            borderColor: '#64748b',
+                            borderDash: [6,6],
+                            pointRadius: 0,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+
+                                    if (context.dataset.label === 'Total Defect') {
+                                        return `Total: ${context.raw} (${percentages[context.dataIndex]}%)`;
+                                    }
+
+                                    if (context.dataset.label === 'Kumulatif %') {
+                                        return `Kumulatif: ${context.raw}%`;
+                                    }
+
+                                    return null;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Jumlah Defect'
+                            },
+                            grid: {
+                                color: '#e5e7eb'
+                            }
+                        },
+                        y1: {
+                            position: 'right',
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Kumulatif %'
+                            }
+                        }
+                    }
+                }
+            });
+
+        });
 }
 
 document.getElementById('filter-month')
