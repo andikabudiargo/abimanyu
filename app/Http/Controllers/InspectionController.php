@@ -680,7 +680,56 @@ public function getPerformanceChart(Request $request)
 }
 
 
+public function paretoDefect(Request $request)
+{
+    $month = $request->month ?? now()->month;
+    $year  = $request->year ?? now()->year;
+    $post  = $request->inspection_post;
 
+    $data = DB::table('inspection_defects as idf')
+        ->join('inspections as i', 'i.id', '=', 'idf.inspection_id')
+        ->join('defects as d', 'd.id', '=', 'idf.defect_id')
+        ->select(
+            'd.defect',
+            DB::raw('COUNT(idf.id) as total')
+        )
+        ->whereMonth('i.created_at', $month)
+        ->whereYear('i.created_at', $year)
+        ->when($post, function ($q) use ($post) {
+            $q->where('d.inspection_post', $post);
+        })
+        ->groupBy('d.defect')
+        ->orderByDesc('total')
+        ->get();
+
+    $grandTotal = $data->sum('total');
+
+    $cumulative = 0;
+
+    $labels = [];
+    $values = [];
+    $cumulativePercent = [];
+
+    foreach ($data as $row) {
+
+        $labels[] = $row->defect;
+        $values[] = $row->total;
+
+        $percent = $grandTotal > 0
+            ? ($row->total / $grandTotal) * 100
+            : 0;
+
+        $cumulative += $percent;
+
+        $cumulativePercent[] = round($cumulative, 2);
+    }
+
+    return response()->json([
+        'labels' => $labels,
+        'values' => $values,
+        'cumulative' => $cumulativePercent
+    ]);
+}
 
 
 public function monthlyTrend(Request $request)
