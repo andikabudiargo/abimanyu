@@ -405,7 +405,9 @@
     <div id="active-filters" class="flex flex-wrap gap-2 mt-1"></div>
 </div>
 
-        <canvas id="passChart" height="130"></canvas>
+      <div id="performance-container">
+    <canvas id="passChart" height="130"></canvas>
+</div>
 
 {{-- PARETO CHART --}}
     <div id="pareto-container" class="hidden">
@@ -1476,18 +1478,41 @@ $(document).ready(function () {
     // load default chart
     loadChart(activeChart);
 
-    $('.chart-tab').on('click', function () {
+  $('.chart-tab').on('click', function () {
 
-        const type = $(this).data('type');
-        activeChart = type;
+    const type = $(this).data('type');
+    activeChart = type;
 
-        // switch active tab UI
-        $('.chart-tab').removeClass('active');
-        $(this).addClass('active');
+    $('.chart-tab').removeClass('active');
+    $(this).addClass('active');
 
-        // load chart
-        loadChart(type);
-    });
+    if (type === 'performance') {
+
+        $('#performance-container')
+            .removeClass('hidden')
+            .show();
+
+        $('#pareto-container')
+            .addClass('hidden')
+            .hide();
+
+        renderPerformanceChart();
+    }
+
+    if (type === 'pareto') {
+
+        $('#performance-container')
+            .addClass('hidden')
+            .hide();
+
+        $('#pareto-container')
+            .removeClass('hidden')
+            .show();
+
+        renderParetoChart();
+    }
+
+});
 
     function loadChart(type) {
 
