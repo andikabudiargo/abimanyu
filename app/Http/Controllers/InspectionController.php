@@ -483,62 +483,27 @@ public function getTopDefect(Request $request)
 
  public function getDataChart(Request $request)
 {
-   /* ================= RANGE TANGGAL FLEXIBLE ================= */
+    $year  = $request->year ?? now()->year;
 
-$start = null;
-$end   = null;
-
-if ($request->inspection_date) {
-
-    $range = explode(' to ', $request->inspection_date);
-
-    if (count($range) == 2) {
-        $start = $range[0] ?: null;
-        $end   = $range[1] ?: null;
-    } else {
-        // jika hanya satu tanggal dikirim
-        $start = $range[0];
-        $end   = $range[0];
-    }
-}
-
-// Jika hanya start
-if ($start && !$end) {
-    $end = $start;
-}
-
-// Jika hanya end
-if (!$start && $end) {
-    $start = $end;
-}
-
-// Jika keduanya kosong → default bulan aktif
-if (!$start && !$end) {
-    $monthParam = $request->date ?? date('Y-m');
-    $year  = substr($monthParam, 0, 4);
-    $month = substr($monthParam, 5, 2);
-
-    $start = date('Y-m-01', strtotime("$year-$month-01"));
-    $end   = date('Y-m-t', strtotime("$year-$month-01"));
-}
-
-    $monthParam = $request->date ?? date('Y-m');
-    $year  = substr($monthParam, 0, 4);
-    $month = substr($monthParam, 5, 2);
-
-    $totalDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+    // Bedakan antara tidak dikirim & dikirim kosong
+    $month = $request->has('month')
+        ? ($request->month !== '' ? (int)$request->month : null)
+        : now()->month;
 
     /* ================= QUERY BASE ================= */
 
     $query = DB::table('inspections')
         ->select(
-            'inspection_date',
+            DB::raw('DATE(inspection_date) as inspection_date'),
             DB::raw('SUM(total_check) as total_check'),
             DB::raw('SUM(total_ok) as total_ok'),
             DB::raw('SUM(total_ok_repair) as total_ok_repair')
         )
-        ->whereYear('inspection_date', $year)
-        ->whereMonth('inspection_date', $month);
+        ->whereYear('inspection_date', $year);
+
+    if (!is_null($month)) {
+        $query->whereMonth('inspection_date', $month);
+    }
 
     /* ================= FILTER DINAMIS ================= */
 
@@ -558,26 +523,64 @@ if (!$start && !$end) {
         $query->where('spraybooth', $request->spraybooth);
     }
 
-    // Supplier / Customer tergantung inspection_post
-    if ($request->supplier_customer) {
-        if ($request->inspection_post === 'Incoming') {
-            $query->where('supplier', $request->supplier_customer);
-        } else {
-            $query->where('customer', $request->supplier_customer);
+    /* ========================================================= */
+    /* ================= MODE: PER BULAN ======================= */
+    /* ========================================================= */
+
+    if (is_null($month)) {
+
+        $rows = $query
+            ->selectRaw('MONTH(inspection_date) as month')
+            ->groupBy(DB::raw('MONTH(inspection_date)'))
+            ->orderBy(DB::raw('MONTH(inspection_date)'))
+            ->get()
+            ->keyBy('month');
+
+        $labels = [];
+        $passRate = [];
+        $passTrough = [];
+
+        for ($m = 1; $m <= 12; $m++) {
+
+            if (isset($rows[$m])) {
+                $r = $rows[$m];
+                $totalCheck = $r->total_check ?: 1;
+
+                $pr = ($r->total_ok / $totalCheck) * 100;
+                $pt = ($r->total_ok - $r->total_ok_repair) / $totalCheck * 100;
+            } else {
+                $pr = 0;
+                $pt = 0;
+            }
+
+            $labels[] = \Carbon\Carbon::create()->month($m)->format('M');
+            $passRate[] = round($pr, 0);
+            $passTrough[] = round($pt, 0);
         }
+
+        return response()->json([
+            'mode'         => 'year',
+            'labels'       => $labels,
+            'pass_rate'    => $passRate,
+            'pass_trough'  => $passTrough,
+        ]);
     }
 
+    /* ========================================================= */
+    /* ================= MODE: PER HARI ======================== */
+    /* ========================================================= */
+
+    $totalDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
     $rows = $query
-        ->groupBy('inspection_date')
+        ->groupBy(DB::raw('DATE(inspection_date)'))
         ->orderBy('inspection_date', 'ASC')
         ->get()
         ->keyBy(function ($item) {
             return date('j', strtotime($item->inspection_date));
         });
 
-    /* ================= NORMALISASI 1..TOTALDAYS ================= */
-
-    $days = [];
+    $labels = [];
     $passRate = [];
     $passTrough = [];
 
@@ -594,18 +597,16 @@ if (!$start && !$end) {
             $pt = 0;
         }
 
-        $days[] = $day;
+        $labels[] = $day;
         $passRate[] = round($pr, 0);
         $passTrough[] = round($pt, 0);
     }
 
     return response()->json([
-        'month'        => date('F', strtotime("$year-$month-01")),
-        'days'         => $days,
+        'mode'         => 'month',
+        'labels'       => $labels,
         'pass_rate'    => $passRate,
         'pass_trough'  => $passTrough,
-        'start_date'   => $start,
-        'end_date'     => $end,
     ]);
 }
 
