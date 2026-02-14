@@ -740,6 +740,7 @@ div.dt-button-collection .dt-button:hover {
             table.draw();
             loadSummary();
              updateActiveFilters();
+renderPerformanceChart();
         });
   });
 
@@ -1014,6 +1015,14 @@ Chart.register(ChartDataLabels);
 let passChartInstance = null;
 
 function renderPerformanceChart() {
+
+const params = new URLSearchParams({
+        inspection_post: document.getElementById('filter-inspection_post').value,
+        spraybooth: document.getElementById('filter-spraybooth').value,
+        category: document.getElementById('filter-jenis_part').value,
+        part_name: document.getElementById('filter-part_name').value,
+        supplier_customer: document.getElementById('filter-supplier').value,
+    });
 
     fetch('{{ route("qc.inspection.chart") }}')
     .then(res => res.json())
