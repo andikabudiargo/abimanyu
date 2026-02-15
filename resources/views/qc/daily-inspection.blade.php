@@ -139,7 +139,7 @@
         </div>
         <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Inspection Post</label>
-            <select id="filter-inspection_post" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <select id="filter-inspection_post" name="inpection_post" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">-- All Post --</option>
                 <option value="Incoming">Incoming</option>
                 <option value="Unloading">Unloading</option>
