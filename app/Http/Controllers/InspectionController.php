@@ -682,25 +682,28 @@ public function getPerformanceChart(Request $request)
 
 public function paretoDefect(Request $request)
 {
-    $month = $request->month ?? now()->month;
+    $month = $request->month;
     $year  = $request->year ?? now()->year;
     $post  = $request->inspection_post;
 
-    $data = DB::table('inspection_defects as idf')
+    $query = DB::table('inspection_defects as idf')
         ->join('inspections as i', 'i.id', '=', 'idf.inspection_id')
         ->join('defects as d', 'd.id', '=', 'idf.defect_id')
         ->select(
             'd.defect',
-            DB::raw('COUNT(idf.id) as total')
+            DB::raw('SUM(idf.qty) as total') // ganti ke COUNT kalau tidak ada qty
         )
-        ->whereMonth('i.created_at', $month)
-        ->whereYear('i.created_at', $year)
+        ->when($month, function ($q) use ($month) {
+            $q->whereMonth('i.inspection_date', $month);
+        })
+        ->whereYear('i.inspection_date', $year)
         ->when($post, function ($q) use ($post) {
-            $q->where('d.inspection_post', $post);
+            $q->where('i.inspection_post', $post);
         })
         ->groupBy('d.defect')
-        ->orderByDesc('total')
-        ->get();
+        ->orderByDesc('total');
+
+    $data = $query->get();
 
     $grandTotal = $data->sum('total');
 
@@ -713,7 +716,7 @@ public function paretoDefect(Request $request)
     foreach ($data as $row) {
 
         $labels[] = $row->defect;
-        $values[] = $row->total;
+        $values[] = (int) $row->total;
 
         $percent = $grandTotal > 0
             ? ($row->total / $grandTotal) * 100
