@@ -139,7 +139,7 @@
         </div>
         <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Inspection Post</label>
-            <select id="filter-inspection_post" name="inpection_post" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <select id="filter-inspection_post" name="inspection_post" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">-- All Post --</option>
                 <option value="Incoming">Incoming</option>
                 <option value="Unloading">Unloading</option>
@@ -754,6 +754,7 @@ div.dt-button-collection .dt-button:hover {
             loadSummary();
              updateActiveFilters();
 renderPerformanceChart();
+renderParetoChart();
         });
   });
 
@@ -1403,10 +1404,10 @@ function renderParetoChart() {
 }
 
 document.getElementById('filter-month')
-    .addEventListener('change', renderPerformanceChart);
+    .addEventListener('change', renderPerformanceChart, renderParetoChart);
 
 document.getElementById('filter-year')
-    .addEventListener('change', renderPerformanceChart);
+    .addEventListener('change', renderPerformanceChart, renderParetoChart);
 
  function updateActiveFilters() {
 
