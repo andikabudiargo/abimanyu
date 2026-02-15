@@ -1493,62 +1493,38 @@ document.getElementById('filter-year')
     }
 }
 
-let activeChart = 'performance';
+let performanceChart = null;
+let paretoChart = null;
 
 $(document).ready(function () {
 
-    // load default chart
-    loadChart(activeChart);
+    // Render semua sekali saja
+    renderPerformanceChart();
+    renderParetoChart();
 
-  $('.chart-tab').on('click', function () {
+    $('.chart-tab').on('click', function () {
 
-    const type = $(this).data('type');
-    activeChart = type;
+        const type = $(this).data('type');
 
-    $('.chart-tab').removeClass('active');
-    $(this).addClass('active');
+        $('.chart-tab').removeClass('active');
+        $(this).addClass('active');
 
-    if (type === 'performance') {
+        if (type === 'performance') {
+            $('#performance-container').show();
+            $('#pareto-container').hide();
+        }
 
-        $('#performance-container')
-            .removeClass('hidden')
-            .show();
+        if (type === 'pareto') {
+            $('#performance-container').hide();
+            $('#pareto-container').show();
 
-        $('#pareto-container')
-            .addClass('hidden')
-            .hide();
-
-        renderPerformanceChart();
-    }
-
-    if (type === 'pareto') {
-
-        $('#performance-container')
-            .addClass('hidden')
-            .hide();
-
-        $('#pareto-container')
-            .removeClass('hidden')
-            .show();
-
-        renderParetoChart();
-    }
-
+            // paksa resize kalau perlu
+            if (paretoChart) {
+                paretoChart.resize();
+            }
+        }
+    });
 });
-
-    function loadChart(type) {
-
-    if(type === 'performance') {
-        renderPerformanceChart();
-    }
-
-    if(type === 'pareto') {
-        renderParetoChart();
-    }
-}
-
-});
-
 
 
 
