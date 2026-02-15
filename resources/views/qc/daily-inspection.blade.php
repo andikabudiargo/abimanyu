@@ -1274,18 +1274,33 @@ function renderParetoChart() {
     // 🔥 WAJIB PILIH POST
     if (!post) {
 
-        canvas.hide();
-        $('#pareto-warning').show();
+    container.removeClass('hidden');
+    canvas.hide();
+    $('#pareto-warning').show();
 
-        return; // stop di sini, jangan fetch
-    }
+    return;
+}
 
     $('#pareto-warning').hide();
     canvas.show();
 
-    fetch(`/qc/inspection/pareto?inspection_post=${post}&month=${month}&year=${year}`)
+    const params = new URLSearchParams({
+    inspection_post: post,
+    month: month,
+    year: year
+});
+
+fetch(`/qc/inspection/pareto?${params.toString()}`)
         .then(res => res.json())
         .then(data => {
+
+    if (!data.labels || data.labels.length === 0) {
+        canvas.hide();
+        $('#pareto-warning')
+            .text('Data tidak ditemukan')
+            .show();
+        return;
+    }
 
             if (paretoChart) {
                 paretoChart.destroy();
@@ -1404,10 +1419,16 @@ function renderParetoChart() {
 }
 
 document.getElementById('filter-month')
-    .addEventListener('change', renderPerformanceChart, renderParetoChart);
+    .addEventListener('change', function () {
+        renderPerformanceChart();
+        renderParetoChart();
+    });
 
 document.getElementById('filter-year')
-    .addEventListener('change', renderPerformanceChart, renderParetoChart);
+    .addEventListener('change', function () {
+        renderPerformanceChart();
+        renderParetoChart();
+    });
 
  function updateActiveFilters() {
 
