@@ -688,9 +688,8 @@ public function paretoDefect(Request $request)
 
     /*
     |--------------------------------------------------------------------------
-    | MASTER DEFECT BASE
+    | AMBIL DEFECT CATEGORY = NG
     |--------------------------------------------------------------------------
-    | Semua defect milik post harus muncul
     */
 
     $query = DB::table('defects as d')
@@ -699,7 +698,6 @@ public function paretoDefect(Request $request)
 
             $join->on('i.id', '=', 'idf.inspection_id');
 
-            // filter periode DI DALAM JOIN
             if ($month) {
                 $join->whereMonth('i.inspection_date', $month);
             }
@@ -711,11 +709,12 @@ public function paretoDefect(Request $request)
             }
         })
         ->select(
+            'd.id',
             'd.defect',
             DB::raw('COALESCE(SUM(idf.qty),0) as total')
         )
+        ->where('d.category', 'NG') // ✅ hanya NG
         ->when($post, function ($q) use ($post) {
-            // filter kategori defect
             $q->where('d.inspection_post', $post);
         })
         ->groupBy('d.id', 'd.defect')
@@ -725,21 +724,53 @@ public function paretoDefect(Request $request)
 
     /*
     |--------------------------------------------------------------------------
-    | HITUNG PARETO
+    | PISAHKAN DEFECT ADA KONTRIBUSI & ZERO
     |--------------------------------------------------------------------------
     */
 
-    $grandTotal = $data->sum('total');
-    $cumulative = 0;
+    $withContribution = [];
+    $otherTotal = 0;
+
+    foreach ($data as $row) {
+
+        if ($row->total > 0) {
+            $withContribution[] = $row;
+        } else {
+            $otherTotal += 0; // tetap dihitung struktur statistik
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TAMBAHKAN OTHER (JIKA ADA DEFECT 0)
+    |--------------------------------------------------------------------------
+    */
+
+    if ($data->count() !== count($withContribution)) {
+        $withContribution[] = (object)[
+            'defect' => 'Other',
+            'total'  => $otherTotal
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | HITUNG PARETO %
+    |--------------------------------------------------------------------------
+    */
+
+    $grandTotal = collect($withContribution)->sum('total');
 
     $labels = [];
     $values = [];
     $cumulativePercent = [];
 
-    foreach ($data as $row) {
+    $cumulative = 0;
+
+    foreach ($withContribution as $row) {
 
         $labels[] = $row->defect;
-        $values[] = (int) $row->total;
+        $values[] = (int)$row->total;
 
         $percent = $grandTotal > 0
             ? ($row->total / $grandTotal) * 100
@@ -756,6 +787,7 @@ public function paretoDefect(Request $request)
         'cumulative' => $cumulativePercent
     ]);
 }
+
 
 
 

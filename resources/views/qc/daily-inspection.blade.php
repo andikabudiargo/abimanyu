@@ -1306,11 +1306,10 @@ fetch(`/qc/inspection/pareto?${params.toString()}`)
                 paretoChart.destroy();
             }
 
-            const total = data.values.reduce((a, b) => a + b, 0);
+           const percentages = data.percentages;
+const cumulative  = data.cumulative;
+const qtyValues   = data.values; // ← tetap dipakai
 
-            const percentages = data.values.map(val =>
-                total > 0 ? ((val / total) * 100).toFixed(0) : 0
-            );
 
             const ctx = canvas.getContext('2d');
 
