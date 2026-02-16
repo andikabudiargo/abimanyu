@@ -1249,6 +1249,34 @@ if (data.mode === 'year') {
     });
 }
 
+const thresholdLabelPlugin = {
+    id: 'thresholdLabel',
+
+    afterDatasetsDraw(chart) {
+
+        const { ctx, chartArea, scales } = chart;
+
+        const yScale = scales.y;
+        const y = yScale.getPixelForValue(80);
+
+        ctx.save();
+
+        ctx.fillStyle = '#dc2626';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+
+        // tulis di ujung kanan chart
+        ctx.fillText(
+            '80% Threshold',
+            chartArea.right + 6,
+            y
+        );
+
+        ctx.restore();
+    }
+};
+
 
 function renderParetoChart() {
 
@@ -1332,13 +1360,14 @@ paretoChart = new Chart(ctx, {
             {
                 type: 'line',
                 label: '80% Threshold',
-                data: Array(data.percentages.length).fill(80),
+                 data: data.labels.map(() => 80),
                 borderColor: '#dc2626',
                 borderWidth: 2,
                 borderDash: [6,6],
                 pointRadius: 0,
                 tension: 0,
-
+spanGaps: true,
+    clip: false, // ✅ biar tidak kepotong area chart
                 // ❌ tidak ada label angka di garis
                 datalabels: {
                     display: false
@@ -1443,7 +1472,7 @@ paretoChart = new Chart(ctx, {
         }
     },
 
-    plugins:[ChartDataLabels]
+    plugins: [ChartDataLabels, thresholdLabelPlugin]
 });
 
 
