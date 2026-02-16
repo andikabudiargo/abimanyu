@@ -1284,250 +1284,184 @@ const thresholdLabelPlugin = {
 
 function renderParetoChart() {
 
-const post        = $('#filter-inspection_post').val();
-const month       = $('#filter-month').val();
-const year        = $('#filter-year').val();
-const supplier    = $('#filter-supplier').val();
-const part        = $('#filter-part_name').val();
-const spraybooth  = $('#filter-spraybooth').val();
-
+    const post        = $('#filter-inspection_post').val();
+    const month       = $('#filter-month').val();
+    const year        = $('#filter-year').val();
+    const supplier    = $('#filter-supplier').val();
+    const part        = $('#filter-part_name').val();
+    const spraybooth  = $('#filter-spraybooth').val();
 
     const container = $('#pareto-container');
-    const $canvas = $('#paretoChart'); // jQuery object
-const canvas = $canvas[0];       // DOM element
+    const $canvas = $('#paretoChart');
+    const canvas = $canvas[0];
 
-
-    // kalau belum ada warning element, buat otomatis
     if ($('#pareto-warning').length === 0) {
         container.prepend(`
-            <div id="pareto-warning"
-                class="text-center py-10 text-slate-500 text-sm">
+            <div id="pareto-warning" class="text-center py-10 text-slate-500 text-sm">
                 Silahkan pilih post terlebih dahulu
             </div>
         `);
     }
 
-    // 🔥 WAJIB PILIH POST
     if (!post) {
-
-    container.removeClass('hidden');
-    $canvas.hide();
-    $('#pareto-warning').show();
-
-    return;
-}
+        container.removeClass('hidden');
+        $canvas.hide();
+        $('#pareto-warning').show();
+        return;
+    }
 
     $('#pareto-warning').hide();
     $canvas.show();
 
     const params = new URLSearchParams();
+    if (year)       params.append('year', year);
+    if (month !== undefined) params.append('month', month);
+    if (post)       params.append('inspection_post', post);
+    if (supplier)   params.append('supplier', supplier);
+    if (part)       params.append('part_name', part);
+    if (spraybooth) params.append('spraybooth', spraybooth);
 
-if (year)       params.append('year', year);
-if (month !== undefined) params.append('month', month);
-if (post)       params.append('inspection_post', post);
-if (supplier)   params.append('supplier', supplier);
-if (part)       params.append('part_name', part);
-if (spraybooth) params.append('spraybooth', spraybooth);
-
-
-fetch(`/qc/inspection/pareto?${params.toString()}`)
+    fetch(`/qc/inspection/pareto?${params.toString()}`)
         .then(res => res.json())
         .then(data => {
 
-        console.group('🔥 PARETO DEBUG');
-
-console.log('Payload dari Backend:', data);
-
-if (data.debug) {
-    console.log('Filters diterima backend:', data.debug.filters_received);
-    console.log('SQL Query:', data.debug.sql);
-    console.log('SQL Bindings:', data.debug.bindings);
-    console.log('Raw Query Result:', data.debug.raw_query_result);
-}
-
-console.groupEnd();
-
-    if (!data.labels || data.labels.length === 0) {
-        $canvas.hide();
-        $('#pareto-warning')
-            .text('Data tidak ditemukan')
-            .show();
-        return;
-    }
+            if (!data.labels || data.labels.length === 0) {
+                $canvas.hide();
+                $('#pareto-warning')
+                    .text('Data tidak ditemukan')
+                    .show();
+                return;
+            }
 
             if (paretoChart) {
                 paretoChart.destroy();
             }
 
-           const percentages = data.percentages;
-const cumulative  = data.cumulative;
-const qtyValues   = data.values; // ← tetap dipakai
-
+            const percentages = data.percentages;
+            const cumulative  = data.cumulative;
+            const qtyValues   = data.values;
 
             const ctx = canvas.getContext('2d');
 
-paretoChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: data.labels,
-        datasets: [
-
-    // ================= BAR DEFECT =================
-    {
-        type: 'bar',
-        label: 'Defect Contribution',
-        data: percentages,
-        backgroundColor: '#2563eb',
-        borderRadius: 6,
-        barThickness: 28,
-        order: 2
-    },
-
-    // ================= GARIS KUMULATIF =================
-    {
-        type: 'line',
-        label: 'Cumulative (%)',
-        data: cumulative,
-        borderColor: '#16a34a',
-        backgroundColor: '#16a34a',
-        borderWidth: 3,
-        tension: 0.35,
-        pointRadius: 3,
-        pointHoverRadius: 5,
-        pointBackgroundColor: '#16a34a',
-        yAxisID: 'y',
-        order: 1,
-
-        datalabels: {
-            display: false
-        }
-    },
-
-    // ================= GARIS 80% =================
-    {
-        type: 'line',
-        label: '80% Threshold',
-        data: data.labels.map(() => 80),
-        borderColor: '#dc2626',
-        borderWidth: 2,
-        borderDash: [6,6],
-        pointRadius: 0,
-        tension: 0,
-        spanGaps: true,
-        clip: false,
-        order: 0,
-
-        datalabels: {
-            display: false
-        }
-    }
-]
-
-    },
-
-    options: {
-                responsive: true,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
+            paretoChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        // ===== BAR DEFECT =====
+                        {
+                            type: 'bar',
+                            label: 'Defect Contribution',
+                            data: percentages,
+                            backgroundColor: '#2563eb',
+                            borderRadius: 6,
+                            barThickness: 28,
+                            order: 2
+                        },
+                        // ===== LINE KUMULATIF =====
+                        {
+                            type: 'line',
+                            label: 'Cumulative (%)',
+                            data: cumulative,
+                            borderColor: '#16a34a',
+                            backgroundColor: '#16a34a',
+                            borderWidth: 3,
+                            tension: 0.35,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#16a34a',
+                            yAxisID: 'y',
+                            order: 1,
+                            datalabels: { display: false }
+                        }
+                    ]
                 },
-                layout: {
-                    padding: { right: 30 }
-                },
-
-        plugins: {
-
-            // ===== LEGEND =====
-            legend: {
-                display: true,
-                labels: {
-                    boxWidth: 14,
-                    font: {
-                        size: 11,
-                        weight: '500'
-                    }
-                }
-            },
-
-            // ===== TOOLTIP =====
-            tooltip: {
-    callbacks: {
-        label: function(context) {
-
-            // hanya tampilkan tooltip untuk BAR
-            if (context.dataset.type !== 'bar') return null;
-
-            const qty = qtyValues[context.dataIndex];
-            const percent = percentages[context.dataIndex];
-
-            return ` ${percent}% (${qty} defect)`;
-        }
-    }
-},
-
-
-            // ===== LABEL PERSEN DI ATAS BAR =====
-            datalabels: {
-                display: function(context) {
-                    return context.dataset.type === 'bar';
-                },
-                anchor: 'end',
-                align: 'end',
-                color: '#111827',
-                font: {
-                    weight: '600',
-                    size: 10
-                },
-                formatter: value => value + '%'
-            }
-        },
-
-        scales: {
-
-            // ===== LABEL DEFECT (KECIL) =====
-            x: {
-                grid: { display:false },
-                ticks: {
-                    color:'#6b7280',
-                    font:{
-                        size:9,
-                        weight:'500'
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
                     },
-                    maxRotation:45,
-                    minRotation:45
-                }
-            },
-
-            // ===== AXIS PERSENTASE =====
-            y: {
-                beginAtZero:true,
-                min:0,
-                max:100,
-                ticks:{
-                    stepSize:10,
-                    autoSkip: false,  // wajib supaya tidak lompat
-                    callback:v=>v+'%',
-                    color:'#6b7280',
-                    font:{ size:10 }
+                    layout: { padding: { right: 30 } },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { boxWidth: 14, font: { size: 11, weight: '500' } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.type !== 'bar') return null;
+                                    const qty = qtyValues[context.dataIndex];
+                                    const percent = percentages[context.dataIndex];
+                                    return ` ${percent}% (${qty} defect)`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            display: function(context) { return context.dataset.type === 'bar'; },
+                            anchor: 'end',
+                            align: 'end',
+                            color: '#111827',
+                            font: { weight: '600', size: 10 },
+                            formatter: value => value + '%'
+                        },
+                        annotation: {
+                            annotations: {
+                                threshold80: {
+                                    type: 'line',
+                                    yMin: 80,
+                                    yMax: 80,
+                                    borderColor: '#dc2626',
+                                    borderWidth: 2,
+                                    borderDash: [6,6],
+                                    label: {
+                                        enabled: true,
+                                        content: '80% Threshold',
+                                        position: 'end',
+                                        backgroundColor: '#dc2626',
+                                        color: '#fff',
+                                        font: { size: 10, weight: '600' }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display:false },
+                            ticks: {
+                                color:'#6b7280',
+                                font:{ size:9, weight:'500' },
+                                maxRotation:45,
+                                minRotation:45
+                            }
+                        },
+                        y: {
+                            beginAtZero:true,
+                            min:0,
+                            max:100,
+                            ticks:{
+                                stepSize:10,
+                                autoSkip:false,
+                                callback:v=>v+'%',
+                                color:'#6b7280',
+                                font:{ size:10 }
+                            },
+                            title:{
+                                display:true,
+                                text:'Contribution (%)',
+                                font:{ weight:'600', size:11 }
+                            },
+                            grid:{ color:'#f1f5f9' }
+                        }
+                    }
                 },
-                title:{
-                    display:true,
-                    text:'Contribution (%)',
-                    font:{ weight:'600', size:11 }
-                },
-                grid:{
-                    color:'#f1f5f9'
-                }
-            }
-        }
-    },
-
-    plugins: [ChartDataLabels, thresholdLabelPlugin]
-});
-
-
+                plugins: [ChartDataLabels, ChartAnnotation]
+            });
         });
 }
+
 
 document.getElementById('filter-month')
     .addEventListener('change', function () {
@@ -1611,6 +1545,7 @@ $(document).ready(function () {
 
     // Render semua sekali saja
     renderPerformanceChart();
+    renderParetoChart();
 
     $('.chart-tab').on('click', function () {
 

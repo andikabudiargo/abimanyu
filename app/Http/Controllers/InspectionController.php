@@ -86,10 +86,17 @@ class InspectionController extends Controller
         $query->where('inspection_post', $request->inspection_post);
     }
 
-    if ($request->inspection_date) {
+   if ($request->inspection_date) {
+    if (str_contains($request->inspection_date, ' to ')) {
+        // Format range: "2026-02-01 to 2026-02-10"
         [$start, $end] = explode(' to ', $request->inspection_date);
         $query->whereBetween('inspection_date', [$start, $end]);
+    } else {
+        // Hanya satu tanggal
+        $query->whereDate('inspection_date', $request->inspection_date);
     }
+}
+
 
  if ($request->supplier) {
         $query->where('supplier_code', $request->supplier);
@@ -804,8 +811,7 @@ $cumulativePercent = [];
 
 $cumulative = 0;
 
-
-    foreach ($withContribution as $row) {
+foreach ($withContribution as $row) {
 
     $labels[] = $row->defect;
     $values[] = (int)$row->total;
@@ -816,35 +822,14 @@ $cumulative = 0;
         : 0;
 
     $percent = round($percent, 0);
-
     $percentages[] = $percent;
 
-    // kumulatif pareto
+    // kumulatif pareto, tidak lebih dari 100
     $cumulative += $percent;
-    $cumulativePercent[] = round($cumulative, 0);
+    $cumulativePercent[] = round(min($cumulative, 100), 0);
 }
 
-/* =========================================================
-| DEBUG INFORMATION
-========================================================= */
-
-$debug = [
-    'filters_received' => [
-        'year'            => $year,
-        'month'           => $month,
-        'inspection_post' => $request->inspection_post,
-        'spraybooth'      => $request->spraybooth,
-        'part_name'       => $request->part_name,
-        'supplier'        => $request->supplier,
-    ],
-
-    // SQL yang dijalankan
-    'sql'       => $query->toSql(),
-    'bindings'  => $query->getBindings(),
-
-    // hasil raw sebelum diproses pareto
-    'raw_query_result' => $data,
-];
+ 
 
 
     return response()->json([
@@ -852,8 +837,7 @@ $debug = [
     'values'      => $values,        // qty defect
     'percentages' => $percentages,   // tinggi bar
     'cumulative'  => $cumulativePercent,
-       // 👇 DEBUG PAYLOAD
-    'debug'       => $debug
+
 ]);
 
 }
