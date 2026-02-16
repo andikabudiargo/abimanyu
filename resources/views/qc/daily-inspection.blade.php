@@ -1601,7 +1601,7 @@ $(document).ready(function () {
 
     // Render semua sekali saja
     renderPerformanceChart();
-    renderParetoChart();
+    
 
     $('.chart-tab').on('click', function () {
 
