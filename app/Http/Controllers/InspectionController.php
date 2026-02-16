@@ -686,20 +686,27 @@ public function paretoDefect(Request $request)
     $year  = $request->year ?? now()->year;
     $post  = $request->inspection_post;
 
-    $data = DB::table('defects as d')
-        ->leftJoin('inspection_defects as idf', 'idf.defect_id', '=', 'd.id')
+    /*
+    |--------------------------------------------------------------------------
+    | MASTER DEFECT BASE
+    |--------------------------------------------------------------------------
+    | Semua defect milik post harus muncul
+    */
+
+    $query = DB::table('defects as d')
+        ->leftJoin('inspection_defects as idf', 'd.id', '=', 'idf.defect_id')
         ->leftJoin('inspections as i', function ($join) use ($month, $year, $post) {
 
-            $join->on('i.id', '=', 'idf.inspection_id')
-                 ->whereYear('i.inspection_date', $year);
+            $join->on('i.id', '=', 'idf.inspection_id');
 
-            // filter month optional
-            if (!empty($month)) {
+            // filter periode DI DALAM JOIN
+            if ($month) {
                 $join->whereMonth('i.inspection_date', $month);
             }
 
-            // filter post optional
-            if (!empty($post)) {
+            $join->whereYear('i.inspection_date', $year);
+
+            if ($post) {
                 $join->where('i.inspection_post', $post);
             }
         })
@@ -707,12 +714,22 @@ public function paretoDefect(Request $request)
             'd.defect',
             DB::raw('COALESCE(SUM(idf.qty),0) as total')
         )
+        ->when($post, function ($q) use ($post) {
+            // filter kategori defect
+            $q->where('d.inspection_post', $post);
+        })
         ->groupBy('d.id', 'd.defect')
-        ->orderByDesc('total')
-        ->get();
+        ->orderByDesc('total');
+
+    $data = $query->get();
+
+    /*
+    |--------------------------------------------------------------------------
+    | HITUNG PARETO
+    |--------------------------------------------------------------------------
+    */
 
     $grandTotal = $data->sum('total');
-
     $cumulative = 0;
 
     $labels = [];
@@ -734,11 +751,12 @@ public function paretoDefect(Request $request)
     }
 
     return response()->json([
-        'labels' => $labels,
-        'values' => $values,
+        'labels'     => $labels,
+        'values'     => $values,
         'cumulative' => $cumulativePercent
     ]);
 }
+
 
 
 public function monthlyTrend(Request $request)
