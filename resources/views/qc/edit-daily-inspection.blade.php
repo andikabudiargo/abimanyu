@@ -70,33 +70,37 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-2">
-            <div id="supplier-wrapper">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Supplier <span class="text-red-600">*</span>
-                </label>
-                <select name="supplier" id="supplier" class="select2 w-full">
-                    <option value="">-- Pilih Supplier --</option>
-                    @foreach ($suppliers as $supplier)
-                        <option value="{{ $supplier->code }}" {{ $inspection->supplier == $supplier->code ? 'selected' : '' }}>
-                            {{ $supplier->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+    <div id="supplier-wrapper">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+            Supplier <span class="text-red-600">*</span>
+        </label>
+        <select name="supplier" id="supplier" class="select2 w-full">
+            <option value="">-- Pilih Supplier --</option>
+            @foreach ($suppliers as $supplier)
+                <option value="{{ $supplier->code }}"
+                    {{ $inspection->supplier_code == $supplier->code ? 'selected' : '' }}>
+                    {{ $supplier->name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
 
-            <div id="customer-wrapper" class="{{ $inspection->customer ? '' : 'hidden' }}">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Customer <span class="text-red-600">*</span>
-                </label>
-                <select name="customer" id="customer" class="select2 w-full">
-                    <option value="">-- Pilih Customer --</option>
-                    @foreach ($customers as $customer)
-                        <option value="{{ $customer->code }}" {{ $inspection->customer == $customer->code ? 'selected' : '' }}>
-                            {{ $customer->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+    <div id="customer-wrapper" class="{{ $inspection->inspection_post !== 'Incoming' ? '' : 'hidden' }}">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+            Customer <span class="text-red-600">*</span>
+        </label>
+        <select name="customer" id="customer" class="select2 w-full">
+            <option value="">-- Pilih Customer --</option>
+            @foreach ($customers as $customer)
+                <option value="{{ $customer->code }}"
+                    {{ $inspection->supplier_code == $customer->code ? 'selected' : '' }}>
+                    {{ $customer->name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+</div>
+
 
             <div class="w-full">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Part Name <span class="text-red-600">*</span></label>
