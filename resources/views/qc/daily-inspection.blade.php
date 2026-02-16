@@ -1318,7 +1318,7 @@ paretoChart = new Chart(ctx, {
     type: 'bar',
     data: {
         labels: data.labels,
-        datasets: [{
+        datasets: [
             // ================= BAR DEFECT =================
             {
                 type: 'bar',
@@ -1425,7 +1425,8 @@ paretoChart = new Chart(ctx, {
                 min:0,
                 max:100,
                 ticks:{
-                    stepSize:20,
+                    stepSize:10,
+                    autoSkip: false,  // wajib supaya tidak lompat
                     callback:v=>v+'%',
                     color:'#6b7280',
                     font:{ size:10 }
