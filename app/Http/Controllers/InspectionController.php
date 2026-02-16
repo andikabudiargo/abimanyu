@@ -16,18 +16,59 @@ use Carbon\Carbon;
 
 class InspectionController extends Controller
 {
-      public function index()
+      public function index(Request $request)
 {
+    // Ambil range tahun dari DB
+    $range = Inspection::selectRaw('
+            MIN(YEAR(inspection_date)) as min_year,
+            MAX(YEAR(inspection_date)) as max_year
+        ')->first();
+
+    // Fallback kalau DB masih kosong
+    $minYear = $range->min_year ?? now()->year;
+    $maxYear = $range->max_year ?? now()->year;
+
+    $years = range($minYear, $maxYear);
+
+    // ================= DEFAULT FILTER =================
+    $selectedYear = $request->year 
+        ? (int) $request->year 
+        : now()->year;
+
+    // Kalau month tidak dikirim → default bulan sekarang
+    // Tapi kalau dikirim kosong ("") → artinya All Month
+    $selectedMonth = $request->has('month')
+        ? ($request->month !== '' ? (int)$request->month : null)
+        : now()->month;
+
+    // ================= QUERY =================
+    $query = Inspection::query()
+        ->whereYear('inspection_date', $selectedYear);
+
+    if (!is_null($selectedMonth)) {
+        $query->whereMonth('inspection_date', $selectedMonth);
+    }
+
+    $data = $query->get();
+
     $suppliers = Supplier::orderBy('name')->get();
     $customers = Customer::orderBy('name')->get();
 
     $articles = Article::whereIn('article_type', ['RMP', 'RMNP', 'FG'])
-                       ->orderBy('description')
-                       ->get();
+        ->orderBy('description')
+        ->get();
 
     return view(
         'qc.daily-inspection',
-        compact('suppliers', 'customers', 'articles')
+        compact(
+            'suppliers',
+            'customers',
+            'articles',
+            'years',
+            'selectedYear',
+            'selectedMonth',
+            'data'
+        )
     );
 }
 
@@ -114,7 +155,7 @@ $query->orderBy('created_at', 'desc');
  // Tambahkan kolom persentase
 ->addColumn('pass_trough', function ($row) {
     $totalCheck = $row->total_check ?: 1;
-    $totalPassTrough = $row->total_ok - $row->total_ng - $row->total_ok_repair;
+    $totalPassTrough = $row->total_check - $row->total_ng - $row->total_ok_repair;
     $passTrough = ($totalPassTrough / $totalCheck) * 100;
     return '<span class="text-yellow-600 font-semibold">' . number_format($passTrough, 0) . '%</span>';
 })
@@ -301,27 +342,77 @@ $isSingleDay = ($start === $end);
 }
 
 
+private function resolveInspectionDate(Request $request, string $pos)
+{
+    $dateFilter = trim($request->inspection_date ?? '');
+
+    // 1️⃣ User pilih tanggal / range
+    if ($dateFilter !== '') {
+        if (str_contains($dateFilter, ' to ')) {
+            [$start, $end] = array_map('trim', explode(' to ', $dateFilter));
+        } else {
+            $start = $dateFilter;
+            $end   = $dateFilter;
+        }
+        return [$start, $end, 'user'];
+    }
+
+    // 2️⃣ Default hari ini
+    $today = now()->toDateString();
+
+    $hasTodayData = DB::table('inspections')
+        ->where('inspection_post', $pos)
+        ->whereDate('inspection_date', $today)
+        ->exists();
+
+    if ($hasTodayData) {
+        return [$today, $today, 'today'];
+    }
+
+    // 3️⃣ Fallback ke tanggal TERAKHIR ada data
+    $latestDate = DB::table('inspections')
+        ->where('inspection_post', $pos)
+        ->max('inspection_date');
+
+    if ($latestDate) {
+        return [$latestDate, $latestDate, 'latest'];
+    }
+
+    // 4️⃣ DB kosong total
+    return [null, null, 'empty'];
+}
+
 public function getTopDefect(Request $request)
 {
     $pos = $request->pos;
 
-    /* ================= RANGE TANGGAL ================= */
+    [$start, $end, $mode] = $this->resolveInspectionDate($request, $pos);
 
-    if ($request->inspection_date) {
-        [$start, $end] = explode(' to ', $request->inspection_date);
-    } else {
-        $start = now()->toDateString();
-        $end   = now()->toDateString();
+    if (!$start || !$end) {
+        return response()->json([
+            'mode' => 'empty',
+            'message' => 'Belum ada data inspection'
+        ]);
     }
 
-    /* ================= TOTAL SEMUA DEFECT ================= */
+    $isSingleDay = ($start === $end);
+
+  $dateFilter = function ($query) use ($start, $end, $isSingleDay) {
+    if ($isSingleDay) {
+        // ⛔ JANGAN whereDate
+        $query->where('i.inspection_date', '=', $start);
+    } else {
+        $query->whereBetween('i.inspection_date', [$start, $end]);
+    }
+};
+
+    /* ================= TOTAL DEFECT ================= */
 
     $totalDefect = DB::table('inspection_defects as d')
         ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
         ->where('i.inspection_post', $pos)
-        ->whereBetween('i.inspection_date', [$start, $end])
+        ->where($dateFilter)
         ->sum('d.qty');
-
 
     /* ================= TOP DEFECT ================= */
 
@@ -330,28 +421,24 @@ public function getTopDefect(Request $request)
         ->join('defects as f', 'f.id', '=', 'd.defect_id')
         ->select(
             'f.defect as defect_name',
-            'f.category as category',
+            'f.category',
             DB::raw('SUM(d.qty) as total_qty')
         )
         ->where('i.inspection_post', $pos)
-        ->whereBetween('i.inspection_date', [$start, $end])
+        ->where($dateFilter)
         ->groupBy('f.id', 'f.defect', 'f.category')
         ->orderByDesc('total_qty')
         ->limit(10)
         ->get();
 
-
-    /* ================= TAMBAH PERSENTASE ================= */
+    /* ================= PERCENTAGE ================= */
 
     $topDefect = $topDefect->map(function ($item) use ($totalDefect) {
-
         $item->percentage = $totalDefect > 0
-            ? round(($item->total_qty / $totalDefect) * 100, 0)
+            ? round(($item->total_qty / $totalDefect) * 100)
             : 0;
-
         return $item;
     });
-
 
     /* ================= TOP PART ================= */
 
@@ -363,99 +450,59 @@ public function getTopDefect(Request $request)
             DB::raw('SUM(d.qty) as total_qty')
         )
         ->where('i.inspection_post', $pos)
-        ->whereBetween('i.inspection_date', [$start, $end])
+        ->where($dateFilter)
         ->groupBy('a.description')
         ->orderByDesc('total_qty')
         ->limit(10)
         ->get();
 
-        /* ================= TOTAL DEFECT & PART ================= */
+    /* ================= SUMMARY ================= */
 
-$summary = DB::table('inspection_defects as d')
-    ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
-    ->selectRaw('
-        SUM(d.qty) as total_defect,
-        COUNT(DISTINCT i.part_name) as total_part_type
-    ')
-    ->where('i.inspection_post', $pos)
-    ->whereBetween('i.inspection_date', [$start, $end])
-    ->first();
-
-
+    $summary = DB::table('inspection_defects as d')
+        ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+        ->selectRaw('
+            SUM(d.qty) as total_defect,
+            COUNT(DISTINCT i.part_name) as total_part_type
+        ')
+        ->where('i.inspection_post', $pos)
+        ->where($dateFilter)
+        ->first();
 
     return response()->json([
-        'start_date'   => $start,
-        'end_date'     => $end,
-        'total_defect' => $totalDefect,
-         'summary' => [
-        'total_defect'    => $summary->total_defect ?? 0,
-        'total_part_type'=> $summary->total_part_type ?? 0,
-    ],
-        'top_defect'   => $topDefect,
-        'top_part'     => $topPart
+        'mode'        => $mode, // today | latest | user
+        'start_date'  => $start,
+        'end_date'    => $end,
+        'summary' => [
+            'total_defect'     => $summary->total_defect ?? 0,
+            'total_part_type' => $summary->total_part_type ?? 0,
+        ],
+        'top_defect' => $topDefect,
+        'top_part'   => $topPart
     ]);
 }
 
-
-
  public function getDataChart(Request $request)
 {
-   /* ================= RANGE TANGGAL FLEXIBLE ================= */
+    $year  = $request->year ?? now()->year;
 
-$start = null;
-$end   = null;
-
-if ($request->inspection_date) {
-
-    $range = explode(' to ', $request->inspection_date);
-
-    if (count($range) == 2) {
-        $start = $range[0] ?: null;
-        $end   = $range[1] ?: null;
-    } else {
-        // jika hanya satu tanggal dikirim
-        $start = $range[0];
-        $end   = $range[0];
-    }
-}
-
-// Jika hanya start
-if ($start && !$end) {
-    $end = $start;
-}
-
-// Jika hanya end
-if (!$start && $end) {
-    $start = $end;
-}
-
-// Jika keduanya kosong → default bulan aktif
-if (!$start && !$end) {
-    $monthParam = $request->date ?? date('Y-m');
-    $year  = substr($monthParam, 0, 4);
-    $month = substr($monthParam, 5, 2);
-
-    $start = date('Y-m-01', strtotime("$year-$month-01"));
-    $end   = date('Y-m-t', strtotime("$year-$month-01"));
-}
-
-    $monthParam = $request->date ?? date('Y-m');
-    $year  = substr($monthParam, 0, 4);
-    $month = substr($monthParam, 5, 2);
-
-    $totalDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+    $month = $request->filled('month')
+    ? (int) $request->month
+    : null;
 
     /* ================= QUERY BASE ================= */
 
     $query = DB::table('inspections')
         ->select(
-            'inspection_date',
+            DB::raw('DATE(inspection_date) as inspection_date'),
             DB::raw('SUM(total_check) as total_check'),
             DB::raw('SUM(total_ok) as total_ok'),
             DB::raw('SUM(total_ok_repair) as total_ok_repair')
         )
-        ->whereYear('inspection_date', $year)
-        ->whereMonth('inspection_date', $month);
+        ->whereYear('inspection_date', $year);
+
+    if (!is_null($month)) {
+        $query->whereMonth('inspection_date', $month);
+    }
 
     /* ================= FILTER DINAMIS ================= */
 
@@ -475,26 +522,68 @@ if (!$start && !$end) {
         $query->where('spraybooth', $request->spraybooth);
     }
 
-    // Supplier / Customer tergantung inspection_post
-    if ($request->supplier_customer) {
-        if ($request->inspection_post === 'Incoming') {
-            $query->where('supplier', $request->supplier_customer);
-        } else {
-            $query->where('customer', $request->supplier_customer);
-        }
+if ($request->supplier) {
+        $query->where('supplier_code', $request->supplier);
     }
 
+    /* ========================================================= */
+    /* ================= MODE: PER BULAN ======================= */
+    /* ========================================================= */
+
+    if (is_null($month)) {
+
+        $rows = $query
+            ->selectRaw('MONTH(inspection_date) as month')
+            ->groupBy(DB::raw('MONTH(inspection_date)'))
+            ->orderBy(DB::raw('MONTH(inspection_date)'))
+            ->get()
+            ->keyBy('month');
+
+        $labels = [];
+        $passRate = [];
+        $passTrough = [];
+
+        for ($m = 1; $m <= 12; $m++) {
+
+            if (isset($rows[$m])) {
+                $r = $rows[$m];
+                $totalCheck = $r->total_check ?: 1;
+
+                $pr = ($r->total_ok / $totalCheck) * 100;
+                $pt = ($r->total_ok - $r->total_ok_repair) / $totalCheck * 100;
+            } else {
+                $pr = 0;
+                $pt = 0;
+            }
+
+            $labels[] = \Carbon\Carbon::create()->month($m)->format('M');
+            $passRate[] = round($pr, 0);
+            $passTrough[] = round($pt, 0);
+        }
+
+        return response()->json([
+            'mode'         => 'year',
+            'labels'       => $labels,
+            'pass_rate'    => $passRate,
+            'pass_trough'  => $passTrough,
+        ]);
+    }
+
+    /* ========================================================= */
+    /* ================= MODE: PER HARI ======================== */
+    /* ========================================================= */
+
+    $totalDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
     $rows = $query
-        ->groupBy('inspection_date')
+        ->groupBy(DB::raw('DATE(inspection_date)'))
         ->orderBy('inspection_date', 'ASC')
         ->get()
         ->keyBy(function ($item) {
             return date('j', strtotime($item->inspection_date));
         });
 
-    /* ================= NORMALISASI 1..TOTALDAYS ================= */
-
-    $days = [];
+    $labels = [];
     $passRate = [];
     $passTrough = [];
 
@@ -504,25 +593,23 @@ if (!$start && !$end) {
             $r = $rows[$day];
             $totalCheck = $r->total_check ?: 1;
 
-            $pr = ($r->total_ok + $r->total_ok_repair) / $totalCheck * 100;
-            $pt = ($r->total_ok / $totalCheck) * 100;
+            $pr = ($r->total_ok / $totalCheck) * 100;
+            $pt = ($r->total_ok - $r->total_ok_repair) / $totalCheck * 100;
         } else {
             $pr = 0;
             $pt = 0;
         }
 
-        $days[] = $day;
+        $labels[] = $day;
         $passRate[] = round($pr, 0);
         $passTrough[] = round($pt, 0);
     }
 
     return response()->json([
-        'month'        => date('F', strtotime("$year-$month-01")),
-        'days'         => $days,
+        'mode'         => 'month',
+        'labels'       => $labels,
         'pass_rate'    => $passRate,
         'pass_trough'  => $passTrough,
-        'start_date'   => $start,
-        'end_date'     => $end,
     ]);
 }
 
@@ -593,7 +680,59 @@ public function getPerformanceChart(Request $request)
 }
 
 
+public function paretoDefect(Request $request)
+{
+    $month = $request->month;
+    $year  = $request->year ?? now()->year;
+    $post  = $request->inspection_post;
 
+    $query = DB::table('inspection_defects as idf')
+        ->join('inspections as i', 'i.id', '=', 'idf.inspection_id')
+        ->join('defects as d', 'd.id', '=', 'idf.defect_id')
+        ->select(
+            'd.defect',
+            DB::raw('SUM(idf.qty) as total') // ganti ke COUNT kalau tidak ada qty
+        )
+        ->when($month, function ($q) use ($month) {
+            $q->whereMonth('i.inspection_date', $month);
+        })
+        ->whereYear('i.inspection_date', $year)
+        ->when($post, function ($q) use ($post) {
+            $q->where('i.inspection_post', $post);
+        })
+        ->groupBy('d.defect')
+        ->orderByDesc('total');
+
+    $data = $query->get();
+
+    $grandTotal = $data->sum('total');
+
+    $cumulative = 0;
+
+    $labels = [];
+    $values = [];
+    $cumulativePercent = [];
+
+    foreach ($data as $row) {
+
+        $labels[] = $row->defect;
+        $values[] = (int) $row->total;
+
+        $percent = $grandTotal > 0
+            ? ($row->total / $grandTotal) * 100
+            : 0;
+
+        $cumulative += $percent;
+
+        $cumulativePercent[] = round($cumulative, 2);
+    }
+
+    return response()->json([
+        'labels' => $labels,
+        'values' => $values,
+        'cumulative' => $cumulativePercent
+    ]);
+}
 
 
 public function monthlyTrend(Request $request)

@@ -487,6 +487,7 @@ Route::post('agent/backup-log', [BackupAgentController::class, 'storeLog']);
     Route::get('/inspection/summary', [InspectionController::class, 'getSummary']);
     Route::get('/inspection/top-defect', [InspectionController::class, 'getTopDefect']);
     Route::get('/inspection/chart', [InspectionController::class, 'getDataChart'])->name('inspection.chart');
+Route::get('/inspection/pareto', [InspectionController::class, 'paretoDefect'])->name('inspection.pareto');
     Route::get('/incoming/dashboard', [IncomingInspectionController::class, 'index'])->name('incoming.index');
     Route::get('/incoming/data', [IncomingInspectionController::class, 'data'])->name('incoming.data');
     Route::get('/incoming/create', [IncomingInspectionController::class, 'create'])->name('incoming.create');
