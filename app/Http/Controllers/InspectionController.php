@@ -1184,7 +1184,6 @@ public function getInspectionNumbers(Request $request)
             ], 500);
         }
     }
-}
 
  public function show($id)
 {
