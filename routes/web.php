@@ -496,6 +496,8 @@ Route::get('/inspection/pareto', [InspectionController::class, 'paretoDefect'])-
     Route::post('/incoming/{id}/verified', [IncomingInspectionController::class, 'verified']);
     Route::get('/api/articles/by-supplier/{supplierId}', [ArticleController::class, 'getBySupplier']);
     Route::get('/api/inspections/filter', [InspectionController::class, 'getInspectionNumbers']);
+    Route::get('/inspections/edit', [InspectionController::class, 'edit'])->name('inspection.edit');
+    Route::put('/inspection/update/{id}', [InspectionController::class, 'update'])->name('inspection.update');
 
 
     });

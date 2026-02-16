@@ -221,6 +221,7 @@ $query->orderBy('created_at', 'desc');
         $dropdownId = 'dropdown-' . $row->id;
         $detail_url = route('qc.inspections.show', ['id' => $row->id]);
         $delete_url = route('qc.inspections.destroy', $row->id);
+        $edit_url = route('qc.inspections.edit', ['id' => $row->id]);
 
         return '
         <div class="relative inline-block text-left">
@@ -234,6 +235,9 @@ $query->orderBy('created_at', 'desc');
                 <div class="py-1 text-sm text-gray-700">
                     <a href="' . $detail_url . '" class="block px-4 py-2 hover:bg-gray-100">
                         <i data-feather="eye" class="w-4 h-4 inline mr-2"></i>Detail
+                    </a>
+                      <a href="' . $edit_url . '" class="block px-4 py-2 hover:bg-gray-100">
+                        <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
                     </a>
                     <button 
                         type="button" 
@@ -1078,6 +1082,109 @@ public function getInspectionNumbers(Request $request)
     return response()->json($inspections);
 }
 
+ // ================== Edit ==================
+    public function edit($id)
+    {
+        $inspection = Inspection::with('defects')->findOrFail($id);
+        $suppliers = Supplier::orderBy('name')->get();
+        $customers = Customer::orderBy('name')->get();
+
+        return view('qc.edit-daily-inspection', compact(
+            'inspection', 'suppliers', 'customers'
+        ));
+    }
+
+    // ================== Update ==================
+    public function update(Request $request, $id)
+    {
+        $inspection = Inspection::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'inspection_post' => 'required|string',
+            'inspection_date' => 'required|date',
+            'part_name'       => 'required|string',
+            'supplier_code'   => 'required|string',
+
+            'check_method' => 'nullable|string',
+            'spraybooth'   => 'nullable|string',
+            'qty_received' => 'nullable|integer|min:1',
+
+            'total_check'      => 'required|integer|min:1',
+            'total_ok'         => 'nullable|integer|min:0',
+            'total_ok_repair'  => 'nullable|integer|min:0',
+            'total_ng'         => 'nullable|integer|min:0',
+
+            'defect_id'        => 'nullable|array',
+            'defect_id.*'      => 'required|integer|exists:defects,id',
+
+            'qty'              => 'nullable|array',
+            'qty.*'            => 'required|integer|min:1',
+
+            'ok_repair'        => 'nullable|array',
+            'ok_repair.*'      => 'nullable|integer|min:0',
+
+            'note_defect'      => 'nullable|array',
+            'note_defect.*'    => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // ===== Update inspection =====
+            $inspection->update([
+                'inspection_date'   => $request->inspection_date,
+                'inspection_post'   => $request->inspection_post,
+                'supplier_code'     => $request->supplier_code,
+                'part_name'         => $request->part_name,
+                'check_method'      => $request->check_method,
+                'spraybooth'        => $request->spraybooth,
+                'qty_received'      => $request->qty_received,
+                'total_check'       => $request->total_check,
+                'total_ok'          => $request->total_ok ?? 0,
+                'total_ok_repair'   => $request->total_ok_repair ?? 0,
+                'total_ng'          => $request->total_ng ?? 0,
+            ]);
+
+            // ===== Sync defects =====
+            // Hapus semua defect lama
+            InspectionDefect::where('inspection_id', $inspection->id)->delete();
+
+            // Tambahkan defect baru
+            if ($request->filled('defect_id')) {
+                foreach ($request->defect_id as $i => $defectId) {
+                    if (!isset($request->qty[$i])) continue;
+
+                    InspectionDefect::create([
+                        'inspection_id' => $inspection->id,
+                        'defect_id'     => $defectId,
+                        'qty'           => $request->qty[$i],
+                        'ok_repair'     => $request->ok_repair[$i] ?? 0,
+                        'note_defect'   => $request->note_defect[$i] ?? null,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Inspection updated successfully',
+                'inspection_number' => $inspection->inspection_number
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Failed to update inspection',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+}
 
  public function show($id)
 {
