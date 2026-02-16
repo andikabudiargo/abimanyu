@@ -1429,28 +1429,17 @@ paretoChart = new Chart(ctx, {
             },
 
             // ===== TOOLTIP =====
-          tooltip: {
+            tooltip: {
     callbacks: {
         label: function(context) {
 
-            const index = context.dataIndex;
+            // hanya tampilkan tooltip untuk BAR
+            if (context.dataset.type !== 'bar') return null;
 
-            // ===== BAR (DEFECT) =====
-            if (context.dataset.type === 'bar') {
-                const qty = qtyValues[index];
-                const percent = percentages[index];
+            const qty = qtyValues[context.dataIndex];
+            const percent = percentages[context.dataIndex];
 
-                return ` ${percent}% (${qty} defect)`;
-            }
-
-            // ===== LINE (KUMULATIF) =====
-            if (context.dataset.type === 'line') {
-                const cumulative = cumulativePercentages[index];
-
-                return ` Kumulatif: ${cumulative}%`;
-            }
-
-            return null;
+            return ` ${percent}% (${qty} defect)`;
         }
     }
 },
