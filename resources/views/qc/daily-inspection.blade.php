@@ -1349,13 +1349,14 @@ paretoChart = new Chart(ctx, {
     },
 
     options: {
-        responsive: true,
-        maintainAspectRatio: false,
-
-        interaction: {
-            mode: 'index',
-            intersect: false
-        },
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                layout: {
+                    padding: { right: 30 }
+                },
 
         plugins: {
 
