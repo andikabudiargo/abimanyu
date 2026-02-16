@@ -1262,15 +1262,37 @@ $('#inspectionForm').off('submit').on('submit', function (e) {
     const supplierCode = (post === 'Incoming')
         ? $('#supplier').val()
         : $('#customer').val();
-
     formData.set('supplier_code', supplierCode);
 
     // ===== Summary (text → backend) =====
-    formData.set('total_check', $('#totalCheckDisplay').text());
-    formData.set('total_ok', $('#totalOkDisplay').text());
-    formData.set('total_ng', $('#totalNGDisplay').text());
-    formData.set('total_ok_repair', $('#totalNCDisplay').text());
+    formData.set('total_check', $('#totalCheckDisplay').text() || 0);
+    formData.set('total_ok', $('#totalOkDisplay').text() || 0);
+    formData.set('total_ng', $('#totalNGDisplay').text() || 0);
+    formData.set('total_ok_repair', $('#totalNCDisplay').text() || 0);
 
+    // ===== Bersihkan dulu FormData defect =====
+    formData.delete('defect_id[]');
+    formData.delete('qty[]');
+    formData.delete('ok_repair[]');
+    formData.delete('note_defect[]');
+
+    // ===== Loop semua row defect =====
+    $('#defectTableBody tr').each(function(i, tr) {
+        const defectId = $(tr).find('.defect-select').val();
+        const qty      = $(tr).find('.qty-defect').val() || 0;
+        const okRepair = $(tr).find('.qty-ok-repair').val() || 0;
+        const note     = $(tr).find('input[name="note_defect[]"]').val() || null;
+
+        // Safety check: skip row jika defectId kosong
+        if (!defectId) return;
+
+        formData.append('defect_id[]', defectId);
+        formData.append('qty[]', qty);
+        formData.append('ok_repair[]', okRepair);
+        formData.append('note_defect[]', note);
+    });
+
+    // ===== Kirim ke backend =====
     $.ajax({
         url: '/qc/inspections/store',
         method: 'POST',
@@ -1291,7 +1313,7 @@ $('#inspectionForm').off('submit').on('submit', function (e) {
         error: function (xhr) {
             let msg = 'Something went wrong';
 
-            if (xhr.status === 422) {
+            if (xhr.status === 422 && xhr.responseJSON.errors) {
                 msg = Object.values(xhr.responseJSON.errors)
                     .map(e => e.join(', '))
                     .join('<br>');
