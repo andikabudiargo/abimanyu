@@ -102,11 +102,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Part Name <span class="text-red-600">*</span></label>
                 <select name="part_name" id="part_name" class="select2 w-full">
                     <option value="">-- Select Part --</option>
-                    @foreach($parts as $part)
-                        <option value="{{ $part->code }}" {{ $inspection->part_name == $part->code ? 'selected' : '' }}>
-                            {{ $part->name }}
-                        </option>
-                    @endforeach
+                   
                 </select>
             </div>
         </div>
@@ -432,7 +428,7 @@ $(document).ready(function () {
   const $passTroughDisplay = $('#passTroughDisplay');
 
   // ==================== SELECT2 INIT ====================
-  $('#inspection_post, #supplier, #customer, #part_name, #check_method, #spraybooth').select2({
+  $('#inspection_post, #supplier, #customer, #check_method, #spraybooth').select2({
       placeholder: "-- Pilih --",
       allowClear: true,
       width: '100%'
@@ -804,6 +800,52 @@ $('#inspectionForm').off('submit').on('submit', function (e) {
     });
 });
 
+let articleMap = {};
+
+// ================== PART SELECT2 ==================
+$('#part_name').select2({
+    placeholder: "-- Select Part --",
+    allowClear: true,
+    width: '100%',
+    ajax: {
+        url: '/qc/get-articles',
+        dataType: 'json',
+        data: params => {
+            const post = $('#inspection_post').val();
+            return {
+                term: params.term,
+                post: post,
+                supplier: post === 'Incoming'
+                    ? $('#supplier').val()
+                    : $('#customer').val()
+            };
+        },
+        processResults: data => {
+            articleMap = {};
+            data.forEach(item => {
+                articleMap[item.article_code] = item;
+            });
+
+            return {
+                results: data.map(item => ({
+                    id: item.article_code,
+                    text: item.description
+                }))
+            };
+        },
+        cache: true
+    }
+});
+
+// ================== SET SELECTED UNTUK EDIT ==================
+@if(isset($inspection))
+const selectedArticle = {
+    id: '{{ $inspection->part_name }}',
+    text: '{{ $inspection->part_name }}' // bisa diganti description jika ada
+};
+const option = new Option(selectedArticle.text, selectedArticle.id, true, true);
+$('#part_name').append(option).trigger('change');
+@endif
 
 
 
