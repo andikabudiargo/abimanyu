@@ -1257,8 +1257,10 @@ function renderParetoChart() {
     const month = $('#filter-month').val();
     const year  = $('#filter-year').val();
 
-    const container = $('#pareto-container');
-    const canvas    = $('#paretoChart');
+   const container = $('#pareto-container');
+const $canvas   = $('#paretoChart');   // jQuery object
+const canvas    = $canvas.get(0);      // ambil DOM canvas
+
 
     // kalau belum ada warning element, buat otomatis
     if ($('#pareto-warning').length === 0) {
@@ -1274,14 +1276,14 @@ function renderParetoChart() {
     if (!post) {
 
     container.removeClass('hidden');
-    canvas.hide();
+    $canvas.hide();
     $('#pareto-warning').show();
 
     return;
 }
 
     $('#pareto-warning').hide();
-    canvas.show();
+    $canvas.show();
 
     const params = new URLSearchParams({
     inspection_post: post,
@@ -1532,10 +1534,7 @@ $(document).ready(function () {
 
 
 
-  </script>
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>
-    eruda.init();
+ 
 </script>
 
 @endpush
