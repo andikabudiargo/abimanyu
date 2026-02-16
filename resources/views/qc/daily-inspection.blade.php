@@ -1332,7 +1332,7 @@ paretoChart = new Chart(ctx, {
             {
                 type: 'line',
                 label: '80% Threshold',
-                data: Array(percentages.length).fill(80),
+                data: Array(data.labels.length).fill(80),
                 borderColor: '#dc2626',
                 borderWidth: 2,
                 borderDash: [6,6],
