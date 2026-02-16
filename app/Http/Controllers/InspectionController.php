@@ -682,9 +682,13 @@ public function getPerformanceChart(Request $request)
 
 public function paretoDefect(Request $request)
 {
-    $month = $request->month;
-    $year  = $request->year ?? now()->year;
-    $post  = $request->inspection_post;
+    $month       = $request->filled('month') ? (int)$request->month : null;
+    $year        = $request->year ?? now()->year;
+    $post        = $request->inspection_post;
+    $supplier    = $request->supplier;
+    $part        = $request->part_name;
+    $spraybooth  = $request->spraybooth;
+
 
     /*
     |--------------------------------------------------------------------------
@@ -693,40 +697,69 @@ public function paretoDefect(Request $request)
     */
 
     $query = DB::table('defects as d')
-        ->leftJoin('inspection_defects as idf', 'd.id', '=', 'idf.defect_id')
-        ->leftJoin('inspections as i', function ($join) use ($month, $year, $post) {
+       ->join('inspection_defects as idf', 'd.id', '=', 'idf.defect_id')
+->join('inspections as i', 'i.id', '=', 'idf.inspection_id')
 
-            $join->on('i.id', '=', 'idf.inspection_id');
 
-            if ($month) {
-                $join->whereMonth('i.inspection_date', $month);
-            }
-
-            $join->whereYear('i.inspection_date', $year);
-
-            if ($post) {
-                $join->where('i.inspection_post', $post);
-            }
-        })
         ->select(
             'd.id',
             'd.defect',
             DB::raw('COALESCE(SUM(idf.qty),0) as total')
         )
-        ->where('d.category', 'NG') // ✅ hanya NG
-        ->when($post, function ($q) use ($post) {
-            $q->where('d.inspection_post', $post);
-        })
-        ->groupBy('d.id', 'd.defect')
-        ->orderByDesc('total');
 
-    $data = $query->get();
+        ->where('d.category', 'NG');
+
+        /*
+    |--------------------------------------------------------------------------
+    | FILTER TANGGAL
+    |--------------------------------------------------------------------------
+    */
+
+    if ($month) {
+        $query->whereMonth('i.inspection_date', $month);
+    }
+
+    $query->whereYear('i.inspection_date', $year);
 
     /*
     |--------------------------------------------------------------------------
-    | PISAHKAN DEFECT ADA KONTRIBUSI & ZERO
+    | FILTER TAMBAHAN
     |--------------------------------------------------------------------------
     */
+
+    if ($post) {
+        $query->where('i.inspection_post', $post);
+    }
+
+    if ($supplier) {
+        $query->where('i.supplier', $supplier);
+    }
+
+    if ($part) {
+        $query->where('i.part_name', $part);
+    }
+
+    if ($spraybooth) {
+        $query->where('i.spraybooth', $spraybooth);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | GROUPING
+    |--------------------------------------------------------------------------
+    */
+
+    $data = $query
+        ->groupBy('d.id', 'd.defect')
+        ->orderByDesc('total')
+        ->get();
+
+    /*
+    |--------------------------------------------------------------------------
+    | PISAHKAN YANG ADA KONTRIBUSI
+    |--------------------------------------------------------------------------
+    */
+
 
     $withContribution = [];
     $otherTotal = 0;
@@ -768,25 +801,21 @@ $cumulativePercent = [];
 
 $cumulative = 0;
 
-
-    foreach ($withContribution as $row) {
+foreach ($withContribution as $row) {
 
     $labels[] = $row->defect;
     $values[] = (int)$row->total;
 
-    // kontribusi %
-    $percent = $grandTotal > 0
+    $rawPercent = $grandTotal > 0
         ? ($row->total / $grandTotal) * 100
         : 0;
 
-    $percent = round($percent, 0);
+    $percentages[] = round($rawPercent, 0);
 
-    $percentages[] = $percent;
-
-    // kumulatif pareto
-    $cumulative += $percent;
+    $cumulative += $rawPercent;
     $cumulativePercent[] = round($cumulative, 0);
 }
+
 
 
     return response()->json([

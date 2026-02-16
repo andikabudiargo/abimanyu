@@ -135,7 +135,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Inspection Number</label>
-            <input id="filter-inspection-number" type="text" class="w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
+            <input id="filter-inspection-number" name="inpection_number" type="text" class="w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
         </div>
         <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Inspection Post</label>
@@ -151,7 +151,7 @@
         </div>
         <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Inspection Date</label>
-            <input id="filter-inspection_date" type="text" placeholder="YYYY-MM-DD to YYYY-MM-DD" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
+            <input id="filter-inspection_date" name="inpection_date" type="text" placeholder="YYYY-MM-DD to YYYY-MM-DD" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
         </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -161,7 +161,7 @@
     Supplier / Customer
   </label>
 
-  <select name="supplier" id="filter-supplier" class="supplier w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+  <select name="supplier" id="filter-supplier" name="supplier" class="supplier w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
     <option value="">-- Pilih Supplier / Customer --</option>
 
     <!-- GROUP SUPPLIER -->
@@ -187,7 +187,7 @@
 
         <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Category</label>
-            <select id="filter-jenis_part" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <select id="filter-jenis_part" name="category" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">-- All Part --</option>
                 <option value="Buffing">Buffing</option>
                 <option value="Non-Buffing">Non-Buffing</option>
@@ -196,7 +196,7 @@
 
         <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Spray Booth</label>
-            <select id="filter-spraybooth" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <select id="filter-spraybooth" name="spraybooth" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">-- All Booth --</option>
                 <option value="Spraybooth 1A">Spraybooth 1A</option>
                 <option value="Spraybooth 1B">Spraybooth 1B</option>
@@ -218,7 +218,7 @@
 
          <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Part Name</label>
-            <select id="filter-part_name" class="part-name w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            <select id="filter-part_name" name="part_name" class="part-name w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">-- All Part --</option>
                 @foreach ($articles as $article)
                 <option value="{{ $article->article_code }}">{{ $article->article_code }} - {{ $article->description }}</option>
