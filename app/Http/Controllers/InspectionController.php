@@ -801,21 +801,25 @@ $cumulativePercent = [];
 
 $cumulative = 0;
 
-foreach ($withContribution as $row) {
+
+    foreach ($withContribution as $row) {
 
     $labels[] = $row->defect;
     $values[] = (int)$row->total;
 
-    $rawPercent = $grandTotal > 0
+    // kontribusi %
+    $percent = $grandTotal > 0
         ? ($row->total / $grandTotal) * 100
         : 0;
 
-    $percentages[] = round($rawPercent, 0);
+    $percent = round($percent, 0);
 
-    $cumulative += $rawPercent;
+    $percentages[] = $percent;
+
+    // kumulatif pareto
+    $cumulative += $percent;
     $cumulativePercent[] = round($cumulative, 0);
 }
-
 
 
     return response()->json([
