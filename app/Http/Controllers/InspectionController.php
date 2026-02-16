@@ -694,46 +694,56 @@ public function paretoDefect(Request $request)
     | AMBIL DEFECT CATEGORY = NG
     |--------------------------------------------------------------------------
     */
-$query = DB::table('defects as d')
 
-    ->leftJoin('inspection_defects as idf', 'd.id', '=', 'idf.defect_id')
+    $query = DB::table('defects as d')
+       ->join('inspection_defects as idf', 'd.id', '=', 'idf.defect_id')
+       ->join('inspections as i', 'i.id', '=', 'idf.inspection_id')
 
-    ->leftJoin('inspections as i', function ($join) use ($request, $month, $year) {
 
-        $join->on('i.id', '=', 'idf.inspection_id');
+        ->select(
+            'd.id',
+            'd.defect',
+            DB::raw('COALESCE(SUM(idf.qty),0) as total')
+        )
 
-        // ===== FILTER TANGGAL =====
-        $join->whereYear('i.inspection_date', $year);
+        ->where('d.category', 'NG');
 
-        if ($month) {
-            $join->whereMonth('i.inspection_date', $month);
-        }
+        /*
+    |--------------------------------------------------------------------------
+    | FILTER TANGGAL
+    |--------------------------------------------------------------------------
+    */
 
-        // ===== FILTER DINAMIS =====
-        if ($request->inspection_post) {
-            $join->where('i.inspection_post', $request->inspection_post);
-        }
+    if ($month) {
+        $query->whereMonth('i.inspection_date', $month);
+    }
 
-        if ($request->spraybooth) {
-            $join->where('i.spraybooth', $request->spraybooth);
-        }
+    $query->whereYear('i.inspection_date', $year);
 
-        if ($request->part_name) {
-            $join->where('i.part_name', $request->part_name);
-        }
+    /*
+    |--------------------------------------------------------------------------
+    | FILTER TAMBAHAN
+    |--------------------------------------------------------------------------
+    */
 
-        if ($request->supplier) {
-            $join->where('i.supplier_code', $request->supplier);
-        }
-    })
+    /* ================= FILTER DINAMIS ================= */
 
-    ->select(
-        'd.id',
-        'd.defect',
-        DB::raw('COALESCE(SUM(idf.qty),0) as total')
-    )
 
-    ->where('d.category', 'NG');
+if ($request->part_name) {
+    $query->where('i.part_name', $request->part_name);
+}
+
+if ($request->inspection_post) {
+    $query->where('i.inspection_post', $request->inspection_post);
+}
+
+if ($request->spraybooth) {
+    $query->where('i.spraybooth', $request->spraybooth);
+}
+
+if ($request->supplier) {
+    $query->where('i.supplier_code', $request->supplier);
+}
 
 
     /*
@@ -743,11 +753,9 @@ $query = DB::table('defects as d')
     */
 
     $data = $query
-    ->groupBy('d.id','d.defect')
-    ->havingRaw('SUM(idf.qty) IS NOT NULL')
-    ->orderByDesc('total')
-    ->get();
-
+        ->groupBy('d.id', 'd.defect')
+        ->orderByDesc('total')
+        ->get();
 
     /*
     |--------------------------------------------------------------------------
@@ -816,12 +824,36 @@ $cumulative = 0;
     $cumulativePercent[] = round($cumulative, 0);
 }
 
+/* =========================================================
+| DEBUG INFORMATION
+========================================================= */
+
+$debug = [
+    'filters_received' => [
+        'year'            => $year,
+        'month'           => $month,
+        'inspection_post' => $request->inspection_post,
+        'spraybooth'      => $request->spraybooth,
+        'part_name'       => $request->part_name,
+        'supplier'        => $request->supplier,
+    ],
+
+    // SQL yang dijalankan
+    'sql'       => $query->toSql(),
+    'bindings'  => $query->getBindings(),
+
+    // hasil raw sebelum diproses pareto
+    'raw_query_result' => $data,
+];
+
 
     return response()->json([
     'labels'      => $labels,
     'values'      => $values,        // qty defect
     'percentages' => $percentages,   // tinggi bar
-    'cumulative'  => $cumulativePercent
+    'cumulative'  => $cumulativePercent,
+       // 👇 DEBUG PAYLOAD
+    'debug'       => $debug
 ]);
 
 }

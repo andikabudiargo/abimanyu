@@ -118,7 +118,7 @@
                      shadow-lg shadow-blue-600/20
                      hover:from-blue-700 hover:to-indigo-700
                      transition">
-        Close Dashboard
+        Close
       </button>
 
     </div>
@@ -1333,6 +1333,19 @@ if (spraybooth) params.append('spraybooth', spraybooth);
 fetch(`/qc/inspection/pareto?${params.toString()}`)
         .then(res => res.json())
         .then(data => {
+
+        console.group('🔥 PARETO DEBUG');
+
+console.log('Payload dari Backend:', data);
+
+if (data.debug) {
+    console.log('Filters diterima backend:', data.debug.filters_received);
+    console.log('SQL Query:', data.debug.sql);
+    console.log('SQL Bindings:', data.debug.bindings);
+    console.log('Raw Query Result:', data.debug.raw_query_result);
+}
+
+console.groupEnd();
 
     if (!data.labels || data.labels.length === 0) {
         $canvas.hide();
