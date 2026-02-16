@@ -669,7 +669,7 @@ div.dt-button-collection .dt-button:hover {
                 d.category = $('#filter-category').val();
                 d.inspection_post = $('#filter-inspection_post').val();
                 d.inspection_date = $('#filter-inspection_date').val();
-                d.supplier_code = $('#filter-supplier').val();
+                d.supplier = $('#filter-supplier').val();
                 d.part_name = $('#filter-part_name').val(); // nama artikel
             }
         },

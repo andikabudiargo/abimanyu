@@ -95,7 +95,9 @@ class InspectionController extends Controller
         $query->where('supplier_code', $request->supplier);
     }
 
-
+if ($request->spraybooth) {
+        $query->where('spraybooth', $request->spraybooth);
+    }
 
 if ($request->part_name) {
         $query->where('part_name', $request->part_name);
