@@ -684,10 +684,6 @@ public function paretoDefect(Request $request)
 {
     $month       = $request->filled('month') ? (int)$request->month : null;
     $year        = $request->year ?? now()->year;
-    $post        = $request->inspection_post;
-    $supplier    = $request->supplier;
-    $part        = $request->part_name;
-    $spraybooth  = $request->spraybooth;
 
 
     /*
@@ -727,20 +723,26 @@ public function paretoDefect(Request $request)
     |--------------------------------------------------------------------------
     */
 
-    if ($post) {
-        $query->where('i.inspection_post', $post);
+    /* ================= FILTER DINAMIS ================= */
+
+    if ($request->category) {
+        $query->where('category', $request->category);
     }
 
-    if ($supplier) {
-        $query->where('i.supplier', $supplier);
+    if ($request->part_name) {
+        $query->where('part_name', $request->part_name);
     }
 
-    if ($part) {
-        $query->where('i.part_name', $part);
+    if ($request->inspection_post) {
+        $query->where('inspection_post', $request->inspection_post);
     }
 
-    if ($spraybooth) {
-        $query->where('i.spraybooth', $spraybooth);
+    if ($request->spraybooth) {
+        $query->where('spraybooth', $request->spraybooth);
+    }
+
+if ($request->supplier) {
+        $query->where('supplier_code', $request->supplier);
     }
 
     /*
