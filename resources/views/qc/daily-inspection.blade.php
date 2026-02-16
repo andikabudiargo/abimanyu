@@ -1429,7 +1429,7 @@ paretoChart = new Chart(ctx, {
             },
 
             // ===== TOOLTIP =====
-           tooltip: {
+          tooltip: {
     callbacks: {
         label: function(context) {
 
@@ -1453,8 +1453,7 @@ paretoChart = new Chart(ctx, {
             return null;
         }
     }
-}
-
+},
 
 
             // ===== LABEL PERSEN DI ATAS BAR =====
