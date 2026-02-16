@@ -1322,22 +1322,13 @@ const canvas = $canvas[0];       // DOM element
 
     const params = new URLSearchParams();
 
-params.append('year', document.querySelector('[name="year"]').value);
+if (year)       params.append('year', year);
+if (month !== undefined) params.append('month', month);
+if (post)       params.append('inspection_post', post);
+if (supplier)   params.append('supplier', supplier);
+if (part)       params.append('part_name', part);
+if (spraybooth) params.append('spraybooth', spraybooth);
 
-const monthValue = document.querySelector('[name="month"]').value;
-
-// PAKSA selalu kirim month
-if (monthValue === '') {
-    params.append('month', '');
-} else {
-    params.append('month', monthValue);
-}
-
-params.append('inspection_post', document.getElementById('filter-inspection_post').value);
-params.append('spraybooth', document.getElementById('filter-spraybooth').value);
-params.append('category', document.getElementById('filter-jenis_part').value);
-params.append('part_name', document.getElementById('filter-part_name').value);
-params.append('supplier', document.getElementById('filter-supplier').value);
 
 fetch(`/qc/inspection/pareto?${params.toString()}`)
         .then(res => res.json())

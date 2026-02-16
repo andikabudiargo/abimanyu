@@ -725,25 +725,23 @@ public function paretoDefect(Request $request)
 
     /* ================= FILTER DINAMIS ================= */
 
-    if ($request->category) {
-        $query->where('category', $request->category);
-    }
 
-    if ($request->part_name) {
-        $query->where('part_name', $request->part_name);
-    }
+if ($request->part_name) {
+    $query->where('i.part_name', $request->part_name);
+}
 
-    if ($request->inspection_post) {
-        $query->where('inspection_post', $request->inspection_post);
-    }
+if ($request->inspection_post) {
+    $query->where('i.inspection_post', $request->inspection_post);
+}
 
-    if ($request->spraybooth) {
-        $query->where('spraybooth', $request->spraybooth);
-    }
+if ($request->spraybooth) {
+    $query->where('i.spraybooth', $request->spraybooth);
+}
 
 if ($request->supplier) {
-        $query->where('supplier_code', $request->supplier);
-    }
+    $query->where('i.supplier_code', $request->supplier);
+}
+
 
     /*
     |--------------------------------------------------------------------------
