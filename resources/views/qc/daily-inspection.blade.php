@@ -6,101 +6,119 @@
 @section('breadcrumb-active', 'Daily Inspection')
 
 @section('content')
-<!-- Modal Top Defect -->
 <div id="defectModal"
-     class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
+     class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-md
+            flex items-center justify-center px-4">
 
   <div
-    class="w-full max-w-2xl bg-white/90 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-200 flex flex-col max-h-[75vh]"
-  >
+    class="w-full max-w-2xl bg-white rounded-2xl
+           shadow-[0_20px_50px_rgba(15,23,42,0.25)]
+           border border-slate-200
+           flex flex-col max-h-[80vh]
+           animate-scaleIn">
 
     <!-- ================= HEADER ================= -->
     <div
-      class="flex justify-between items-start p-6 border-b bg-white/80 backdrop-blur sticky top-0 z-10 rounded-t-2xl">
+      class="flex justify-between items-start px-6 py-5
+             border-b border-slate-200
+             bg-gradient-to-r from-white to-slate-50
+             sticky top-0 z-10 rounded-t-2xl">
 
-    
+    <div class="space-y-1">
+  <h2
+      class="text-lg font-semibold text-slate-800 tracking-tight">
+    Pos Overview
+  </h2>
 
-      <div>
-        <h2 id="modal-title"
-            class="text-xl font-bold text-gray-800 tracking-tight">
-          Top Defect Hari Ini
-        </h2>
+  <p id="modal-pos"
+     class="text-xs text-slate-500">
+     Pos: -
+  </p>
 
-        <p id="modal-pos"
-           class="text-sm text-gray-600 mt-1"></p>
-      </div>
+  <p id="modal-period"
+     class="text-[11px] text-slate-400 flex items-center gap-1">
+     <span>Periode: -</span>
+  </p>
+</div>
 
       <button id="closeDefectModal"
-              class="p-2 rounded-full hover:bg-gray-200 transition">
-        ✖
+              class="p-2 rounded-lg text-slate-500
+                     hover:bg-slate-100 hover:text-slate-700
+                     transition">
+        ✕
       </button>
     </div>
 
-  <!-- Info Keterangan -->
+    <!-- ================= BODY ================= -->
+    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-6">
 
-    <!-- ================= BODY (SCROLL) ================= -->
-    <div class="flex-1 overflow-y-auto p-6 space-y-6">
-<div
-  class="p-3 bg-yellow-50 border border-yellow-500 rounded-lg text-sm text-yellow-800 leading-relaxed">
+      <!-- Info Box -->
+      <div
+        class="flex gap-3 p-4 rounded-xl
+               bg-amber-50 border border-amber-200
+               text-amber-900 text-sm">
 
-  <span class="font-medium">
-    Berikut ranking 10 defect tertinggi dan persentasenya
-    sesuai rentang waktu yang dipilih.
-  </span>
+        <span class="mt-0.5">⚠️</span>
+        <p class="leading-relaxed">
+          Ranking <b>10 defect tertinggi</b> dan persentasenya
+          berdasarkan rentang waktu yang dipilih.
+        </p>
+      </div>
 
-</div>
-    <!-- Top Defect -->
-<div>
-
-  <!-- Judul + Summary (Sejajar) -->
-  <div class="flex items-center justify-between mb-2">
-
-    <h3 class="text-sm font-semibold text-gray-700">
-      Top 10 Defect
-    </h3>
-
-    <!-- Keterangan summary -->
-    <p id="defect-summary"
-       class="text-xs text-gray-500 italic text-right">
-       Loading summary...
-    </p>
-
-  </div>
-
-  <ul id="top-defect-list" class="space-y-2">
-    <li class="text-sm text-gray-700">Loading...</li>
-  </ul>
-
-</div>
-
-
-
-
-      <!-- Top Parts -->
+      <!-- ================= TOP DEFECT ================= -->
       <div>
-        <h3 class="text-sm font-semibold text-gray-700 mb-2">
+
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-slate-700">
+            Top 10 Defect
+          </h3>
+
+          <span id="defect-summary"
+                class="text-xs text-slate-400 italic">
+            Loading summary...
+          </span>
+        </div>
+
+        <ul id="top-defect-list"
+            class="space-y-2 text-sm">
+          <li class="p-3 rounded-lg bg-slate-50 text-slate-600">
+            Loading...
+          </li>
+        </ul>
+
+      </div>
+
+      <!-- ================= TOP PART ================= -->
+      <div>
+
+        <h3 class="text-sm font-semibold text-slate-700 mb-3">
           Top 10 Part dengan NG Tertinggi
         </h3>
 
-        <ul id="top-part-list" class="space-y-2">
-          <li class="text-sm text-gray-700">Loading...</li>
+        <ul id="top-part-list"
+            class="space-y-2 text-sm">
+          <li class="p-3 rounded-lg bg-slate-50 text-slate-600">
+            Loading...
+          </li>
         </ul>
+
       </div>
 
     </div>
 
-
     <!-- ================= FOOTER ================= -->
     <div
-      class="p-4 border-t bg-white/80 backdrop-blur sticky bottom-0 rounded-b-2xl">
+      class="px-6 py-4 border-t border-slate-200
+             bg-slate-50 sticky bottom-0 rounded-b-2xl">
 
       <button id="closeDefectModalBtn"
               class="closeDefectModal w-full py-3 rounded-xl
-                     bg-gradient-to-r from-blue-600 to-blue-700
-                     text-white font-medium shadow
-                     hover:from-blue-700 hover:to-blue-800 transition">
-
-        Close
+                     bg-gradient-to-r from-blue-600 to-indigo-600
+                     text-white text-sm font-medium
+                     shadow-lg shadow-blue-600/20
+                     hover:from-blue-700 hover:to-indigo-700
+                     transition">
+        Close Dashboard
       </button>
 
     </div>
@@ -121,7 +139,7 @@
         </div>
         <div>
             <label class="block text-sm mb-1 font-medium text-gray-700">Inspection Post</label>
-            <select id="filter-inspection_post" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <select id="filter-inspection_post" name="inspection_post" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">-- All Post --</option>
                 <option value="Incoming">Incoming</option>
                 <option value="Unloading">Unloading</option>
@@ -203,7 +221,7 @@
             <select id="filter-part_name" class="part-name w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">-- All Part --</option>
                 @foreach ($articles as $article)
-                <option value="{{ $article->description }}">{{ $article->article_code }} - {{ $article->description }}</option>
+                <option value="{{ $article->article_code }}">{{ $article->article_code }} - {{ $article->description }}</option>
                 @endforeach
             </select>
         </div>
@@ -349,28 +367,35 @@
 </div>
 
 
-    <div class="flex items-center gap-3">
+  <div class="flex items-center gap-3 bg-white px-3 py-2 rounded-xl shadow-sm border border-slate-200">
 
-        <!-- Segmented Toggle -->
-      
+    <span class="text-xs text-slate-500 font-medium">
+        Filter Periode
+    </span>
 
-        <!-- Month Year Filter -->
-        <div class="flex gap-2">
-            <select id="filter-month"
-                class="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500">
-                <option value="02">February</option>
-                <option value="03">March</option>
-                <option value="04">April</option>
-            </select>
+    <!-- Month (boleh kosong = semua bulan) -->
+  <select id="filter-month" name="month"
+    class="text-xs border border-slate-300 rounded-lg px-2 py-1">
+    <option value="">All Month</option>
+    @for ($m = 1; $m <= 12; $m++)
+        <option value="{{ $m }}"
+            {{ $selectedMonth == $m ? 'selected' : '' }}>
+            {{ \Carbon\Carbon::create()->month($m)->format('F') }}
+        </option>
+    @endfor
+</select>
 
-            <select id="filter-year"
-                class="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500">
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-            </select>
-        </div>
+<select id="filter-year" name="year"
+    class="text-xs border border-slate-300 rounded-lg px-2 py-1">
+    @foreach ($years as $year)
+        <option value="{{ $year }}"
+            {{ $selectedYear == $year ? 'selected' : '' }}>
+            {{ $year }}
+        </option>
+    @endforeach
+</select>
 
-    </div>
+</div>
 
 
 
@@ -380,7 +405,21 @@
     <div id="active-filters" class="flex flex-wrap gap-2 mt-1"></div>
 </div>
 
-        <canvas id="passChart" height="130"></canvas>
+      <div id="performance-container">
+    <canvas id="passChart" height="130"></canvas>
+</div>
+
+{{-- PARETO CHART --}}
+    <div id="pareto-container" class="hidden">
+
+        <div id="pareto-warning"
+            class="hidden text-center py-10 text-slate-500 text-sm">
+            Silahkan pilih post terlebih dahulu
+        </div>
+
+        <canvas id="paretoChart" height="130"></canvas>
+
+    </div>
     </div>
 
     <!-- ================= PERFORMANCE CHART ================= 
@@ -554,6 +593,20 @@ div.dt-button-collection .dt-button:hover {
     box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
 
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-scaleIn {
+  animation: scaleIn 0.25s ease-out;
+}
+
 </style>
 <script>
 
@@ -700,6 +753,8 @@ div.dt-button-collection .dt-button:hover {
             table.draw();
             loadSummary();
              updateActiveFilters();
+renderPerformanceChart();
+renderParetoChart();
         });
   });
 
@@ -895,10 +950,12 @@ $(document).on('click', '.btn-delete-inspection', function () {
             $('#top-part-list').html('<li>Loading...</li>');
         },
         success: function(res) {
-           const label = getFilterLabel();
+           const label = getFilterLabel();   // contoh: "Hari Ini", "Bulan Ini"
+const period = getActiveDate();   // contoh: "2025-02-01 s/d 2025-02-07"
 
 $('#modal-title').text('Top Defect ' + label);
 $('#modal-pos').text('Pos: ' + pos);
+$('#modal-period span:last-child').text('Periode: ' + period);
 
 $('#defect-summary').html(
   `Total <b>${res.summary.total_defect}</b> Defect dari 
@@ -973,9 +1030,42 @@ let passChartInstance = null;
 
 function renderPerformanceChart() {
 
-    fetch('{{ route("qc.inspection.chart") }}')
+const params = new URLSearchParams();
+
+params.append('year', document.querySelector('[name="year"]').value);
+
+const monthValue = document.querySelector('[name="month"]').value;
+
+// PAKSA selalu kirim month
+if (monthValue === '') {
+    params.append('month', '');
+} else {
+    params.append('month', monthValue);
+}
+
+params.append('inspection_post', document.getElementById('filter-inspection_post').value);
+params.append('spraybooth', document.getElementById('filter-spraybooth').value);
+params.append('category', document.getElementById('filter-jenis_part').value);
+params.append('part_name', document.getElementById('filter-part_name').value);
+params.append('supplier', document.getElementById('filter-supplier').value);
+
+    fetch('{{ route("qc.inspection.chart") }}?' + params.toString())
     .then(res => res.json())
     .then(data => {
+
+const selectedMonth = document.querySelector('[name="month"]').value;
+const selectedYear  = document.querySelector('[name="year"]').value;
+
+let xTitle = '';
+
+if (data.mode === 'year') {
+    xTitle = selectedYear;
+} else {
+    const monthName = new Date(selectedYear, selectedMonth - 1)
+        .toLocaleString('default', { month: 'long' });
+
+    xTitle = monthName + ' ' + selectedYear;
+}
 
         const ctx = document.getElementById('passChart').getContext('2d');
 
@@ -994,7 +1084,7 @@ function renderPerformanceChart() {
         passChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.days,
+                labels: data.labels,
                 datasets: [
 
                     // ================= PASS RATE =================
@@ -1038,7 +1128,7 @@ function renderPerformanceChart() {
                     // ================= TARGET PR =================
                     {
                         label: 'Target PR',
-                        data: data.days.map(() => 94),
+                        data: data.labels.map(() => 94),
                         borderColor: '#00c48c',
                         borderDash: [4,4],
                         borderWidth: 2,
@@ -1065,7 +1155,7 @@ function renderPerformanceChart() {
                     // ================= TARGET PT =================
                     {
                         label: 'Target PT',
-                        data: data.days.map(() => 65),
+                        data: data.labels.map(() => 65),
                         borderColor: '#d4a600',
                         borderDash: [4,4],
                         borderWidth: 2,
@@ -1103,7 +1193,7 @@ function renderPerformanceChart() {
 
                 plugins: {
 
-                    // 🔥 Hide target from legend
+                    
                     legend: {
                         labels: {
                             color: '#444', font: { size: 12, weight: '600' },
@@ -1111,7 +1201,7 @@ function renderPerformanceChart() {
                         }
                     },
 
-                    // 🔥 Hide target from tooltip
+                   
                     tooltip: {
                         callbacks: {
                             label: ctx => {
@@ -1135,7 +1225,9 @@ function renderPerformanceChart() {
                 scales: {
                     x: {
                         grid: { display: false },
-                        title: { display: true, text: 'February',
+                        title: { 
+    display: true, 
+    text: xTitle 
 }
                     },
                     y: {
@@ -1158,10 +1250,184 @@ function renderPerformanceChart() {
 }
 
  
+
 function renderParetoChart() {
-    console.log("pareto belum dibuat");
+
+    const post  = $('#filter-inspection_post').val();
+    const month = $('#filter-month').val();
+    const year  = $('#filter-year').val();
+
+    const container = $('#pareto-container');
+    const canvas    = $('#paretoChart');
+
+    // kalau belum ada warning element, buat otomatis
+    if ($('#pareto-warning').length === 0) {
+        container.prepend(`
+            <div id="pareto-warning"
+                class="text-center py-10 text-slate-500 text-sm">
+                Silahkan pilih post terlebih dahulu
+            </div>
+        `);
+    }
+
+    // 🔥 WAJIB PILIH POST
+    if (!post) {
+
+    container.removeClass('hidden');
+    canvas.hide();
+    $('#pareto-warning').show();
+
+    return;
 }
 
+    $('#pareto-warning').hide();
+    canvas.show();
+
+    const params = new URLSearchParams({
+    inspection_post: post,
+    month: month,
+    year: year
+});
+
+fetch(`/qc/inspection/pareto?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
+
+    if (!data.labels || data.labels.length === 0) {
+        canvas.hide();
+        $('#pareto-warning')
+            .text('Data tidak ditemukan')
+            .show();
+        return;
+    }
+
+            if (paretoChart) {
+                paretoChart.destroy();
+            }
+
+            const total = data.values.reduce((a, b) => a + b, 0);
+
+            const percentages = data.values.map(val =>
+                total > 0 ? ((val / total) * 100).toFixed(2) : 0
+            );
+
+            const ctx = canvas.getContext('2d');
+
+            paretoChart = new Chart(ctx, {
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Total Defect',
+                            data: data.values,
+                            backgroundColor: '#1e3a8a',
+                            borderRadius: 4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Kumulatif %',
+                            data: data.cumulative,
+                            borderColor: '#dc2626',
+                            backgroundColor: '#dc2626',
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#dc2626',
+                            yAxisID: 'y1'
+                        },
+                        {
+                            type: 'line',
+                            label: '80% Threshold',
+                            data: Array(data.labels.length).fill(80),
+                            borderColor: '#64748b',
+                            borderDash: [6,6],
+                            pointRadius: 0,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+
+                                    if (context.dataset.label === 'Total Defect') {
+                                        return `Total: ${context.raw} (${percentages[context.dataIndex]}%)`;
+                                    }
+
+                                    if (context.dataset.label === 'Kumulatif %') {
+                                        return `Kumulatif: ${context.raw}%`;
+                                    }
+
+                                    return null;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Jumlah Defect'
+                            },
+                            grid: {
+                                color: '#e5e7eb'
+                            }
+                        },
+                        y1: {
+                            position: 'right',
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Kumulatif %'
+                            }
+                        }
+                    }
+                }
+            });
+
+        });
+}
+
+document.getElementById('filter-month')
+    .addEventListener('change', function () {
+        renderPerformanceChart();
+        renderParetoChart();
+    });
+
+document.getElementById('filter-year')
+    .addEventListener('change', function () {
+        renderPerformanceChart();
+        renderParetoChart();
+    });
 
  function updateActiveFilters() {
 
@@ -1226,39 +1492,38 @@ function renderParetoChart() {
     }
 }
 
-let activeChart = 'performance';
+let performanceChart = null;
+let paretoChart = null;
 
 $(document).ready(function () {
 
-    // load default chart
-    loadChart(activeChart);
+    // Render semua sekali saja
+    renderPerformanceChart();
+    renderParetoChart();
 
     $('.chart-tab').on('click', function () {
 
         const type = $(this).data('type');
-        activeChart = type;
 
-        // switch active tab UI
         $('.chart-tab').removeClass('active');
         $(this).addClass('active');
 
-        // load chart
-        loadChart(type);
+        if (type === 'performance') {
+            $('#performance-container').show();
+            $('#pareto-container').hide();
+        }
+
+        if (type === 'pareto') {
+            $('#performance-container').hide();
+            $('#pareto-container').show();
+
+            // paksa resize kalau perlu
+            if (paretoChart) {
+                paretoChart.resize();
+            }
+        }
     });
-
-    function loadChart(type) {
-
-    if(type === 'performance') {
-        renderPerformanceChart();
-    }
-
-    if(type === 'pareto') {
-        renderParetoChart();
-    }
-}
-
 });
-
 
 
 
