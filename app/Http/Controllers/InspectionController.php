@@ -221,7 +221,7 @@ $query->orderBy('created_at', 'desc');
         $dropdownId = 'dropdown-' . $row->id;
         $detail_url = route('qc.inspections.show', ['id' => $row->id]);
         $delete_url = route('qc.inspections.destroy', $row->id);
-        $edit_url = route('qc.inspections.edit', ['id' => $row->id]);
+        $edit_url = route('qc.inspection.edit', ['id' => $row->id]);
 
         return '
         <div class="relative inline-block text-left">
