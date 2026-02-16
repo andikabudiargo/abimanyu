@@ -1284,9 +1284,13 @@ const thresholdLabelPlugin = {
 
 function renderParetoChart() {
 
-    const post  = $('#filter-inspection_post').val();
-    const month = $('#filter-month').val();
-    const year  = $('#filter-year').val();
+const post        = $('#filter-inspection_post').val();
+const month       = $('#filter-month').val();
+const year        = $('#filter-year').val();
+const supplier    = $('#filter-supplier').val();
+const part        = $('#filter-part_name').val();
+const spraybooth  = $('#filter-spraybooth').val();
+
 
     const container = $('#pareto-container');
     const $canvas = $('#paretoChart'); // jQuery object
@@ -1319,7 +1323,10 @@ const canvas = $canvas[0];       // DOM element
     const params = new URLSearchParams({
     inspection_post: post,
     month: month,
-    year: year
+    year: year,
+    supplier: supplier,
+    part: part,
+    spraybooth: spraybooth,
 });
 
 fetch(`/qc/inspection/pareto?${params.toString()}`)
@@ -1590,7 +1597,6 @@ $(document).ready(function () {
 
     // Render semua sekali saja
     renderPerformanceChart();
-    renderParetoChart();
 
     $('.chart-tab').on('click', function () {
 
