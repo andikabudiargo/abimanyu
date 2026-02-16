@@ -1394,28 +1394,23 @@ paretoChart = new Chart(ctx, {
     },
 
     // ================= GARIS 80% =================
-       {
-    type: 'line',
-    label: '80% Threshold',
-    data: [80, 80], // cukup dua titik saja
-    borderColor: '#dc2626',
-    borderWidth: 2,
-    borderDash: [6,6],
-    pointRadius: 0,
-    tension: 0,
-    fill: false,
-    spanGaps: true,
-    order: 0,
-    datalabels: { display: false },
-    // paksa x-scale mengikuti pixel, bukan label
-    parsing: {
-        xAxisKey: 'x',
-        yAxisKey: 'y'
-    },
-    // optional: assign x values dari 0 ke terakhir
-    // nanti Chart.js otomatis stretch
-}
+    {
+        type: 'line',
+        label: '80% Threshold',
+        data: data.labels.map(() => 80),
+        borderColor: '#dc2626',
+        borderWidth: 2,
+        borderDash: [6,6],
+        pointRadius: 0,
+        tension: 0,
+        spanGaps: true,
+        clip: false,
+        order: 0,
 
+        datalabels: {
+            display: false
+        }
+    }
 ]
 
     },
