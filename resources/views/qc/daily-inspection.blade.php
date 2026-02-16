@@ -608,6 +608,7 @@ div.dt-button-collection .dt-button:hover {
 }
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.1"></script>
 <script>
 
  function showToast(type, message) {
@@ -1388,6 +1389,24 @@ function renderParetoChart() {
                             display: true,
                             labels: { boxWidth: 14, font: { size: 11, weight: '500' } }
                         },
+                         annotation: {
+                annotations: {
+                    thresholdLine: {
+                        type: 'line',
+                        yMin: 80,
+                        yMax: 80,
+                        borderColor: '#dc2626',
+                        borderWidth: 2,
+                        borderDash: [6,6],
+                        label: {
+                            enabled: true,
+                            content: '80% Threshold',
+                            position: 'end'
+                        }
+                    }
+                }
+            }
+        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
@@ -1406,27 +1425,7 @@ function renderParetoChart() {
                             font: { weight: '600', size: 10 },
                             formatter: value => value + '%'
                         },
-                        annotation: {
-                            annotations: {
-                                threshold80: {
-                                    type: 'line',
-                                    yMin: 80,
-                                    yMax: 80,
-                                    borderColor: '#dc2626',
-                                    borderWidth: 2,
-                                    borderDash: [6,6],
-                                    label: {
-                                        enabled: true,
-                                        content: '80% Threshold',
-                                        position: 'end',
-                                        backgroundColor: '#dc2626',
-                                        color: '#fff',
-                                        font: { size: 10, weight: '600' }
-                                    }
-                                }
-                            }
-                        }
-                    },
+                      
                     scales: {
                         x: {
                             grid: { display:false },
