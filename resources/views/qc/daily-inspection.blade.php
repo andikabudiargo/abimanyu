@@ -412,10 +412,7 @@
 {{-- PARETO CHART --}}
     <div id="pareto-container" class="hidden">
 
-        <div id="pareto-warning"
-            class="hidden text-center py-10 text-slate-500 text-sm">
-            Silahkan pilih post terlebih dahulu
-        </div>
+       
 
         <canvas id="paretoChart" height="130"></canvas>
 
@@ -1603,28 +1600,31 @@ $(document).ready(function () {
     renderPerformanceChart();
     
 
-    $('.chart-tab').on('click', function () {
+   $('.chart-tab').on('click', function () {
+    const type = $(this).data('type');
 
-        const type = $(this).data('type');
+    $('.chart-tab').removeClass('active');
+    $(this).addClass('active');
 
-        $('.chart-tab').removeClass('active');
-        $(this).addClass('active');
+    if (type === 'performance') {
+        $('#performance-container').show();
+        $('#pareto-container').hide();
+    }
 
-        if (type === 'performance') {
-            $('#performance-container').show();
-            $('#pareto-container').hide();
+    if (type === 'pareto') {
+        $('#performance-container').hide();
+        $('#pareto-container').show();
+
+        // 🔴 Ini cuma resize chart kalau sudah ada, tapi chart belum pernah dirender
+        if (paretoChart) {
+            paretoChart.resize();
         }
 
-        if (type === 'pareto') {
-            $('#performance-container').hide();
-            $('#pareto-container').show();
+        // ✅ Harus panggil renderParetoChart() dulu
+        renderParetoChart();
+    }
+});
 
-            // paksa resize kalau perlu
-            if (paretoChart) {
-                paretoChart.resize();
-            }
-        }
-    });
 });
 
 
