@@ -91,19 +91,15 @@ class InspectionController extends Controller
         $query->whereBetween('inspection_date', [$start, $end]);
     }
 
- if ($request->supplier_code) {
-    $query->whereHas('supplier', fn ($q) =>
-        $q->where('code', $request->supplier_code)
-    );
-}
+ if ($request->supplier) {
+        $query->where('supplier_code', $request->supplier);
+    }
 
 
 
 if ($request->part_name) {
-    $query->whereHas('article', function ($q) use ($request) {
-        $q->where('description', 'like', '%' . $request->part_name . '%');
-    });
-}
+        $query->where('part_name', $request->part_name);
+    }
 
 $query->orderBy('created_at', 'desc');
 
@@ -492,12 +488,6 @@ public function getTopDefect(Request $request)
     /* ================= QUERY BASE ================= */
 
     $query = DB::table('inspections')
-        ->select(
-            DB::raw('DATE(inspection_date) as inspection_date'),
-            DB::raw('SUM(total_check) as total_check'),
-            DB::raw('SUM(total_ok) as total_ok'),
-            DB::raw('SUM(total_ok_repair) as total_ok_repair')
-        )
         ->whereYear('inspection_date', $year);
 
     if (!is_null($month)) {
@@ -533,11 +523,17 @@ if ($request->supplier) {
     if (is_null($month)) {
 
         $rows = $query
-            ->selectRaw('MONTH(inspection_date) as month')
-            ->groupBy(DB::raw('MONTH(inspection_date)'))
-            ->orderBy(DB::raw('MONTH(inspection_date)'))
-            ->get()
-            ->keyBy('month');
+    ->selectRaw('
+        MONTH(inspection_date) as month,
+        SUM(total_check) as total_check,
+        SUM(total_ok) as total_ok,
+        SUM(total_ok_repair) as total_ok_repair
+    ')
+    ->groupByRaw('MONTH(inspection_date)')
+    ->orderByRaw('MONTH(inspection_date)')
+    ->get()
+    ->keyBy('month');
+
 
         $labels = [];
         $passRate = [];
@@ -575,13 +571,20 @@ if ($request->supplier) {
 
     $totalDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
-    $rows = $query
-        ->groupBy(DB::raw('DATE(inspection_date)'))
-        ->orderBy('inspection_date', 'ASC')
-        ->get()
-        ->keyBy(function ($item) {
-            return date('j', strtotime($item->inspection_date));
-        });
+   $rows = $query
+    ->selectRaw('
+        DATE(inspection_date) as inspection_date,
+        SUM(total_check) as total_check,
+        SUM(total_ok) as total_ok,
+        SUM(total_ok_repair) as total_ok_repair
+    ')
+    ->groupByRaw('DATE(inspection_date)')
+    ->orderBy('inspection_date')
+    ->get()
+    ->keyBy(function ($item) {
+        return date('j', strtotime($item->inspection_date));
+    });
+
 
     $labels = [];
     $passRate = [];
