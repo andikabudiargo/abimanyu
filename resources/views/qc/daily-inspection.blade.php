@@ -1249,7 +1249,6 @@ if (data.mode === 'year') {
     });
 }
 
- 
 
 function renderParetoChart() {
 
@@ -1258,7 +1257,9 @@ function renderParetoChart() {
     const year  = $('#filter-year').val();
 
     const container = $('#pareto-container');
-    const canvas    = $('#paretoChart');
+    const $canvas = $('#paretoChart'); // jQuery object
+const canvas = $canvas[0];       // DOM element
+
 
     // kalau belum ada warning element, buat otomatis
     if ($('#pareto-warning').length === 0) {
@@ -1274,14 +1275,14 @@ function renderParetoChart() {
     if (!post) {
 
     container.removeClass('hidden');
-    canvas.hide();
+    $canvas.hide();
     $('#pareto-warning').show();
 
     return;
 }
 
     $('#pareto-warning').hide();
-    canvas.show();
+    $canvas.show();
 
     const params = new URLSearchParams({
     inspection_post: post,
@@ -1294,7 +1295,7 @@ fetch(`/qc/inspection/pareto?${params.toString()}`)
         .then(data => {
 
     if (!data.labels || data.labels.length === 0) {
-        canvas.hide();
+        $canvas.hide();
         $('#pareto-warning')
             .text('Data tidak ditemukan')
             .show();
@@ -1308,12 +1309,12 @@ fetch(`/qc/inspection/pareto?${params.toString()}`)
             const total = data.values.reduce((a, b) => a + b, 0);
 
             const percentages = data.values.map(val =>
-                total > 0 ? ((val / total) * 100).toFixed(2) : 0
+                total > 0 ? ((val / total) * 100).toFixed(0) : 0
             );
 
             const ctx = canvas.getContext('2d');
 
-           paretoChart = new Chart(ctx, {
+paretoChart = new Chart(ctx, {
     type: 'bar',
     data: {
         labels: data.labels,
@@ -1404,6 +1405,8 @@ fetch(`/qc/inspection/pareto?${params.toString()}`)
     },
     plugins: [ChartDataLabels] // wajib
 });
+
+
         });
 }
 
