@@ -686,24 +686,30 @@ public function paretoDefect(Request $request)
     $year  = $request->year ?? now()->year;
     $post  = $request->inspection_post;
 
-    $query = DB::table('inspection_defects as idf')
-        ->join('inspections as i', 'i.id', '=', 'idf.inspection_id')
-        ->join('defects as d', 'd.id', '=', 'idf.defect_id')
+    $data = DB::table('defects as d')
+        ->leftJoin('inspection_defects as idf', 'idf.defect_id', '=', 'd.id')
+        ->leftJoin('inspections as i', function ($join) use ($month, $year, $post) {
+
+            $join->on('i.id', '=', 'idf.inspection_id')
+                 ->whereYear('i.inspection_date', $year);
+
+            // filter month optional
+            if (!empty($month)) {
+                $join->whereMonth('i.inspection_date', $month);
+            }
+
+            // filter post optional
+            if (!empty($post)) {
+                $join->where('i.inspection_post', $post);
+            }
+        })
         ->select(
             'd.defect',
-            DB::raw('SUM(idf.qty) as total') // ganti ke COUNT kalau tidak ada qty
+            DB::raw('COALESCE(SUM(idf.qty),0) as total')
         )
-        ->when($month, function ($q) use ($month) {
-            $q->whereMonth('i.inspection_date', $month);
-        })
-        ->whereYear('i.inspection_date', $year)
-        ->when($post, function ($q) use ($post) {
-            $q->where('i.inspection_post', $post);
-        })
-        ->groupBy('d.defect')
-        ->orderByDesc('total');
-
-    $data = $query->get();
+        ->groupBy('d.id', 'd.defect')
+        ->orderByDesc('total')
+        ->get();
 
     $grandTotal = $data->sum('total');
 
