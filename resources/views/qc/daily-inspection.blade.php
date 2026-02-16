@@ -1263,19 +1263,23 @@ const thresholdLabelPlugin = {
 
         ctx.fillStyle = '#dc2626';
         ctx.font = '11px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'right';   // anchor dari kanan
+        ctx.textBaseline = 'bottom';
 
-        // tulis di ujung kanan chart
+        // posisi DI DALAM chart, bukan di luar
+        const xPosition = chartArea.right - 6;
+        const yPosition = y - 4; // sedikit di atas garis
+
         ctx.fillText(
-            '80% Threshold',
-            chartArea.right + 6,
-            y
+            'Must Improvement',
+            xPosition,
+            yPosition
         );
 
         ctx.restore();
     }
 };
+
 
 
 function renderParetoChart() {
@@ -1425,20 +1429,32 @@ paretoChart = new Chart(ctx, {
             },
 
             // ===== TOOLTIP =====
-            tooltip: {
+           tooltip: {
     callbacks: {
         label: function(context) {
 
-            // hanya tampilkan tooltip untuk BAR
-            if (context.dataset.type !== 'bar') return null;
+            const index = context.dataIndex;
 
-            const qty = qtyValues[context.dataIndex];
-            const percent = percentages[context.dataIndex];
+            // ===== BAR (DEFECT) =====
+            if (context.dataset.type === 'bar') {
+                const qty = qtyValues[index];
+                const percent = percentages[index];
 
-            return ` ${percent}% (${qty} defect)`;
+                return ` ${percent}% (${qty} defect)`;
+            }
+
+            // ===== LINE (KUMULATIF) =====
+            if (context.dataset.type === 'line') {
+                const cumulative = cumulativePercentages[index];
+
+                return ` Kumulatif: ${cumulative}%`;
+            }
+
+            return null;
         }
     }
-},
+}
+
 
 
             // ===== LABEL PERSEN DI ATAS BAR =====
