@@ -1257,10 +1257,8 @@ function renderParetoChart() {
     const month = $('#filter-month').val();
     const year  = $('#filter-year').val();
 
-   const container = $('#pareto-container');
-const $canvas   = $('#paretoChart');   // jQuery object
-const canvas    = $canvas.get(0);      // ambil DOM canvas
-
+    const container = $('#pareto-container');
+    const canvas    = $('#paretoChart');
 
     // kalau belum ada warning element, buat otomatis
     if ($('#pareto-warning').length === 0) {
@@ -1276,14 +1274,14 @@ const canvas    = $canvas.get(0);      // ambil DOM canvas
     if (!post) {
 
     container.removeClass('hidden');
-    $canvas.hide();
+    canvas.hide();
     $('#pareto-warning').show();
 
     return;
 }
 
     $('#pareto-warning').hide();
-    $canvas.show();
+    canvas.show();
 
     const params = new URLSearchParams({
     inspection_post: post,
@@ -1315,107 +1313,97 @@ fetch(`/qc/inspection/pareto?${params.toString()}`)
 
             const ctx = canvas.getContext('2d');
 
-            paretoChart = new Chart(ctx, {
-                data: {
-                    labels: data.labels,
-                    datasets: [
-                        {
-                            type: 'bar',
-                            label: 'Total Defect',
-                            data: data.values,
-                            backgroundColor: '#1e3a8a',
-                            borderRadius: 4,
-                            yAxisID: 'y'
-                        },
-                        {
-                            type: 'line',
-                            label: 'Kumulatif %',
-                            data: data.cumulative,
-                            borderColor: '#dc2626',
-                            backgroundColor: '#dc2626',
-                            tension: 0.3,
-                            pointRadius: 4,
-                            pointBackgroundColor: '#dc2626',
-                            yAxisID: 'y1'
-                        },
-                        {
-                            type: 'line',
-                            label: '80% Threshold',
-                            data: Array(data.labels.length).fill(80),
-                            borderColor: '#64748b',
-                            borderDash: [6,6],
-                            pointRadius: 0,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
+           paretoChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: data.labels,
+        datasets: [{
+            label: 'Defect Contribution (%)',
+            data: percentages,
+            backgroundColor: '#2563eb', // clean SaaS blue
+            borderRadius: 6,
+            barThickness: 28
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
 
-                                    if (context.dataset.label === 'Total Defect') {
-                                        return `Total: ${context.raw} (${percentages[context.dataIndex]}%)`;
-                                    }
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
 
-                                    if (context.dataset.label === 'Kumulatif %') {
-                                        return `Kumulatif: ${context.raw}%`;
-                                    }
+        plugins: {
+            legend: {
+                display: false
+            },
 
-                                    return null;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Jumlah Defect'
-                            },
-                            grid: {
-                                color: '#e5e7eb'
-                            }
-                        },
-                        y1: {
-                            position: 'right',
-                            beginAtZero: true,
-                            max: 100,
-                            grid: {
-                                drawOnChartArea: false
-                            },
-                            title: {
-                                display: true,
-                                text: 'Kumulatif %'
-                            }
-                        }
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const qty = data.values[context.dataIndex];
+                        const percent = percentages[context.dataIndex];
+                        return ` ${percent}%  (${qty} defect)`;
                     }
                 }
-            });
+            },
 
+            // ✅ LABEL PERSEN DI ATAS BAR
+            datalabels: {
+                anchor: 'end',
+                align: 'end',
+                color: '#111827',
+                font: {
+                    weight: '600',
+                    size: 11
+                },
+                formatter: (value) => value + '%'
+            }
+        },
+
+        scales: {
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    color: '#374151',
+                    font: {
+                        size: 11,
+                        weight: '500'
+                    },
+                    maxRotation: 45,
+                    minRotation: 45
+                }
+            },
+
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    callback: value => value + '%',
+                    color: '#6b7280',
+                    font: {
+                        size: 11
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Contribution (%)',
+                    color: '#374151',
+                    font: {
+                        weight: '600'
+                    }
+                },
+                grid: {
+                    color: '#f1f5f9'
+                }
+            }
+        }
+    },
+    plugins: [ChartDataLabels] // wajib
+});
         });
 }
 
@@ -1534,8 +1522,7 @@ $(document).ready(function () {
 
 
 
- 
-</script>
+  </script>
 
 @endpush
 
