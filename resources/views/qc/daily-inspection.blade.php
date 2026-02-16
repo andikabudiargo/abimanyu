@@ -1319,13 +1319,35 @@ paretoChart = new Chart(ctx, {
     data: {
         labels: data.labels,
         datasets: [{
-            label: 'Defect Contribution (%)',
-            data: percentages,
-            backgroundColor: '#2563eb', // clean SaaS blue
-            borderRadius: 6,
-            barThickness: 28
-        }]
+            // ================= BAR DEFECT =================
+            {
+                type: 'bar',
+                label: 'Defect Contribution',
+                data: percentages,
+                backgroundColor: '#2563eb',
+                borderRadius: 6,
+                barThickness: 28
+            },
+
+            // ================= GARIS 80% =================
+            {
+                type: 'line',
+                label: '80% Threshold',
+                data: Array(percentages.length).fill(80),
+                borderColor: '#dc2626',
+                borderWidth: 2,
+                borderDash: [6,6],
+                pointRadius: 0,
+                tension: 0,
+
+                // ❌ tidak ada label angka di garis
+                datalabels: {
+                    display: false
+                }
+            }
+        ]
     },
+
     options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -1336,74 +1358,91 @@ paretoChart = new Chart(ctx, {
         },
 
         plugins: {
-            legend: {
-                display: false
-            },
 
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const qty = data.values[context.dataIndex];
-                        const percent = percentages[context.dataIndex];
-                        return ` ${percent}%  (${qty} defect)`;
+            // ===== LEGEND =====
+            legend: {
+                display: true,
+                labels: {
+                    boxWidth: 14,
+                    font: {
+                        size: 11,
+                        weight: '500'
                     }
                 }
             },
 
-            // ✅ LABEL PERSEN DI ATAS BAR
+            // ===== TOOLTIP =====
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+
+                        // tooltip hanya untuk BAR
+                        if (context.dataset.type === 'line') return null;
+
+                        const qty = data.values[context.dataIndex];
+                        const percent = percentages[context.dataIndex];
+
+                        return ` ${percent}% (${qty} defect)`;
+                    }
+                }
+            },
+
+            // ===== LABEL PERSEN DI ATAS BAR =====
             datalabels: {
+                display: function(context) {
+                    return context.dataset.type === 'bar';
+                },
                 anchor: 'end',
                 align: 'end',
                 color: '#111827',
                 font: {
                     weight: '600',
-                    size: 11
+                    size: 10
                 },
-                formatter: (value) => value + '%'
+                formatter: value => value + '%'
             }
         },
 
         scales: {
+
+            // ===== LABEL DEFECT (KECIL) =====
             x: {
-                grid: {
-                    display: false
-                },
+                grid: { display:false },
                 ticks: {
-                    color: '#374151',
-                    font: {
-                        size: 11,
-                        weight: '500'
+                    color:'#6b7280',
+                    font:{
+                        size:9,
+                        weight:'500'
                     },
-                    maxRotation: 45,
-                    minRotation: 45
+                    maxRotation:45,
+                    minRotation:45
                 }
             },
 
+            // ===== AXIS PERSENTASE =====
             y: {
-                beginAtZero: true,
-                max: 100,
-                ticks: {
-                    callback: value => value + '%',
-                    color: '#6b7280',
-                    font: {
-                        size: 11
-                    }
+                beginAtZero:true,
+                min:0,
+                max:100,
+                ticks:{
+                    stepSize:20,
+                    callback:v=>v+'%',
+                    color:'#6b7280',
+                    font:{ size:10 }
                 },
-                title: {
-                    display: true,
-                    text: 'Contribution (%)',
-                    color: '#374151',
-                    font: {
-                        weight: '600'
-                    }
+                title:{
+                    display:true,
+                    text:'Contribution (%)',
+                    font:{ weight:'600', size:11 }
                 },
-                grid: {
-                    color: '#f1f5f9'
+                grid:{
+                    color:'#f1f5f9'
                 }
             }
         }
     },
-    plugins: [ChartDataLabels] // wajib
+
+    plugins:[ChartDataLabels]
 });
 
 
