@@ -761,31 +761,41 @@ public function paretoDefect(Request $request)
 
     $grandTotal = collect($withContribution)->sum('total');
 
-    $labels = [];
-    $values = [];
-    $cumulativePercent = [];
+   $labels = [];
+$values = [];
+$percentages = [];
+$cumulativePercent = [];
 
-    $cumulative = 0;
+$cumulative = 0;
+
 
     foreach ($withContribution as $row) {
 
-        $labels[] = $row->defect;
-        $values[] = (int)$row->total;
+    $labels[] = $row->defect;
+    $values[] = (int)$row->total;
 
-        $percent = $grandTotal > 0
-            ? ($row->total / $grandTotal) * 100
-            : 0;
+    // kontribusi %
+    $percent = $grandTotal > 0
+        ? ($row->total / $grandTotal) * 100
+        : 0;
 
-        $cumulative += $percent;
+    $percent = round($percent, 0);
 
-        $cumulativePercent[] = round($cumulative, 2);
-    }
+    $percentages[] = $percent;
+
+    // kumulatif pareto
+    $cumulative += $percent;
+    $cumulativePercent[] = round($cumulative, 0);
+}
+
 
     return response()->json([
-        'labels'     => $labels,
-        'values'     => $values,
-        'cumulative' => $cumulativePercent
-    ]);
+    'labels'      => $labels,
+    'values'      => $values,        // qty defect
+    'percentages' => $percentages,   // tinggi bar
+    'cumulative'  => $cumulativePercent
+]);
+
 }
 
 

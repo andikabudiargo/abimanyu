@@ -1257,10 +1257,11 @@ function renderParetoChart() {
     const year  = $('#filter-year').val();
 
     const container = $('#pareto-container');
-    const $canvas = $('#paretoChart');
-    const canvas = $canvas[0];
+    const $canvas = $('#paretoChart'); // jQuery object
+const canvas = $canvas[0];       // DOM element
 
-    // ================= WARNING AUTO CREATE =================
+
+    // kalau belum ada warning element, buat otomatis
     if ($('#pareto-warning').length === 0) {
         container.prepend(`
             <div id="pareto-warning"
@@ -1270,180 +1271,184 @@ function renderParetoChart() {
         `);
     }
 
-    // ================= WAJIB PILIH POST =================
+    // 🔥 WAJIB PILIH POST
     if (!post) {
-        container.removeClass('hidden');
-        $canvas.hide();
-        $('#pareto-warning').show();
-        return;
-    }
+
+    container.removeClass('hidden');
+    $canvas.hide();
+    $('#pareto-warning').show();
+
+    return;
+}
 
     $('#pareto-warning').hide();
     $canvas.show();
 
     const params = new URLSearchParams({
-        inspection_post: post,
-        month: month,
-        year: year
-    });
+    inspection_post: post,
+    month: month,
+    year: year
+});
 
-    fetch(`/qc/inspection/pareto?${params.toString()}`)
-    .then(res => res.json())
-    .then(data => {
+fetch(`/qc/inspection/pareto?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
 
-        if (!data.labels || data.labels.length === 0) {
-            $canvas.hide();
-            $('#pareto-warning')
-                .text('Data tidak ditemukan')
-                .show();
-            return;
-        }
+    if (!data.labels || data.labels.length === 0) {
+        $canvas.hide();
+        $('#pareto-warning')
+            .text('Data tidak ditemukan')
+            .show();
+        return;
+    }
 
-        if (paretoChart) {
-            paretoChart.destroy();
-        }
+            if (paretoChart) {
+                paretoChart.destroy();
+            }
 
-        // ================= DATA =================
-        const percentages = data.percentages; // tinggi bar
-        const qtyValues   = data.values;      // hanya tooltip
+           const percentages = data.percentages;
+const cumulative  = data.cumulative;
+const qtyValues   = data.values; // ← tetap dipakai
 
-        // 🔥 threshold SELALU mengikuti jumlah label
-        const thresholdData = data.labels.map(() => 80);
 
-        const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext('2d');
 
-        paretoChart = new Chart(ctx, {
-            data: {
-                labels: data.labels,
-                datasets: [
-
-                    // ===== BAR DEFECT =====
-                    {
-                        type: 'bar',
-                        label: 'Defect Contribution',
-                        data: percentages,
-                        backgroundColor: '#2563eb',
-                        borderRadius: 6,
-                        barThickness: 28
-                    },
-
-                    // ===== GARIS 80% =====
-                    {
-                        type: 'line',
-                        label: '80% Threshold',
-                        data: thresholdData,
-                        borderColor: '#dc2626',
-                        borderWidth: 2,
-                        borderDash: [6,6],
-                        pointRadius: 0,
-                        tension: 0,
-                        datalabels: {
-                            display: false
-                        }
-                    }
-                ]
+paretoChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: data.labels,
+        datasets: [
+            // ================= BAR DEFECT =================
+            {
+                type: 'bar',
+                label: 'Defect Contribution',
+                data: percentages,
+                backgroundColor: '#2563eb',
+                borderRadius: 6,
+                barThickness: 28
             },
 
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
+            // ================= GARIS 80% =================
+            {
+                type: 'line',
+                label: '80% Threshold',
+                data: Array(data.percentages.length).fill(80),
+                borderColor: '#dc2626',
+                borderWidth: 2,
+                borderDash: [6,6],
+                pointRadius: 0,
+                tension: 0,
 
+                // ❌ tidak ada label angka di garis
+                datalabels: {
+                    display: false
+                }
+            }
+        ]
+    },
+
+    options: {
+                responsive: true,
                 interaction: {
                     mode: 'index',
                     intersect: false
                 },
-
                 layout: {
                     padding: { right: 30 }
                 },
 
-                plugins: {
+        plugins: {
 
-                    // ===== LEGEND =====
-                    legend: {
-                        display: true,
-                        labels: {
-                            boxWidth: 14,
-                            font: {
-                                size: 11,
-                                weight: '500'
-                            }
-                        }
-                    },
-
-                    // ===== TOOLTIP =====
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-
-                                // abaikan garis threshold
-                                if (context.dataset.type === 'line') return null;
-
-                                const qty = qtyValues[context.dataIndex];
-                                const percent = percentages[context.dataIndex];
-
-                                return `${percent}% (${qty} defect)`;
-                            }
-                        }
-                    },
-
-                    // ===== LABEL PERSEN DI BAR =====
-                    datalabels: {
-                        display: (ctx) => ctx.dataset.type === 'bar',
-                        anchor: 'end',
-                        align: 'end',
-                        color: '#111827',
-                        font: {
-                            weight: '600',
-                            size: 10
-                        },
-                        formatter: v => v + '%'
-                    }
-                },
-
-                scales: {
-
-                    // ===== LABEL DEFECT =====
-                    x: {
-                        grid: { display:false },
-                        ticks: {
-                            color:'#6b7280',
-                            font:{ size:9, weight:'500' },
-                            maxRotation:45,
-                            minRotation:45
-                        }
-                    },
-
-                    // ===== AXIS % =====
-                    y: {
-                        beginAtZero:true,
-                        min:0,
-                        max:100,
-                        ticks:{
-                            stepSize:10,
-                            autoSkip:false,
-                            callback:v=>v+'%',
-                            color:'#6b7280',
-                            font:{ size:10 }
-                        },
-                        title:{
-                            display:true,
-                            text:'Contribution (%)',
-                            font:{ weight:'600', size:11 }
-                        },
-                        grid:{
-                            color:'#f1f5f9'
-                        }
+            // ===== LEGEND =====
+            legend: {
+                display: true,
+                labels: {
+                    boxWidth: 14,
+                    font: {
+                        size: 11,
+                        weight: '500'
                     }
                 }
             },
 
-            plugins:[ChartDataLabels]
+            // ===== TOOLTIP =====
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+
+                        // tooltip hanya untuk BAR
+                        if (context.dataset.type === 'line') return null;
+
+                        const qty = data.values[context.dataIndex];
+                        const percent = percentages[context.dataIndex];
+
+                        return ` ${percent}% (${qty} defect)`;
+                    }
+                }
+            },
+
+            // ===== LABEL PERSEN DI ATAS BAR =====
+            datalabels: {
+                display: function(context) {
+                    return context.dataset.type === 'bar';
+                },
+                anchor: 'end',
+                align: 'end',
+                color: '#111827',
+                font: {
+                    weight: '600',
+                    size: 10
+                },
+                formatter: value => value + '%'
+            }
+        },
+
+        scales: {
+
+            // ===== LABEL DEFECT (KECIL) =====
+            x: {
+                grid: { display:false },
+                ticks: {
+                    color:'#6b7280',
+                    font:{
+                        size:9,
+                        weight:'500'
+                    },
+                    maxRotation:45,
+                    minRotation:45
+                }
+            },
+
+            // ===== AXIS PERSENTASE =====
+            y: {
+                beginAtZero:true,
+                min:0,
+                max:100,
+                ticks:{
+                    stepSize:10,
+                    autoSkip: false,  // wajib supaya tidak lompat
+                    callback:v=>v+'%',
+                    color:'#6b7280',
+                    font:{ size:10 }
+                },
+                title:{
+                    display:true,
+                    text:'Contribution (%)',
+                    font:{ weight:'600', size:11 }
+                },
+                grid:{
+                    color:'#f1f5f9'
+                }
+            }
+        }
+    },
+
+    plugins:[ChartDataLabels]
+});
+
+
         });
-
-    });
 }
-
 
 document.getElementById('filter-month')
     .addEventListener('change', function () {
