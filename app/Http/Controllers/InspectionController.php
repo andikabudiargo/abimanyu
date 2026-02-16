@@ -1089,7 +1089,7 @@ public function getInspectionNumbers(Request $request)
         $inspection = Inspection::with('defects')->findOrFail($id);
         $suppliers = Supplier::orderBy('name')->get();
         $customers = Customer::orderBy('name')->get();
-        $allDefects = Defect::orderBy('name')->get(); // ← tambahkan ini
+        $allDefects = Defect::orderBy('defect')->get(); // ← tambahkan ini
 
         return view('qc.edit-daily-inspection', compact(
             'inspection', 'suppliers', 'customers', 'allDefects'
