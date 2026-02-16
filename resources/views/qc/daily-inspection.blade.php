@@ -1346,34 +1346,58 @@ paretoChart = new Chart(ctx, {
     data: {
         labels: data.labels,
         datasets: [
-            // ================= BAR DEFECT =================
-            {
-                type: 'bar',
-                label: 'Defect Contribution',
-                data: percentages,
-                backgroundColor: '#2563eb',
-                borderRadius: 6,
-                barThickness: 28
-            },
 
-            // ================= GARIS 80% =================
-            {
-                type: 'line',
-                label: '80% Threshold',
-                 data: data.labels.map(() => 80),
-                borderColor: '#dc2626',
-                borderWidth: 2,
-                borderDash: [6,6],
-                pointRadius: 0,
-                tension: 0,
-spanGaps: true,
-    clip: false, // ✅ biar tidak kepotong area chart
-                // ❌ tidak ada label angka di garis
-                datalabels: {
-                    display: false
-                }
-            }
-        ]
+    // ================= BAR DEFECT =================
+    {
+        type: 'bar',
+        label: 'Defect Contribution',
+        data: percentages,
+        backgroundColor: '#2563eb',
+        borderRadius: 6,
+        barThickness: 28,
+        order: 2
+    },
+
+    // ================= GARIS KUMULATIF =================
+    {
+        type: 'line',
+        label: 'Cumulative (%)',
+        data: cumulative,
+        borderColor: '#16a34a',
+        backgroundColor: '#16a34a',
+        borderWidth: 3,
+        tension: 0.35,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: '#16a34a',
+        yAxisID: 'y',
+        order: 1,
+
+        datalabels: {
+            display: false
+        }
+    },
+
+    // ================= GARIS 80% =================
+    {
+        type: 'line',
+        label: '80% Threshold',
+        data: data.labels.map(() => 80),
+        borderColor: '#dc2626',
+        borderWidth: 2,
+        borderDash: [6,6],
+        pointRadius: 0,
+        tension: 0,
+        spanGaps: true,
+        clip: false,
+        order: 0,
+
+        datalabels: {
+            display: false
+        }
+    }
+]
+
     },
 
     options: {
@@ -1402,19 +1426,20 @@ spanGaps: true,
 
             // ===== TOOLTIP =====
             tooltip: {
-                callbacks: {
-                    label: function(context) {
+    callbacks: {
+        label: function(context) {
 
-                        // tooltip hanya untuk BAR
-                        if (context.dataset.type === 'line') return null;
+            // hanya tampilkan tooltip untuk BAR
+            if (context.dataset.type !== 'bar') return null;
 
-                        const qty = data.values[context.dataIndex];
-                        const percent = percentages[context.dataIndex];
+            const qty = qtyValues[context.dataIndex];
+            const percent = percentages[context.dataIndex];
 
-                        return ` ${percent}% (${qty} defect)`;
-                    }
-                }
-            },
+            return ` ${percent}% (${qty} defect)`;
+        }
+    }
+},
+
 
             // ===== LABEL PERSEN DI ATAS BAR =====
             datalabels: {
