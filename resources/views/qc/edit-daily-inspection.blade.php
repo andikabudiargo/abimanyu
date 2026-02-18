@@ -731,10 +731,10 @@ $('#part_name').append(option).trigger('change');
       return $row;
   }
 
-  // ==================== LOAD EXISTING DATA ====================
- const existingRows = window.editData || [];
+ // ==================== LOAD EXISTING DATA ====================
 
-if (existingRows.length === 0) {
+// kalau sudah ada row dari blade → berarti EDIT MODE
+if ($('#defectTableBody tr').length === 0) {
 
     const post = $('#inspection_post').val();
 
@@ -743,6 +743,7 @@ if (existingRows.length === 0) {
 
             $('#defectTableBody').empty();
             rowIndex = 1;
+
             $('#defectTableBody').append(createRow(rowIndex, defects));
 
             toggleOkRepair();
@@ -750,6 +751,7 @@ if (existingRows.length === 0) {
         });
     }
 }
+
 
 
   // ==================== EVENTS ====================
