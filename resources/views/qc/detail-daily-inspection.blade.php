@@ -10,24 +10,56 @@
 <div class="space-y-4">
  <div class="w-full bg-white shadow-md rounded-xl px-8 pt-6 pb-10 space-y-6">
 
-    <!-- ===== HEADER ===== -->
-    <div class="flex items-center justify-between border-b border-gray-200 pb-4">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 flex items-center justify-center
-                        bg-indigo-100 text-indigo-600 rounded-lg">
-                <i class="fa-solid fa-clipboard-check text-sm"></i>
-            </div>
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between
+            gap-4 border-b border-gray-200 pb-4 mb-6">
 
-            <div>
-                <h2 class="text-lg font-semibold text-gray-800">
-                    Daily Inspection Detail
-                </h2>
-                <p class="text-xs text-gray-500">
-                    Inspection information overview
-                </p>
-            </div>
+    <!-- LEFT : TITLE -->
+    <div class="flex items-center gap-3">
+        <div class="w-9 h-9 flex items-center justify-center
+                    bg-indigo-100 text-indigo-600 rounded-lg shrink-0">
+            <i class="fa-solid fa-clipboard-check text-sm"></i>
+        </div>
+
+        <div>
+            <h2 class="text-base md:text-lg font-semibold text-gray-800">
+                Daily Inspection Detail
+            </h2>
+            <p class="text-xs text-gray-500">
+                Inspection information overview
+            </p>
         </div>
     </div>
+
+
+    <!-- RIGHT : META INFO -->
+    <div class="grid grid-cols-2 md:flex md:items-center
+                gap-3 md:gap-8 text-sm">
+
+        <!-- Operator -->
+        <div class="text-left md:text-right">
+            <p class="text-gray-400 text-[10px] md:text-xs uppercase tracking-wide">
+                Operator
+            </p>
+            <p class="font-semibold text-gray-700 text-sm">
+                {{ $inspection->user->name ?? '-' }}
+            </p>
+        </div>
+
+        <!-- Created At -->
+        <div class="text-left md:text-right">
+            <p class="text-gray-400 text-[10px] md:text-xs uppercase tracking-wide">
+                Created At
+            </p>
+            <p class="font-semibold text-gray-700 text-sm">
+                {{ \Carbon\Carbon::parse($inspection->created_at)->format('d M Y H:i') }}
+            </p>
+        </div>
+
+    </div>
+
+</div>
+
+
 
     <!-- ===== ROW 1 ===== -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -181,7 +213,7 @@
                     <div class="flex flex-col items-center gap-1">
 
                         <span class="text-xs font-semibold text-indigo-600">
-                            {{ number_format($percent,1) }}%
+                            {{ number_format($percent,0) }}%
                         </span>
 
                         <!-- mini progress bar -->
@@ -193,9 +225,10 @@
                     </div>
                 </td>
 
-                <td class="p-2 border text-center">
-                    {{ $defect->ok_repair ?? 0 }}
-                </td>
+               <td class="p-2 border text-center ok-repair-wrapper">
+    {{ $defect->ok_repair ?? 0 }}
+</td>
+
 
                 <td class="p-2 border">
                     {{ $defect->note_defect ?? '-' }}
@@ -204,7 +237,7 @@
 
         @empty
             <tr>
-                <td class="p-3 border text-center" colspan="6">
+                <td class="p-3 border text-center no-data-cell" colspan="6">
                     No defect added
                 </td>
             </tr>
@@ -213,20 +246,22 @@
     </tbody>
 
 
-    <!-- ===== TOTAL FOOTER ===== -->
-    <tfoot>
-        <tr class="bg-gray-50 font-semibold">
-            <td colspan="2" class="p-3 border text-right">
-                TOTAL DEFECT
-            </td>
+   <!-- ===== TOTAL FOOTER ===== -->
+<tfoot>
+    <tr class="bg-gray-50 font-semibold">
+        <td colspan="2" class="p-3 border text-right">
+            TOTAL DEFECT
+        </td>
 
-            <td class="p-3 border text-center text-red-600">
-                {{ $totalDefect }}
-            </td>
+        <td class="p-3 border text-center text-red-600">
+            {{ $totalDefect }}
+        </td>
 
-            <td colspan="3" class="p-3 border"></td>
-        </tr>
-    </tfoot>
+        <!-- spacer footer -->
+        <td class="p-3 border total-footer-spacer" colspan="3"></td>
+    </tr>
+</tfoot>
+
 
   </table>
 </div>
@@ -360,81 +395,311 @@
   
   $(document).ready(function () {
      toggleOkRepair(); // 🔥 INI WAJIB
- 
-    const $totalCheck = $('[data-info="total-check"]');
-    const $totalOk = $('[data-info="total-ok"]');
-    const $totalNg = $('[data-info="total-ng"]');
-    const $totalOkRepair = $('[data-info="total-ok-repair"]');
- const $passRate = $('[data-info="pass-rate"]');
-  const $passTrough = $('[data-info="pass-trough"]');
-    const $ngRate = $('[data-info="ng-rate"]');
-    const $okRepairRate = $('[data-info="ok-repair-rate"]');
 
-    function updateRates() {
-      const totalCheck = parseFloat($totalCheck.text()) || 0;
-      const totalOk = parseFloat($totalOk.text()) || 0;
-      const totalNg = parseFloat($totalNg.text()) || 0;
-      const totalOkRepair = parseFloat($totalOkRepair.text()) || 0;
+ const $checkMethod        = $('#check_method');
+  const $qtyReceiving       = $('#qty_received');
+  const $totalCheck         = $('#total_check');
+  const $totalCheckDisplay  = $('#totalCheckDisplay');
 
-     const passRate = totalCheck
-  ? (((totalOk + totalOkRepair) / totalCheck) * 100).toFixed(0)
-  : 0;
-      const passTrough = totalCheck
-  ? ((totalOk / totalCheck) * 100).toFixed(0)
-  : 0;
-     const ngRate = totalCheck 
-    ? ((totalNg / totalCheck) * 100).toFixed(0) 
-    : 0;
-      const okRepairRate = totalCheck ? ((totalOkRepair / totalCheck) * 100).toFixed(0) : 0;
+  const $postSelect         = $('#inspection_post');
 
-      $passRate.text(passRate + '%');
-      $passTrough.text(passTrough + '%');
-      $ngRate.text(ngRate + '%');
-      $okRepairRate.text(okRepairRate + '%');
+  const $totalNGDisplay     = $('#totalNGDisplay');
+  const $totalNGPercent     = $('#totalNGPercent');
+
+  const $totalOkDisplay     = $('#totalOkDisplay');
+  const $totalOkPercent     = $('#totalOkPercent');
+
+  const $totalNCLabel       = $('#totalNCLabel');
+  const $totalNCDisplay     = $('#totalNCDisplay');
+  const $totalNCPercent     = $('#totalNCPercent');
+
+  const $totalPTWrapper     = $('#totalPTWrapper');
+  const $totalPTDisplay     = $('#totalPTDisplay');
+
+  const $passRate = $('#passRate');
+
+  const $passTroughLabel = $('#passTroughLabel');
+  const $passTroughDisplay = $('#passTroughDisplay');
+
+
+  /* =====================================================
+   * HELPER
+   * ===================================================== */
+  function getSamplingCheck(qty) {
+    if (qty >= 2 && qty <= 8) return 2;
+    if (qty <= 15) return 3;
+    if (qty <= 25) return 5;
+    if (qty <= 50) return 8;
+    if (qty <= 90) return 13;
+    if (qty <= 150) return 20;
+    if (qty <= 280) return 32;
+    if (qty <= 500) return 50;
+    if (qty <= 1200) return 80;
+    if (qty <= 3200) return 125;
+    if (qty <= 10000) return 200;
+    if (qty <= 35000) return 315;
+    return 0;
+  }
+
+
+  /* =====================================================
+   * TOTAL CHECK
+   * ===================================================== */
+  function updateTotalCheck() {
+    const method = $checkMethod.val();
+    const qty    = parseInt($qtyReceiving.val()) || 0;
+
+    let val = '';
+    if (method === '100%') val = qty;
+    if (method === 'Sampling') val = getSamplingCheck(qty) || '';
+
+    $totalCheck.val(val).trigger('input');
+  }
+
+  function syncTotalCheckDisplay() {
+    $totalCheckDisplay.text(parseInt($totalCheck.val()) || 0);
+  }
+
+
+  /* =====================================================
+   * TOTAL DEFECT (VALIDASI)
+   * ===================================================== */
+  function updateTotalDefectSummary() {
+    let totalDefect = 0;
+
+    $('input[name="qty[]"]').each(function () {
+      totalDefect += parseInt($(this).val()) || 0;
+    });
+
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+
+    if (totalCheck > 0 && totalDefect > totalCheck) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validasi Gagal',
+        text: 'Total Defect Qty melebihi Total Check. Nilai akan direset.'
+      });
+
+      $('input[name="qty[]"]').val(0);
+      totalDefect = 0;
     }
 
-    updateRates();
+    $('#totalDefectQty').text(totalDefect);
+
+    const percent = totalCheck > 0
+      ? ((totalDefect / totalCheck) * 100).toFixed(0)
+      : 0;
+
+    $('#totalDefectPercent').text(percent);
+  }
+
+
+  /* =====================================================
+   * TOTAL NG
+   * ===================================================== */
+  function updateTotalNG() {
+    let totalNG = 0;
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+
+    $('#defectTableBody tr').each(function () {
+      const defectText = $(this)
+        .find('.defect-select option:selected')
+        .text()
+        .trim();
+
+      const qty = parseInt($(this).find('.qty-defect').val()) || 0;
+
+      if (defectText.startsWith('NG')) {
+        totalNG += qty;
+      }
+    });
+
+    $totalNGDisplay.text(totalNG);
+
+    const percent = totalCheck > 0
+      ? ((totalNG / totalCheck) * 100).toFixed(0)
+      : 0;
+
+    $totalNGPercent.text(percent);
+  }
+
+
+  /* =====================================================
+   * TOTAL OK
+   * ===================================================== */
+  function updateTotalOK() {
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const totalNG    = parseInt($totalNGDisplay.text()) || 0;
+
+    const totalOK = Math.max(totalCheck - totalNG, 0);
+    $totalOkDisplay.text(totalOK);
+
+    const percent = totalCheck > 0
+      ? ((totalOK / totalCheck) * 100).toFixed(0)
+      : 0;
+
+    $totalOkPercent.text(percent);
+  }
+
+
+  /* =====================================================
+   * NC / OK REPAIR
+   * ===================================================== */
+  function updateNcOrOkRepair() {
+    const post = $postSelect.val();
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    let totalValue = 0;
+
+    if (post === 'Incoming') {
+      $totalNCLabel.text('Total OK Repair');
+
+      $('input[name="ok_repair[]"]').each(function () {
+        totalValue += parseInt($(this).val()) || 0;
+      });
+
+    } else {
+      $totalNCLabel.text('Total NC');
+
+      $('#defectTableBody tr').each(function () {
+        const defectText = $(this)
+          .find('.defect-select option:selected')
+          .text()
+          .trim();
+
+        const qty = parseInt($(this).find('.qty-defect').val()) || 0;
+
+        if (defectText.startsWith('NC')) {
+          totalValue += qty;
+        }
+      });
+    }
+
+    $totalNCDisplay.text(totalValue);
+
+    const percent = totalCheck > 0
+      ? ((totalValue / totalCheck) * 100).toFixed(0)
+      : 0;
+
+    $totalNCPercent.text(percent);
+  }
+
+
+  /* =====================================================
+   * TOTAL PASS THROUGH
+   * ===================================================== */
+  function updateTotalPassThrough() {
+    const post = $postSelect.val();
+
+    if (post === 'Incoming') {
+      $totalPTWrapper.addClass('hidden');
+      return;
+    }
+
+    $totalPTWrapper.removeClass('hidden');
+
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const totalNG    = parseInt($totalNGDisplay.text()) || 0;
+    const totalNC    = parseInt($totalNCDisplay.text()) || 0;
+
+    const passThrough = Math.max(
+      totalCheck - totalNG - totalNC,
+      0
+    );
+
+    $totalPTDisplay.text(passThrough);
+  }
+
+  /*======================================================
+   * PASS RATE
+   * ===================================================== */
+  function updatePassRate() {
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+  const totalOK    = parseInt($totalOkDisplay.text()) || 0;
+
+  let passRate = 0;
+
+  if (totalCheck > 0) {
+    passRate = ((totalOK / totalCheck) * 100).toFixed(0);
+  }
+
+  $passRate.text(`${passRate}%`);
+  }
+
+   /* =====================================================
+   * PASS THROUGH
+   * ===================================================== */
+
+    function updatePassTrough() {
+    const post       = $postSelect.val();
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+
+    let numerator = 0;
+    let percent   = 0;
+
+  if (totalCheck <= 0) {
+    $passTroughDisplay.text('0%');
+    return;
+  }
+
+  if (post === 'Incoming') {
+    // ================= PERFORMANCE =================
+    $passTroughLabel.text('Performa');
+
+    const totalOK       = parseInt($totalOkDisplay.text()) || 0;
+    const totalOkRepair = parseInt($totalNCDisplay.text()) || 0;
+
+    numerator = totalOK - totalOkRepair;
+
+  } else {
+    // ================= PASS THROUGH =================
+    $passTroughLabel.text('Pass Through');
+
+    const totalPassThrough =
+      parseInt($totalPTDisplay.text()) || 0;
+
+    numerator = totalPassThrough;
+  }
+
+  if (numerator < 0) numerator = 0;
+
+  percent = ((numerator / totalCheck) * 100).toFixed(0);
+  $passTroughDisplay.text(`${percent}%`);
+}
   });
 
  function toggleOkRepair() {
+
     const post = $('#inspection_post').val()?.trim();
 
-    // Row summary untuk hide/show
+    const $okRepairCols = $('.ok-repair-wrapper');
     const $okRepairSummaryRows = $('.ok-repair-summary-row');
-
-    // Label KPI
     const $passTroughLabel = $('[data-label="pass-trough-label"]');
-
-    // Wrapper input OK Repair
-    const $okRepairWrapper = $('.ok-repair-wrapper');
+    const $noDataCell = $('.no-data-cell');
+    const $footerSpacer = $('.total-footer-spacer');
 
     if (post === 'Incoming') {
 
-        // Show input OK Repair
-        $okRepairWrapper.removeClass('hidden');
-        $okRepairWrapper.find('input')
-            .prop('required', true)
-            .prop('disabled', false);
+        // SHOW COLUMN
+        $okRepairCols.removeClass('hidden');
 
-        // Show summary rows
+        // colspan normal
+        $noDataCell.attr('colspan', 6);
+        $footerSpacer.attr('colspan', 3);
+
         $okRepairSummaryRows.removeClass('hidden');
-
-        // KPI label
         $passTroughLabel.text('Performance');
 
     } else {
 
-        // Hide input OK Repair
-        $okRepairWrapper.addClass('hidden');
-        $okRepairWrapper.find('input')
-            .prop('required', false)
-            .prop('disabled', true)
-            .val('');
+        // HIDE COLUMN
+        $okRepairCols.addClass('hidden');
 
-        // Hide summary rows
+        // adjust colspan
+        $noDataCell.attr('colspan', 5);
+        $footerSpacer.attr('colspan', 2);
+
         $okRepairSummaryRows.addClass('hidden');
 
-        // KPI label
         if (post === 'Unloading') {
             $passTroughLabel.text('Pass Through');
         } else {
@@ -442,6 +707,7 @@
         }
     }
 }
+
 
 
 </script>
