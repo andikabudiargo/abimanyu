@@ -732,23 +732,25 @@ $('#part_name').append(option).trigger('change');
   }
 
   // ==================== LOAD EXISTING DATA ====================
-  const existingRows = window.editData || []; // backend kirim JSON
-  const post = $('#inspection_post').val();
-  if (post) {
-      $.getJSON(`/qc/get-defects/${post}`, function (defects) {
-          $('#defectTableBody').empty();
-          rowIndex = 1;
-          if (existingRows.length) {
-              existingRows.forEach(data => {
-                  $('#defectTableBody').append(createRow(rowIndex++, defects, data));
-              });
-          } else {
-              $('#defectTableBody').append(createRow(rowIndex, defects));
-          }
-          toggleOkRepair();
-          updateAllSummary();
-      });
-  }
+ const existingRows = window.editData || [];
+
+if (existingRows.length === 0) {
+
+    const post = $('#inspection_post').val();
+
+    if (post) {
+        $.getJSON(`/qc/get-defects/${post}`, function (defects) {
+
+            $('#defectTableBody').empty();
+            rowIndex = 1;
+            $('#defectTableBody').append(createRow(rowIndex, defects));
+
+            toggleOkRepair();
+            updateAllSummary();
+        });
+    }
+}
+
 
   // ==================== EVENTS ====================
   $('#addRowBtn').on('click', function () {
