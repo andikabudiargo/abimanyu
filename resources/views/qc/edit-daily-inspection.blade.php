@@ -187,7 +187,7 @@
                                         <option value="">-- Choose Defect --</option>
                                         @foreach($allDefects as $d)
                                             <option value="{{ $d->id }}" {{ $defect->defect_id == $d->id ? 'selected' : '' }}>
-                                                {{ $d->name }}
+                                                {{ $d->defect }}
                                             </option>
                                         @endforeach
                                     </select>
