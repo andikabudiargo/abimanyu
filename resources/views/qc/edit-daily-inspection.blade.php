@@ -667,92 +667,102 @@ $('#part_name').append(option).trigger('change');
 
   // ==================== CREATE ROW ====================
   function createRow(index, defects = [], existing = null) {
-      const $row = $('<tr>');
 
-      let defectOptions = '<option value="">-- Choose Defect --</option>';
-      defects.forEach(defect => {
-          defectOptions += `<option value="${defect.id}" data-defect="${defect.defect}">${defect.category} - ${defect.defect}</option>`;
-      });
+    const $row = $('<tr>');
 
-      $row.html(`
+    let defectOptions = '<option value="">-- Choose Defect --</option>';
+    defects.forEach(defect => {
+        defectOptions += `
+            <option value="${defect.id}" data-defect="${defect.defect}">
+                ${defect.category} - ${defect.defect}
+            </option>`;
+    });
+
+    $row.html(`
         <td class="border p-2 text-center w-[20px]">${index}</td>
+
         <td class="border p-2 min-w-[140px]">
-            <select name="defect_id[]" class="w-full border rounded defect-select">${defectOptions}</select>
+            <select name="defect_id[]" class="w-full border rounded defect-select">
+                ${defectOptions}
+            </select>
         </td>
+
         <td class="border p-2 w-[60px]">
-          <div class="flex items-stretch">
-            <input type="number" name="qty[]" min="1" class="flex-1 border border-gray-300 border-r-0 rounded-l-md px-3 py-2 text-sm qty-defect text-right" required>
-            <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100 border border-gray-300 border-l-0 rounded-r-md">PCS</span>
-          </div>
+            <input type="number" name="qty[]" 
+                   class="qty-defect w-full border rounded px-2 py-1 text-right" required>
         </td>
+
         <td class="border p-2 w-[60px] ok-repair-wrapper">
-          <div class="flex items-stretch">
-            <input type="number" name="ok_repair[]" class="flex-1 border border-gray-300 border-r-0 rounded-l-md px-3 py-2 text-sm qty-ok-repair text-right">
-            <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100 border border-gray-300 border-l-0 rounded-r-md">PCS</span>
-          </div>
+            <input type="number" name="ok_repair[]" 
+                   class="qty-ok-repair w-full border rounded px-2 py-1 text-right">
         </td>
-        <td class="border p-2 min-w-[120px]">
-          <input type="text" name="note_defect[]" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm text-sm">
+
+        <td class="border p-2">
+            <input type="text" name="note_defect[]" 
+                   class="w-full border rounded px-2 py-1">
         </td>
-        <td class="border p-2 text-center min-w-[60px]">
-          <button type="button" class="removeBtn text-red-600 hover:text-red-800">X</button>
+
+        <td class="border p-2 text-center">
+            <button type="button" class="removeBtn text-red-600">X</button>
         </td>
-      `);
+    `);
 
-      const $defectSelect = $row.find('.defect-select');
-      $defectSelect.select2({ placeholder: '-- Choose Defect --', allowClear: true, width: '100%' });
+    // isi data existing (EDIT MODE)
+    if (existing) {
+        $row.find('.defect-select').val(String(existing.defect_id));
+        $row.find('.qty-defect').val(existing.qty);
+        $row.find('.qty-ok-repair').val(existing.ok_repair);
+        $row.find('[name="note_defect[]"]').val(existing.note);
+    }
 
-     if (existing) {
-    setTimeout(() => {
-        $defectSelect.val(String(existing.defect_id)).trigger('change.select2');
-    }, 0);
-          $row.find('.qty-defect').val(existing.qty);
-          $row.find('.qty-ok-repair').val(existing.ok_repair);
-          $row.find('input[name="note_defect[]"]').val(existing.note);
-      }
+    // limit ok repair
+    $row.find('.qty-ok-repair').on('input', function () {
+        const qtyDefect = parseInt($row.find('.qty-defect').val()) || 0;
+        const qtyOkRepair = parseInt($(this).val()) || 0;
+        if (qtyOkRepair > qtyDefect) $(this).val(qtyDefect);
+    });
 
-      $defectSelect.on('select2:select', function (e) {
-          const currentDefect = e.params.data.element.dataset.defect?.trim().toLowerCase();
-          if (!currentDefect) return;
-          let isDuplicate = false;
-          $('.defect-select').not(this).each(function () {
-              const data = $(this).select2('data');
-              if (!data.length) return;
-              const defect = data[0].element.dataset.defect?.trim().toLowerCase();
-              if (defect === currentDefect) isDuplicate = true;
-          });
-          if (isDuplicate) { $(this).val(null).trigger('select2:clear'); Swal.fire({icon:'warning',title:'Duplikasi Defect!',text:'Defect sama sudah dipilih.',confirmButtonText:'OK'});}
-      });
+    return $row;
+}
 
-      $row.find('.qty-ok-repair').on('input', function () {
-          const qtyDefect = parseInt($row.find('.qty-defect').val()) || 0;
-          const qtyOkRepair = parseInt($(this).val()) || 0;
-          if (qtyOkRepair > qtyDefect) $(this).val(qtyDefect);
-      });
 
-      return $row;
-  }
+function applyRowPlugins($row){
+
+    const $select = $row.find('.defect-select');
+
+    $select.select2({
+        placeholder: '-- Choose Defect --',
+        allowClear: true,
+        width: '100%'
+    });
+
+    // trigger selected value setelah select2 hidup
+    $select.trigger('change.select2');
+
+}
+
 
  // ==================== LOAD EXISTING DATA ====================
 
 // kalau sudah ada row dari blade → berarti EDIT MODE
-if ($('#defectTableBody tr').length === 0) {
+$.getJSON(`/qc/get-defects/${post}`, function (defects) {
 
-    const post = $('#inspection_post').val();
+    $('#defectTableBody').empty();
+    rowIndex = 1;
 
-    if (post) {
-        $.getJSON(`/qc/get-defects/${post}`, function (defects) {
+    existingRows.forEach(data => {
 
-            $('#defectTableBody').empty();
-            rowIndex = 1;
+        const $row = createRow(rowIndex++, defects, data);
 
-            $('#defectTableBody').append(createRow(rowIndex, defects));
+        $('#defectTableBody').append($row);
 
-            toggleOkRepair();
-            updateAllSummary();
-        });
-    }
-}
+        applyRowPlugins($row);
+    });
+
+    toggleOkRepair();
+    updateAllSummary();
+});
+
 
 
 
@@ -761,7 +771,10 @@ if ($('#defectTableBody tr').length === 0) {
       if (!post) return alert('Select inspection post first!');
       $.getJSON(`/qc/get-defects/${post}`, function (defects) {
           rowIndex++;
-          $('#defectTableBody').append(createRow(rowIndex, defects));
+         const $row = createRow(++rowIndex, defects);
+
+        $('#defectTableBody').append($row);
+          applyRowPlugins($row);
           toggleOkRepair();
           updateAllSummary();
       });
