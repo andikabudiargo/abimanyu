@@ -406,6 +406,57 @@ $(document).ready(function () {
   let rowIndex = 1;
   let articleMap = {};
 
+// ================== PART SELECT2 ==================
+$('#part_name').select2({
+    placeholder: "-- Select Part --",
+    allowClear: true,
+    width: '100%',
+    ajax: {
+        url: '/qc/get-articles',
+        dataType: 'json',
+        data: params => {
+            const post = $('#inspection_post').val();
+            return {
+                term: params.term,
+                post: post,
+                supplier: post === 'Incoming'
+                    ? $('#supplier').val()
+                    : $('#customer').val()
+            };
+        },
+        processResults: data => {
+            articleMap = {};
+            data.forEach(item => {
+                articleMap[item.article_code] = item;
+            });
+
+            return {
+                results: data.map(item => ({
+                    id: item.article_code,
+                    text: item.description
+                }))
+            };
+        },
+        cache: true
+    }
+});
+
+@if(isset($inspection))
+const selectedArticle = {
+    id: '{{ $inspection->part_name }}', // tetap article_code
+    text: '{{ $inspection->article->description ?? $inspection->part_name }}'
+};
+
+const option = new Option(
+    selectedArticle.text,
+    selectedArticle.id,
+    true,
+    true
+);
+
+$('#part_name').append(option).trigger('change');
+@endif
+
   const $checkMethod       = $('#check_method');
   const $qtyReceiving      = $('#qty_received');
   const $totalCheck        = $('#total_check');
@@ -803,58 +854,7 @@ $('#inspectionForm').off('submit').on('submit', function (e) {
     });
 });
 
-let articleMap = {};
 
-// ================== PART SELECT2 ==================
-$('#part_name').select2({
-    placeholder: "-- Select Part --",
-    allowClear: true,
-    width: '100%',
-    ajax: {
-        url: '/qc/get-articles',
-        dataType: 'json',
-        data: params => {
-            const post = $('#inspection_post').val();
-            return {
-                term: params.term,
-                post: post,
-                supplier: post === 'Incoming'
-                    ? $('#supplier').val()
-                    : $('#customer').val()
-            };
-        },
-        processResults: data => {
-            articleMap = {};
-            data.forEach(item => {
-                articleMap[item.article_code] = item;
-            });
-
-            return {
-                results: data.map(item => ({
-                    id: item.article_code,
-                    text: item.description
-                }))
-            };
-        },
-        cache: true
-    }
-});
-
-@if(isset($inspection))
-const selectedArticle = {
-    id: '{{ $inspection->part_name }}', // tetap article_code
-    text: '{{ $inspection->article->description ?? $inspection->part_name }}'
-};
-
-const option = new Option(
-    selectedArticle.text,
-    selectedArticle.id,
-    true,
-    true
-);
-
-$('#part_name').append(option).trigger('change');
-@endif
 
 
 function toggleInspectionPost(post) {
