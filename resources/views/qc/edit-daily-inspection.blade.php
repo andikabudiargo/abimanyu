@@ -99,7 +99,6 @@
             @endforeach
         </select>
     </div>
-</div>
 
 
             <div class="w-full">
@@ -841,15 +840,22 @@ $('#part_name').select2({
     }
 });
 
-// ================== SET SELECTED UNTUK EDIT ==================
 @if(isset($inspection))
 const selectedArticle = {
-    id: '{{ $inspection->part_name }}',
-    text: '{{ $inspection->part_name }}' // bisa diganti description jika ada
+    id: '{{ $inspection->part_name }}', // tetap article_code
+    text: '{{ $inspection->article->description ?? $inspection->part_name }}'
 };
-const option = new Option(selectedArticle.text, selectedArticle.id, true, true);
+
+const option = new Option(
+    selectedArticle.text,
+    selectedArticle.id,
+    true,
+    true
+);
+
 $('#part_name').append(option).trigger('change');
 @endif
+
 
 
 
