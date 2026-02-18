@@ -134,16 +134,30 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-4">
-            <div class="col-span-2 flex items-center gap-6 bg-gray-50 border border-gray-200 rounded-lg px-5 py-3 transition focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-300">
-                <label for="total_check" class="text-sm font-medium text-gray-700 min-w-[110px]">
-                    Total Check <span class="text-red-500">*</span>
-                </label>
-                <input type="number" name="total_check" id="total_check"
-                       value="{{ $inspection->total_check }}"
-                       placeholder="Masukan Qty. . ."
-                       class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300 transition"/>
-            </div>
+          <div class="col-span-2 
+            flex flex-col md:flex-row 
+            md:items-center 
+            gap-2 md:gap-6
+            bg-gray-50 border border-gray-200 rounded-lg 
+            px-4 md:px-5 py-3
+            transition focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-300">
+
+    <label for="total_check"
+           class="text-sm font-medium text-gray-700 md:min-w-[110px]">
+        Total Check <span class="text-red-500">*</span>
+    </label>
+
+    <input type="number"
+           name="total_check"
+           id="total_check"
+           value="{{ $inspection->total_check }}"
+           placeholder="Masukan Qty..."
+           class="w-full md:flex-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm
+                  focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300 transition"/>
+</div>
+
         </div>
+</div>
 
         <!-- Table defect -->
         <div class="w-full bg-white shadow-md rounded-xl p-8 space-y-4">
@@ -201,8 +215,7 @@
                     <span class="text-lg leading-none">+</span> Add Row
                 </button>
             </div>
-        </div>
-
+       
         <!-- Inspection Summary -->
 <div class="mt-6 flex justify-start">
   <div class="w-full md:w-96 border border-gray-200 bg-white px-2 rounded-md pb-8">
@@ -296,6 +309,7 @@
     </form>
   </div>
 </div>
+
 
 <style>
 
