@@ -402,7 +402,7 @@ select:disabled {
 
 
 $(document).ready(function () {
-
+ toggleInspectionPost($('#inspection_post').val());
   let rowIndex = 1;
   let articleMap = {};
 
@@ -857,6 +857,64 @@ $('#part_name').append(option).trigger('change');
 @endif
 
 
+function toggleInspectionPost(post) {
+
+    const supplierWrap   = $('#supplier-wrapper');
+    const customerWrap   = $('#customer-wrapper');
+    const qtyWrap        = $('#qty-received-wrapper');
+    const checkMethod    = $('#check_method_container');
+    const sprayboothWrap = $('#spraybooth-wrapper');
+
+    // ========= RESET SEMUA =========
+    supplierWrap.addClass('hidden');
+    customerWrap.addClass('hidden');
+    qtyWrap.addClass('hidden');
+    checkMethod.addClass('hidden');
+    sprayboothWrap.addClass('hidden');
+
+    $('#supplier, #customer, #spraybooth').prop('required', false);
+    $('#qty_received').prop('required', false).val('');
+    $('#check_method').prop('required', false).val('');
+
+    // ========= LOGIC =========
+    if (post === 'Incoming') {
+
+        // ✅ Supplier aktif
+        supplierWrap.removeClass('hidden');
+        $('#supplier').prop('required', true);
+
+        // ✅ Incoming only fields
+        qtyWrap.removeClass('hidden');
+        checkMethod.removeClass('hidden');
+
+        $('#qty_received').prop('required', true);
+        $('#check_method').prop('required', true);
+
+        // reset customer
+        $('#customer').val(null).trigger('change');
+
+    } 
+    else if (post) {
+
+        // ✅ Customer aktif
+        customerWrap.removeClass('hidden');
+        $('#customer').prop('required', true);
+
+        // ✅ Spraybooth aktif
+        sprayboothWrap.removeClass('hidden');
+        $('#spraybooth').prop('required', true);
+
+        // reset supplier
+        $('#supplier').val(null).trigger('change');
+    }
+
+    // reset part setiap post berubah
+    $('#part_name').val(null).trigger('change');
+}
+
+$('#inspection_post').on('change', function () {
+    toggleInspectionPost($(this).val());
+});
 
 
 
