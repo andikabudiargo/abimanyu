@@ -730,16 +730,25 @@ function applyRowPlugins($row){
 
     const $select = $row.find('.defect-select');
 
-    $select.select2({
-        placeholder: '-- Choose Defect --',
-        allowClear: true,
-        width: '100%'
+    // destroy kalau pernah di-init (anti double init)
+    if ($select.hasClass('select2-hidden-accessible')) {
+        $select.select2('destroy');
+    }
+
+    // delay 1 frame supaya DOM selesai render
+    requestAnimationFrame(() => {
+
+        $select.select2({
+            placeholder: '-- Choose Defect --',
+            allowClear: true,
+            width: '100%',
+            dropdownParent: $('#defectTableBody') // 🔥 penting!
+        });
+
+        $select.trigger('change');
     });
-
-    // trigger selected value setelah select2 hidup
-    $select.trigger('change.select2');
-
 }
+
 
 
  // ==================== LOAD EXISTING DATA ====================
