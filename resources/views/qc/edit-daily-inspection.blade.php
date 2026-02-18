@@ -182,16 +182,11 @@
                         @foreach($inspection->defects as $i => $defect)
                             <tr id="row-{{ $i+1 }}">
                                 <td class="text-center px-3 py-2">{{ $i+1 }}</td>
-                                <td>
-                                    <select name="defect[]" class="w-full px-2 py-1 border border-gray-300 rounded">
-                                        <option value="">-- Choose Defect --</option>
-                                        @foreach($allDefects as $d)
-                                            <option value="{{ $d->id }}" {{ $defect->defect_id == $d->id ? 'selected' : '' }}>
-                                                {{ $d->defect }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </td>
+                               <td>
+    defect_id DB = {{ var_export($defect->defect_id, true) }} <br>
+    option id   = {{ var_export($d->id, true) }}
+</td>
+
                                 <td class="text-center px-3 py-2">
                                     <input type="number" name="qty[]" value="{{ $defect->qty }}" class="w-full text-center border rounded px-1 py-1">
                                 </td>

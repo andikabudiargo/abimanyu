@@ -18,7 +18,7 @@ class Inspection extends Model
 
     public function defects()
     {
-        return $this->hasMany(InspectionDefect::class);
+        return $this->hasMany(InspectionDefect::class, 'inspection_id');
     }
 
     public function user()
