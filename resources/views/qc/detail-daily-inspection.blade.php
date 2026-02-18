@@ -6,272 +6,353 @@
 @section('breadcrumb-active', 'Detail Quality Inspection')
 
 @section('content')
-<div class="flex flex-col md:flex-row gap-6">
-  <!-- 📘 Sidebar Search Panel -->
-  <!-- Sidebar -->
-<div class="w-full md:w-1/4 bg-white shadow-lg rounded-2xl p-6 space-y-6">
-  <!-- Header -->
-  <div>
-    <h2 class="text-lg font-semibold text-gray-700">Inspection Overview</h2>
-  </div>
 
-  <!-- Operator Information -->
-  <div class="space-y-3">
-    <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Operator Information</h3>
-    <div class="flex justify-between text-sm text-gray-600">
-      <span class="font-medium text-gray-500">Operator Name:</span>
-      <span class="text-gray-800">{{ $inspection->user->name }}</span>
-    </div>
-    <div class="flex justify-between text-sm text-gray-600">
-      <span class="font-medium text-gray-500">Shift:</span>
-      <span id="shift-label" class="text-gray-800">{{ $inspection->shift }}</span>
-    </div>
-    <div class="flex justify-between text-sm text-gray-600">
-      <span class="font-medium text-gray-500">Inspection Date:</span>
-      <span id="inspection-date" class="text-gray-800">{{ $inspection->inspection_date }}</span>
-    </div>
-  </div>
+<div class="space-y-4">
+ <div class="w-full bg-white shadow-md rounded-xl px-8 pt-6 pb-10 space-y-6">
 
-  <!-- Part Information -->
-  <div class="space-y-3">
-    <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Part Information</h3>
-    <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
-      <span class="font-medium text-gray-500 whitespace-nowrap">Part Name:</span>
-      <span data-info="part-name" class="text-gray-800 text-right max-w-[70%] break-words">{{ $inspection->article->description ?? '-' }}</span>
-    </div>
-   <div class="flex justify-between items-start text-sm gap-2 text-gray-600">
-    <span class="font-medium text-gray-500 whitespace-nowrap">
-        Supplier / Customer:
-    </span>
-    <span class="text-gray-800 text-right max-w-[70%] break-words">
-        {{ optional($inspection->partner)->name ?? '-' }}
-    </span>
-</div>
+    <!-- ===== HEADER ===== -->
+    <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 flex items-center justify-center
+                        bg-indigo-100 text-indigo-600 rounded-lg">
+                <i class="fa-solid fa-clipboard-check text-sm"></i>
+            </div>
 
-  </div>
-
-  <!-- Summary Inspection -->
-  <div class="space-y-3">
-    <h3 class="text-md font-semibold text-gray-700 border-b pb-1">Summary Inspection</h3>
-    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
-
-      <!-- Total Check -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-gray-500">
-          <i data-feather="search" class="w-4 h-4"></i>
-          <span class="font-medium">Total Check</span>
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800">
+                    Daily Inspection Detail
+                </h2>
+                <p class="text-xs text-gray-500">
+                    Inspection information overview
+                </p>
+            </div>
         </div>
-        <span data-info="total-check" class="text-gray-800 font-semibold">{{ $inspection->total_check }}</span>
-      </div>
-
-      <!-- Total OK -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-green-600">
-          <i data-feather="check-circle" class="w-4 h-4"></i>
-          <span class="font-medium">Total OK</span>
-        </div>
-        <span data-info="total-ok" class="text-green-600 font-semibold">{{ $inspection->total_ok }}</span>
-      </div>
-
-     <div class="ok-repair-summary-row">
-
-    <!-- Total OK Repair -->
-    <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-yellow-500">
-            <i data-feather="tool" class="w-4 h-4"></i>
-            <span class="font-medium">Total OK Repair</span>
-        </div>
-        <span data-info="total-ok-repair" class="text-yellow-500 font-semibold">
-            {{ $inspection->total_ok_repair }}
-        </span>
     </div>
 
-</div>
+    <!-- ===== ROW 1 ===== -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-
-      <!-- Total NG -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-red-600">
-          <i data-feather="x-circle" class="w-4 h-4"></i>
-          <span class="font-medium">Total NG</span>
+        <div class="info-field">
+            <span class="info-label">Inspection Date</span>
+            <div class="info-value">
+                {{ $inspection->inspection_date ?? '-' }}
+            </div>
         </div>
-        <span data-info="total-ng" class="text-red-600 font-semibold">{{ $inspection->total_ng }}</span>
-      </div>
 
-    </div>
-  </div>
-
-   <!-- Percentage Inspection -->
-  <div class="space-y-3">
-   <h3 class="text-md font-semibold text-gray-700 border-b pb-1 mt-4">Percentage Inspection</h3>
-      <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2 text-sm">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-green-500">
-            <i data-feather="check-circle" class="w-4 h-4"></i>
-            <span class="font-medium">Pass Rate</span>
-          </div>
-          <span data-info="pass-rate" class="text-green-500 font-semibold">0</span>
+        <div class="info-field">
+            <span class="info-label">Inspection Post</span>
+            <div class="info-value">
+                {{ $inspection->inspection_post ?? '-' }}
+            </div>
         </div>
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-blue-500">
-            <i data-feather="check-circle" class="w-4 h-4"></i>
-            <span class="font-medium"  data-label="pass-trough-label">Pass Trough</span>
-          </div>
-          <span data-info="pass-trough" class="text-blue-500 font-semibold">0</span>
+
+        <div class="info-field">
+            <span class="info-label">Spray Booth</span>
+            <div class="info-value">
+                {{ $inspection->spraybooth ?? '-' }}
+            </div>
         </div>
-       <div class="ok-repair-summary-row">
-    <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-orange-500">
-            <i data-feather="percent" class="w-4 h-4"></i>
-            <span class="font-medium">OK Repair Rate</span>
+
+    </div>
+
+
+    <!-- ===== ROW 2 ===== -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <div class="info-field">
+            <span class="info-label">Supplier / Customer</span>
+            <div class="info-value">
+                {{ optional($inspection->partner)->name ?? '-' }}
+            </div>
         </div>
-        <span data-info="ok-repair-rate" class="text-orange-500 font-semibold">
-            {{ $inspection->ok_repair_rate }}%
-        </span>
-    </div>
-</div>
 
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 text-red-600">
-            <i data-feather="x-circle" class="w-4 h-4"></i>
-            <span class="font-medium">NG Rate</span>
-          </div>
-          <span data-info="ng-rate" class="text-red-600 font-semibold">-</span>
+        <div class="info-field">
+            <span class="info-label">Part Name</span>
+            <div class="info-value">
+                {{ $inspection->article->description ?? '-' }}
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-
-  <!-- 📦 Main Transfer Panel -->
-  <!-- Main Panel -->
-<div class="w-full md:w-3/4 bg-white shadow-md rounded-xl p-4 space-y-4">
-
-    <h2 class="text-lg font-semibold text-gray-700">Quality Inspection</h2>
-    <form id="inspection-form">
-      <!-- 🔢 Nomor Referensi -->
-    <div class="flex flex-col gap-4 mb-8">
-  <!-- Baris 1 -->
-  <div class="flex flex-col md:flex-row gap-4">
-    <div class="w-full md:w-1/2">
-      <label class="block text-sm font-medium text-gray-700 mb-1">
-        Inspection Post
-      </label>
-      <input type="text" id="inspection_post"
-        class="w-full px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $inspection->inspection_post }}" readonly>
     </div>
 
-   <div class="w-full md:w-1/2">
-    <label for="partner" class="block text-sm font-medium text-gray-700 mb-1">
-        {{ $inspection->inspection_post === 'Incoming' ? 'Supplier' : 'Customer' }}
-    </label>
 
-    <input type="text"
-        id="partner"
-        class="w-full px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-        value="{{ optional($inspection->partner)->name ?? '-' }}"
-        readonly>
-</div>
+    <!-- ===== OPTIONAL FIELD ===== -->
+    <div id="check_method_container" class="grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
 
-  </div>
+        <div class="info-field">
+            <span class="info-label">Inspection Method</span>
+            <div class="info-value">
+                {{ $inspection->check_method ?? '-' }}
+            </div>
+        </div>
 
-  <!-- Baris 2 -->
-  <div class="flex flex-col md:flex-row gap-4">
-    <div class="w-full md:w-1/2">
-      <label class="block text-sm font-medium text-gray-700 mb-1">
-        Part Name
-      </label>
-       <input type="text" id="part_name"
-        class="w-full px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $inspection->article->description ?? '-' }}" readonly>
+        <div id="qty-received-wrapper" class="info-field hidden">
+            <span class="info-label">Qty Received</span>
+            <div class="info-value">
+                {{ $inspection->qty_received ?? '-' }}
+            </div>
+        </div>
+
     </div>
 
-    <div class="w-full md:w-1/2">
-      <label for="total_check" class="block text-sm font-medium text-gray-700 mb-1">
-        Qty Received
-      </label>
-      <input type="number" name="qty_received" id="qty_received"
-        class="w-full px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-        value="{{ $inspection->qty_received}}" readonly />
-    </div>
-  </div>
 
-  <!-- Catatan -->
-  <div class="w-full">
-    <label for="note" class="block text-sm font-medium text-gray-700">Note</label>
-    <textarea id="note" rows="2" value="{{ $inspection->note}}" readonly
-      class="mt-1 block w-full border border-gray-300 bg-gray-200 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
-  </div>
+    <!-- ===== KPI TOTAL CHECK ===== -->
+    <div class="mt-2">
+        <div class="bg-indigo-50 border border-indigo-200
+                    rounded-xl px-6 py-5
+                    flex items-center justify-between">
+
+            <div>
+                <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide">
+                    Total Check
+                </p>
+
+                <p class="text-3xl font-bold text-indigo-700 mt-1">
+                    {{ $inspection->total_check ?? 0 }}
+                </p>
+            </div>
+
+            <i class="fa-solid fa-chart-column text-indigo-400 text-2xl"></i>
+        </div>
+    </div>
+
 </div>
 
 
-      <div class="flex gap-4 mb-4">
-    <!-- Check Method -->
-  <div id="check_method_container">
-    <label for="check_method" class="block text-sm font-medium text-gray-700 mb-1">
-      Inspection Method <small class="text-red-600">*</small></label>
-  <input type="text" name="check_method" id="check_method"
-        class="w-64 px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-        value="{{ $inspection->check_method }}" readonly />
-  </div>
-  <div>
-    <label for="total_check" class="block text-sm font-medium text-gray-700 mb-1">
-      Total Check
-    </label>
-    <input type="number" name="total_check" id="total_check"
-           class="w-64 px-3 py-2 border border-gray-300 bg-gray-200 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-           value="{{ $inspection->total_check }}" readonly/>
-  </div>
+
+
+      <div class="w-full bg-white shadow-md rounded-xl p-8 space-y-4">
+       <div class="flex items-center gap-2 border-b border-gray-200 pb-2 mb-4">
+  <i class="fa-solid fa-circle-exclamation text-indigo-700 text-sm"></i>
+
+  <h2 class="text-base font-semibold text-indigo-700 tracking-wide">
+    List Defect
+  </h2>
 </div>
 
 
-     <!-- 📋 Tabel Artikel yang Dipindahkan -->
-<div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400">
- <table id="itemTable" class="min-w-full bg-white border border-gray-200">
-    <thead class="bg-blue-500 text-white">
+      <!-- Table -->
+     <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+ @php
+    $totalDefect = $inspection->inspection_defects->sum('qty');
+@endphp
+
+<table id="itemTable" class="min-w-full text-sm text-gray-700">
+
+    <thead class="bg-gray-100 border-b border-gray-200">
         <tr>
-            <th class="p-2 border">No.</th>
-            <th class="p-2 border">Defect</th>
-            <th class="p-2 border w-24">Qty</th>
-            <th class="p-2 border w-24">OK Repair</th>
-            <th class="p-2 border">Note</th>
+            <th class="px-3 py-2 text-center font-medium min-w-[20px]">No</th>
+            <th class="px-3 py-2 font-medium min-w-[160px]">Defect</th>
+            <th class="px-3 py-2 text-center font-medium min-w-[60px]">Qty</th>
+            <th class="px-3 py-2 text-center font-medium min-w-[80px]">%</th>
+            <th class="px-3 py-2 text-center font-medium min-w-[60px] ok-repair-wrapper">
+                OK Repair
+            </th>
+            <th class="px-3 py-2 font-medium min-w-[180px]">Note</th>
         </tr>
     </thead>
-    <tbody id="defectTableBody">
+
+    <tbody id="defectTableBody" class="divide-y divide-gray-100">
+
         @forelse($inspection->inspection_defects as $index => $defect)
-        <tr>
-            <td class="p-2 border text-center">{{ $index + 1 }}</td>
-            <td class="p-2 border">{{ $defect->defect->defect ?? '-' }}</td>
-            <td class="p-2 border text-center">{{ $defect->qty ?? 0 }}</td>
-            <td class="p-2 border text-center">{{ $defect->ok_repair ?? 0 }}</td>
-            <td class="p-2 border">{{ $defect->note ?? '-' }}</td>
-        </tr>
-    @empty
-        <tr>
-            <td class="p-2 border text-center" colspan="5">No defect added</td>
-        </tr>
-    @endforelse
+
+            @php
+                $qty = $defect->qty ?? 0;
+                $percent = $totalDefect > 0
+                    ? ($qty / $totalDefect) * 100
+                    : 0;
+            @endphp
+
+            <tr class="hover:bg-gray-50 transition">
+                <td class="p-2 border text-center">
+                    {{ $index + 1 }}
+                </td>
+
+                <td class="p-2 border font-medium">
+                    {{ $defect->defect->defect ?? '-' }}
+                </td>
+
+                <td class="p-2 border text-center font-semibold">
+                    {{ $qty }}
+                </td>
+
+                <!-- PERCENT -->
+                <td class="p-2 border text-center">
+                    <div class="flex flex-col items-center gap-1">
+
+                        <span class="text-xs font-semibold text-indigo-600">
+                            {{ number_format($percent,1) }}%
+                        </span>
+
+                        <!-- mini progress bar -->
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-indigo-500 h-1.5 rounded-full"
+                                 style="width: {{ $percent }}%"></div>
+                        </div>
+
+                    </div>
+                </td>
+
+                <td class="p-2 border text-center">
+                    {{ $defect->ok_repair ?? 0 }}
+                </td>
+
+                <td class="p-2 border">
+                    {{ $defect->note_defect ?? '-' }}
+                </td>
+            </tr>
+
+        @empty
+            <tr>
+                <td class="p-3 border text-center" colspan="6">
+                    No defect added
+                </td>
+            </tr>
+        @endforelse
+
     </tbody>
-</table>
+
+
+    <!-- ===== TOTAL FOOTER ===== -->
+    <tfoot>
+        <tr class="bg-gray-50 font-semibold">
+            <td colspan="2" class="p-3 border text-right">
+                TOTAL DEFECT
+            </td>
+
+            <td class="p-3 border text-center text-red-600">
+                {{ $totalDefect }}
+            </td>
+
+            <td colspan="3" class="p-3 border"></td>
+        </tr>
+    </tfoot>
+
+  </table>
+</div>
+
+<!-- Inspection Summary -->
+<div class="mt-6 flex justify-start">
+  <div class="w-full md:w-96 border border-gray-200 bg-white px-2 rounded-md pb-8">
+
+   <div class="flex items-center gap-2 border-b border-gray-200 py-3 px-2 mb-6">
+  <i class="fa-solid fa-file text-indigo-700 text-sm"></i>
+
+  <h2 class="text-base font-semibold text-indigo-700 tracking-wide">
+    Inspection Summary
+  </h2>
+   </div>
+
+    <div class="divide-y divide-gray-100 text-sm">
+
+      <div class="flex justify-between px-4 py-2 hidden">
+  <span class="text-gray-600">Total Defect Qty</span>
+  <span class="font-medium text-gray-900">
+    <span id="totalDefectQty">0</span>
+    <span class="text-gray-500">(<span id="totalDefectPercent">0</span>%)</span>
+  </span>
+</div>
+
+ <div class="flex justify-between px-4 py-2 border-t border-gray-200 mt-4">
+  <span class="text-sm text-gray-600">Total Check</span>
+  <span class="text-sm font-semibold text-gray-900">
+    <span id="totalCheckDisplay">{{ $inspection->total_check ?? '0' }}</span>
+  </span>
 </div>
 
 
-      <!-- 🎯 Tombol Submit -->
-     <hr>
-   <div class="flex justify-start space-x-2 mt-4">
-   <a href="{{ route('qc.inspections.index') }}" 
-   class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
-   ← Back
-</a>
+<div class="flex justify-between px-4 py-2">
+  <span class="text-sm text-gray-600">Total OK</span>
+  <span class="text-sm font-semibold text-gray-900">
+    <span id="totalOkDisplay">{{ $inspection->total_ok ?? '0' }}</span>
+    <span class="text-gray-500">
+      (<span id="totalOkPercent">0</span>%)
+    </span>
+  </span>
+</div>
 
-<button type="button" 
-   class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded shadow">
-   <i data-feather="printer" class="h-4 w-4"></i>
-   Print
-</button>
+
+      <div class="flex justify-between px-4 py-2">
+  <span class="text-sm text-gray-600">Total NG</span>
+  <span class="text-sm font-semibold text-gray-900">
+    <span id="totalNGDisplay">{{ $inspection->total_ng ?? '-' }}</span>
+    <span class="text-gray-500">
+      (<span id="totalNGPercent">0</span>%)
+    </span>
+  </span>
+</div>
+
+
+      <div class="flex justify-between px-4 py-2">
+  <span id="totalNCLabel" class="text-sm text-gray-600">Total NC / OK Repair</span>
+  <span class="text-sm font-semibold text-gray-900">
+    <span id="totalNCDisplay">{{ $inspection->total_ok_repair ?? '-' }}</span>
+    <span class="text-gray-500">
+      (<span id="totalNCPercent">0</span>%)
+    </span>
+  </span>
+</div>
+
+     <div id="totalPTWrapper" class="flex justify-between px-4 py-2">
+  <span class="text-gray-600">Total Pass Through</span>
+  <span id="totalPTDisplay" class="font-medium text-gray-900">0</span>
+</div>
+
+      <div class="flex justify-between px-4 py-2">
+        <span class="text-gray-600">Pass Rate</span>
+        <span id="passRate" class="font-medium text-gray-900">0</span>
+      </div>
+
+        <div class="flex justify-between px-4 py-2">
+        <span id="passTroughLabel" class="text-gray-600">Pass Trough / Performance</span>
+        <span id="passTroughDisplay" class="font-medium text-gray-900">0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="mt-8">
+      <!-- Buttons -->
+      <div class="flex flex-col md:flex-row gap-2 mt-4">
+        <button id="resetBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
+          <i data-feather="refresh-cw" class="h-4 w-4"></i> Back
+        </button>
+        <button type="submit" id="submitBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
+          <i data-feather="save" class="h-4 w-4"></i> Print
+        </button>
+      </div>
+
     </form>
   </div>
 </div>
+<style>
+     .info-field{
+            background: linear-gradient(to bottom,#f9fafb,#ffffff);
+            border:1px solid #e5e7eb;
+            border-radius:12px;
+            padding:14px 16px;
+            transition:.2s;
+        }
 
+        .info-field:hover{
+            border-color:#6366f1;
+            box-shadow:0 4px 10px rgba(0,0,0,0.06);
+        }
+
+        .info-label{
+            font-size:11px;
+            font-weight:600;
+            color:#6b7280;
+            text-transform:uppercase;
+            letter-spacing:.05em;
+        }
+
+        .info-value{
+            margin-top:4px;
+            font-size:14px;
+            font-weight:600;
+            color:#111827;
+        }
 
 </style>
 @push('scripts')
