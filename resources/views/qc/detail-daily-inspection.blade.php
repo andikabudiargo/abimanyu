@@ -393,9 +393,9 @@
         <a href="{{ route('qc.inspections.index') }}" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
           <i data-feather="refresh-cw" class="h-4 w-4"></i> Back
 </a>
-        <button type="button" id="printBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded shadow">
+         <!-- Buttons <button type="button" id="printBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded shadow">
           <i data-feather="printer" class="h-4 w-4"></i> Print
-        </button>
+        </button>-->
       </div>
 
     </form>
