@@ -268,8 +268,11 @@
 </div>
 
 <!-- Inspection Summary -->
-<div class="mt-6 flex justify-start">
+<div class="mt-6 flex flex-col md:flex-row gap-6 items-stretch">
+
+  <!-- SUMMARY -->
   <div class="w-full md:w-96 border border-gray-200 bg-white px-2 rounded-md pb-8">
+
 
    <div class="flex items-center gap-2 border-b border-gray-200 py-3 px-2 mb-6">
   <i class="fa-solid fa-file text-indigo-700 text-sm"></i>
@@ -303,7 +306,7 @@
       <div class="flex justify-between px-4 py-2">
   <span class="text-sm text-gray-600">Total NG</span>
   <span class="text-sm font-semibold text-gray-900">
-    <span id="totalNGDisplay">{{ $inspection->total_ng ?? '-' }}</span>
+    <span id="totalNGDisplay">{{ $inspection->total_ng ?? '0' }}</span>
     <span class="text-gray-500">
       (<span id="totalNGPercent">0</span>%)
     </span>
@@ -314,7 +317,7 @@
       <div class="flex justify-between px-4 py-2">
   <span id="totalNCLabel" class="text-sm text-gray-600">Total NC / OK Repair</span>
   <span class="text-sm font-semibold text-gray-900">
-    <span id="totalNCDisplay">{{ $inspection->total_ok_repair ?? '-' }}</span>
+    <span id="totalNCDisplay">{{ $inspection->total_ok_repair ?? '0' }}</span>
     <span class="text-gray-500">
       (<span id="totalNCPercent">0</span>%)
     </span>
@@ -337,16 +340,61 @@
       </div>
     </div>
   </div>
+
+ <!-- STAMP -->
+<div class="w-full md:flex-1 flex justify-center md:items-center">
+
+    <div id="qcStamp"
+        class="hidden relative w-full max-w-xl
+               border-2 rounded-xl shadow-lg
+               bg-white/80 backdrop-blur-sm
+               px-8 py-6">
+
+        <div class="flex items-center gap-6">
+
+            <!-- ICON AREA -->
+            <div class="flex items-center justify-center
+                        w-20 h-20 rounded-lg bg-gray-50 border">
+                <i id="qcStampIcon"
+                   class="fa-solid text-4xl"></i>
+            </div>
+
+            <!-- TEXT AREA -->
+            <div class="flex flex-col">
+                <span class="text-xs tracking-wider text-gray-500 uppercase">
+                    Quality Control Result
+                </span>
+
+                <div id="qcStampText"
+                     class="text-2xl text-gray-900 font-bold tracking-wide mt-1">
+                </div>
+
+                <span class="text-sm text-gray-500 mt-1">
+                    Based on QC Inspection
+                </span>
+            </div>
+
+        </div>
+
+        <!-- subtle background accent -->
+        <div class="absolute right-2 top-4 opacity-10 text-7xl font-black select-none">
+            QC PASSED
+        </div>
+
+    </div>
+
 </div>
+
+</div>  
 
 <hr class="mt-8">
       <!-- Buttons -->
       <div class="flex flex-col md:flex-row gap-2 mt-4">
-        <button id="resetBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
+        <a href="{{ route('qc.inspections.index') }}" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
           <i data-feather="refresh-cw" class="h-4 w-4"></i> Back
-        </button>
-        <button type="submit" id="submitBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
-          <i data-feather="save" class="h-4 w-4"></i> Print
+</a>
+        <button type="button" id="printBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded shadow">
+          <i data-feather="printer" class="h-4 w-4"></i> Print
         </button>
       </div>
 
@@ -387,9 +435,42 @@
 <script>
   
   $(document).ready(function () {
-     toggleOkRepair(); // 🔥 INI WAJIB
+    toggleOkRepair(); // 🔥 INI WAJIB
+    updateTotalNG();
+    updateTotalOK();
+    updateNcOrOkRepair();
+    updateTotalPassThrough();
+    updatePassRate();
+    updatePassTrough();
+    updateQCStamp();
      
+  
 
+   // ambil value dari blade
+    let inspectionPost = @json($inspection->inspection_post ?? '');
+
+    if (inspectionPost === 'Incoming') {
+
+        // tampilkan
+        $('#check_method_container').removeClass('hidden');
+        $('#qty-received-wrapper').removeClass('hidden');
+
+        // sembunyikan spray booth
+        $('#spraybooth-wrapper').addClass('hidden');
+
+    } else {
+
+        // selain incoming
+        $('#check_method_container').addClass('hidden');
+        $('#qty-received-wrapper').addClass('hidden');
+
+        $('#spraybooth-wrapper').removeClass('hidden');
+    }
+
+  });
+
+     
+// GLOBAL SCOOPE
  const $checkMethod        = $('#check_method');
   const $qtyReceiving       = $('#qty_received');
   const $totalCheck         = $('#total_check');
@@ -415,204 +496,6 @@
   const $passTroughLabel = $('#passTroughLabel');
   const $passTroughDisplay = $('#passTroughDisplay');
 
-
-   // ambil value dari blade
-    let inspectionPost = @json($inspection->inspection_post ?? '');
-
-    if (inspectionPost === 'Incoming') {
-
-        // tampilkan
-        $('#check_method_container').removeClass('hidden');
-        $('#qty-received-wrapper').removeClass('hidden');
-
-        // sembunyikan spray booth
-        $('#spraybooth-wrapper').addClass('hidden');
-
-    } else {
-
-        // selain incoming
-        $('#check_method_container').addClass('hidden');
-        $('#qty-received-wrapper').addClass('hidden');
-
-        $('#spraybooth-wrapper').removeClass('hidden');
-    }
-
-
-  /* =====================================================
-   * TOTAL NG
-   * ===================================================== */
-  function updateTotalNG() {
-    let totalNG = 0;
-    const totalCheck = parseInt($totalCheck.val()) || 0;
-
-    $('#defectTableBody tr').each(function () {
-      const defectText = $(this)
-        .find('.defect-select option:selected')
-        .text()
-        .trim();
-
-      const qty = parseInt($(this).find('.qty-defect').val()) || 0;
-
-      if (defectText.startsWith('NG')) {
-        totalNG += qty;
-      }
-    });
-
-    $totalNGDisplay.text(totalNG);
-
-    const percent = totalCheck > 0
-      ? ((totalNG / totalCheck) * 100).toFixed(0)
-      : 0;
-
-    $totalNGPercent.text(percent);
-  }
-
-
-  /* =====================================================
-   * TOTAL OK
-   * ===================================================== */
- function updateTotalOK() {
-
-    // ambil dari DISPLAY (span), bukan input
-    const totalCheck = parseInt($('#totalCheckDisplay').text()) || 0;
-    const totalNG    = parseInt($totalNGDisplay.text()) || 0;
-
-    const totalOK = Math.max(totalCheck - totalNG, 0);
-    $totalOkDisplay.text(totalOK);
-
-    const percent = totalCheck > 0
-        ? ((totalOK / totalCheck) * 100).toFixed(0)
-        : 0;
-
-    $totalOkPercent.text(percent);
-}
-
-
-
-  /* =====================================================
-   * NC / OK REPAIR
-   * ===================================================== */
-  function updateNcOrOkRepair() {
-    const post = $postSelect.text();
-    const totalCheck = parseInt($totalCheck.text()) || 0;
-    let totalValue = 0;
-
-    if (post === 'Incoming') {
-      $totalNCLabel.text('Total OK Repair');
-
-      $('input[name="ok_repair[]"]').each(function () {
-        totalValue += parseInt($(this).text()) || 0;
-      });
-
-    } else {
-      $totalNCLabel.text('Total NC');
-
-      $('#defectTableBody tr').each(function () {
-        const defectText = $(this)
-          .find('.defect-select option:selected')
-          .text()
-          .trim();
-
-        const qty = parseInt($(this).find('.qty-defect').text()) || 0;
-
-        if (defectText.startsWith('NC')) {
-          totalValue += qty;
-        }
-      });
-    }
-
-    $totalNCDisplay.text(totalValue);
-
-    const percent = totalCheck > 0
-      ? ((totalValue / totalCheck) * 100).toFixed(0)
-      : 0;
-
-    $totalNCPercent.text(percent);
-  }
-
-
-  /* =====================================================
-   * TOTAL PASS THROUGH
-   * ===================================================== */
-  function updateTotalPassThrough() {
-    const post = $postSelect.text();
-
-    if (post === 'Incoming') {
-      $totalPTWrapper.addClass('hidden');
-      return;
-    }
-
-    $totalPTWrapper.removeClass('hidden');
-
-    const totalCheck = parseInt($totalCheck.text()) || 0;
-    const totalNG    = parseInt($totalNGDisplay.text()) || 0;
-    const totalNC    = parseInt($totalNCDisplay.text()) || 0;
-
-    const passThrough = Math.max(
-      totalCheck - totalNG - totalNC,
-      0
-    );
-
-    $totalPTDisplay.text(passThrough);
-  }
-
-  /*======================================================
-   * PASS RATE
-   * ===================================================== */
-  function updatePassRate() {
-    const totalCheck = parseInt($totalCheck.text()) || 0;
-  const totalOK    = parseInt($totalOkDisplay.text()) || 0;
-
-  let passRate = 0;
-
-  if (totalCheck > 0) {
-    passRate = ((totalOK / totalCheck) * 100).toFixed(0);
-  }
-
-  $passRate.text(`${passRate}%`);
-  }
-
-   /* =====================================================
-   * PASS THROUGH
-   * ===================================================== */
-
-    function updatePassTrough() {
-    const post       = $postSelect.text();
-    const totalCheck = parseInt($totalCheck.text()) || 0;
-
-    let numerator = 0;
-    let percent   = 0;
-
-  if (totalCheck <= 0) {
-    $passTroughDisplay.text('0%');
-    return;
-  }
-
-  if (post === 'Incoming') {
-    // ================= PERFORMANCE =================
-    $passTroughLabel.text('Performa');
-
-    const totalOK       = parseInt($totalOkDisplay.text()) || 0;
-    const totalOkRepair = parseInt($totalNCDisplay.text()) || 0;
-
-    numerator = totalOK - totalOkRepair;
-
-  } else {
-    // ================= PASS THROUGH =================
-    $passTroughLabel.text('Pass Through');
-
-    const totalPassThrough =
-      parseInt($totalPTDisplay.text()) || 0;
-
-    numerator = totalPassThrough;
-  }
-
-  if (numerator < 0) numerator = 0;
-
-  percent = ((numerator / totalCheck) * 100).toFixed(0);
-  $passTroughDisplay.text(`${percent}%`);
-}
-  });
 
  function toggleOkRepair() {
 
@@ -652,6 +535,171 @@
         } else {
             $passTroughLabel.text('Performance');
         }
+    }
+}
+
+ /* =====================================================
+   * TOTAL NG
+   * ===================================================== */
+  function updateTotalNG() {
+    const totalCheck = parseInt($totalCheckDisplay.text()) || 0;
+    const totalNG = parseInt($totalNGDisplay.text()) || 0;
+
+    const percent = totalCheck > 0
+      ? ((totalNG / totalCheck) * 100).toFixed(0)
+      : 0;
+
+    $totalNGPercent.text(percent);
+  }
+
+
+  /* =====================================================
+   * TOTAL OK
+   * ===================================================== */
+ function updateTotalOK() {
+    const totalCheck = parseInt($totalCheckDisplay.text()) || 0;
+    const totalOK = parseInt($totalOkDisplay.text()) || 0;
+    const percent = totalCheck > 0
+        ? ((totalOK / totalCheck) * 100).toFixed(0)
+        : 0;
+
+    $totalOkPercent.text(percent);
+}
+
+
+
+  /* =====================================================
+   * NC / OK REPAIR
+   * ===================================================== */
+  function updateNcOrOkRepair() {
+    let post = @json($inspection->inspection_post ?? '');
+    const totalCheck = parseInt($totalCheckDisplay.text()) || 0;
+    const totalNC = parseInt($totalNCDisplay.text()) || 0;
+
+    if (post === 'Incoming') {
+    // ================= PERFORMANCE =================
+    $totalNCLabel.text('Total OK Repair');
+
+  } else {
+    // ================= PASS THROUGH =================
+    $totalNCLabel.text('Total NC');
+}
+
+    const percent = totalCheck > 0
+      ? ((totalNC / totalCheck) * 100).toFixed(0)
+      : 0;
+
+    $totalNCPercent.text(percent);
+  }
+
+/* =====================================================
+   * TOTAL PASS THROUGH
+   * ===================================================== */
+  function updateTotalPassThrough() {
+     let post = @json($inspection->inspection_post ?? '');
+
+    if (post === 'Incoming') {
+      $totalPTWrapper.addClass('hidden');
+      return;
+    }
+
+    $totalPTWrapper.removeClass('hidden');
+
+    const totalCheck = parseInt($totalCheckDisplay.text()) || 0;
+    const totalNG    = parseInt($totalNGDisplay.text()) || 0;
+    const totalNC    = parseInt($totalNCDisplay.text()) || 0;
+
+    const passThrough = Math.max(
+      totalCheck - totalNG - totalNC,
+      0
+    );
+
+    $totalPTDisplay.text(passThrough);
+  }
+
+  /*======================================================
+   * PASS RATE
+   * ===================================================== */
+  function updatePassRate() {
+  const totalCheck = parseInt($totalCheckDisplay.text()) || 0;
+  const totalOK    = parseInt($totalOkDisplay.text()) || 0;
+
+  let passRate = 0;
+
+  if (totalCheck > 0) {
+    passRate = ((totalOK / totalCheck) * 100).toFixed(0);
+  }
+
+  $passRate.text(`${passRate}%`);
+  }
+
+   /* =====================================================
+   * PASS THROUGH
+   * ===================================================== */
+
+    function updatePassTrough() {
+    let post = @json($inspection->inspection_post ?? '');
+    const totalCheck = parseInt($totalCheckDisplay.text()) || 0;
+
+    let numerator = 0;
+    let percent   = 0;
+
+  if (totalCheck <= 0) {
+    $passTroughDisplay.text('0%');
+    return;
+  }
+
+  if (post === 'Incoming') {
+    // ================= PERFORMANCE =================
+    $passTroughLabel.text('Performa');
+
+    const totalOK       = parseInt($totalOkDisplay.text()) || 0;
+    const totalOkRepair = parseInt($totalNCDisplay.text()) || 0;
+
+    numerator = totalOK - totalOkRepair;
+
+  } else {
+    // ================= PASS THROUGH =================
+    $passTroughLabel.text('Pass Through');
+
+    const totalPassThrough =
+      parseInt($totalPTDisplay.text()) || 0;
+
+    numerator = totalPassThrough;
+  }
+
+  if (numerator < 0) numerator = 0;
+
+  percent = ((numerator / totalCheck) * 100).toFixed(0);
+  $passTroughDisplay.text(`${percent}%`);
+}
+
+function updateQCStamp() {
+
+    let passRate   = parseFloat($('#passRate').text()) || 0;
+    let passThrough = parseFloat($('#passTroughDisplay').text()) || 0;
+
+    const $stamp = $('#qcStamp');
+    const $icon  = $('#qcStampIcon');
+    const $text  = $('#qcStampText');
+
+    $stamp.removeClass('hidden');
+
+    // reset class warna
+    $stamp.removeClass('border-green-500 border-red-500');
+    $icon.removeClass('text-green-600 text-red-600');
+
+    if (passRate >= 95 && passThrough >= 65) {
+
+        $stamp.addClass('border-green-500');
+        $icon.addClass('fa-circle-check text-green-600');
+        $text.text('TARGET ACHIEVED');
+
+    } else {
+
+        $stamp.addClass('border-red-500');
+        $icon.addClass('fa-triangle-exclamation text-red-600');
+        $text.text('NEED IMPROVEMENT');
     }
 }
 
