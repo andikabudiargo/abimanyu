@@ -10,6 +10,8 @@
     $rca = $capa->actions->firstWhere('type', 'RCA');
     $ca  = $capa->actions->firstWhere('type', 'CA');
     $pa  = $capa->actions->firstWhere('type', 'PA');
+    $caClosed = ($ca->status ?? '') === 'Closed';
+    $paClosed = ($pa->status ?? '') === 'Closed';
 @endphp
 
  <div class="flex flex-col md:flex-row gap-4">
@@ -431,10 +433,25 @@
     <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
 
         <!-- Header -->
-        <div class="px-5 py-3 border-b bg-gray-50 flex items-center gap-2">
+        <div class="px-5 py-3 border-b bg-gray-50 flex items-center justify-between">
             <h3 class="text-sm font-semibold text-blue-700">
                 Corrective Action (CA)
             </h3>
+
+            @if($caClosed)
+        <span class="flex items-center gap-1
+            text-xs font-semibold px-3 py-1 rounded-full
+            bg-emerald-100 text-emerald-700 border border-emerald-200">
+
+            <i class="fa-solid fa-circle-check text-[10px]"></i>
+            Closed
+        </span>
+    @else
+        <span class="text-xs px-3 py-1 rounded-full
+            bg-amber-100 text-amber-700 border border-amber-200">
+            Open
+        </span>
+    @endif
         </div>
 
         <!-- Body -->
@@ -542,10 +559,25 @@
     <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
 
         <!-- Header -->
-        <div class="px-5 py-3 border-b bg-gray-50 flex items-center gap-2">
+        <div class="px-5 py-3 border-b bg-gray-50 flex items-center justify-between">
             <h3 class="text-sm font-semibold text-blue-700">
                 Preventive Action (PA)
             </h3>
+
+            @if($paClosed)
+        <span class="flex items-center gap-1
+            text-xs font-semibold px-3 py-1 rounded-full
+            bg-emerald-100 text-emerald-700 border border-emerald-200">
+
+            <i class="fa-solid fa-circle-check text-[10px]"></i>
+            Closed
+        </span>
+    @else
+        <span class="text-xs px-3 py-1 rounded-full
+            bg-amber-100 text-amber-700 border border-amber-200">
+            Open
+        </span>
+    @endif
         </div>
 
         <!-- Body -->

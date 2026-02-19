@@ -10,6 +10,9 @@
     $rca = $capa->actions->firstWhere('type', 'RCA');
     $ca  = $capa->actions->firstWhere('type', 'CA');
     $pa  = $capa->actions->firstWhere('type', 'PA');
+
+    $caClosed = ($ca->status ?? '') === 'Closed';
+    $paClosed = ($pa->status ?? '') === 'Closed';
 @endphp
 
  <div class="flex flex-col md:flex-row gap-4">
@@ -420,11 +423,29 @@
     <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
 
         <!-- Header -->
-        <div class="px-5 py-3 border-b bg-gray-50 flex items-center gap-2">
-            <h3 class="text-sm font-semibold text-blue-700">
-                Corrective Action (CA)
-            </h3>
-        </div>
+       <div class="px-5 py-3 border-b bg-gray-50 flex items-center justify-between">
+
+    <h3 class="text-sm font-semibold text-blue-700">
+        Corrective Action (CA)
+    </h3>
+
+    @if($caClosed)
+        <span class="flex items-center gap-1
+            text-xs font-semibold px-3 py-1 rounded-full
+            bg-emerald-100 text-emerald-700 border border-emerald-200">
+
+            <i class="fa-solid fa-circle-check text-[10px]"></i>
+            Closed
+        </span>
+    @else
+        <span class="text-xs px-3 py-1 rounded-full
+            bg-amber-100 text-amber-700 border border-amber-200">
+            Open
+        </span>
+    @endif
+
+</div>
+
 
         <!-- Body -->
         <div class="p-5 space-y-4">
@@ -481,11 +502,41 @@
 
             </div>
 
-            <div class="pt-3 space-y-3">
+           <div class="pt-3 space-y-3">
 
-    <p class="text-[11px] text-gray-400 uppercase tracking-wide">
-        Supporting Document
-    </p>
+<p class="text-[11px] text-gray-400 uppercase tracking-wide">
+    Supporting Document
+</p>
+
+@if($caClosed)
+
+    <!-- LOCKED STATE -->
+    <div class="flex items-center justify-between
+        px-4 py-3 rounded-lg
+        bg-gray-100 border border-gray-200">
+
+        <div class="flex items-center gap-2 text-gray-600 text-sm">
+
+            <i class="fa-solid fa-lock"></i>
+
+            <span class="font-medium">
+                Upload Locked (Action Closed)
+            </span>
+
+        </div>
+
+        @if(!empty($capa->ca?->supporting_document))
+            <a href="{{ asset('capa_document/'.$ca->capa_id.'/'.$ca->supporting_document) }}"
+               target="_blank"
+               class="px-3 py-1 text-xs rounded bg-gray-700 text-white hover:bg-gray-800">
+
+                View File
+            </a>
+        @endif
+
+    </div>
+
+@else
 
     {{-- Jika ADA File --}}
     @if(!empty($capa->ca?->supporting_document))
@@ -542,6 +593,7 @@
         </div>
 
     @endif
+     @endif
 
 </div>
 
@@ -553,10 +605,25 @@
     <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
 
         <!-- Header -->
-        <div class="px-5 py-3 border-b bg-gray-50 flex items-center gap-2">
+          <div class="px-5 py-3 border-b bg-gray-50 flex items-center justify-between">
             <h3 class="text-sm font-semibold text-blue-700">
                 Preventive Action (PA)
             </h3>
+
+            @if($paClosed)
+        <span class="flex items-center gap-1
+            text-xs font-semibold px-3 py-1 rounded-full
+            bg-emerald-100 text-emerald-700 border border-emerald-200">
+
+            <i class="fa-solid fa-circle-check text-[10px]"></i>
+            Closed
+        </span>
+    @else
+        <span class="text-xs px-3 py-1 rounded-full
+            bg-amber-100 text-amber-700 border border-amber-200">
+            Open
+        </span>
+    @endif
         </div>
 
         <!-- Body -->
@@ -625,6 +692,36 @@
         $pa = $capa->pa;
     @endphp
 
+    @if($paClosed)
+
+    <!-- LOCKED STATE -->
+    <div class="flex items-center justify-between
+        px-4 py-3 rounded-lg
+        bg-gray-100 border border-gray-200">
+
+        <div class="flex items-center gap-2 text-gray-600 text-sm">
+
+            <i class="fa-solid fa-lock"></i>
+
+            <span class="font-medium">
+                Upload Locked (Action Closed)
+            </span>
+
+        </div>
+
+        @if(!empty($capa->pa?->supporting_document))
+            <a href="{{ asset('capa_document/'.$pa->capa_id.'/'.$pa->supporting_document) }}"
+               target="_blank"
+               class="px-3 py-1 text-xs rounded bg-gray-700 text-white hover:bg-gray-800">
+
+                View File
+            </a>
+        @endif
+
+    </div>
+
+@else
+
 
     {{-- Jika ADA File --}}
     @if(!empty($pa?->supporting_document))
@@ -684,6 +781,7 @@
 
         </div>
 
+    @endif
     @endif
 
 </div>

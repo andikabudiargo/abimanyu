@@ -1185,6 +1185,13 @@ public function updateAuthorized(Request $request, $id)
 
     $capa->save();
 
+    DB::table('capa_actions')
+    ->where('capa_id', $capa->id)
+    ->whereIn('type', ['RCA', 'CA', 'PA'])
+    ->update([
+        'status' => 'Closed',
+        'updated_at' => now()
+    ]);
 
     /* ============================
        Setup WebPush
@@ -1351,6 +1358,7 @@ public function returnEvidence(Request $request)
     {
       $request->validate([
         'capa_id' => 'required|integer',
+        'revision_type' => 'required|in:accept_ca,accept_pa,reject_all',
         'comments' => 'required|array',
         'comments.*.user_id' => 'required|integer',
         'comments.*.comment' => 'required|string',
@@ -1375,6 +1383,35 @@ public function returnEvidence(Request $request)
     $capa->returned_by = Auth::id();
     $capa->returned_at = now();
     $capa->save();
+
+    $revisionType = $request->revision_type;
+
+if ($revisionType === 'accept_ca') {
+
+    // Close Corrective Action saja
+    DB::table('capa_actions')
+        ->where('capa_id', $request->capa_id)
+        ->where('type', 'CA')
+        ->update([
+            'status' => 'Closed',
+            'updated_at' => now()
+        ]);
+
+}
+
+elseif ($revisionType === 'accept_pa') {
+
+    // Close Preventive Action saja
+    DB::table('capa_actions')
+        ->where('capa_id', $request->capa_id)
+        ->where('type', 'PA')
+        ->update([
+            'status' => 'Closed',
+            'updated_at' => now()
+        ]);
+
+}
+
 
      // Setup WebPush
     $webPush = new WebPush([

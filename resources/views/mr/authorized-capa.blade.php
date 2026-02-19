@@ -660,74 +660,113 @@
 
  <!-- MODAL -->
 <div id="returnModal"
-  class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-md"
->
+class="fixed inset-0 z-[9999] hidden items-center justify-center
+bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-md">
 
-  <div
-    class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 relative animate-fadeIn">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-7 relative animate-fadeIn">
 
-    <!-- Close Icon -->
+    <!-- Close -->
     <button id="closeModalBtn"
-      class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition">
+      class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition text-lg">
       ✕
     </button>
 
-    <!-- Header -->
-    <div class="flex items-center gap-3 mb-4">
-
-      <div>
-        <h2 class="text-lg font-semibold text-gray-800">
-          Return Request
-        </h2>
-
-        <p class="text-sm text-gray-500">
-          Select revision type
-        </p>
+    <!-- HEADER -->
+    <div class="flex items-center gap-3 mb-2">
+      <div class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 text-lg">
+        🔁
       </div>
 
+      <div>
+        <h2 class="text-xl font-semibold text-gray-800">
+          CAPA Return Decision
+        </h2>
+        <p class="text-sm text-gray-500">
+          Select which evidence remains accepted
+        </p>
+      </div>
     </div>
 
-    <!-- Divider -->
-    <div class="border-t mb-5"></div>
+    <div class="border-t my-5"></div>
 
-    <!-- Description -->
-    <p class="text-sm text-gray-600 mb-6 leading-relaxed">
-      Choose how you would like this request to be returned for revision.
-      This helps ensure accurate follow-up and documentation.
+    <p class="text-sm text-gray-600 mb-6 max-w-3xl leading-relaxed">
+      Choose how this CAPA should be returned for revision.  
+      Your decision determines which evidence must be updated before approval continues.
     </p>
 
-    <!-- Buttons -->
-    <div class="grid grid-cols-2 gap-4">
+    <!-- DECISION CARDS -->
+    <div class="grid md:grid-cols-3 gap-5">
 
-      <!-- Revise Action -->
-      <button id="reviseActionBtn"
-        class="group flex flex-col items-center gap-2 px-4 py-4 border border-blue-500 text-blue-600 rounded-xl hover:bg-blue-50 transition">
+      <!-- ACCEPT CA -->
+      <button id="acceptCABtn"
+        class="group text-left rounded-xl border border-blue-200 p-5
+        hover:border-blue-500 hover:shadow-xl hover:-translate-y-1
+        transition duration-200 bg-gradient-to-br from-blue-50 to-white">
 
-        <span class="text-xl">📝</span>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-2xl">📝</span>
+          <span class="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-600">
+            PARTIAL ACCEPT
+          </span>
+        </div>
 
-        <span class="font-medium text-sm">
-          Revise Actions
-        </span>
+        <h3 class="font-semibold text-gray-800 mb-1">
+          Accept Corrective Action
+        </h3>
 
-        <span class="text-xs text-gray-500 group-hover:text-blue-600">
-          Update action details
-        </span>
+        <p class="text-sm text-gray-600">
+          Corrective Action remains valid.  
+          Preventive Action evidence must be revised.
+        </p>
 
       </button>
 
-      <!-- Revise Evidence -->
-      <button id="reviseEvidenceBtn"
-        class="group flex flex-col items-center gap-2 px-4 py-4 border border-green-500 text-green-600 rounded-xl hover:bg-green-50 transition">
 
-        <span class="text-xl">📎</span>
+      <!-- ACCEPT PA -->
+      <button id="acceptPABtn"
+        class="group text-left rounded-xl border border-green-200 p-5
+        hover:border-green-500 hover:shadow-xl hover:-translate-y-1
+        transition duration-200 bg-gradient-to-br from-green-50 to-white">
 
-        <span class="font-medium text-sm">
-          Revise Evidence
-        </span>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-2xl">📎</span>
+          <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-600">
+            PARTIAL ACCEPT
+          </span>
+        </div>
 
-        <span class="text-xs text-gray-500 group-hover:text-green-600">
-          Upload proof
-        </span>
+        <h3 class="font-semibold text-gray-800 mb-1">
+          Accept Preventive Action
+        </h3>
+
+        <p class="text-sm text-gray-600">
+          Preventive Action remains valid.  
+          Corrective Action evidence must be revised.
+        </p>
+
+      </button>
+
+
+      <!-- REJECT ALL -->
+      <button id="rejectAllBtn"
+        class="group text-left rounded-xl border border-red-200 p-5
+        hover:border-red-500 hover:shadow-xl hover:-translate-y-1
+        transition duration-200 bg-gradient-to-br from-red-50 to-white">
+
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-2xl">⛔</span>
+          <span class="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-600">
+            FULL REVISION
+          </span>
+        </div>
+
+        <h3 class="font-semibold text-gray-800 mb-1">
+          Reject All Evidence
+        </h3>
+
+        <p class="text-sm text-gray-600">
+          Both Corrective and Preventive Action must be revised before AUTHORIZED.
+        </p>
 
       </button>
 
@@ -965,6 +1004,16 @@
   height: 42px !important;
   right: 0.75rem;
 }
+
+.swal2-container {
+    z-index: 11000 !important;
+}
+
+.swal-on-top {
+    z-index: 10000 !important;
+}
+
+
 </style>
 @push('scripts')
 <script>
@@ -1086,21 +1135,73 @@ $(document).ready(function () {
 
 
     
-  $('#returnBtn').on('click', function () {
-    const capaId = $(this).data('id');
-    submitReturn($(this), capaId);
+ let selectedCapaId = null;
+let $clickedButton = null;
+let selectedRevisionType = null; // ⭐ TAMBAHAN
+
+$('#acceptCABtn').on('click', function () {
+
+    selectedRevisionType = 'accept_ca';
+
+    submitReturn($clickedButton, selectedCapaId);
 });
+
+$('#acceptPABtn').on('click', function () {
+
+    selectedRevisionType = 'accept_pa';
+
+    submitReturn($clickedButton, selectedCapaId);
+});
+
+$('#rejectAllBtn').on('click', function () {
+
+    selectedRevisionType = 'reject_all';
+
+    submitReturn($clickedButton, selectedCapaId);
+});
+
+
+$('#returnBtn').on('click', function () {
+    selectedCapaId = $(this).data('id');
+    $clickedButton = $(this);
+
+    $('#returnModal').removeClass('hidden').addClass('flex');
+});
+
+function closeReturnModal() {
+    $('#returnModal').addClass('hidden').removeClass('flex');
+}
+
+$('#closeModalBtn').on('click', closeReturnModal);
+
+$('#returnModal').on('click', function (e) {
+    if (e.target.id === 'returnModal') {
+        closeReturnModal();
+    }
+});
+
 
 function submitReturn(btn, capaId) {
 
     const comments = getComments();
+
+    if (!selectedRevisionType) {
+        showToast('error', 'Please select return decision.');
+        return;
+    }
 
     if (comments.length === 0) {
         Swal.fire({
             icon: 'warning',
             title: 'No Comment Found',
             text: 'Please add at least one comment before returning.',
-            confirmButtonText: 'OK'
+            confirmButtonText: 'OK',
+            customClass: {
+            popup: 'swal-on-top'
+        },
+              backdrop: `
+        rgba(0,0,0,0.7)
+    `
         });
         return;
     }
@@ -1113,24 +1214,45 @@ function submitReturn(btn, capaId) {
         data: {
             _token: csrfToken,
             capa_id: capaId,
+            revision_type: selectedRevisionType, // ⭐ INI YANG DIKIRIM
             comments: comments
         },
+
         success: function (res) {
+
+            closeReturnModal();
+
             if (res.success) {
                 showToast('success', res.message || 'CAPA successfully returned!');
+
                 setTimeout(() => {
                     window.location.href = "{{ route('mr.capa.index') }}";
                 }, 2000);
             }
         },
+
         error: function (err) {
             console.error(err.responseText);
-            const msg = err.responseJSON?.message || 'Terjadi kesalahan saat menyimpan.';
+
+            const msg = err.responseJSON?.message || 
+                        'Terjadi kesalahan saat menyimpan.';
+
             showToast('error', msg);
+
             btn.prop('disabled', false).text('Return');
         }
     });
 }
+
+function closeReturnModal() {
+
+    $('#returnModal')
+        .addClass('hidden')
+        .removeClass('flex');
+
+    selectedRevisionType = null;
+}
+
 
  // Tombol Return utama → buka modal
     $('#submitBtn').on('click', function () {
