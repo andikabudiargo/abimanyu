@@ -78,12 +78,13 @@
             </div>
         </div>
 
-        <div class="info-field">
-            <span class="info-label">Spray Booth</span>
-            <div class="info-value">
-                {{ $inspection->spraybooth ?? '-' }}
-            </div>
-        </div>
+        <div id="spraybooth-wrapper" class="info-field">
+    <span class="info-label">Spray Booth</span>
+    <div class="info-value">
+        {{ $inspection->spraybooth ?? '-' }}
+    </div>
+</div>
+
 
     </div>
 
@@ -140,7 +141,7 @@
                 </p>
 
                 <p class="text-3xl font-bold text-indigo-700 mt-1">
-                    {{ $inspection->total_check ?? 0 }}
+                    {{ $inspection->total_check ?? 0 }} PCS
                 </p>
             </div>
 
@@ -280,14 +281,6 @@
 
     <div class="divide-y divide-gray-100 text-sm">
 
-      <div class="flex justify-between px-4 py-2 hidden">
-  <span class="text-gray-600">Total Defect Qty</span>
-  <span class="font-medium text-gray-900">
-    <span id="totalDefectQty">0</span>
-    <span class="text-gray-500">(<span id="totalDefectPercent">0</span>%)</span>
-  </span>
-</div>
-
  <div class="flex justify-between px-4 py-2 border-t border-gray-200 mt-4">
   <span class="text-sm text-gray-600">Total Check</span>
   <span class="text-sm font-semibold text-gray-900">
@@ -395,6 +388,7 @@
   
   $(document).ready(function () {
      toggleOkRepair(); // 🔥 INI WAJIB
+     
 
  const $checkMethod        = $('#check_method');
   const $qtyReceiving       = $('#qty_received');
@@ -422,76 +416,26 @@
   const $passTroughDisplay = $('#passTroughDisplay');
 
 
-  /* =====================================================
-   * HELPER
-   * ===================================================== */
-  function getSamplingCheck(qty) {
-    if (qty >= 2 && qty <= 8) return 2;
-    if (qty <= 15) return 3;
-    if (qty <= 25) return 5;
-    if (qty <= 50) return 8;
-    if (qty <= 90) return 13;
-    if (qty <= 150) return 20;
-    if (qty <= 280) return 32;
-    if (qty <= 500) return 50;
-    if (qty <= 1200) return 80;
-    if (qty <= 3200) return 125;
-    if (qty <= 10000) return 200;
-    if (qty <= 35000) return 315;
-    return 0;
-  }
+   // ambil value dari blade
+    let inspectionPost = @json($inspection->inspection_post ?? '');
 
+    if (inspectionPost === 'Incoming') {
 
-  /* =====================================================
-   * TOTAL CHECK
-   * ===================================================== */
-  function updateTotalCheck() {
-    const method = $checkMethod.val();
-    const qty    = parseInt($qtyReceiving.val()) || 0;
+        // tampilkan
+        $('#check_method_container').removeClass('hidden');
+        $('#qty-received-wrapper').removeClass('hidden');
 
-    let val = '';
-    if (method === '100%') val = qty;
-    if (method === 'Sampling') val = getSamplingCheck(qty) || '';
+        // sembunyikan spray booth
+        $('#spraybooth-wrapper').addClass('hidden');
 
-    $totalCheck.val(val).trigger('input');
-  }
+    } else {
 
-  function syncTotalCheckDisplay() {
-    $totalCheckDisplay.text(parseInt($totalCheck.val()) || 0);
-  }
+        // selain incoming
+        $('#check_method_container').addClass('hidden');
+        $('#qty-received-wrapper').addClass('hidden');
 
-
-  /* =====================================================
-   * TOTAL DEFECT (VALIDASI)
-   * ===================================================== */
-  function updateTotalDefectSummary() {
-    let totalDefect = 0;
-
-    $('input[name="qty[]"]').each(function () {
-      totalDefect += parseInt($(this).val()) || 0;
-    });
-
-    const totalCheck = parseInt($totalCheck.val()) || 0;
-
-    if (totalCheck > 0 && totalDefect > totalCheck) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Validasi Gagal',
-        text: 'Total Defect Qty melebihi Total Check. Nilai akan direset.'
-      });
-
-      $('input[name="qty[]"]').val(0);
-      totalDefect = 0;
+        $('#spraybooth-wrapper').removeClass('hidden');
     }
-
-    $('#totalDefectQty').text(totalDefect);
-
-    const percent = totalCheck > 0
-      ? ((totalDefect / totalCheck) * 100).toFixed(0)
-      : 0;
-
-    $('#totalDefectPercent').text(percent);
-  }
 
 
   /* =====================================================
@@ -527,34 +471,37 @@
   /* =====================================================
    * TOTAL OK
    * ===================================================== */
-  function updateTotalOK() {
-    const totalCheck = parseInt($totalCheck.val()) || 0;
+ function updateTotalOK() {
+
+    // ambil dari DISPLAY (span), bukan input
+    const totalCheck = parseInt($('#totalCheckDisplay').text()) || 0;
     const totalNG    = parseInt($totalNGDisplay.text()) || 0;
 
     const totalOK = Math.max(totalCheck - totalNG, 0);
     $totalOkDisplay.text(totalOK);
 
     const percent = totalCheck > 0
-      ? ((totalOK / totalCheck) * 100).toFixed(0)
-      : 0;
+        ? ((totalOK / totalCheck) * 100).toFixed(0)
+        : 0;
 
     $totalOkPercent.text(percent);
-  }
+}
+
 
 
   /* =====================================================
    * NC / OK REPAIR
    * ===================================================== */
   function updateNcOrOkRepair() {
-    const post = $postSelect.val();
-    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const post = $postSelect.text();
+    const totalCheck = parseInt($totalCheck.text()) || 0;
     let totalValue = 0;
 
     if (post === 'Incoming') {
       $totalNCLabel.text('Total OK Repair');
 
       $('input[name="ok_repair[]"]').each(function () {
-        totalValue += parseInt($(this).val()) || 0;
+        totalValue += parseInt($(this).text()) || 0;
       });
 
     } else {
@@ -566,7 +513,7 @@
           .text()
           .trim();
 
-        const qty = parseInt($(this).find('.qty-defect').val()) || 0;
+        const qty = parseInt($(this).find('.qty-defect').text()) || 0;
 
         if (defectText.startsWith('NC')) {
           totalValue += qty;
@@ -588,7 +535,7 @@
    * TOTAL PASS THROUGH
    * ===================================================== */
   function updateTotalPassThrough() {
-    const post = $postSelect.val();
+    const post = $postSelect.text();
 
     if (post === 'Incoming') {
       $totalPTWrapper.addClass('hidden');
@@ -597,7 +544,7 @@
 
     $totalPTWrapper.removeClass('hidden');
 
-    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const totalCheck = parseInt($totalCheck.text()) || 0;
     const totalNG    = parseInt($totalNGDisplay.text()) || 0;
     const totalNC    = parseInt($totalNCDisplay.text()) || 0;
 
@@ -613,7 +560,7 @@
    * PASS RATE
    * ===================================================== */
   function updatePassRate() {
-    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const totalCheck = parseInt($totalCheck.text()) || 0;
   const totalOK    = parseInt($totalOkDisplay.text()) || 0;
 
   let passRate = 0;
@@ -630,8 +577,8 @@
    * ===================================================== */
 
     function updatePassTrough() {
-    const post       = $postSelect.val();
-    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const post       = $postSelect.text();
+    const totalCheck = parseInt($totalCheck.text()) || 0;
 
     let numerator = 0;
     let percent   = 0;
@@ -669,7 +616,7 @@
 
  function toggleOkRepair() {
 
-    const post = $('#inspection_post').val()?.trim();
+    const post = $('#inspection_post').text()?.trim();
 
     const $okRepairCols = $('.ok-repair-wrapper');
     const $okRepairSummaryRows = $('.ok-repair-summary-row');
