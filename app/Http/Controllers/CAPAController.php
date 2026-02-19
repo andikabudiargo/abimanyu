@@ -1558,34 +1558,20 @@ public function pdf($id, Request $request)
     /* =====================
        EVIDENCE BASE64
     ===================== */
-    $evidenceImages = [];
+   $evidenceImages = [];
 
-    foreach ($capa->evidences as $evidence) {
+foreach ($capa->evidences as $evidence) {
 
-       $path = '/home/abimany3/public_html/evidence_capa/'.$capa->id.'/'.$evidence->file_name;
+    $path = public_path('evidence_capa/'.$capa->id.'/'.$evidence->file_name);
 
-
-        if (file_exists($path)) {
-
-            $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-
-            $mime = match ($ext) {
-                'jpg','jpeg' => 'image/jpeg',
-                'png'        => 'image/png',
-                default      => null,
-            };
-
-            if ($mime) {
-
-                $evidenceImages[] = [
-                    'src' => 'data:'.$mime.';base64,'.base64_encode(
-                        file_get_contents($path)
-                    ),
-                    'name' => $evidence->file_name
-                ];
-            }
-        }
+    if (file_exists($path)) {
+        $evidenceImages[] = [
+            'src'  => $path, // ← LANGSUNG PATH FILE
+            'name' => $evidence->file_name
+        ];
     }
+}
+
 
     /* =====================
        RENDER VIEW

@@ -379,42 +379,38 @@
     <em>*NOTE : New CAPA will be raised if action has been done and the problem not solved</em>
 </p>-->
 
-<!-- ================= FOOTER ================= -->
 @if(!empty($evidenceImages))
 
-    {{-- Halaman baru untuk Evidence --}}
-    <div style="page-break-before: always;"></div>
+<div style="page-break-before: always;"></div>
 
-    <h4 style="text-align:center;">Evidence</h4>
+<h4 style="text-align:center;">Evidence</h4>
 
-    <table width="100%" cellpadding="10" border="0" cellspacing="0" style="border:none;">
+@foreach($evidenceImages as $img)
 
-        @foreach($evidenceImages as $key => $img)
+    @php
+        $filename = pathinfo($img['name'], PATHINFO_FILENAME);
+    @endphp
 
-            <tr style="border:none;">
-                <td align="center">
+    <div style="
+        text-align:center;
+        margin-bottom:25px;
+        page-break-inside: avoid;
+    ">
 
-                    <img src="{{ $img['src'] }}"
-                         style="
-                            max-width: 90%;
-                            max-height: 500px;
-                            padding: 5px;
-                         ">
+        <img src="{{ $img['src'] }}"
+             style="width:500px; max-height:500px;">
 
-                    <br>
+        <div style="margin-top:6px; font-size:11px;">
+            {{ str_replace('_',' ', $filename) }}
+        </div>
 
-                    <small>
-                        Evidence {{ $key + 1 }}
-                    </small>
+    </div>
 
-                </td>
-            </tr>
-
-        @endforeach
-
-    </table>
+@endforeach
 
 @endif
+
+
 
 
 @if(request()->routeIs('mr.capa.print'))
