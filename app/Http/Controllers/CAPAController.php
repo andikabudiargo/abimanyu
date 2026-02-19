@@ -1558,19 +1558,24 @@ public function pdf($id, Request $request)
     /* =====================
        EVIDENCE BASE64
     ===================== */
-   $evidenceImages = [];
+  $evidenceImages = [];
 
 foreach ($capa->evidences as $evidence) {
 
-    $path = public_path('evidence_capa/'.$capa->id.'/'.$evidence->file_name);
+    $path = '/home/abimany3/public_html/evidence_capa/'
+            .$capa->id.'/'
+            .$evidence->file_name;
 
-    if (file_exists($path)) {
+    $realPath = realpath($path);
+
+    if ($realPath && file_exists($realPath)) {
         $evidenceImages[] = [
-            'src'  => $path, // ← LANGSUNG PATH FILE
+            'src'  => 'file://' . $realPath,
             'name' => $evidence->file_name
         ];
     }
 }
+
 
 
     /* =====================
@@ -1587,6 +1592,7 @@ foreach ($capa->evidences as $evidence) {
         'margin_bottom' => 15,
         'margin_left' => 12,
         'margin_right' => 12,
+        
     ]);
 
     $mpdf->WriteHTML($html);
