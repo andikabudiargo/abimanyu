@@ -27,6 +27,7 @@ class ProductKnowledgeController extends Controller
         'description',
         'article_type',
         'min_package',
+        'unit',
         'supplier_code'
     ])
 
@@ -69,6 +70,7 @@ $images = $item->images->map(function ($img) use ($basePath) {
             'description'    => $item->description,
             'article_type'   => optional($item->type)->name,
             'min_package'    => $item->min_package,
+            'unit'           => $item->unit,
             'partner_name'   => $partnerName,
             'images'         => $images
         ];

@@ -436,7 +436,7 @@ $('#searchInput').on('keyup', function () {
                                          rounded-md bg-amber-50 text-amber-600 font-medium
                                          flex items-center gap-1">
                                 <i class="fa-solid fa-cubes text-[10px]"></i>
-                                Standard Package: ${item.min_package ?? '-'}
+                                Standard Package: ${item.min_package ?? '-'} ${item.unit ?? '-'}
                             </span>
 
                         </div>
