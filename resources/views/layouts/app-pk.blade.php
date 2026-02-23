@@ -73,7 +73,7 @@
 
 
   </head>
-  <body class="p-8">
+  <body class="p-4">
     <!-- [ Pre-loader ] start -->
     <div class="loader-bg fixed inset-0 bg-white dark:bg-themedark-cardbg z-[1034]">
       <div class="loader-track h-[5px] w-full inline-block absolute overflow-hidden top-0">
