@@ -56,6 +56,7 @@ use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BarcodePartController;
 use App\Http\Controllers\CAPAController;
+use App\Http\Controllers\ProductKnowledgeController;
 use App\Http\Controllers\RekapBupotController;
 use App\Http\Controllers\RemoteAccessController;
 use App\Http\Controllers\STOController;
@@ -71,16 +72,8 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->midd
 Route::get('/login-magang', function () {
     return view('auth.login-magang'); })->name('login.magang');
 
-Route::get('/download/security-app', function () {
-
-    $filePath = '/home/abimany3/public_html/downloads/security-app.rar';
-
-    if (!file_exists($filePath)) {
-        abort(404);
-    }
-
-    return response()->download($filePath, 'security-app.rar');
-});
+ Route::get('/product-knowledge/index', [ProductKnowledgeController::class, 'index'])->name('product-knowledge.index');
+Route::get('/product-knowledge/data', [ProductKnowledgeController::class, 'search'])->name('product-knowledge.data');
 
 Route::get('/check-session', function () {
     if (!auth()->check()) {
@@ -360,6 +353,8 @@ Route::prefix('ppic')->name('ppic.')->group(function () {
     Route::get('/logistic/stock/periodic', [StockController::class, 'periodic'])->name('stock.periodic');
     Route::get('/generate-barcode-part/index', [BarcodePartController::class, 'index'])->name('barcode-part.index');
     Route::post('/process-barcode-part', [BarcodePartController::class, 'process'])->name('barcode-part.process');
+    Route::get('/product-knowledge/index', [ProductKnowledgeController::class, 'index'])->name('product-knowledge.index');
+    Route::get('/product-knowledge/data', [ProductKnowledgeController::class, 'search'])->name('product-knowledge.data');
    
 });
 
