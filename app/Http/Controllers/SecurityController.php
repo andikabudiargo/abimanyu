@@ -45,64 +45,64 @@ public function getDataCatering(Request $request)
     $start = $request->start_datetime;
     $end   = $request->end_datetime;
 
-    $raw = DB::table('finger_logs as f_in')
-        ->leftJoin('employees', 'employees.nik', '=', 'f_in.nik')
-        ->select(
-            DB::raw("
-                CASE 
-                    WHEN employees.id IS NULL 
-                        THEN 'Nama Belum Terdaftar di Abimanyulive'
-                    ELSE employees.name
-                END AS name
-            "),
-            DB::raw("COALESCE(employees.nik, f_in.nik) as nik"),
-            'f_in.timestamp as in_timestamp',
-            DB::raw('TIME(f_in.timestamp) as in_time'),
-
-            // ===============================
-            // OUT TERDEKAT SETELAH IN
-            // ===============================
-            DB::raw("(
-                SELECT fo.timestamp
-                FROM finger_logs fo
-                WHERE fo.nik = f_in.nik
-                  AND fo.status = 1
-                  AND fo.timestamp > f_in.timestamp
-                ORDER BY fo.timestamp ASC
-                LIMIT 1
-            ) as out_timestamp"),
-
-            DB::raw("TIME((
-                SELECT fo.timestamp
-                FROM finger_logs fo
-                WHERE fo.nik = f_in.nik
-                  AND fo.status = 1
-                  AND fo.timestamp > f_in.timestamp
-                ORDER BY fo.timestamp ASC
-                LIMIT 1
-            )) as out_time")
-        )
+     $raw = DB::table('finger_logs as f_in')
+    ->leftJoin('employees', 'employees.nik', '=', 'f_in.nik')
+    ->select(
+        DB::raw("
+            CASE 
+                WHEN employees.id IS NULL 
+                    THEN 'Nama Belum Terdaftar di Abimanyulive'
+                ELSE employees.name
+            END AS name
+        "),
+        DB::raw("COALESCE(employees.nik, f_in.nik) as nik"),
+        'f_in.timestamp as in_timestamp',
+        DB::raw('TIME(f_in.timestamp) as in_time'),
 
         // ===============================
-        // HANYA DATA MASUK
+        // OUT TERDEKAT (MESIN KELUAR)
         // ===============================
-        ->where('f_in.status', 0)
+        DB::raw("(
+            SELECT fo.timestamp
+            FROM finger_logs fo
+            WHERE fo.nik = f_in.nik
+              AND fo.machine_id = '192.168.0.202'
+              AND fo.timestamp > f_in.timestamp
+            ORDER BY fo.timestamp ASC
+            LIMIT 1
+        ) as out_timestamp"),
 
-        // ===============================
-        // FILTER RANGE DATETIME (AMAN SHIFT)
-        // ===============================
-        ->whereBetween('f_in.timestamp', [$start, $end])
+        DB::raw("TIME((
+            SELECT fo.timestamp
+            FROM finger_logs fo
+            WHERE fo.nik = f_in.nik
+              AND fo.machine_id = '192.168.0.202'
+              AND fo.timestamp > f_in.timestamp
+            ORDER BY fo.timestamp ASC
+            LIMIT 1
+        )) as out_time")
+    )
 
-        // ===============================
-        // FILTER KARYAWAN MAKAN
-        // ===============================
-        ->where(function ($q) {
-            $q->whereNull('employees.id')
-              ->orWhere('employees.eat', 1);
-        })
+    // ===============================
+    // HANYA DATA MASUK (SELain mesin keluar)
+    // ===============================
+    ->where('f_in.machine_id', '!=', '192.168.0.202')
 
-        ->orderBy('f_in.timestamp', 'asc')
-        ->get();
+    // ===============================
+    // FILTER RANGE DATETIME
+    // ===============================
+    ->whereBetween('f_in.timestamp', [$start, $end])
+
+    // ===============================
+    // FILTER KARYAWAN MAKAN
+    // ===============================
+    ->where(function ($q) {
+        $q->whereNull('employees.id')
+          ->orWhere('employees.eat', 1);
+    })
+
+    ->orderBy('f_in.timestamp', 'asc')
+    ->get();
 
     // -----------------------------------------
     // FILTER DUPLIKAT & NOISE ABSEN
