@@ -66,7 +66,7 @@ public function getDataCatering(Request $request)
             SELECT fo.timestamp
             FROM finger_logs fo
             WHERE fo.nik = f_in.nik
-              AND fo.machine_id = '103.18.28.62'
+              AND fo.machine_id = '192.168.0.202'
               AND fo.timestamp > f_in.timestamp
             ORDER BY fo.timestamp ASC
             LIMIT 1
@@ -76,7 +76,7 @@ public function getDataCatering(Request $request)
             SELECT fo.timestamp
             FROM finger_logs fo
             WHERE fo.nik = f_in.nik
-              AND fo.machine_id = '103.18.28.62'
+              AND fo.machine_id = '192.168.0.202'
               AND fo.timestamp > f_in.timestamp
             ORDER BY fo.timestamp ASC
             LIMIT 1
@@ -86,7 +86,7 @@ public function getDataCatering(Request $request)
     // ===============================
     // HANYA DATA MASUK (SELain mesin keluar)
     // ===============================
-    ->where('f_in.machine_id', '!=', '103.18.28.62')
+    ->where('f_in.machine_id', '!=', '192.168.0.202')
 
     // ===============================
     // FILTER RANGE DATETIME
