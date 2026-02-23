@@ -41,6 +41,10 @@ public function type()
     return $this->belongsTo(ArticleType::class, 'article_type', 'code');
 }
 
+public function images()
+{
+    return $this->hasMany(ArticleImage::class, 'article_code','article_code');
+}
 
     public $timestamps = true; // Aktifkan jika kamu menggunakan created_at & updated_at
 }
