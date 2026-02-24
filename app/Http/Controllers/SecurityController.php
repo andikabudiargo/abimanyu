@@ -11,6 +11,7 @@ use App\Helpers\WebSocketHelper;
 use App\Models\Employee;
 use App\Models\SecurityGood;
 use App\Models\SecurityGoodItem;
+use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -45,64 +46,65 @@ public function getDataCatering(Request $request)
     $start = $request->start_datetime;
     $end   = $request->end_datetime;
 
-     $raw = DB::table('finger_logs as f_in')
-    ->leftJoin('employees', 'employees.nik', '=', 'f_in.nik')
-    ->select(
-        DB::raw("
-            CASE 
-                WHEN employees.id IS NULL 
-                    THEN 'Nama Belum Terdaftar di Abimanyulive'
-                ELSE employees.name
-            END AS name
-        "),
-        DB::raw("COALESCE(employees.nik, f_in.nik) as nik"),
-        'f_in.timestamp as in_timestamp',
-        DB::raw('TIME(f_in.timestamp) as in_time'),
+    $raw = DB::table('finger_logs as f_in')
+        ->leftJoin('employees', 'employees.nik', '=', 'f_in.nik')
+        ->select(
+            DB::raw("
+                CASE 
+                    WHEN employees.id IS NULL 
+                        THEN 'Nama Belum Terdaftar di Abimanyulive'
+                    ELSE employees.name
+                END AS name
+            "),
+            DB::raw("COALESCE(employees.nik, f_in.nik) as nik"),
 
-        // ===============================
-        // OUT TERDEKAT (MESIN KELUAR)
-        // ===============================
-        DB::raw("(
-            SELECT fo.timestamp
-            FROM finger_logs fo
-            WHERE fo.nik = f_in.nik
-              AND fo.machine_id = '192.168.0.202'
-              AND fo.timestamp > f_in.timestamp
-            ORDER BY fo.timestamp ASC
-            LIMIT 1
-        ) as out_timestamp"),
+            'f_in.timestamp as in_timestamp',
+            DB::raw('TIME(f_in.timestamp) as in_time'),
 
-        DB::raw("TIME((
-            SELECT fo.timestamp
-            FROM finger_logs fo
-            WHERE fo.nik = f_in.nik
-              AND fo.machine_id = '192.168.0.202'
-              AND fo.timestamp > f_in.timestamp
-            ORDER BY fo.timestamp ASC
-            LIMIT 1
-        )) as out_time")
-    )
+            // ===================================
+            // OUT = LOG DARI MESIN KELUAR
+            // ===================================
+            DB::raw("(
+                SELECT fo.timestamp
+                FROM finger_logs fo
+                WHERE fo.nik = f_in.nik
+                  AND fo.machine_id = '192.168.0.202'
+                  AND fo.timestamp > f_in.timestamp
+                ORDER BY fo.timestamp ASC
+                LIMIT 1
+            ) as out_timestamp"),
 
-    // ===============================
-    // HANYA DATA MASUK (SELain mesin keluar)
-    // ===============================
-    ->where('f_in.machine_id', '!=', '192.168.0.202')
+            DB::raw("TIME((
+                SELECT fo.timestamp
+                FROM finger_logs fo
+                WHERE fo.nik = f_in.nik
+                  AND fo.machine_id = '192.168.0.202'
+                  AND fo.timestamp > f_in.timestamp
+                ORDER BY fo.timestamp ASC
+                LIMIT 1
+            )) as out_time")
+        )
 
-    // ===============================
-    // FILTER RANGE DATETIME
-    // ===============================
-    ->whereBetween('f_in.timestamp', [$start, $end])
+        // ===================================
+        // IN = MESIN MASUK
+        // ===================================
+        ->where('f_in.machine_id', '192.168.0.201')
 
-    // ===============================
-    // FILTER KARYAWAN MAKAN
-    // ===============================
-    ->where(function ($q) {
-        $q->whereNull('employees.id')
-          ->orWhere('employees.eat', 1);
-    })
+        // ===================================
+        // RANGE DATETIME
+        // ===================================
+        ->whereBetween('f_in.timestamp', [$start, $end])
 
-    ->orderBy('f_in.timestamp', 'asc')
-    ->get();
+        // ===================================
+        // FILTER KARYAWAN MAKAN
+        // ===================================
+        ->where(function ($q) {
+            $q->whereNull('employees.id')
+              ->orWhere('employees.eat', 1);
+        })
+
+        ->orderBy('f_in.timestamp', 'asc')
+        ->get();
 
     // -----------------------------------------
     // FILTER DUPLIKAT & NOISE ABSEN
@@ -163,6 +165,10 @@ if ($r->hasFile('surat_jalan')) {
 
     // Pindahkan file ke folder tujuan
     $r->file('surat_jalan')->move($destinationPath, $fileName);
+
+    
+    // Kompres tanpa resize
+    $r->save($destinationPath.'/'.$fileName, 70);
 
     // Simpan hanya nama file ke database
     $fotoSuratJalan = $fileName;
