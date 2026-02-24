@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Article extends Model
 {
@@ -47,4 +48,14 @@ public function images()
 }
 
     public $timestamps = true; // Aktifkan jika kamu menggunakan created_at & updated_at
+
+    // ------------------------
+    // GLOBAL SCOPE
+    // ------------------------
+    protected static function booted()
+    {
+        static::addGlobalScope('active', function (Builder $builder) {
+            $builder->where('status', '!=', 'inactive');
+        });
+    }
 }
