@@ -46,8 +46,8 @@ public function getDataCatering(Request $request)
     $start = date('Y-m-d H:i:s', strtotime($request->start_datetime));
     $end   = date('Y-m-d H:i:s', strtotime($request->end_datetime));
 
-    $machineIn  = '192.168.0.201';
-    $machineOut = '192.168.0.202';
+    $machineIn  = '192.168.0.202';
+    $machineOut = '192.168.0.201';
 
     $raw = DB::table('finger_logs as f_in')
         ->leftJoin('employees', 'employees.nik', '=', 'f_in.nik')
