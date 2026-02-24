@@ -43,12 +43,16 @@ public function getDataCatering(Request $request)
         'end_datetime'   => 'required|date|after_or_equal:start_datetime',
     ]);
 
-    $start = $request->start_datetime;
-    $end   = $request->end_datetime;
+    $start = date('Y-m-d H:i:s', strtotime($request->start_datetime));
+    $end   = date('Y-m-d H:i:s', strtotime($request->end_datetime));
+
+    $machineIn  = '192.168.0.201';
+    $machineOut = '192.168.0.202';
 
     $raw = DB::table('finger_logs as f_in')
         ->leftJoin('employees', 'employees.nik', '=', 'f_in.nik')
-        ->select(
+
+        ->select([
             DB::raw("
                 CASE 
                     WHEN employees.id IS NULL 
@@ -61,43 +65,37 @@ public function getDataCatering(Request $request)
             'f_in.timestamp as in_timestamp',
             DB::raw('TIME(f_in.timestamp) as in_time'),
 
-            // ===================================
-            // OUT = LOG DARI MESIN KELUAR
-            // ===================================
-            DB::raw("(
-                SELECT fo.timestamp
-                FROM finger_logs fo
-                WHERE fo.nik = f_in.nik
-                  AND fo.machine_id = '192.168.0.202'
-                  AND fo.timestamp > f_in.timestamp
-                ORDER BY fo.timestamp ASC
-                LIMIT 1
-            ) as out_timestamp"),
+            // =========================
+            // OUT TERDEKAT DARI MESIN OUT
+            // =========================
+            DB::raw("
+                (
+                    SELECT MIN(fo.timestamp)
+                    FROM finger_logs fo
+                    WHERE fo.nik = f_in.nik
+                      AND fo.machine_id = '{$machineOut}'
+                      AND fo.timestamp > f_in.timestamp
+                ) as out_timestamp
+            "),
 
-            DB::raw("TIME((
-                SELECT fo.timestamp
-                FROM finger_logs fo
-                WHERE fo.nik = f_in.nik
-                  AND fo.machine_id = '192.168.0.202'
-                  AND fo.timestamp > f_in.timestamp
-                ORDER BY fo.timestamp ASC
-                LIMIT 1
-            )) as out_time")
-        )
+            DB::raw("
+                TIME(
+                    (
+                        SELECT MIN(fo.timestamp)
+                        FROM finger_logs fo
+                        WHERE fo.nik = f_in.nik
+                          AND fo.machine_id = '{$machineOut}'
+                          AND fo.timestamp > f_in.timestamp
+                    )
+                ) as out_time
+            ")
+        ])
 
-        // ===================================
-        // IN = MESIN MASUK
-        // ===================================
-        ->where('f_in.machine_id', '192.168.0.201')
+        // ✅ IN hanya dari mesin masuk
+        ->where('f_in.machine_id', $machineIn)
 
-        // ===================================
-        // RANGE DATETIME
-        // ===================================
         ->whereBetween('f_in.timestamp', [$start, $end])
 
-        // ===================================
-        // FILTER KARYAWAN MAKAN
-        // ===================================
         ->where(function ($q) {
             $q->whereNull('employees.id')
               ->orWhere('employees.eat', 1);
