@@ -26,7 +26,8 @@
           @foreach ($articles as $a)
             <option value="{{ $a->id }}"
                     data-code="{{ $a->article_code }}"
-                    data-uom="{{ $a->unit }}">
+                    data-uom="{{ $a->unit }}"
+                    data-min-package="$a->min_package">
               {{ $a->description }}
             </option>
           @endforeach
@@ -52,13 +53,21 @@
           </div>
 
           <div>
+            <label class="text-xs font-semibold text-gray-600 mb-1 block">Qty Box</label>
+            <input type="number"
+                  min="0"
+                  name="articles[{{ $i }}][min_package]"
+                  class="w-full border rounded px-2 py-1 bg-gray-100">
+          </div>
+        </div>
+
+          <div>
             <label class="text-xs font-semibold text-gray-600 mb-1 block">UOM</label>
             <input type="text"
                   name="articles[{{ $i }}][uom]"
                   class="part-uom w-full border rounded px-2 py-1 bg-gray-100"
                   readonly>
           </div>
-        </div>
 
         <!-- LOCATION -->
         <label class="text-xs font-semibold text-gray-600 mt-3 mb-1 block">Location</label>

@@ -277,7 +277,7 @@ $ticketsToApprove = $canApprove
     </h1>
 
    <p class="text-sm mt-2 text-white/90 leading-relaxed">
-  @if(in_array(auth()->id(), [67, 53, 2, 92]))
+  @if(in_array(auth()->id(), [53, 2, 92]))
       Silahkan pilih nomor STO dan Lokasi untuk memulai proses stock opname.
   @else
       Silahkan pilih nomor STO untuk memulai proses stock opname.
@@ -299,11 +299,11 @@ $ticketsToApprove = $canApprove
    
         @php
   $year  = 2026;
-  $month = '01';
+  $month = '02';
 
   // Mapping lokasi → range
   $stoRange = [
-    'CM Dead Stock' => [1, 999],
+    'Dead Stock CM1' => [1, 999],
     'Chemical'     => [1000, 1999],
     'Consumable'   => [2000, 2999],
     'Raw Material' => [3000, 3999],
@@ -348,7 +348,7 @@ $ticketsToApprove = $canApprove
 
 
   <!-- Warehouse Selector untuk user 67 & 53 -->
-  @if(in_array(auth()->id(), [2, 68, 53, 92]))
+  @if(in_array(auth()->id(), [2, 53, 92]))
 
     @if($warehouse === null)
       <select

@@ -50,6 +50,22 @@
   </select>
 </div>
 
+ @if(auth()->id() == 58)
+<div>
+  <label class="block text-sm mb-1 font-medium text-gray-700">
+    Periode STO
+  </label>
+
+  <select id="filter-sto-periode"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md">
+    <option value="">-- All STO Periode --</option>
+    <option value="2026/02">2026 Februari</option>
+    <option value="2026/01">2026 Januari (Closed)</option>
+    <option value="2025/12">2025 Desember (Closed)</option>
+  </select>
+</div>
+@endif
+
         </div>
 
     <div class="flex justify-start gap-2 mt-6">
@@ -72,6 +88,7 @@
                     <th class="px-4 py-2 text-left">Part Code</th>
                     <th class="px-4 py-2 text-left">Part Name</th>
                      <th class="px-4 py-2 text-center">Qty</th>
+                      <th class="px-4 py-2 text-center">Qty Box</th>
                     <th class="px-4 py-2 text-center">UoM</th>
                     <th class="px-4 py-2 text-center">STO Number</th>
                     <th class="px-4 py-2 text-center">Created by</th>
@@ -212,9 +229,71 @@ div.dt-button-collection .dt-button:hover {
         top: 1px;
     }
 
+/* MOBILE CARD VIEW: Ubah tabel jadi card saat layar kecil */
+@media (max-width: 768px) {
+
+  #sto-table thead {
+    display: none;
+  }
+
+  #sto-table, 
+  #sto-table tbody, 
+  #sto-table tr, 
+  #sto-table td {
+    display: block;
+    width: 100%;
+  }
+
+  #sto-table tr {
+    margin-bottom: 18px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 14px 12px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.07);
+  }
+
+  #sto-table td {
+    padding: 8px 4px;
+    position: relative;
+    text-align: left !important;
+    border: none;
+  }
+
+  #sto-table td::before {
+    content: attr(data-label);
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e40af;
+    display: block;
+    margin-bottom: 4px;
+    opacity: 0.8;
+  }
+
+  
+}
 
 </style>
 <script>
+$('#sto-table').on('draw.dt', function () {
+    $('#sto-table tbody tr').each(function () {
+        $(this).find('td').each(function (index) {
+            const headers = [
+                "Action",
+                "Location",
+                "Part Code",
+                "Part Name",
+                "Qty",
+                "UoM",
+                "Qty Box",
+                "STO Number",
+                "Created By",
+                "Created At",
+                "Note"
+            ];
+            $(this).attr('data-label', headers[index]);
+        });
+    });
+});
 
  function showToast(type, message) {
     Swal.fire({
@@ -243,6 +322,7 @@ $(function () {
         d.location   = $('#filter-location').val();
         d.article    = $('#filter-article').val();
         d.sto_number = $('#filter-sto_number').val();
+        d.sto_month = $('#filter-sto-periode').val();
       }
     },
 
@@ -252,6 +332,7 @@ $(function () {
       { data: 'article_code' },
       { data: 'part_name' },
       { data: 'qty', className: 'text-center' },
+       { data: 'min_package', className: 'text-center' },
       { data: 'unit', className: 'text-center' },
       { data: 'sto_number', className: 'text-center' },
       { data: 'created_by', className: 'text-center' },

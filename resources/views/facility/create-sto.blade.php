@@ -122,6 +122,7 @@ $('.part-select').select2({
         text: a.text,
         code: a.article_code,
         uom: a.unit,
+        minPackage: a.min_package, // tambahkan di JS
         isOther: false
       })),
       pagination: data.pagination
@@ -142,7 +143,9 @@ $('.part-select').select2({
   const isOther = data.isOther || String(data.id).startsWith('__OTHER__:');
   const $codeInput  = $(`input[name="articles[${row}][article_code]"]`);
   const $uomInput   = $(`input[name="articles[${row}][uom]"]`);
+  const $minPackageInput   = $(`input[name="articles[${row}][min_package]"]`);
   const $otherInput = $(`input[name="articles[${row}][other_name]"]`);
+  
 
   if (isOther) {
 
@@ -151,7 +154,7 @@ $('.part-select').select2({
     $uomInput
       .val('')
       .prop('readonly', false);
-
+$minPackageInput.val(data.minPackage || $(this).find(':selected').data('min-package') || '').prop('readonly', true);
     $otherInput.val(data.text);
 
      // 🔥 update header label
@@ -160,6 +163,7 @@ $('.part-select').select2({
 
     $codeInput.val(data.code || data.id || '');
     $uomInput.val(data.uom || '').prop('readonly', true);
+    $minPackageInput.val(data.minPackage || $(this).find(':selected').data('min-package') || '').prop('readonly', true);
     $otherInput.val('');
      // 🔥 update header label
     $header.text(data.text);
@@ -219,7 +223,8 @@ $(document).ready(function () {
             select.append(`
               <option value="${a.article_code}"
                 data-code="${a.article_code}"
-                data-uom="${a.unit}">
+                data-uom="${a.unit}"
+                data-min-package="${a.min_package}">
                 ${a.article_code} - ${a.description}
               </option>`
             );
@@ -422,7 +427,7 @@ $(document).ready(function () {
         }
       },
       complete: function () {
-        $('#btnSave, #btnSaveMobile').prop('disabled', false).text('Save');
+        $('#btnSave').prop('disabled', false).text('Save');
       }
     });
   });

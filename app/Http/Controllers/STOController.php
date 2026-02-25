@@ -30,8 +30,16 @@ public function index()
 
     $allowedTypes = $this->allowedArticleTypes($warehouse);
 
-    $articles = Article::whereIn('article_type', $allowedTypes)
-        ->select('id', 'article_code', 'description', 'unit', 'article_type')
+   
+    // 🔹 Bangun query dulu
+    $query = Article::whereIn('article_type', $allowedTypes);
+
+    // ✅ Filter khusus Werate → supplier_code WJI
+    if ($warehouse === 'Werate') {
+        $query->where('supplier_code', 'LIKE', '%WJI%');
+    }
+
+    $articles = $query->select('id', 'article_code', 'description', 'unit', 'article_type', 'min_package')
         ->orderBy('description')
         ->get();
 
@@ -55,28 +63,27 @@ public function index()
     $userId = Auth::id();
 
     return match ($userId) {
-        44        => 'Raw Material',
-        85        => 'Werate',
-        94,100    => 'WIP Buffing',
-        43,45     => 'WIP Touch Up',
-        99, 92    => 'WIP Sanding',
-        95        => 'Consumable',
-        68        => 'Finish Goods',
+        69        => 'Raw Material',
+        88        => 'Werate',
+        71    => 'WIP Buffing',
+        44,45     => 'WIP Touch Up',
+        85,108    => 'WIP Sanding',
+        63        => 'Consumable',
         67        => 'Chemical',
-        101       => 'OT',
-        53,2  => null, // 🔥 BOLEH PILIH SENDIRI
+        68        => 'Finish Goods',
+        53,2,92  => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
 
 private function allowedWarehouses(): array
 {
-    $userId = Auth::id();
+  $userId = Auth::id();
 
-    // 🔥 User 67 hanya boleh Chemical & Consumable
-    // if ($userId == 92) {
-        //return ['WIP Sanding', 'Dead Stock CM1'];
-    //}
+if ($userId == 92) {
+    return ['Dead Stock CM1', 'OT', 'WIP Buffing'];
+}
+
     // 🔥 User bebas pilih
     if (is_null($this->userWarehouse())) {
         return [
@@ -127,8 +134,14 @@ public function getArticlesByWarehouse(Request $request)
 
     $allowedTypes = $this->allowedArticleTypes($warehouse);
 
-    $articles = Article::whereIn('article_type', $allowedTypes)
-        ->select('article_code', 'description', 'unit')
+    $query = Article::whereIn('article_type', $allowedTypes);
+
+    // ✅ Khusus Werate → filter supplier_code WJI
+    if ($warehouse === 'Werate') {
+        $query->where('supplier_code', 'LIKE', '%WJI%');
+    }
+
+    $articles = $query->select('article_code', 'description', 'unit','min_package')
         ->orderBy('description')
         ->get();
 
@@ -136,6 +149,53 @@ public function getArticlesByWarehouse(Request $request)
 }
 
 
+public function getStoByWarehouse(Request $request)
+{
+    $warehouse = $request->warehouse;
+
+    $year  = 2026;
+    $month = '02';
+
+    $stoRange = [
+        'Dead Stock CM1' => [1, 500],
+        'Chemical'     => [1000, 1999],
+        'Consumable'   => [2000, 2999],
+        'Raw Material' => [3000, 3999],
+        'WIP Buffing'  => [4000, 4999],
+        'WIP Sanding'  => [5000, 5999],
+        'WIP Touch Up' => [6000, 6999],
+        'Finish Goods' => [7000, 7999],
+        'OT'           => [8000, 8999],
+        'Werate'       => [9000, 9999],
+    ];
+
+    $start = 1;
+    $end   = 2000;
+
+    if (isset($stoRange[$warehouse])) {
+        [$start, $end] = $stoRange[$warehouse];
+    }
+
+    $usedStoNumbers = DB::table('stos')
+        ->pluck('sto_number')
+        ->toArray();
+
+    $options = '';
+
+    for ($i = $start; $i <= $end; $i++) {
+
+        $number = str_pad($i, 4, '0', STR_PAD_LEFT);
+        $val = "{$year}/{$month}/{$number}";
+
+        if (!in_array($val, $usedStoNumbers)) {
+            $options .= "<option value='{$val}'>{$val}</option>";
+        }
+    }
+
+    return response()->json([
+        'html' => $options
+    ]);
+}
 
 
 public function store(Request $request)
@@ -285,11 +345,12 @@ public function datatables(Request $request)
     2 => 'sto_items.article_code',
     3 => 'articles.description',
     4 => 'sto_items.qty',
-    5 => 'articles.unit',
-    6 => 'stos.sto_number',   // ✅ FIX
-    7 => 'users.name',
-    8 => 'stos.created_at',
-    9 => 'stos.note',
+    5 => 'articles.min_package',
+    6 => 'articles.unit',
+    7 => 'stos.sto_number',   // ✅ FIX
+    8 => 'users.name',
+    9 => 'stos.created_at',
+    10 => 'stos.note',
 ];
 
 
@@ -305,7 +366,6 @@ public function datatables(Request $request)
     // =====================
     $query = DB::table('sto_items')
         ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
-         ->where('stos.sto_number', 'like', '2026/%') // ✅ FILTER TAHUN
         ->leftJoin('articles', 'articles.article_code', '=', 'sto_items.article_code')
         ->leftJoin('users', 'users.id', '=', 'stos.created_by')
        ->select(
@@ -323,6 +383,7 @@ public function datatables(Request $request)
     "),
 
     'sto_items.qty',
+     'articles.min_package',
 
     DB::raw("
       CASE
@@ -338,7 +399,16 @@ public function datatables(Request $request)
     'stos.note'
        );
 
-    
+       // =====================
+// 📅 FILTER STO MONTH (TAMBAH DI SINI)
+// =====================
+$defaultMonth = '2026/02';
+
+$selectedMonth = $request->filled('sto_month')
+    ? $request->sto_month
+    : $defaultMonth;
+
+$query->where('stos.sto_number', 'like', $selectedMonth . '/%');
     // =====================
     // 🔐 FILTER KHUSUS USER 67
 if ($userId == 67) {
@@ -391,6 +461,9 @@ if ($userId == 67) {
     // =====================
     $totalDataQuery = DB::table('sto_items')
         ->join('articles', 'articles.article_code', '=', 'sto_items.article_code');
+
+        $totalDataQuery->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+               ->where('stos.sto_number', 'like', $selectedMonth . '/%');
 
     if (!is_null($warehouse)) {
         $totalDataQuery->where('sto_items.location', $warehouse);
@@ -465,6 +538,7 @@ $qtyFormatted = in_array($row->location, $twoDecimalLocations)
         'article_code' => $row->article_code,
         'part_name'    => $row->part_name,
         'qty'          => $qtyFormatted, // ✅ FIX DI SINI
+        'min_package' => $row->min_package,
         'unit'         => $row->unit,
         'sto_number'   => $row->sto_number,
         'created_by'   => $row->created_by,
@@ -488,7 +562,7 @@ public function edit($id)
     $sto = Sto::with([
         'items' => function ($q) {
             $q->with(['article' => function ($a) {
-                $a->select('id', 'article_code', 'description', 'unit');
+                $a->select('id', 'article_code', 'description', 'unit', 'min_package');
             }]);
         }
     ])->findOrFail($id);
@@ -516,7 +590,7 @@ public function edit($id)
     }
 
     $articles = $query
-        ->select('id', 'article_code', 'description', 'unit', 'article_type')
+        ->select('id', 'article_code', 'description', 'unit', 'article_type', 'min_package')
         ->orderBy('description')
         ->get();
 
@@ -531,6 +605,7 @@ public function edit($id)
         'allowedWarehouses'
     ));
 }
+
 
 
 public function update(Request $request, $id)
@@ -595,7 +670,7 @@ public function selectArticle(Request $request)
 
     $allowedTypes = $this->allowedArticleTypes($warehouse);
 
-    $query = Article::select('article_code', 'unit', 'description', 'article_type')
+    $query = Article::select('article_code', 'unit', 'description', 'article_type', 'min_package')
         ->when(!empty($allowedTypes), fn($q) => $q->whereIn('article_type', $allowedTypes))
         ->when($search, fn($q) => $q->where(fn($qq) => 
             $qq->where('article_code', 'like', "%{$search}%")
@@ -614,6 +689,7 @@ public function selectArticle(Request $request)
             'id'   => $a->article_code,
             'text' => "{$a->article_code} - {$a->description}",
             'unit' => $a->unit,
+            'min_package' => $a->min_package,
         ]),
         'pagination' => [
             'more' => $offset + $perPage < $totalCount
@@ -640,4 +716,6 @@ public function destroy($id)
         'message' => 'STO berhasil dihapus'
     ]);
 }
+
+
 }

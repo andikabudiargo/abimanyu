@@ -63,11 +63,11 @@
 
     @php
   $year  = 2026;
-  $month = '01';
+  $month = '02';
 
   // Mapping lokasi → range
   $stoRange = [
-    'CM Dead Stock' => [1, 999],
+    'Dead Stock CM1' => [1, 999],
     'Chemical'     => [1000, 1999],
     'Consumable'   => [2000, 2999],
     'Raw Material' => [3000, 3999],
@@ -124,10 +124,11 @@
                   <th class="px-4 py-3 text-left font-medium">PART CODE</th>
                   <th class="px-4 py-3 text-left font-medium">PART NAME</th>
                   <th class="px-4 py-3 text-center font-medium w-32">QTY</th>
-                  <th class="px-4 py-3 text-center font-medium w-32">UOM</th>
+                  <th class="px-4 py-3 text-center font-medium w-32">QTY BOX</th>
+                   <th class="px-4 py-3 text-center font-medium w-32">UOM</th>
                   <th class="px-4 py-3 text-center font-medium w-48">LOCATION
 
-  @if(in_array(auth()->id(), [2, 68, 53, 92]))
+  @if(in_array(auth()->id(), [2, 53, 92]))
     
     @if($warehouse === null)
       <select name="warehouse"
@@ -171,7 +172,8 @@
                         @foreach ($articles as $a)
                           <option value="{{ $a->id }}"
                             data-code="{{ $a->article_code }}"
-                            data-uom="{{ $a->unit }}">
+                            data-uom="{{ $a->unit }}"
+                            data-min-package="$a->min_package">
                             {{ $a->description }}
                           </option>
                         @endforeach
@@ -186,10 +188,19 @@
 
                     <td class="px-3 py-2 text-center">
                       <input type="text"
+                        name="articles[{{ $i }}][min_package]"
+                        class="part-min-package w-full border border-gray-300 rounded-lg px-2 py-1 text-center bg-gray-50"
+                        readonly>
+                    </td>
+
+                    <td class="px-3 py-2 text-center">
+                      <input type="text"
                         name="articles[{{ $i }}][uom]"
                         class="part-uom w-full border border-gray-300 rounded-lg px-2 py-1 text-center bg-gray-50"
                         readonly>
                     </td>
+
+                     
 
                     <td class="px-3 py-2 text-center">
                       <input type="text"
