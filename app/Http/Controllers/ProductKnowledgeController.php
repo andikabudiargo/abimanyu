@@ -32,7 +32,10 @@ class ProductKnowledgeController extends Controller
     ])
 
       // ✅ EXCLUDE ARTICLE TYPE GA & PT
-   ->whereNotIn('article_type', ['GA', 'PT']);
+   ->whereNotIn('article_type', ['GA', 'PT'])
+
+    // ✅ HANYA ARTICLE ACTIVE
+    ->where('status', 'active');   // ← TAMBAHAN INI
 
     // 🔎 SEARCH
     if (!empty($q)) {
