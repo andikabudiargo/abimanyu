@@ -50,7 +50,7 @@
   </select>
 </div>
 
- @if(auth()->id() == 58)
+ @if(auth()->id() == 53)
 <div>
   <label class="block text-sm mb-1 font-medium text-gray-700">
     Periode STO
