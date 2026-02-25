@@ -28,6 +28,7 @@ class ProductKnowledgeController extends Controller
         'article_type',
         'min_package',
         'unit',
+        'status',
         'supplier_code'
     ])
 
