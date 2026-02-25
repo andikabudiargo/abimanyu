@@ -132,6 +132,7 @@
              <li class="pc-item"><a class="pc-link" href="{{ route('ppic.transfer-out.index') }}">Transfer Out</a></li>
              <li class="pc-item"><a class="pc-link" href="{{ route('ppic.stock.index') }}">Stock</a></li>
              <li class="pc-item"><a class="pc-link" href="{{ route('ppic.barcode-part.index') }}">Part Barcode</a></li>
+              <li class="pc-item"><a class="pc-link" href="{{ route('ppic.product-knowledge.index') }}">Product Knowledge</a></li>
              </ul>
             </li>
             
@@ -336,7 +337,6 @@
   </ul>
 </li>
 
-<?php if(auth()->check() && auth()->id() == 53): ?>
 <li class="pc-item pc-hasmenu">
   <a href="#!" class="pc-link">
     <span class="pc-micon"><i data-feather="clipboard"></i></span>
@@ -349,7 +349,7 @@
     </li>
   </ul>
 </li>
-<?php endif; ?>
+
 
 
 
