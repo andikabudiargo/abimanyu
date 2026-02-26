@@ -35,26 +35,130 @@ class CalculatorBOMController extends Controller
         return view('accounting.chemical-check');
     }
 
-     public function uploadCM(Request $request)
+    public function importBOM(Request $request)
     {
-         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv',
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx|max:5120'
         ]);
 
-        $file = $request->file('file');
+        $spreadsheet = IOFactory::load(
+            $request->file('file')->getRealPath()
+        );
 
-        // Load Excel dengan PhpSpreadsheet
-        $spreadsheet = IOFactory::load($file->getPathname());
         $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray();
 
-        // Simpan ke cache selama 1 jam
-       Cache::forever('cm_data', $rows);
+        /*
+        ======================================
+        RESULT COUNTER
+        ======================================
+        */
+        $success = 0;
+        $failed  = 0;
+        $errors  = [];
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'File berhasil diupload dan disimpan di cache',
-            'rows_count' => count($rows),
+        DB::beginTransaction();
+
+        try {
+
+            /*
+            ======================================
+            TRUNCATE TABLE
+            ======================================
+            */
+            DB::table('boms')->truncate();
+
+            $highestRow = $sheet->getHighestRow();
+            $insert = [];
+
+            /*
+            ======================================
+            LOOP EXCEL (START ROW 2)
+            ======================================
+            */
+            for ($row = 2; $row <= $highestRow; $row++) {
+
+                try {
+
+                    // mapping berdasarkan CELL
+                    $code              = trim($sheet->getCell("A$row")->getValue());
+                    $customer          = trim($sheet->getCell("B$row")->getValue());
+                    $article_fg        = trim($sheet->getCell("C$row")->getValue());
+                    $article_fg_desc   = trim($sheet->getCell("D$row")->getValue());
+                    $article_rm        = trim($sheet->getCell("E$row")->getValue());
+                    $article_rm_desc   = trim($sheet->getCell("F$row")->getValue());
+                    $article_cm        = trim($sheet->getCell("G$row")->getValue());
+                    $article_cm_desc   = trim($sheet->getCell("H$row")->getValue());
+                    $qty               = $sheet->getCell("I$row")->getValue();
+                    $uom               = trim($sheet->getCell("J$row")->getValue());
+
+                    // skip row kosong total
+                    if (!$code && !$article_cm) {
+                        continue;
+                    }
+
+                    // validasi minimal
+                    if (!$code || !$article_cm || !$qty) {
+                        throw new \Exception("Data wajib kosong");
+                    }
+
+                    $insert[] = [
+                        // ID tidak diisi → auto increment DB
+                        'code' => $code,
+                        'customer' => $customer,
+                        'article_fg' => $article_fg,
+                        'article_fg_desc' => $article_fg_desc,
+                        'article_rm' => $article_rm,
+                        'article_rm_desc' => $article_rm_desc,
+                        'article_cm' => $article_cm,
+                        'article_cm_desc' => $article_cm_desc,
+                        'qty' => (float)$qty,
+                        'uom' => $uom,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+
+                    $success++;
+
+                } catch (\Exception $e) {
+
+                    $failed++;
+
+                    $errors[] = [
+                        'row' => $row,
+                        'error' => $e->getMessage()
+                    ];
+                }
+            }
+
+            /*
+            ======================================
+            INSERT BATCH
+            ======================================
+            */
+            if (!empty($insert)) {
+                DB::table('boms')->insert($insert);
+            }
+
+            DB::commit();
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return back()->with('error',
+                'Import gagal: '.$e->getMessage());
+        }
+
+        /*
+        ======================================
+        RESULT SUMMARY
+        ======================================
+        */
+        return back()->with([
+            'import_success' => true,
+            'total_success'  => $success,
+            'total_failed'   => $failed,
+            'errors'         => $errors
         ]);
     }
 

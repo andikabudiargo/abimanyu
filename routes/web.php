@@ -510,7 +510,7 @@ Route::get('/inspection/pareto', [InspectionController::class, 'paretoDefect'])-
     Route::get('get-cm-buy', [CalculatorBOMController::class, 'getCmTotalBuy'])->name('cabom.get-cm-total-buy');
     Route::get('data/rm-table', [CalculatorBOMController::class, 'getRMByFG'])->name('cabom.rm'); 
     Route::get('chemical-check', [CalculatorBOMController::class, 'cekcm'])->name('cmbom.index');
-    Route::post('/excel/upload', [CalculatorBOMController::class, 'uploadCM'])->name('cmbom.upload');
+    Route::post('/excel/import', [CalculatorBOMController::class, 'importBOM'])->name('cmbom.upload');
     Route::get('/excel/rm', [CalculatorBOMController::class, 'getRM']);
     Route::get('/excel/cm', [CalculatorBOMController::class, 'getCM']);
     Route::get('/excel/fg', [CalculatorBOMController::class, 'getFG']);
