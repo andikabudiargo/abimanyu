@@ -67,7 +67,7 @@
 
   // Mapping lokasi → range
   $stoRange = [
-    'Dead Stock CM1' => [1, 999],
+    'Dead Stock CM1' => [1, 100],
     'Chemical'     => [1000, 1999],
     'Consumable'   => [2000, 2999],
     'Raw Material' => [3000, 3999],
@@ -75,7 +75,7 @@
     'WIP Sanding'  => [5000, 5999],
     'WIP Touch Up' => [6000, 6999],
     'Finish Goods' => [7000, 7999],
-    'OT'           => [8000, 8999],
+    'OT'           => [101, 999],
     'Werate'       => [9000, 9999],
   ];
 
