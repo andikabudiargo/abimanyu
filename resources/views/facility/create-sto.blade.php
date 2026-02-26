@@ -185,7 +185,17 @@ function toggleUomByLocation($row) {
   } else {
 
     $codeInput.val(data.code || data.id || '');
+    const locationValue =
+  ($row.find('.location-input').val() || '').toLowerCase();
+
+const isChemical =
+    locationValue.includes('Chemical') ||
+    locationValue.includes('Dead Stock CM1');
+
+if (!isChemical) {
+    // hanya isi otomatis jika bukan chemical
     $uomInput.val(data.uom || '').prop('readonly', true);
+}
 
     $minPackageInput
       .val(data.minPackage || $(this).find(':selected').data('min-package') || '')

@@ -286,9 +286,23 @@ public function store(Request $request)
                 continue;
             }
 
-            $uom = $row['article_code'] === 'OTHER'
-                ? $row['uom']
-                : Article::where('article_code', $row['article_code'])->value('unit');
+            $isOverrideLocation =
+    str_contains($row['location'], 'Chemical') ||
+    str_contains($row['location'], 'Dead Stock CM1');
+
+if ($row['article_code'] === 'OTHER' || $isOverrideLocation) {
+
+    // pakai UOM dari input user
+    $uom = $row['uom'];
+
+} else {
+
+    // default ambil dari master
+    $uom = Article::where(
+        'article_code',
+        $row['article_code']
+    )->value('unit');
+}
 
             $sto->items()->create([
                 'article_code' => $row['article_code'],
