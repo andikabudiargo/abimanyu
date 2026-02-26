@@ -132,6 +132,26 @@ $('.part-select').select2({
 });
 
 
+function toggleUomByLocation($row) {
+  const locationValue =
+  ($row.find('.location-input').val() || '').trim();
+  const $uomInput = $row.find('.part-uom');
+
+  // hanya unlock jika Chemical/Dead Stock CM1
+ if (
+    locationValue === "Chemical" ||
+    locationValue === "Dead Stock CM1"
+) {
+    $uomInput.prop('readonly', false)
+             .removeClass('bg-gray-50')
+             .addClass('bg-white');
+  } else {
+    $uomInput.prop('readonly', true)
+             .addClass('bg-gray-50')
+             .removeClass('bg-white');
+  }
+}
+
   // =====================
   // SELECT HANDLER
   // =====================
@@ -141,11 +161,11 @@ $('.part-select').select2({
   const row  = $(this).data('row');
   const $header = $row.find('.header-label');
   const isOther = data.isOther || String(data.id).startsWith('__OTHER__:');
+
   const $codeInput  = $(`input[name="articles[${row}][article_code]"]`);
   const $uomInput   = $(`input[name="articles[${row}][uom]"]`);
-  const $minPackageInput   = $(`input[name="articles[${row}][min_package]"]`);
+  const $minPackageInput = $(`input[name="articles[${row}][min_package]"]`);
   const $otherInput = $(`input[name="articles[${row}][other_name]"]`);
-  
 
   if (isOther) {
 
@@ -154,20 +174,29 @@ $('.part-select').select2({
     $uomInput
       .val('')
       .prop('readonly', false);
-$minPackageInput.val(data.minPackage || $(this).find(':selected').data('min-package') || '').prop('readonly', true);
-    $otherInput.val(data.text);
 
-     // 🔥 update header label
+    $minPackageInput
+      .val(data.minPackage || $(this).find(':selected').data('min-package') || '')
+      .prop('readonly', true);
+
+    $otherInput.val(data.text);
     $header.text(data.text);
+
   } else {
 
     $codeInput.val(data.code || data.id || '');
     $uomInput.val(data.uom || '').prop('readonly', true);
-    $minPackageInput.val(data.minPackage || $(this).find(':selected').data('min-package') || '').prop('readonly', true);
+
+    $minPackageInput
+      .val(data.minPackage || $(this).find(':selected').data('min-package') || '')
+      .prop('readonly', true);
+
     $otherInput.val('');
-     // 🔥 update header label
     $header.text(data.text);
   }
+
+  // ✅ CEK LOCATION → override readonly jika Chemical
+  toggleUomByLocation($row);
 
   $row.find('.qty-input').prop('disabled', false);
 });
@@ -198,17 +227,27 @@ $(document).on('select2:clear', '.part-select', function () {
   // 🔥 RESET HEADER LABEL ke default
   const $header = $row.find('.header-label');
   $header.text(`Item ${row + 1}`);
-});
+  toggleUomByLocation($row);
 });
 
+
 $(document).on('change', '#warehouse-null, #warehouse-null-desktop, #wip-master', function () {
+
   const selectedLocation = $(this).val();
+
   if (!selectedLocation) {
     $('.location-input').val('');
     return;
   }
 
   $('.location-input').val(selectedLocation);
+
+  // re-check semua row
+  $('.sto-row').each(function () {
+    toggleUomByLocation($(this));
+  });
+
+});
 });
 
 $(document).ready(function () {
