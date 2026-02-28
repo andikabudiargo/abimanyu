@@ -895,6 +895,13 @@ ORDER BY
     }
 
     /*
+|--------------------------------------------------------------------------
+| SORT DATA AGAR GROUP RM STABIL
+|--------------------------------------------------------------------------
+*/
+ksort($data, SORT_NATURAL);
+
+    /*
     |--------------------------------------------------------------------------
     | 4. CREATE EXCEL
     |--------------------------------------------------------------------------
@@ -1040,68 +1047,55 @@ $sheet->setCellValue($colTotal.'2','TOTAL');
     | 6. INSERT DATA
     |--------------------------------------------------------------------------
     */
-    $rowIndex=4;
-
-$currentRM=null;
-$mergeStartRow=null;
-$rmMergeRanges=[];
+  $rowIndex = 4;
+$lastRM   = null;
 
 foreach($data as $item){
 
-    $rmCode=$item['info'][0];
+    $rmCode = $item['info'][0];
+    $rmDesc = $item['info'][1];
 
     /*
     |--------------------------------------------------
-    | JIKA OTHER → JANGAN IKUT MERGE
+    | RM HANYA MUNCUL DI BARIS PERTAMA GROUP
     |--------------------------------------------------
     */
-    if($rmCode === 'OTHER'){
+   $isSameRM = ($rmCode !== 'OTHER' && $rmCode === $lastRM);
 
-        // tutup group RM sebelumnya
-        if($mergeStartRow !== null && $currentRM !== null){
-            $rmMergeRanges[]=[$mergeStartRow,$rowIndex-1];
-        }
+    $rowInfo = [
+        $isSameRM ? '' : $rmCode,
+        $isSameRM ? '' : $rmDesc,
+        $item['info'][2], // FG Code
+        $item['info'][3], // FG Desc
+        $item['info'][4], // UOM
+    ];
 
-        // reset grouping
-        $currentRM=null;
-        $mergeStartRow=null;
+    $sheet->fromArray($rowInfo,null,"A{$rowIndex}");
 
-    }else{
-
-        /*
-        |--------------------------------------------------
-        | GROUPING RM NORMAL
-        |--------------------------------------------------
-        */
-        if($currentRM === null){
-            $mergeStartRow=$rowIndex;
-        }
-        elseif($currentRM !== $rmCode){
-            $rmMergeRanges[]=[$mergeStartRow,$rowIndex-1];
-            $mergeStartRow=$rowIndex;
-        }
-
-        $currentRM=$rmCode;
-    }
-
-    /* INSERT DATA */
-    $sheet->fromArray($item['info'],null,"A$rowIndex");
-
-    $col=6;
+    /*
+    |--------------------------------------------------
+    | INSERT QTY PER PERIODE
+    |--------------------------------------------------
+    */
+    $col = 6;
 
     foreach($periodes as $periode){
 
-        $d=$item['periode'][$periode]??null;
+        $d = $item['periode'][$periode] ?? null;
 
-        $rm=$d->qty_rm??0;
-        $buff=$d->qty_buff??0;
-        $sand=$d->qty_sand??0;
-        $touch=$d->qty_touch??0;
-        $wer=$d->qty_werate??0;
-        $fg=$d->qty_fg??0;
-        $ot=$d->qty_ot??0;
+        /*
+        | qty RM hanya di baris pertama RM
+        */
+        $rm    = $isSameRM ? 0 : ($d->qty_rm ?? 0);
 
-        $total=$rm+$buff+$sand+$touch+$wer+$fg+$ot;
+        $buff  = $d->qty_buff ?? 0;
+        $sand  = $d->qty_sand ?? 0;
+        $touch = $d->qty_touch ?? 0;
+        $wer   = $d->qty_werate ?? 0;
+        $fg    = $d->qty_fg ?? 0;
+        $ot    = $d->qty_ot ?? 0;
+
+        $total = $rm + $buff + $sand + $touch + $wer + $fg + $ot;
 
         $sheet->fromArray(
             [$rm,$buff,$sand,$touch,$wer,$fg,$ot,$total],
@@ -1109,34 +1103,12 @@ foreach($data as $item){
             Coordinate::stringFromColumnIndex($col).$rowIndex
         );
 
-        $col+=8;
+        $col += 8;
     }
 
+    $lastRM = $rmCode;
     $rowIndex++;
 }
-
-/* tutup group terakhir (kalau bukan OTHER) */
-if($mergeStartRow !== null){
-    $rmMergeRanges[]=[$mergeStartRow,$rowIndex-1];
-}
-
-    /*
-    |--------------------------------------------------------------------------
-    | 7. MERGE RM COLUMN
-    |--------------------------------------------------------------------------
-    */
-    foreach($rmMergeRanges as [$start,$end]){
-
-        if($start==$end) continue;
-
-        $sheet->mergeCells("A{$start}:A{$end}");
-        $sheet->mergeCells("B{$start}:B{$end}");
-
-        $sheet->getStyle("A{$start}:B{$end}")
-            ->getAlignment()
-            ->setVertical(Alignment::VERTICAL_CENTER);
-    }
-
      /*
     |--------------------------------------------------------------------------
     | 8. TOTAL ROW
