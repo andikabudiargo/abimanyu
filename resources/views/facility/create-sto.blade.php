@@ -134,30 +134,31 @@ $('.part-select').select2({
 
 function toggleUomByLocation($row) {
 
+    const row = $row.find('.part-select').data('row');
+
+    const $uomInput =
+        $(`input[name="articles[${row}][uom]"]`);
+
     const codeValue =
-        ($row.find('.code-input').val() || '').toUpperCase();
+        ($(`input[name="articles[${row}][article_code]"]`).val() || '')
+        .toUpperCase();
 
     const locationValue =
-        ($row.find('.location-input').val() || '').toLowerCase();
+        ($row.find('.location-input').val() || '')
+        .toLowerCase();
 
-    const isChemical =
+    const isEditableLocation =
         locationValue.includes('chemical') ||
-        locationValue.includes('dead stock cm1');
+        locationValue.includes('consumable');
 
-    const $uomInput = $row.find('.uom-input');
-
-    // ✅ PRIORITAS: OTHER selalu editable
+    // ✅ OTHER selalu editable
     if (codeValue === 'OTHER') {
         $uomInput.prop('readonly', false);
         return;
     }
 
-    // logic normal
-    if (isChemical) {
-        $uomInput.prop('readonly', false);
-    } else {
-        $uomInput.prop('readonly', true);
-    }
+    // ✅ Chemical & Consumable editable
+    $uomInput.prop('readonly', !isEditableLocation);
 }
 
   // =====================
@@ -190,28 +191,20 @@ function toggleUomByLocation($row) {
     $otherInput.val(data.text);
     $header.text(data.text);
 
-  } else {
+  }else {
 
-    $codeInput.val(data.code || data.id || '');
-    const locationValue =
-  ($row.find('.location-input').val() || '').toLowerCase();
+  $codeInput.val(data.code || data.id || '');
 
-const isChemical =
-    locationValue.includes('Chemical') ||
-    locationValue.includes('Dead Stock CM1');
+  // hanya isi value, JANGAN set readonly di sini
+  $uomInput.val(data.uom || '');
 
-if (!isChemical) {
-    // hanya isi otomatis jika bukan chemical
-    $uomInput.val(data.uom || '').prop('readonly', true);
+  $minPackageInput
+    .val(data.minPackage || $(this).find(':selected').data('min-package') || '')
+    .prop('readonly', true);
+
+  $otherInput.val('');
+  $header.text(data.text);
 }
-
-    $minPackageInput
-      .val(data.minPackage || $(this).find(':selected').data('min-package') || '')
-      .prop('readonly', true);
-
-    $otherInput.val('');
-    $header.text(data.text);
-  }
 
   // ✅ CEK LOCATION → override readonly jika Chemical
   toggleUomByLocation($row);
