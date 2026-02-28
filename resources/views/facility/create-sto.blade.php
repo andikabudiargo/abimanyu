@@ -238,6 +238,7 @@ $(document).on('select2:clear', '.part-select', function () {
   // reset inputs
   $(`input[name="articles[${row}][article_code]"]`).val('');
   $(`input[name="articles[${row}][uom]"]`).val('').prop('readonly', true);
+  $(`input[name="articles[${row}][min_package]"]`).val('').prop('readonly', true);
   $(`input[name="articles[${row}][other_name]"]`).val('');
 
   $row.find('.qty-input').val('').prop('disabled', true);
@@ -484,7 +485,7 @@ $(document).ready(function () {
         }
       },
       complete: function () {
-        $('#btnSave').prop('disabled', false).text('Save');
+        $('#btnSave,#btnSaveMobile').prop('disabled', false).text('Save');
       }
     });
   });
