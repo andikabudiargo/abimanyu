@@ -762,36 +762,64 @@ public function destroy($id)
     |--------------------------------------------------------------------------
     */
     $rows = DB::select("
-        SELECT
-            SUBSTRING(s.sto_number,1,7) AS periode,
-            b.article_rm AS rm_code,
-            b.article_rm_desc AS rm_desc,
-            b.article_fg AS fg_code,
-            b.article_fg_desc AS fg_desc,
-            a.unit AS uom,
+       SELECT
+    SUBSTRING(s.sto_number,1,7) AS periode,
+    b.article_rm AS rm_code,
+    b.article_rm_desc AS rm_desc,
+    b.article_fg AS fg_code,
+    b.article_fg_desc AS fg_desc,
+    a.unit AS uom,
 
-            SUM(CASE WHEN si.location='Raw Material' THEN si.qty ELSE 0 END) qty_rm,
-            SUM(CASE WHEN si.location='WIP Buffing' THEN si.qty ELSE 0 END) qty_buff,
-            SUM(CASE WHEN si.location='WIP Sanding' THEN si.qty ELSE 0 END) qty_sand,
-            SUM(CASE WHEN si.location='WIP Touch Up' THEN si.qty ELSE 0 END) qty_touch,
-            SUM(CASE WHEN si.location='Werate' THEN si.qty ELSE 0 END) qty_werate,
-            SUM(CASE WHEN si.location='Finish Goods' THEN si.qty ELSE 0 END) qty_fg,
-            SUM(CASE WHEN si.location='OT' THEN si.qty ELSE 0 END) qty_ot
+    SUM(CASE 
+        WHEN si.location='Raw Material'
+        THEN si.qty ELSE 0 END) qty_rm,
 
-        FROM stos s
-        JOIN sto_items si ON si.sto_id = s.id
-        JOIN boms b ON si.article_code IN (b.article_rm,b.article_fg)
-        LEFT JOIN articles a ON a.article_code = b.article_fg
+    SUM(CASE 
+        WHEN si.location='WIP Buffing'
+        THEN si.qty ELSE 0 END) qty_buff,
 
-        GROUP BY
-            periode,
-            b.article_rm,
-            b.article_rm_desc,
-            b.article_fg,
-            b.article_fg_desc,
-            a.unit
+    SUM(CASE 
+        WHEN si.location='WIP Sanding'
+        THEN si.qty ELSE 0 END) qty_sand,
 
-        ORDER BY b.article_rm,b.article_fg
+    SUM(CASE 
+        WHEN si.location='WIP Touch Up'
+        THEN si.qty ELSE 0 END) qty_touch,
+
+    SUM(CASE 
+        WHEN si.location='Werate'
+        THEN si.qty ELSE 0 END) qty_werate,
+
+    SUM(CASE 
+        WHEN si.location='Finish Goods'
+        THEN si.qty ELSE 0 END) qty_fg,
+
+    SUM(CASE 
+        WHEN si.location='OT'
+        THEN si.qty ELSE 0 END) qty_ot
+
+FROM stos s
+JOIN sto_items si ON si.sto_id = s.id
+
+/* JOIN RM KHUSUS RAW MATERIAL */
+LEFT JOIN boms b
+    ON (
+        (si.location='Raw Material' AND si.article_code=b.article_rm)
+        OR
+        (si.location!='Raw Material' AND si.article_code=b.article_fg)
+    )
+
+LEFT JOIN articles a ON a.article_code=b.article_fg
+
+GROUP BY
+    periode,
+    b.article_rm,
+    b.article_rm_desc,
+    b.article_fg,
+    b.article_fg_desc,
+    a.unit
+
+ORDER BY b.article_rm,b.article_fg
     ");
 
     /*
