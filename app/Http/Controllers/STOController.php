@@ -1042,7 +1042,19 @@ $sheet->setCellValue($colTotal.'2','TOTAL');
     */
     $rowIndex=4;
 
-    foreach($data as $item){
+     $currentRM=null;
+    $mergeStartRow=4;
+    $rmMergeRanges=[];foreach($data as $item){
+
+        $rmCode=$item['info'][0];
+
+        // detect change RM
+        if($currentRM!==null && $currentRM!==$rmCode){
+            $rmMergeRanges[]=[$mergeStartRow,$rowIndex-1];
+            $mergeStartRow=$rowIndex;
+        }
+
+        $currentRM=$rmCode;
 
         $sheet->fromArray($item['info'],null,"A$rowIndex");
 
@@ -1073,6 +1085,57 @@ $sheet->setCellValue($colTotal.'2','TOTAL');
 
         $rowIndex++;
     }
+
+    // last RM group
+    $rmMergeRanges[]=[$mergeStartRow,$rowIndex-1];
+
+    /*
+    |--------------------------------------------------------------------------
+    | 7. MERGE RM COLUMN
+    |--------------------------------------------------------------------------
+    */
+    foreach($rmMergeRanges as [$start,$end]){
+
+        if($start==$end) continue;
+
+        $sheet->mergeCells("A{$start}:A{$end}");
+        $sheet->mergeCells("B{$start}:B{$end}");
+
+        $sheet->getStyle("A{$start}:B{$end}")
+            ->getAlignment()
+            ->setVertical(Alignment::VERTICAL_CENTER);
+    }
+
+     /*
+    |--------------------------------------------------------------------------
+    | 8. TOTAL ROW
+    |--------------------------------------------------------------------------
+    */
+    $totalRow=$rowIndex+1;
+
+    $sheet->setCellValue("A{$totalRow}","TOTAL");
+    $sheet->mergeCells("A{$totalRow}:E{$totalRow}");
+
+    $col=6;
+
+    foreach($periodes as $periode){
+
+        $firstDataRow=4;
+        $lastDataRow=$rowIndex-1;
+
+        for($i=0;$i<8;$i++){
+
+            $c=Coordinate::stringFromColumnIndex($col+$i);
+
+            $sheet->setCellValue(
+                "{$c}{$totalRow}",
+                "=SUM({$c}{$firstDataRow}:{$c}{$lastDataRow})"
+            );
+        }
+
+        $col+=8;
+    }
+
 
     /*
     |--------------------------------------------------------------------------
