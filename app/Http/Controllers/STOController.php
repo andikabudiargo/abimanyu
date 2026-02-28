@@ -877,7 +877,11 @@ ORDER BY
     $data = [];
 
     foreach($rows as $r){
-        $key = $r->rm_code.'|'.$r->fg_code;
+       if($r->rm_code === 'OTHER'){
+    $key = 'OTHER|'.$r->rm_desc; // pakai nama other
+}else{
+    $key = $r->rm_code.'|'.$r->fg_code;
+}
 
         $data[$key]['info'] = [
             $r->rm_code,
