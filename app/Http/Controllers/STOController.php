@@ -775,7 +775,7 @@ public function destroy($id)
             SUM(CASE WHEN si.location='WIP Sanding' THEN si.qty ELSE 0 END) qty_sand,
             SUM(CASE WHEN si.location='WIP Touch Up' THEN si.qty ELSE 0 END) qty_touch,
             SUM(CASE WHEN si.location='Werate' THEN si.qty ELSE 0 END) qty_werate,
-            SUM(CASE WHEN si.location='Finish Good' THEN si.qty ELSE 0 END) qty_fg,
+            SUM(CASE WHEN si.location='Finish Goods' THEN si.qty ELSE 0 END) qty_fg,
             SUM(CASE WHEN si.location='OT' THEN si.qty ELSE 0 END) qty_ot
 
         FROM stos s
