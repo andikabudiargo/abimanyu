@@ -1042,52 +1042,83 @@ $sheet->setCellValue($colTotal.'2','TOTAL');
     */
     $rowIndex=4;
 
-     $currentRM=null;
-    $mergeStartRow=4;
-    $rmMergeRanges=[];foreach($data as $item){
+$currentRM=null;
+$mergeStartRow=null;
+$rmMergeRanges=[];
 
-        $rmCode=$item['info'][0];
+foreach($data as $item){
 
-        // detect change RM
-        if($currentRM!==null && $currentRM!==$rmCode){
+    $rmCode=$item['info'][0];
+
+    /*
+    |--------------------------------------------------
+    | JIKA OTHER → JANGAN IKUT MERGE
+    |--------------------------------------------------
+    */
+    if($rmCode === 'OTHER'){
+
+        // tutup group RM sebelumnya
+        if($mergeStartRow !== null && $currentRM !== null){
+            $rmMergeRanges[]=[$mergeStartRow,$rowIndex-1];
+        }
+
+        // reset grouping
+        $currentRM=null;
+        $mergeStartRow=null;
+
+    }else{
+
+        /*
+        |--------------------------------------------------
+        | GROUPING RM NORMAL
+        |--------------------------------------------------
+        */
+        if($currentRM === null){
+            $mergeStartRow=$rowIndex;
+        }
+        elseif($currentRM !== $rmCode){
             $rmMergeRanges[]=[$mergeStartRow,$rowIndex-1];
             $mergeStartRow=$rowIndex;
         }
 
         $currentRM=$rmCode;
-
-        $sheet->fromArray($item['info'],null,"A$rowIndex");
-
-        $col=6;
-
-        foreach($periodes as $periode){
-
-            $d=$item['periode'][$periode]??null;
-
-            $rm=$d->qty_rm??0;
-            $buff=$d->qty_buff??0;
-            $sand=$d->qty_sand??0;
-            $touch=$d->qty_touch??0;
-            $wer=$d->qty_werate??0;
-            $fg=$d->qty_fg??0;
-            $ot=$d->qty_ot??0;
-
-            $total=$rm+$buff+$sand+$touch+$wer+$fg+$ot;
-
-            $sheet->fromArray(
-                [$rm,$buff,$sand,$touch,$wer,$fg,$ot,$total],
-                null,
-                Coordinate::stringFromColumnIndex($col).$rowIndex
-            );
-
-            $col+=8;
-        }
-
-        $rowIndex++;
     }
 
-    // last RM group
+    /* INSERT DATA */
+    $sheet->fromArray($item['info'],null,"A$rowIndex");
+
+    $col=6;
+
+    foreach($periodes as $periode){
+
+        $d=$item['periode'][$periode]??null;
+
+        $rm=$d->qty_rm??0;
+        $buff=$d->qty_buff??0;
+        $sand=$d->qty_sand??0;
+        $touch=$d->qty_touch??0;
+        $wer=$d->qty_werate??0;
+        $fg=$d->qty_fg??0;
+        $ot=$d->qty_ot??0;
+
+        $total=$rm+$buff+$sand+$touch+$wer+$fg+$ot;
+
+        $sheet->fromArray(
+            [$rm,$buff,$sand,$touch,$wer,$fg,$ot,$total],
+            null,
+            Coordinate::stringFromColumnIndex($col).$rowIndex
+        );
+
+        $col+=8;
+    }
+
+    $rowIndex++;
+}
+
+/* tutup group terakhir (kalau bukan OTHER) */
+if($mergeStartRow !== null){
     $rmMergeRanges[]=[$mergeStartRow,$rowIndex-1];
+}
 
     /*
     |--------------------------------------------------------------------------
