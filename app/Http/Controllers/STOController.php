@@ -65,13 +65,13 @@ public function index()
     return match ($userId) {
         69        => 'Raw Material',
         88        => 'Werate',
-        108       => 'WIP Buffing',
+        108,92    => 'WIP Buffing',
         44,45     => 'WIP Touch Up',
         85, 71    => 'WIP Sanding',
         99        => 'Consumable',
         67        => 'Chemical',
         68        => 'Finish Goods',
-        53,2,92  => null, // 🔥 BOLEH PILIH SENDIRI
+        53,2  => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -80,9 +80,9 @@ private function allowedWarehouses(): array
 {
   $userId = Auth::id();
 
-if ($userId == 92) {
-    return ['Dead Stock CM1', 'OT', 'WIP Buffing'];
-}
+//if ($userId == 92) {
+  //  return ['Dead Stock CM1', 'OT', 'WIP Buffing'];
+//}
 
     // 🔥 User bebas pilih
     if (is_null($this->userWarehouse())) {
