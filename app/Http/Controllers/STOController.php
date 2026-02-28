@@ -65,9 +65,9 @@ public function index()
     return match ($userId) {
         69        => 'Raw Material',
         88        => 'Werate',
-        85    => 'WIP Buffing',
+        108       => 'WIP Buffing',
         44,45     => 'WIP Touch Up',
-        71,108    => 'WIP Sanding',
+        85, 71    => 'WIP Sanding',
         99        => 'Consumable',
         67        => 'Chemical',
         68        => 'Finish Goods',
