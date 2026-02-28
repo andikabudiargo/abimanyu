@@ -9,6 +9,13 @@ use App\Models\Sto;
 use App\Models\StoItem;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Jenssegers\Agent\Agent;
 use App\Models\Article;
 
@@ -728,6 +735,321 @@ public function destroy($id)
     return response()->json([
         'status' => 'success',
         'message' => 'STO berhasil dihapus'
+    ]);
+}
+
+
+ public function exportReport()
+{
+    /*
+    |--------------------------------------------------------------------------
+    | 1. AMBIL PERIODE STO
+    |--------------------------------------------------------------------------
+    */
+    $periodes = DB::table('stos')
+        ->selectRaw("DISTINCT SUBSTRING(sto_number,1,7) as periode")
+        ->orderBy('periode')
+        ->pluck('periode')
+        ->toArray();
+
+    if(empty($periodes)){
+        abort(404,'Tidak ada data STO');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2. QUERY DATA
+    |--------------------------------------------------------------------------
+    */
+    $rows = DB::select("
+        SELECT
+            SUBSTRING(s.sto_number,1,7) AS periode,
+            b.article_rm AS rm_code,
+            b.article_rm_desc AS rm_desc,
+            b.article_fg AS fg_code,
+            b.article_fg_desc AS fg_desc,
+            a.unit AS uom,
+
+            SUM(CASE WHEN si.location='Raw Material' THEN si.qty ELSE 0 END) qty_rm,
+            SUM(CASE WHEN si.location='WIP Buffing' THEN si.qty ELSE 0 END) qty_buff,
+            SUM(CASE WHEN si.location='WIP Sanding' THEN si.qty ELSE 0 END) qty_sand,
+            SUM(CASE WHEN si.location='WIP Touch Up' THEN si.qty ELSE 0 END) qty_touch,
+            SUM(CASE WHEN si.location='Werate' THEN si.qty ELSE 0 END) qty_werate,
+            SUM(CASE WHEN si.location='Finish Good' THEN si.qty ELSE 0 END) qty_fg,
+            SUM(CASE WHEN si.location='OT' THEN si.qty ELSE 0 END) qty_ot
+
+        FROM stos s
+        JOIN sto_items si ON si.sto_id = s.id
+        JOIN boms b ON si.article_code IN (b.article_rm,b.article_fg)
+        LEFT JOIN articles a ON a.article_code = b.article_fg
+
+        GROUP BY
+            periode,
+            b.article_rm,
+            b.article_rm_desc,
+            b.article_fg,
+            b.article_fg_desc,
+            a.unit
+
+        ORDER BY b.article_rm,b.article_fg
+    ");
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3. PIVOT DATA
+    |--------------------------------------------------------------------------
+    */
+    $data = [];
+
+    foreach($rows as $r){
+        $key = $r->rm_code.'|'.$r->fg_code;
+
+        $data[$key]['info'] = [
+            $r->rm_code,
+            $r->rm_desc,
+            $r->fg_code,
+            $r->fg_desc,
+            $r->uom
+        ];
+
+        $data[$key]['periode'][$r->periode] = $r;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 4. CREATE EXCEL
+    |--------------------------------------------------------------------------
+    */
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+
+    /* helper warna */
+    $color=function($range,$bg,$font='FFFFFF') use ($sheet){
+        $sheet->getStyle($range)->applyFromArray([
+            'font'=>['bold'=>true,'color'=>['rgb'=>$font]],
+            'alignment'=>['horizontal'=>Alignment::HORIZONTAL_CENTER],
+            'fill'=>[
+                'fillType'=>Fill::FILL_SOLID,
+                'startColor'=>['rgb'=>$bg]
+            ]
+        ]);
+    };
+
+    /*
+|--------------------------------------------------------------------------
+| HEADER TITLE BILL OF MATERIAL
+|--------------------------------------------------------------------------
+*/
+$sheet->mergeCells('A1:E1');
+$sheet->setCellValue('A1', 'BILL OF MATERIAL');
+
+$sheet->getStyle('A1:E1')->applyFromArray([
+    'font' => [
+        'bold' => true,
+        'size' => 14,
+        'color' => ['rgb' => 'FFFFFF']
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical'   => Alignment::VERTICAL_CENTER,
+    ],
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '111827'] // abu gelap elegan
+    ]
+]);
+
+    /* header static */
+    $sheet->fromArray(
+        ['RM Code','RM Description','FG Code','FG Description','UOM'],
+        null,
+        'A2'
+    );
+
+    $color('A2:E3','000000');
+
+    /*
+    |--------------------------------------------------------------------------
+    | 5. HEADER DINAMIS PER PERIODE
+    |--------------------------------------------------------------------------
+    */
+    $startColIndex = 6; // F
+
+    $bulanNama = [
+        '01'=>'JANUARI','02'=>'FEBRUARI','03'=>'MARET','04'=>'APRIL',
+        '05'=>'MEI','06'=>'JUNI','07'=>'JULI','08'=>'AGUSTUS',
+        '09'=>'SEPTEMBER','10'=>'OKTOBER','11'=>'NOVEMBER','12'=>'DESEMBER'
+    ];
+
+    foreach($periodes as $periode){
+
+        $year = substr($periode,0,4);
+        $month = substr($periode,5,2);
+
+        $title = "STO ".$bulanNama[$month]." ".$year;
+
+        $start = Coordinate::stringFromColumnIndex($startColIndex);
+        $end   = Coordinate::stringFromColumnIndex($startColIndex+7);
+
+        /* TITLE */
+        $sheet->mergeCells("$start"."1:$end"."1");
+        $sheet->setCellValue("$start"."1",$title);
+        $color("$start"."1:$end"."1",'F97316');
+
+       /* ================================
+   GROUP HEADER (MERGED CLEAN)
+================================ */
+
+/* RAW MATERIAL (merge vertical) */
+$colRM = Coordinate::stringFromColumnIndex($startColIndex);
+$sheet->mergeCells($colRM.'2:'.$colRM.'3');
+$sheet->setCellValue($colRM.'2','RAW MATERIAL');
+
+/* WIP (merge horizontal) */
+$wipStart = Coordinate::stringFromColumnIndex($startColIndex+1);
+$wipEnd   = Coordinate::stringFromColumnIndex($startColIndex+4);
+
+$sheet->mergeCells($wipStart.'2:'.$wipEnd.'2');
+$sheet->setCellValue($wipStart.'2','WIP');
+
+/* FINISH GOODS (merge vertical) */
+$colFG = Coordinate::stringFromColumnIndex($startColIndex+5);
+$sheet->mergeCells($colFG.'2:'.$colFG.'3');
+$sheet->setCellValue($colFG.'2','FINISH GOODS');
+
+/* OT (merge vertical) */
+$colOT = Coordinate::stringFromColumnIndex($startColIndex+6);
+$sheet->mergeCells($colOT.'2:'.$colOT.'3');
+$sheet->setCellValue($colOT.'2','OT');
+
+/* TOTAL (merge vertical) */
+$colTotal = Coordinate::stringFromColumnIndex($startColIndex+7);
+$sheet->mergeCells($colTotal.'2:'.$colTotal.'3');
+$sheet->setCellValue($colTotal.'2','TOTAL');
+
+        /* SUB HEADER */
+        $sub=['','Buffing','Sanding','Touch Up','Werate','','',''];
+
+        for($i=0;$i<8;$i++){
+            $sheet->setCellValue(
+                Coordinate::stringFromColumnIndex($startColIndex+$i).'3',
+                $sub[$i]
+            );
+        }
+
+        /* WARNA */
+        $color("$start"."2:$start"."3",'2563EB');
+        $color(
+            Coordinate::stringFromColumnIndex($startColIndex+1).'2:'.
+            Coordinate::stringFromColumnIndex($startColIndex+4).'3',
+            'FACC15','000000'
+        );
+        $color(Coordinate::stringFromColumnIndex($startColIndex+5).'2:'.
+               Coordinate::stringFromColumnIndex($startColIndex+5).'3','16A34A');
+
+        $color(Coordinate::stringFromColumnIndex($startColIndex+6).'2:'.
+               Coordinate::stringFromColumnIndex($startColIndex+6).'3','9CA3AF','000000');
+
+        $color(Coordinate::stringFromColumnIndex($startColIndex+7).'2:'.
+               Coordinate::stringFromColumnIndex($startColIndex+7).'3','DC2626');
+
+        $startColIndex += 8;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 6. INSERT DATA
+    |--------------------------------------------------------------------------
+    */
+    $rowIndex=4;
+
+    foreach($data as $item){
+
+        $sheet->fromArray($item['info'],null,"A$rowIndex");
+
+        $col=6;
+
+        foreach($periodes as $periode){
+
+            $d=$item['periode'][$periode]??null;
+
+            $rm=$d->qty_rm??0;
+            $buff=$d->qty_buff??0;
+            $sand=$d->qty_sand??0;
+            $touch=$d->qty_touch??0;
+            $wer=$d->qty_werate??0;
+            $fg=$d->qty_fg??0;
+            $ot=$d->qty_ot??0;
+
+            $total=$rm+$buff+$sand+$touch+$wer+$fg+$ot;
+
+            $sheet->fromArray(
+                [$rm,$buff,$sand,$touch,$wer,$fg,$ot,$total],
+                null,
+                Coordinate::stringFromColumnIndex($col).$rowIndex
+            );
+
+            $col+=8;
+        }
+
+        $rowIndex++;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTO WIDTH (FIX ERROR SEBELUMNYA)
+    |--------------------------------------------------------------------------
+    */
+    $highestColumnIndex = Coordinate::columnIndexFromString(
+        $sheet->getHighestColumn()
+    );
+
+    for($i=1;$i<=$highestColumnIndex;$i++){
+        $sheet->getColumnDimension(
+            Coordinate::stringFromColumnIndex($i)
+        )->setAutoSize(true);
+    }
+
+    $sheet->freezePane('F4');
+
+    /*
+|--------------------------------------------------------------------------
+| 7. BORDER + VERTICAL ALIGN CENTER
+|--------------------------------------------------------------------------
+*/
+
+/* cari batas akhir data */
+$highestRow = $sheet->getHighestRow();
+$highestColumn = $sheet->getHighestColumn();
+
+/* range dari A1 sampai cell terakhir */
+$fullRange = "A1:{$highestColumn}{$highestRow}";
+
+/* APPLY BORDER + ALIGNMENT */
+$sheet->getStyle($fullRange)->applyFromArray([
+    'alignment' => [
+        'vertical' => Alignment::VERTICAL_CENTER,
+    ],
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => '000000'],
+        ],
+    ],
+]);
+    /*
+    |--------------------------------------------------------------------------
+    | DOWNLOAD
+    |--------------------------------------------------------------------------
+    */
+    $fileName='STO_REPORT_'.now()->format('Y-m-d').'.xlsx';
+
+    return new StreamedResponse(function() use($spreadsheet){
+        (new Xlsx($spreadsheet))->save('php://output');
+    },200,[
+        "Content-Type"=>"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition"=>"attachment; filename=\"$fileName\"",
+        "Cache-Control"=>"max-age=0",
     ]);
 }
 

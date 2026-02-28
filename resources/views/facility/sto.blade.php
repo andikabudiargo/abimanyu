@@ -360,16 +360,45 @@ $(function () {
       <"flex items-center justify-between mt-4"ip>
     `,
 
+   buttons: [
+{
+    extend: 'collection',
+    text: '<i class="fa fa-download mr-1"></i> Export',
+    className: 'px-3 py-1.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm',
+    autoClose: true,
+
     buttons: [
-      {
-        extend: 'excelHtml5',
-        text: '<i class="fa fa-file-excel-o mr-1"></i> Export Excel',
-        className: 'px-3 py-1.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm',
-         exportOptions: {
-      columns: ':not(:first-child)' // 🔥 abaikan kolom 0 (action)
-    }
-      }
+
+        // ======================
+        // SUMMARY (EXPORT DATATABLE)
+        // ======================
+        {
+            extend: 'excelHtml5',
+            text: '<i class="fa fa-table mr-2"></i> Summary (FAT)',
+            exportOptions: {
+                columns: ':not(:first-child)'
+            }
+        },
+
+        // ======================
+        // REPORT BY BOM (LARAVEL EXPORT)
+        // ======================
+        {
+            text: '<i class="fa fa-file-text-o mr-2"></i> Report (PPIC)',
+            action: function () {
+
+                // redirect ke controller export
+                window.location.href = '/facility/sto/report';
+
+                setTimeout(() => {
+        $(btn).removeClass('opacity-50 pointer-events-none');
+    }, 3000);
+
+            }
+        }
     ]
+}
+]
   });
 // 🔍 Feather icons
   table.on('draw', function () {
