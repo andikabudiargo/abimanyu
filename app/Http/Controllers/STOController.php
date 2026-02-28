@@ -762,65 +762,80 @@ public function destroy($id)
     |--------------------------------------------------------------------------
     */
     $rows = DB::select("
-       SELECT
+SELECT
     SUBSTRING(s.sto_number,1,7) AS periode,
-    b.article_rm AS rm_code,
-    b.article_rm_desc AS rm_desc,
-    b.article_fg AS fg_code,
-    b.article_fg_desc AS fg_desc,
+
+    bh.article_rm AS rm_code,
+    bh.article_rm_desc AS rm_desc,
+    bh.article_fg AS fg_code,
+    bh.article_fg_desc AS fg_desc,
     a.unit AS uom,
 
-    SUM(CASE 
-        WHEN si.location='Raw Material'
+    SUM(CASE WHEN si.location='Raw Material'
         THEN si.qty ELSE 0 END) qty_rm,
 
-    SUM(CASE 
-        WHEN si.location='WIP Buffing'
+    SUM(CASE WHEN si.location='WIP Buffing'
         THEN si.qty ELSE 0 END) qty_buff,
 
-    SUM(CASE 
-        WHEN si.location='WIP Sanding'
+    SUM(CASE WHEN si.location='WIP Sanding'
         THEN si.qty ELSE 0 END) qty_sand,
 
-    SUM(CASE 
-        WHEN si.location='WIP Touch Up'
+    SUM(CASE WHEN si.location='WIP Touch Up'
         THEN si.qty ELSE 0 END) qty_touch,
 
-    SUM(CASE 
-        WHEN si.location='Werate'
+    SUM(CASE WHEN si.location='Werate'
         THEN si.qty ELSE 0 END) qty_werate,
 
-    SUM(CASE 
-        WHEN si.location='Finish Goods'
+    SUM(CASE WHEN si.location='Finish Goods'
         THEN si.qty ELSE 0 END) qty_fg,
 
-    SUM(CASE 
-        WHEN si.location='OT'
+    SUM(CASE WHEN si.location='OT'
         THEN si.qty ELSE 0 END) qty_ot
 
 FROM stos s
 JOIN sto_items si ON si.sto_id = s.id
 
-/* JOIN RM KHUSUS RAW MATERIAL */
-LEFT JOIN boms b
-    ON (
-        (si.location='Raw Material' AND si.article_code=b.article_rm)
-        OR
-        (si.location!='Raw Material' AND si.article_code=b.article_fg)
-    )
+/* ===============================
+   BOM HEADER (ANTI DUPLIKAT)
+   1 bom_code = 1 FG
+================================ */
+LEFT JOIN (
+    SELECT
+        code AS bom_code,
+        article_rm,
+        article_rm_desc,
+        article_fg,
+        article_fg_desc
+    FROM boms
+    GROUP BY
+        code,
+        article_rm,
+        article_rm_desc,
+        article_fg,
+        article_fg_desc
+) bh
+ON (
+    (si.location='Raw Material' AND si.article_code = bh.article_rm)
+    OR
+    (si.location!='Raw Material' AND si.article_code = bh.article_fg)
+)
 
-LEFT JOIN articles a ON a.article_code=b.article_fg
+LEFT JOIN articles a
+    ON a.article_code = bh.article_fg
 
 GROUP BY
     periode,
-    b.article_rm,
-    b.article_rm_desc,
-    b.article_fg,
-    b.article_fg_desc,
+    bh.bom_code,
+    bh.article_rm,
+    bh.article_rm_desc,
+    bh.article_fg,
+    bh.article_fg_desc,
     a.unit
 
-ORDER BY b.article_rm,b.article_fg
-    ");
+ORDER BY
+    bh.article_rm,
+    bh.article_fg
+");
 
     /*
     |--------------------------------------------------------------------------
