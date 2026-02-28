@@ -133,23 +133,31 @@ $('.part-select').select2({
 
 
 function toggleUomByLocation($row) {
-  const locationValue =
-  ($row.find('.location-input').val() || '').trim();
-  const $uomInput = $row.find('.part-uom');
 
-  // hanya unlock jika Chemical/Dead Stock CM1
- if (
-    locationValue === "Chemical" ||
-    locationValue === "Dead Stock CM1"
-) {
-    $uomInput.prop('readonly', false)
-             .removeClass('bg-gray-50')
-             .addClass('bg-white');
-  } else {
-    $uomInput.prop('readonly', true)
-             .addClass('bg-gray-50')
-             .removeClass('bg-white');
-  }
+    const codeValue =
+        ($row.find('.code-input').val() || '').toUpperCase();
+
+    const locationValue =
+        ($row.find('.location-input').val() || '').toLowerCase();
+
+    const isChemical =
+        locationValue.includes('chemical') ||
+        locationValue.includes('dead stock cm1');
+
+    const $uomInput = $row.find('.uom-input');
+
+    // ✅ PRIORITAS: OTHER selalu editable
+    if (codeValue === 'OTHER') {
+        $uomInput.prop('readonly', false);
+        return;
+    }
+
+    // logic normal
+    if (isChemical) {
+        $uomInput.prop('readonly', false);
+    } else {
+        $uomInput.prop('readonly', true);
+    }
 }
 
   // =====================
