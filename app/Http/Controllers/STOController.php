@@ -762,6 +762,9 @@ public function destroy($id)
     |--------------------------------------------------------------------------
     */
     $rows = DB::select("
+S/* =====================================================
+   1. DATA YANG MATCH BOM (NORMAL)
+===================================================== */
 SELECT
     SUBSTRING(s.sto_number,1,7) AS periode,
 
@@ -769,36 +772,21 @@ SELECT
     bh.article_rm_desc AS rm_desc,
     bh.article_fg AS fg_code,
     bh.article_fg_desc AS fg_desc,
-    a.unit AS uom,
+    COALESCE(a.unit,'PCS') AS uom,
 
-    SUM(CASE WHEN si.location='Raw Material'
-        THEN si.qty ELSE 0 END) qty_rm,
+    SUM(CASE WHEN si.location='Raw Material' THEN si.qty ELSE 0 END) qty_rm,
+    SUM(CASE WHEN si.location='WIP Buffing' THEN si.qty ELSE 0 END) qty_buff,
+    SUM(CASE WHEN si.location='WIP Sanding' THEN si.qty ELSE 0 END) qty_sand,
+    SUM(CASE WHEN si.location='WIP Touch Up' THEN si.qty ELSE 0 END) qty_touch,
+    SUM(CASE WHEN si.location='Werate' THEN si.qty ELSE 0 END) qty_werate,
+    SUM(CASE WHEN si.location='Finish Goods' THEN si.qty ELSE 0 END) qty_fg,
+    SUM(CASE WHEN si.location='OT' THEN si.qty ELSE 0 END) qty_ot,
 
-    SUM(CASE WHEN si.location='WIP Buffing'
-        THEN si.qty ELSE 0 END) qty_buff,
-
-    SUM(CASE WHEN si.location='WIP Sanding'
-        THEN si.qty ELSE 0 END) qty_sand,
-
-    SUM(CASE WHEN si.location='WIP Touch Up'
-        THEN si.qty ELSE 0 END) qty_touch,
-
-    SUM(CASE WHEN si.location='Werate'
-        THEN si.qty ELSE 0 END) qty_werate,
-
-    SUM(CASE WHEN si.location='Finish Goods'
-        THEN si.qty ELSE 0 END) qty_fg,
-
-    SUM(CASE WHEN si.location='OT'
-        THEN si.qty ELSE 0 END) qty_ot
+    1 AS sort_group
 
 FROM stos s
 JOIN sto_items si ON si.sto_id = s.id
 
-/* ===============================
-   BOM HEADER (ANTI DUPLIKAT)
-   1 bom_code = 1 FG
-================================ */
 LEFT JOIN (
     SELECT
         code AS bom_code,
@@ -823,6 +811,8 @@ ON (
 LEFT JOIN articles a
     ON a.article_code = bh.article_fg
 
+WHERE bh.bom_code IS NOT NULL
+
 GROUP BY
     periode,
     bh.bom_code,
@@ -832,9 +822,51 @@ GROUP BY
     bh.article_fg_desc,
     a.unit
 
+
+UNION ALL
+
+
+/* =====================================================
+   2. DATA TANPA BOM → OTHER
+===================================================== */
+SELECT
+    SUBSTRING(s.sto_number,1,7) AS periode,
+
+    'OTHER' AS rm_code,
+    si.other_name AS rm_desc,
+    'OTHER' AS fg_code,
+    si.other_name AS fg_desc,
+    'PCS' AS uom,
+
+    SUM(CASE WHEN si.location='Raw Material' THEN si.qty ELSE 0 END) qty_rm,
+    SUM(CASE WHEN si.location='WIP Buffing' THEN si.qty ELSE 0 END) qty_buff,
+    SUM(CASE WHEN si.location='WIP Sanding' THEN si.qty ELSE 0 END) qty_sand,
+    SUM(CASE WHEN si.location='WIP Touch Up' THEN si.qty ELSE 0 END) qty_touch,
+    SUM(CASE WHEN si.location='Werate' THEN si.qty ELSE 0 END) qty_werate,
+    SUM(CASE WHEN si.location='Finish Goods' THEN si.qty ELSE 0 END) qty_fg,
+    SUM(CASE WHEN si.location='OT' THEN si.qty ELSE 0 END) qty_ot,
+
+    0 AS sort_group
+
+FROM stos s
+JOIN sto_items si ON si.sto_id = s.id
+
+LEFT JOIN boms b
+    ON si.article_code IN (b.article_rm, b.article_fg)
+
+WHERE b.code IS NULL
+AND si.other_name IS NOT NULL
+AND si.other_name <> ''
+
+GROUP BY
+    periode,
+    si.other_name
+
+
 ORDER BY
-    bh.article_rm,
-    bh.article_fg
+    sort_group ASC,
+    rm_code,
+    fg_code
 ");
 
     /*
