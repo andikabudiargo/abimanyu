@@ -526,7 +526,7 @@ foreach ($data as $row) {
     // 🔥 ID unik untuk dropdown
     $dropdownId = 'dropdown-' . $row->sto_item_id;
 $editUrl = route('facility.sto.edit', ['id' => $row->sto_id]);
-$twoDecimalLocations = ['Chemical', 'Dead Stock CM1'];
+$twoDecimalLocations = ['Chemical', 'Dead Stock CM1', 'Consumable'];
 
 $qtyFormatted = in_array($row->location, $twoDecimalLocations)
     ? number_format($row->qty, 2)
