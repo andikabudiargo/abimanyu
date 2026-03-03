@@ -32,7 +32,7 @@ class Kernel extends ConsoleKernel
         
          $schedule->command('apd:send-reminder')->dailyAt('09:00');
 
-         $schedule->command('capa:reminder')->dailyAt('15:20');
+         $schedule->command('capa:reminder')->dailyAt('15:27');
     }
 
     /**
