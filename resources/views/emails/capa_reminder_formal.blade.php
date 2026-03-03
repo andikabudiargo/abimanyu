@@ -18,7 +18,7 @@
                border-radius:8px 8px 0 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <img src="data:image/png;base64,{{ $logoData }}" 
              alt="Company Logo" 
-             style="height:50px; width:70px;">
+             style="height:15px; width:30px;">
     </td>
 </tr>
 
