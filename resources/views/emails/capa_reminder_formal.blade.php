@@ -8,7 +8,7 @@
 
 @php
     // Resize fisik logo sebelum encode, misal versi 70x50
-    $logoPath = '/home/abimany3/public_html/img/logo.png';
+    $logoPath = '/home/abimany3/public_html/img/logo-kecil.png';
     $logoData = base64_encode(file_get_contents($logoPath));
 @endphp
 
