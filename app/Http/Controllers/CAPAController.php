@@ -138,7 +138,7 @@ public function userList($id)
     public function data(Request $request)
 {
 
-  $query = CAPA::with(['user', 'departemen', 'representative', 'auditors.users','postedBy','verifiedBy','processedBy','submittedBy','returnedBy','authorizedBy','approvedBy'])
+  $query = CAPA::with(['user', 'departemen', 'representative', 'auditors.users','postedBy','verifiedBy','processedBy','submittedBy','returnedBy','authorizedBy','approvedBy','ca', 'pa','rca'])
     ->orderBy('created_at', 'desc');
 
   $currentUserId = Auth::id();
@@ -329,6 +329,107 @@ if ($row->status == 'Closed') {
     $actionButtons .= '</div></div></div>';
 
     return $actionButtons;
+})
+
+->addColumn('rca', fn($row) => optional($row->rca)->description ?? '-')
+->addColumn('ca', fn($row) => optional($row->ca)->description ?? '-')
+->addColumn('ca_due_date', function ($row) {
+    return $row->ca && $row->ca->due_date
+        ? \Carbon\Carbon::parse($row->ca->due_date)->format('d-m-Y')
+        : '-';
+})
+->addColumn('pa', fn($row) => optional($row->pa)->description ?? '-')
+->addColumn('pa_due_date', function ($row) {
+    return $row->pa && $row->pa->due_date
+        ? \Carbon\Carbon::parse($row->pa->due_date)->format('d-m-Y')
+        : '-';
+})
+
+->addColumn('deadline', function ($row) {
+
+    $today = \Carbon\Carbon::today();
+
+    $ca = $row->ca;
+    $pa = $row->pa;
+
+    // ======================
+    // JIKA CA & PA TIDAK ADA
+    // ======================
+    if (!$ca && !$pa) {
+        return 'Due Date not set';
+    }
+
+    $labels = [];
+
+    // ======================
+    // CEK CA
+    // ======================
+    if ($ca) {
+
+        $caDue = $ca->due_date ? \Carbon\Carbon::parse($ca->due_date) : null;
+
+        if ($ca->status === 'Open' && $caDue && $caDue->lt($today)) {
+            $labels[] = 'CA Overdue';
+        }
+    }
+
+    // ======================
+    // CEK PA
+    // ======================
+    if ($pa) {
+
+        $paDue = $pa->due_date ? \Carbon\Carbon::parse($pa->due_date) : null;
+
+        if ($pa->status === 'Open' && $paDue && $paDue->lt($today)) {
+            $labels[] = 'PA Overdue';
+        }
+    }
+
+    // ======================
+    // JIKA ADA OVERDUE
+    // ======================
+    if (!empty($labels)) {
+        return '<span class="px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded">
+                    ' . implode(' & ', $labels) . '
+                </span>';
+    }
+
+    // ======================
+    // CEK NOT DUE YET
+    // ======================
+    $notDue = false;
+
+    if ($ca && $ca->status === 'Open' && $ca->due_date) {
+        if (\Carbon\Carbon::parse($ca->due_date)->gte($today)) {
+            $notDue = true;
+        }
+    }
+
+    if ($pa && $pa->status === 'Open' && $pa->due_date) {
+        if (\Carbon\Carbon::parse($pa->due_date)->gte($today)) {
+            $notDue = true;
+        }
+    }
+
+    if ($notDue) {
+        return '<span class="px-2 py-1 text-xs font-semibold text-white bg-yellow-500 rounded">
+                    Not Due Yet
+                </span>';
+    }
+
+    // ======================
+    // JIKA SEMUA CLOSED
+    // ======================
+    if (
+        (!$ca || $ca->status === 'Closed') &&
+        (!$pa || $pa->status === 'Closed')
+    ) {
+        return '<span class="px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded">
+                    On Time
+                </span>';
+    }
+
+    return '-';
 })
 
 ->addColumn('created_by', function ($row) {
@@ -528,7 +629,7 @@ $auditorList .= '</div>';
         ->editColumn('created_at', function ($row) {
             return \Carbon\Carbon::parse($row->created_at)->format('d-m-Y H:i');
         })
-        ->rawColumns(['action', 'category', 'status', 'auditors', 'capa_number','departemen', 'dept_representative','status','report_date'])
+        ->rawColumns(['action', 'category', 'status', 'auditors', 'capa_number','departemen', 'dept_representative','status','report_date','deadline'])
         ->make(true);
 }
 

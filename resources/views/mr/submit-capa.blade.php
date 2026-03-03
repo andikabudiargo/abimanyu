@@ -797,7 +797,7 @@
  
 
        
-<!-- EVIDENCE UPLOAD -->
+<!-- EVIDENCE UPLOAD 
 <div class="col-span-2">
     <label class="block text-sm font-medium text-gray-700 mb-1">
         Existing Evidences
@@ -909,7 +909,7 @@
     </ul>
 </div>
 
-      </div>
+      </div>-->
 
       <hr class="my-4">
 

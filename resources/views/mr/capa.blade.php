@@ -215,7 +215,7 @@
 @if(
     auth()->user()
         ->departments()
-        ->where('name','Management Representative')
+        ->where('name','Management Representative & hse')
         ->exists()
 )
 
@@ -274,24 +274,13 @@
                     <th class="px-4 py-2 !text-center">Category</th>
                     <th class="px-4 py-2 !text-center">Status</th>
                     <th class="px-4 py-2">Detail of Information</th>
-                    <th class="px-4 py-2">Created By</th>
-                    <th class="px-4 py-2">Created At</th>
-                    <th class="px-4 py-2">Posted By</th>
-                    <th class="px-4 py-2">Posted At</th>
-                    <th class="px-4 py-2">Verified By</th>
-                    <th class="px-4 py-2">Verified At</th>
-                    <th class="px-4 py-2">Processed By</th>
-                    <th class="px-4 py-2">Processed At</th>
-                    <th class="px-4 py-2">Review By</th>
-                    <th class="px-4 py-2">Review At</th>
-                    <th class="px-4 py-2">Submitted By</th>
-                    <th class="px-4 py-2">Submitted At</th>
-                    <th class="px-4 py-2">Authorized By</th>
-                    <th class="px-4 py-2">Authorized At</th>
-                    <th class="px-4 py-2">Approved By</th>
-                    <th class="px-4 py-2">Approved At</th>
-                    <th class="px-4 py-2">Returned By</th>
-                    <th class="px-4 py-2">Returned At</th>
+                    <th class="px-4 py-2">Problem</th>
+                    <th class="px-4 py-2">Root Cause Analysis</th>
+                    <th class="px-4 py-2">Corrective Action</th>
+                    <th class="px-4 py-2">CA Due Date</th>
+                    <th class="px-4 py-2">Preventive Action</th>
+                    <th class="px-4 py-2">PA Due Date</th>
+                    <th class="px-4 py-2">Deadline</th>
                 </tr>
             </thead>
             <tbody>
@@ -675,7 +664,7 @@ div.dt-button-collection .dt-button:hover {
                 title: null,
                 text: '<i class="fas fa-file-excel mr-2 text-green-600"></i>Excel',
                 exportOptions: {
-                columns: [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
+                columns: [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13,14,15] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
                 }
             },
             {
@@ -686,7 +675,7 @@ div.dt-button-collection .dt-button:hover {
                 pageSize: 'A4',
                 text: '<i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF',
                 exportOptions: {
-                columns:  [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
+                columns:  [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
                 },
                  customize: function(doc) {
         // Ubah font seluruh tabel
@@ -700,7 +689,7 @@ div.dt-button-collection .dt-button:hover {
                 text: '<i class="fas fa-print mr-2"></i>Print',
                 orientation: 'landscape',
                 exportOptions: {
-                columns:  [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
+                columns:  [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
                 },
                  customize: function (win) {
         // Kecilkan font tabel
@@ -722,24 +711,13 @@ div.dt-button-collection .dt-button:hover {
   { data: 'category', name: 'category', orderable: false, searchable: false },
   { data: 'status', name: 'status',  className: 'text-center', orderable: false, searchable: false },
   { data: 'detail_of_information', name: 'detail_of_information', orderable: false },
-  { data: 'created_by', name: 'created_by', orderable: false, searchable: false },
-  { data: 'created_at', name: 'created_at', orderable: false, searchable: false },
-  { data: 'posted_by', name: 'posted_by', orderable: false, searchable: false },
-  { data: 'posted_at', name: 'posted_at', orderable: false, searchable: false },
-  { data: 'verified_by', name: 'verified_by', orderable: false, searchable: false },
-  { data: 'verified_at', name: 'verified_at', orderable: false, searchable: false },
-  { data: 'processed_by', name: 'submitted_by', orderable: false, searchable: false },
-  { data: 'processed_at', name: 'submitted_at', orderable: false, searchable: false },
-  { data: 'review_by', name: 'review_by', orderable: false, searchable: false },
-  { data: 'review_at', name: 'review_at', orderable: false, searchable: false },
-  { data: 'submitted_by', name: 'submitted_by', orderable: false, searchable: false },
-  { data: 'submitted_at', name: 'submitted_at', orderable: false, searchable: false },
-  { data: 'authorized_by', name: 'authorized_by', orderable: false, searchable: false },
-  { data: 'authorized_at', name: 'authorized_at', orderable: false, searchable: false },
-  { data: 'approved_by', name: 'approved_by', orderable: false, searchable: false },
-  { data: 'approved_at', name: 'approved_at', orderable: false, searchable: false },
-  { data: 'returned_by', name: 'returned_by', orderable: false, searchable: false },
-  { data: 'returned_at', name: 'returned_at', orderable: false, searchable: false },
+  { data: 'problem', name: 'rca', orderable: false },
+  { data: 'rca', name: 'detail_of_information', orderable: false },
+  { data: 'ca', name: 'ca', orderable: false, searchable: false },
+  { data: 'ca_due_date', name: 'ca_due_date', orderable: false, searchable: false },
+  { data: 'pa', name: 'pa', orderable: false, searchable: false },
+  { data: 'pa_due_date', name: 'pa_due_date', orderable: false, searchable: false },
+  { data: 'deadline', name: 'deadline', orderable: false, searchable: false },
 ]
 
     });

@@ -685,7 +685,7 @@
 
 
 
-<!-- EVIDENCE -->
+<!-- EVIDENCE 
 <div class="bg-white border rounded-xl shadow-sm p-5">
    <p class="text-sm font-semibold text-blue-700">List Evidences</p>
 
@@ -716,7 +716,7 @@
     <p class="text-sm text-gray-400 italic">No evidence attached</p>
   @endif
 
-      </div>
+      </div>-->
 
       <hr class="my-4">
 
