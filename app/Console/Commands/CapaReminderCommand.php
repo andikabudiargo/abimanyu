@@ -45,23 +45,30 @@ class CapaReminderCommand extends Command
         ->whereIn('due_date', $dates)
         ->get();
 
-            // Ambil ID department ManagementRepresentative
-$dept = Department::where('name', 'Management Representative')->first();
-$ccUsers = [];
+          foreach ($actions as $action) {
 
-if ($dept) {
-    $ccUsers = User::whereHas('departments', function ($q) use ($dept) {
-                    $q->where('departments.id', $dept->id);
-                })
-                ->whereNotNull('email')
-                ->pluck('email')
-                ->toArray();
-}
-
-foreach ($actions as $action) {
+    // Ambil department representative
     $representative = $action->capa?->representative;
     if (!$representative || !$representative->email) continue;
 
+    // Ambil departemen representative
+    $dept = $representative->departments()->first(); // asumsi satu department
+    $ccUsers = [];
+
+    if ($dept) {
+        // Ambil semua user di departemen tersebut yang punya role 'Supervisor Special Access'
+        $ccUsers = User::whereHas('departments', function ($q) use ($dept) {
+                        $q->where('departments.id', $dept->id);
+                    })
+                    ->whereHas('roles', function ($q2) {
+                        $q2->where('name', 'Supervisor Special Access'); // cek role pivot role_user
+                    })
+                    ->whereNotNull('email')
+                    ->pluck('email')
+                    ->toArray();
+    }
+
+    // Kirim email
     Mail::to($representative->email)
         ->cc($ccUsers)
         ->send(new CapaReminderMail($action));

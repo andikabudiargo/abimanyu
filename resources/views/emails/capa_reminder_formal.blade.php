@@ -8,12 +8,13 @@
 
     <table width="100%" cellpadding="0" cellspacing="0" 
        style="width:100%; margin:0; background:#ffffff; padding:30px; border-radius:0;">
-
+@php
+    $logoPath = '/home/abimany3/public_html/img/logo.png';
+    $logoData = base64_encode(file_get_contents($logoPath));
+@endphp
         <tr>
             <td align="center" style="padding-bottom:20px;">
-                <img src="{{ asset('img/logo.png') }}" 
-                     alt="Company Logo" 
-                     style="height:70px;">
+                <img src="data:image/png;base64,{{ $logoData }}" alt="Company Logo" style="height:70px;">
             </td>
         </tr>
 
@@ -55,9 +56,9 @@
                     </tr>
                 </table>
 
-                <p style="font-size:14px; color:#374151;">
-                    Reminder Status: <strong>{{ $dayStatus }}</strong>
-                </p>
+               <p style="font-size:14px; color:#374151;">
+    Reminder Status: <strong style="color:#dc2626;">{{ $dayStatus }}</strong>
+</p>
 
                 <p style="font-size:14px; color:#374151;">
                     Kindly ensure necessary actions, including submission of supporting documents, are taken before the deadline.
