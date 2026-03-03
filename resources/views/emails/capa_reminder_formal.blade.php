@@ -4,85 +4,90 @@
     <meta charset="UTF-8">
     <title>CAPA Reminder Mail</title>
 </head>
-<body style="font-family: Arial, sans-serif; background-color:#f4f6f9; padding:30px;">
+<body style="margin:0; padding:0; font-family: 'Open Sans', Arial, sans-serif; background-color:#f4f6f9;">
 
-    <table width="100%" cellpadding="0" cellspacing="0" 
-       style="width:100%; margin:0; background:#ffffff; padding:30px; border-radius:0;">
 @php
+    // Resize fisik logo sebelum encode, misal versi 70x50
     $logoPath = '/home/abimany3/public_html/img/logo.png';
     $logoData = base64_encode(file_get_contents($logoPath));
 @endphp
-        <tr>
-    <td align="center" 
-        style="padding:20px; background: linear-gradient(90deg, #0f172a, #1e3a8a); 
-               border-radius:8px 8px 0 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <img src="data:image/png;base64,{{ $logoData }}" 
-             alt="Company Logo" 
-             style="height:15px; width:30px;">
-    </td>
-</tr>
 
-        <tr>
-            <td>
-                <h3 style="color:#1f2937; margin-bottom:15px;">
-                    CAPA Due Date Reminder
-                </h3>
+<!-- Container utama -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f9; padding:30px 0;">
+    <tr>
+        <td align="center">
 
-                <p style="font-size:14px; color:#374151;">
-                    Dear {{ $action->capa->representative->name ?? 'Department Representative' }},
-                </p>
+            <!-- Box email -->
+            <table width="700" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 0 20px rgba(0,0,0,0.05);">
 
-                <p style="font-size:14px; color:#374151;">
-                    This is an automated reminder regarding the following CAPA action:
-                </p>
+                <!-- Header dengan background -->
+                <tr>
+                    <td align="center" style="background-color:#1f2937; padding:15px;">
+                        <img src="data:image/png;base64,{{ $logoData }}" 
+                             alt="Company Logo" 
+                             style="height:50px; width:70px; display:block;">
+                    </td>
+                </tr>
 
-                <table width="100%" cellpadding="6" cellspacing="0" 
-                       style="border-collapse:collapse; margin:15px 0; font-size:14px;">
-                    <tr>
-                        <td width="30%"><strong>CAPA No</strong></td>
-                        <td>: {{ $action->capa->capa_number ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Action Type</strong></td>
-                        <td>: {{ $action->type }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Description</strong></td>
-                        <td>: {{ $action->description ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Due Date</strong></td>
-                        <td>: {{ $action->due_date ? \Carbon\Carbon::parse($action->due_date)->format('d-m-Y') : '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Status</strong></td>
-                        <td>: {{ $action->status }}</td>
-                    </tr>
-                </table>
+                <!-- Konten -->
+                <tr>
+                    <td style="padding:30px; color:#374151; font-size:14px; line-height:1.6;">
 
-               <p style="font-size:14px; color:#374151;">
-    Reminder Status: <strong style="color:#dc2626;">{{ $dayStatus }}</strong>
-</p>
+                        <h3 style="color:#1f2937; margin-bottom:20px;">⚠️ CAPA Due Date Reminder</h3>
 
-                <p style="font-size:14px; color:#374151;">
-                    Kindly ensure necessary actions, including submission of supporting documents, are taken before the deadline.
-                </p>
+                        <p>Dear {{ $action->capa->representative->name ?? 'Department Representative' }},</p>
 
-                <br>
+                        <p>This is an automated reminder regarding the following CAPA action:</p>
 
-                <p style="font-size:13px; color:#6b7280;">
-                    This email is generated automatically by the CAPA Management System.
-                </p>
+                        <!-- Detail CAPA -->
+                        <table width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse; font-size:14px; margin:15px 0; background:#f9fafb; border-radius:5px;">
+                            <tr>
+                                <td width="30%"><strong>CAPA No</strong></td>
+                                <td>: {{ $action->capa->capa_number ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Action Type</strong></td>
+                                <td>: {{ $action->type }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Description</strong></td>
+                                <td>: {{ $action->description ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Due Date</strong></td>
+                                <td>: {{ $action->due_date ? \Carbon\Carbon::parse($action->due_date)->format('d-m-Y') : '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status</strong></td>
+                                <td>: {{ $action->status }}</td>
+                            </tr>
+                        </table>
 
-                <p style="font-size:13px; color:#6b7280;">
-                    Best Regards,<br>
-                    IT PT. Abimanyu Sekar Nusantara
-                </p>
+                        <!-- Reminder Status -->
+                        <p>Reminder Status: <strong style="color:#dc2626;">{{ $dayStatus }}</strong></p>
 
-            </td>
-        </tr>
+                        <p>Kindly ensure necessary actions, including submission of supporting documents, are taken before the deadline.</p>
 
-    </table>
+                        <hr style="border:none; border-top:1px solid #e5e7eb; margin:20px 0;">
+
+                        <p style="font-size:13px; color:#6b7280;">
+                            This email is generated automatically by the CAPA Management System.
+                        </p>
+                        <p style="font-size:13px; color:#6b7280;">
+                            Best Regards,<br>
+                            IT PT. Abimanyu Sekar Nusantara
+                        </p>
+
+                    </td>
+                </tr>
+
+            </table>
+            <!-- End Box email -->
+
+        </td>
+    </tr>
+</table>
+<!-- End Container utama -->
 
 </body>
 </html>
