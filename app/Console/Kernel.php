@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         \App\Console\Commands\AutoCloseTickets::class,
         \App\Console\Commands\SyncFingerLogs::class, // ← wajib daftar
+         \App\Console\Commands\CapaReminderCommand::class, // ← wajib daftar
     ];
 
     /**
@@ -24,18 +25,14 @@ class Kernel extends ConsoleKernel
     {
         // Jalankan auto close tickets tiap menit
         $schedule->command('tickets:autoclose')
-            ->everyMinute()
-            ->before(function () {
-                \Log::info('Scheduler tickets:autoclose mulai jalan');
-            })
-            ->after(function () {
-                \Log::info('Scheduler tickets:autoclose selesai jalan');
-            });
+            ->everyMinute();
 
         // 🔥 Sync fingerprint setiap 1 menit
         $schedule->command('finger:sync')->everyMinute();
         
          $schedule->command('apd:send-reminder')->dailyAt('09:00');
+
+         $schedule->command('capa:reminder')->dailyAt('15:20');
     }
 
     /**
