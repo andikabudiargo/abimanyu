@@ -742,6 +742,7 @@ public function destroy($id)
 
 
 
+
 public function exportReport()
 {
     /*
@@ -862,6 +863,7 @@ ORDER BY
     /*
     |--------------------------------------------------------------------------
     | 2B. QUERY DATA BELI (lpb_temporary)
+    |     Index: [rm_code][periode] = qty_beli
     |--------------------------------------------------------------------------
     */
     $beliRows = DB::select("
@@ -875,8 +877,6 @@ GROUP BY
     lt.article_code
 ");
 
-    // Index by rm_code saja — 1 RM bisa punya banyak FG di BOM
-    // sehingga qty tidak ikut terduplikasi
     $beliIndex = [];
     foreach ($beliRows as $br) {
         $beliIndex[$br->rm_code][$br->periode] = ($beliIndex[$br->rm_code][$br->periode] ?? 0) + $br->qty_beli;
@@ -885,6 +885,7 @@ GROUP BY
     /*
     |--------------------------------------------------------------------------
     | 2C. QUERY DATA KIRIM (sj_temporary)
+    |     Index: [fg_code][periode] = qty_kirim
     |--------------------------------------------------------------------------
     */
     $kirimRows = DB::select("
@@ -898,8 +899,6 @@ GROUP BY
     st.article_code
 ");
 
-    // Index by fg_code saja — 1 FG bisa punya banyak RM di BOM
-    // sehingga qty tidak ikut terduplikasi
     $kirimIndex = [];
     foreach ($kirimRows as $kr) {
         $kirimIndex[$kr->fg_code][$kr->periode] = ($kirimIndex[$kr->fg_code][$kr->periode] ?? 0) + $kr->qty_kirim;
@@ -931,6 +930,63 @@ GROUP BY
     }
 
     ksort($data, SORT_NATURAL);
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3B. PRE-COMPUTE RM GROUPS
+    |     Kumpulkan semua key yang berelasi dengan RM yang sama,
+    |     hitung jumlah baris per RM group, dan hitung total
+    |     STOCK STO & STOCK ADMIN per RM per periode
+    |--------------------------------------------------------------------------
+    */
+
+    // Kelompokkan key by rm_code
+    // $rmGroups[rm_code] = [key1, key2, ...]
+    $rmGroups = [];
+    foreach ($data as $key => $item) {
+        $rmCode = $item['info'][0];
+        $rmGroups[$rmCode][] = $key;
+    }
+
+    // Hitung total STOCK STO per rm_code per periode
+    // $stockStoByRM[rm_code][periode] = total_qty_semua_fg
+    $stockStoByRM = [];
+    foreach ($data as $key => $item) {
+        $rmCode = $item['info'][0];
+        foreach ($periodes as $periode) {
+            $d     = $item['periode'][$periode] ?? null;
+            $rm    = $d->qty_rm     ?? 0;
+            $buff  = $d->qty_buff   ?? 0;
+            $sand  = $d->qty_sand   ?? 0;
+            $touch = $d->qty_touch  ?? 0;
+            $wer   = $d->qty_werate ?? 0;
+            $fg    = $d->qty_fg     ?? 0;
+            $ot    = $d->qty_ot     ?? 0;
+            $stockStoByRM[$rmCode][$periode] = ($stockStoByRM[$rmCode][$periode] ?? 0)
+                + $rm + $buff + $sand + $touch + $wer + $fg + $ot;
+        }
+    }
+
+    // Hitung total STOCK ADMIN per rm_code per periode
+    // STOCK ADMIN = total KIRIM semua FG terkait - total BELI RM
+    // $stockAdminByRM[rm_code][periode] = (sum kirim fg) - beli_rm
+    $stockAdminByRM = [];
+    foreach ($rmGroups as $rmCode => $keys) {
+        foreach ($periodes as $periode) {
+            // Total kirim semua FG yang berelasi dengan RM ini
+            $totalKirim = 0;
+            foreach ($keys as $key) {
+                $fgCode      = $data[$key]['info'][2];
+                $totalKirim += ($fgCode !== 'OTHER' && isset($kirimIndex[$fgCode][$periode]))
+                               ? $kirimIndex[$fgCode][$periode] : 0;
+            }
+            // Beli RM
+            $totalBeli = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
+                         ? $beliIndex[$rmCode][$periode] : 0;
+
+            $stockAdminByRM[$rmCode][$periode] = $totalKirim - $totalBeli;
+        }
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -982,22 +1038,22 @@ GROUP BY
     | 5. HEADER DINAMIS PER PERIODE
     |
     |    Struktur 12 kolom per periode:
-    |    [0] RM
-    |    [1] Buffing
-    |    [2] Sanding
-    |    [3] Touch Up
-    |    [4] Werate
-    |    [5] FG
-    |    [6] OT
-    |    [7] STOCK STO   ← total STO
-    |    [8] BELI
-    |    [9] KIRIM
-    |    [10] STOCK ADMIN ← KIRIM - BELI
-    |    [11] SELISIH     ← STOCK STO - STOCK ADMIN  (BARU)
+    |    [0]  RM
+    |    [1]  Buffing
+    |    [2]  Sanding
+    |    [3]  Touch Up
+    |    [4]  Werate
+    |    [5]  FG
+    |    [6]  OT
+    |    [7]  STOCK STO   ← merge per group RM, jumlah semua qty
+    |    [8]  BELI        ← merge per group RM
+    |    [9]  KIRIM       ← merge per group RM
+    |    [10] STOCK ADMIN ← merge per group RM, KIRIM - BELI
+    |    [11] SELISIH     ← merge per group RM, STOCK STO - STOCK ADMIN
     |--------------------------------------------------------------------------
     */
-    $startColIndex = 6; // kolom F
-    $colCount      = 12; // total kolom per periode
+    $startColIndex = 6;
+    $colCount      = 12;
 
     $bulanNama = [
         '01' => 'JANUARI',  '02' => 'FEBRUARI', '03' => 'MARET',
@@ -1017,12 +1073,9 @@ GROUP BY
         $start = Coordinate::stringFromColumnIndex($startColIndex);
         $end   = Coordinate::stringFromColumnIndex($startColIndex + $colCount - 1);
 
-        /* TITLE */
         $sheet->mergeCells("{$start}1:{$end}1");
         $sheet->setCellValue("{$start}1", $title);
         $color("{$start}1:{$end}1", 'F97316');
-
-        /* ── GROUP HEADER row 2 ── */
 
         // RM
         $colRM = Coordinate::stringFromColumnIndex($startColIndex);
@@ -1065,12 +1118,12 @@ GROUP BY
         $sheet->mergeCells($colStockAdmin . '2:' . $colStockAdmin . '3');
         $sheet->setCellValue($colStockAdmin . '2', 'STOCK ADMIN');
 
-        // SELISIH (STOCK STO - STOCK ADMIN)  ← BARU
+        // SELISIH
         $colSelisih = Coordinate::stringFromColumnIndex($startColIndex + 11);
         $sheet->mergeCells($colSelisih . '2:' . $colSelisih . '3');
         $sheet->setCellValue($colSelisih . '2', 'SELISIH');
 
-        /* SUB HEADER WIP row 3 */
+        // WIP sub header
         $wipSubs = ['Buffing', 'Sanding', 'Touch Up', 'Werate'];
         for ($i = 0; $i < 4; $i++) {
             $sheet->setCellValue(
@@ -1079,16 +1132,15 @@ GROUP BY
             );
         }
 
-        /* ── WARNA ── */
-        $color($colRM       . '2:' . $colRM       . '3', '2563EB');           // biru
-        $color($wipStart    . '2:' . $wipEnd       . '3', 'FACC15', '000000'); // kuning
-        $color($colFG       . '2:' . $colFG        . '3', '16A34A');           // hijau
-        $color($colOT       . '2:' . $colOT        . '3', '9CA3AF', '000000'); // abu
-        $color($colStockSto . '2:' . $colStockSto  . '3', 'DC2626');           // merah
-        $color($colBeli     . '2:' . $colBeli      . '3', '7C3AED');           // ungu
-        $color($colKirim    . '2:' . $colKirim     . '3', '0891B2');           // teal
-        $color($colStockAdmin . '2:' . $colStockAdmin . '3', '92400E');        // coklat
-        $color($colSelisih  . '2:' . $colSelisih   . '3', '065F46');           // hijau tua
+        $color($colRM        . '2:' . $colRM        . '3', '2563EB');
+        $color($wipStart     . '2:' . $wipEnd        . '3', 'FACC15', '000000');
+        $color($colFG        . '2:' . $colFG         . '3', '16A34A');
+        $color($colOT        . '2:' . $colOT         . '3', '9CA3AF', '000000');
+        $color($colStockSto  . '2:' . $colStockSto   . '3', 'DC2626');
+        $color($colBeli      . '2:' . $colBeli        . '3', '7C3AED');
+        $color($colKirim     . '2:' . $colKirim       . '3', '0891B2');
+        $color($colStockAdmin. '2:' . $colStockAdmin  . '3', '92400E');
+        $color($colSelisih   . '2:' . $colSelisih     . '3', '065F46');
 
         $periodeColMap[$periode] = $startColIndex;
         $startColIndex += $colCount;
@@ -1097,10 +1149,39 @@ GROUP BY
     /*
     |--------------------------------------------------------------------------
     | 6. INSERT DATA
+    |
+    |    Strategi merge:
+    |    - Kolom RM, RM Desc, STOCK STO, BELI, KIRIM, STOCK ADMIN, SELISIH
+    |      di-merge untuk semua baris dalam 1 group RM
+    |    - Kolom FG, FG Desc, UOM, RM qty, WIP, FG, OT tetap per baris
     |--------------------------------------------------------------------------
     */
     $rowIndex = 4;
     $lastRM   = null;
+
+    // Kita perlu tahu dulu berapa baris per RM group agar bisa merge
+    // Bangun urutan item sesuai ksort, catat row start per rm_code
+    $rmGroupRows = []; // [rm_code] = ['start' => row, 'count' => n]
+
+    // Pass 1: hitung posisi baris tiap key
+    $keyRowMap = [];
+    $tempRow   = 4;
+    $tempLastRM = null;
+    foreach ($data as $key => $item) {
+        $rmCode = $item['info'][0];
+        $isSame = ($rmCode !== 'OTHER' && $rmCode === $tempLastRM);
+        if (!$isSame) {
+            $rmGroupRows[$rmCode] = ['start' => $tempRow, 'count' => 0];
+        }
+        $rmGroupRows[$rmCode]['count']++;
+        $keyRowMap[$key] = $tempRow;
+        $tempLastRM = $rmCode;
+        $tempRow++;
+    }
+
+    // Pass 2: insert data
+    $lastRM      = null;
+    $mergedRMs   = []; // track rm yang sudah di-merge agar tidak merge ulang
 
     foreach ($data as $key => $item) {
 
@@ -1108,21 +1189,39 @@ GROUP BY
         $rmDesc = $item['info'][1];
         $fgCode = $item['info'][2];
 
-        $isSameRM = ($rmCode !== 'OTHER' && $rmCode === $lastRM);
+        $isSameRM  = ($rmCode !== 'OTHER' && $rmCode === $lastRM);
+        $groupInfo = $rmGroupRows[$rmCode] ?? null;
+        $groupSize = $groupInfo ? $groupInfo['count'] : 1;
+        $groupStart= $groupInfo ? $groupInfo['start'] : $rowIndex;
+        $groupEnd  = $groupStart + $groupSize - 1;
 
-        $sheet->fromArray([
-            $isSameRM ? '' : $rmCode,
-            $isSameRM ? '' : $rmDesc,
-            $item['info'][2],
-            $item['info'][3],
-            $item['info'][4],
-        ], null, "A{$rowIndex}");
+        /*
+        |----------------------------------------------
+        | Kolom A-B (RM Code, RM Desc): hanya baris pertama
+        |----------------------------------------------
+        */
+        $sheet->setCellValue("A{$rowIndex}", $isSameRM ? '' : $rmCode);
+        $sheet->setCellValue("B{$rowIndex}", $isSameRM ? '' : $rmDesc);
+        $sheet->setCellValue("C{$rowIndex}", $item['info'][2]);
+        $sheet->setCellValue("D{$rowIndex}", $item['info'][3]);
+        $sheet->setCellValue("E{$rowIndex}", $item['info'][4]);
+
+        /*
+        |----------------------------------------------
+        | Merge A-B jika group > 1 baris (hanya sekali per group)
+        |----------------------------------------------
+        */
+        if ($groupSize > 1 && !$isSameRM) {
+            $sheet->mergeCells("A{$groupStart}:A{$groupEnd}");
+            $sheet->mergeCells("B{$groupStart}:B{$groupEnd}");
+        }
 
         foreach ($periodes as $periode) {
 
             $col = $periodeColMap[$periode];
             $d   = $item['periode'][$periode] ?? null;
 
+            // qty per baris FG (RM qty hanya baris pertama)
             $rm    = $isSameRM ? 0 : ($d->qty_rm     ?? 0);
             $buff  = $d->qty_buff   ?? 0;
             $sand  = $d->qty_sand   ?? 0;
@@ -1131,25 +1230,53 @@ GROUP BY
             $fg    = $d->qty_fg     ?? 0;
             $ot    = $d->qty_ot     ?? 0;
 
-            $stockSto = $rm + $buff + $sand + $touch + $wer + $fg + $ot;
+            // Kolom RM, Buff, Sand, Touch, Wer, FG, OT → per baris biasa
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col)     . $rowIndex, $rm);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $rowIndex, $buff);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 2) . $rowIndex, $sand);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 3) . $rowIndex, $touch);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 4) . $rowIndex, $wer);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 5) . $rowIndex, $fg);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 6) . $rowIndex, $ot);
 
-            // BELI: hanya muncul di baris pertama RM (sama seperti qty RM di STO)
-            $qtyBeli  = (!$isSameRM && $rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
-                        ? $beliIndex[$rmCode][$periode] : 0;
+            /*
+            |--------------------------------------------------
+            | STOCK STO, BELI, KIRIM, STOCK ADMIN, SELISIH
+            | → hanya isi & merge di baris pertama group RM
+            |--------------------------------------------------
+            */
+            $cStockSto   = Coordinate::stringFromColumnIndex($col + 7);
+            $cBeli       = Coordinate::stringFromColumnIndex($col + 8);
+            $cKirim      = Coordinate::stringFromColumnIndex($col + 9);
+            $cStockAdmin = Coordinate::stringFromColumnIndex($col + 10);
+            $cSelisih    = Coordinate::stringFromColumnIndex($col + 11);
 
-            // KIRIM: lookup by fg_code saja
-            $qtyKirim = ($fgCode !== 'OTHER' && isset($kirimIndex[$fgCode][$periode]))
-                        ? $kirimIndex[$fgCode][$periode] : 0;
+            if (!$isSameRM) {
+                // Ambil total untuk seluruh group RM
+                $totalStockSto   = $stockStoByRM[$rmCode][$periode]   ?? 0;
+                $totalStockAdmin = $stockAdminByRM[$rmCode][$periode]  ?? 0;
+                $totalSelisih    = $totalStockSto - $totalStockAdmin;
 
-            $stockAdmin = $qtyKirim - $qtyBeli;          // STOCK ADMIN
-            $selisih    = $stockSto  - $stockAdmin;       // SELISIH ← BARU
+                // Hitung BELI dan KIRIM untuk ditampilkan terpisah
+                $totalBeli  = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
+                              ? $beliIndex[$rmCode][$periode] : 0;
+                $totalKirim = $totalStockAdmin + $totalBeli; // kirim = admin + beli
 
-            $sheet->fromArray(
-                [$rm, $buff, $sand, $touch, $wer, $fg, $ot,
-                 $stockSto, $qtyBeli, $qtyKirim, $stockAdmin, $selisih],
-                null,
-                Coordinate::stringFromColumnIndex($col) . $rowIndex
-            );
+                $sheet->setCellValue("{$cStockSto}{$rowIndex}",   $totalStockSto);
+                $sheet->setCellValue("{$cBeli}{$rowIndex}",       $totalBeli);
+                $sheet->setCellValue("{$cKirim}{$rowIndex}",      $totalKirim);
+                $sheet->setCellValue("{$cStockAdmin}{$rowIndex}", $totalStockAdmin);
+                $sheet->setCellValue("{$cSelisih}{$rowIndex}",    $totalSelisih);
+
+                // Merge jika group > 1 baris
+                if ($groupSize > 1) {
+                    $sheet->mergeCells("{$cStockSto}{$groupStart}:{$cStockSto}{$groupEnd}");
+                    $sheet->mergeCells("{$cBeli}{$groupStart}:{$cBeli}{$groupEnd}");
+                    $sheet->mergeCells("{$cKirim}{$groupStart}:{$cKirim}{$groupEnd}");
+                    $sheet->mergeCells("{$cStockAdmin}{$groupStart}:{$cStockAdmin}{$groupEnd}");
+                    $sheet->mergeCells("{$cSelisih}{$groupStart}:{$cSelisih}{$groupEnd}");
+                }
+            }
         }
 
         $lastRM = $rmCode;
@@ -1191,7 +1318,35 @@ GROUP BY
 
     /*
     |--------------------------------------------------------------------------
-    | 8. AUTO WIDTH
+    | 8. STYLING: CENTER VERTICAL + CENTER HORIZONTAL untuk merged cells
+    |--------------------------------------------------------------------------
+    */
+    $highestRow    = $sheet->getHighestRow();
+    $highestColumn = $sheet->getHighestColumn();
+
+    $sheet->getStyle("A1:{$highestColumn}{$highestRow}")->applyFromArray([
+        'alignment' => [
+            'vertical'   => Alignment::VERTICAL_CENTER,
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'wrapText'   => false,
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color'       => ['rgb' => '000000'],
+            ],
+        ],
+    ]);
+
+    // Override alignment kolom teks (A-E) agar left align
+    $sheet->getStyle("A4:B{$lastDataRow}")->getAlignment()
+          ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+    $sheet->getStyle("C4:D{$lastDataRow}")->getAlignment()
+          ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+    /*
+    |--------------------------------------------------------------------------
+    | 9. AUTO WIDTH
     |--------------------------------------------------------------------------
     */
     $highestColumnIndex = Coordinate::columnIndexFromString($sheet->getHighestColumn());
@@ -1202,24 +1357,6 @@ GROUP BY
     }
 
     $sheet->freezePane('F4');
-
-    /*
-    |--------------------------------------------------------------------------
-    | 9. BORDER + VERTICAL ALIGN CENTER
-    |--------------------------------------------------------------------------
-    */
-    $highestRow    = $sheet->getHighestRow();
-    $highestColumn = $sheet->getHighestColumn();
-
-    $sheet->getStyle("A1:{$highestColumn}{$highestRow}")->applyFromArray([
-        'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
-        'borders'   => [
-            'allBorders' => [
-                'borderStyle' => Border::BORDER_THIN,
-                'color'       => ['rgb' => '000000'],
-            ],
-        ],
-    ]);
 
     /*
     |--------------------------------------------------------------------------
