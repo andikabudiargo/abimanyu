@@ -34,46 +34,62 @@ class CapaReminderCommand extends Command
     $today = Carbon::today();
 
     $dates = [
-        $today->copy()->addDays(3),  // H-3
-        $today,                     // H
-        $today->copy()->subDays(3),  // H+3
+        $today->copy()->addDays(3),
+        $today,
+        $today->copy()->subDays(3),
     ];
 
     $actions = CAPAAction::with('capa.representative')
-        ->whereIn('type', ['CA','PA'])
-        ->where('status', 'Open')
+        ->whereIn('type', ['CA', 'PA'])
+        ->where('status', '!=', 'Closed')
         ->whereIn('due_date', $dates)
         ->get();
 
-          foreach ($actions as $action) {
+    foreach ($actions as $action) {
 
-    // Ambil department representative
-    $representative = $action->capa?->representative;
-    if (!$representative || !$representative->email) continue;
+        // Ambil department representative
+        $representative = $action->capa?->representative;
+        if (!$representative) continue;
 
-    // Ambil departemen representative
-    $dept = $representative->departments()->first(); // asumsi satu department
-    $ccUsers = [];
+     // Ambil SEMUA departemen milik representative
+$depts = $representative->departments;
+if ($depts->isEmpty()) continue;
 
-    if ($dept) {
-        // Ambil semua user di departemen tersebut yang punya role 'Supervisor Special Access'
-        $ccUsers = User::whereHas('departments', function ($q) use ($dept) {
-                        $q->where('departments.id', $dept->id);
-                    })
-                    ->whereHas('roles', function ($q2) {
-                        $q2->where('name', 'Supervisor Special Access'); // cek role pivot role_user
-                    })
-                    ->whereNotNull('email')
-                    ->pluck('email')
-                    ->toArray();
+// TO: Supervisor dari semua departemen yang SAMA dengan dept_representative
+$deptIds = $depts->pluck('id')->toArray();
+
+$supervisors = User::whereHas('departments', function ($q) use ($deptIds) {
+                    $q->whereIn('departments.id', $deptIds);
+                })
+                ->whereHas('roles', function ($q) {
+                    $q->where('name', 'Supervisor Special Access');
+                })
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->toArray();
+
+        if (empty($supervisors)) continue;
+
+        // CC: User dari departemen yang bernama "Management Representative"
+        $mgmtRepDept = Department::where('name', 'Management Representative')->first();
+        $ccUsers = [];
+
+        if ($mgmtRepDept) {
+            $ccUsers = User::whereHas('departments', function ($q) use ($mgmtRepDept) {
+                            $q->where('departments.id', $mgmtRepDept->id);
+                        })
+                        ->whereNotNull('email')
+                        ->pluck('email')
+                        ->toArray();
+        }
+
+        // Kirim email
+        Mail::to($supervisors)
+            ->cc($ccUsers)
+            ->send(new CapaReminderMail($action));
     }
-
-    // Kirim email
-    Mail::to($representative->email)
-        ->cc($ccUsers)
-        ->send(new CapaReminderMail($action));
-}
 
     return 0;
 }
+
 }
