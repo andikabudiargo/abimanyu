@@ -740,6 +740,8 @@ public function destroy($id)
 
 
 
+<?php
+
 public function exportReport()
 {
     /*
@@ -866,20 +868,18 @@ ORDER BY
 SELECT
     DATE_FORMAT(lt.do_date, '%Y-%m') AS periode,
     lt.article_code AS rm_code,
-    b.article_fg    AS fg_code,
     SUM(lt.qty)     AS qty_beli
 FROM lpb_temporary lt
-JOIN boms b ON lt.article_code = b.article_rm
 GROUP BY
     DATE_FORMAT(lt.do_date, '%Y-%m'),
-    lt.article_code,
-    b.article_fg
+    lt.article_code
 ");
 
+    // Index by rm_code saja — 1 RM bisa punya banyak FG di BOM
+    // sehingga qty tidak ikut terduplikasi
     $beliIndex = [];
     foreach ($beliRows as $br) {
-        $key = $br->rm_code . '|' . $br->fg_code;
-        $beliIndex[$key][$br->periode] = ($beliIndex[$key][$br->periode] ?? 0) + $br->qty_beli;
+        $beliIndex[$br->rm_code][$br->periode] = ($beliIndex[$br->rm_code][$br->periode] ?? 0) + $br->qty_beli;
     }
 
     /*
@@ -890,21 +890,19 @@ GROUP BY
     $kirimRows = DB::select("
 SELECT
     DATE_FORMAT(st.delivery_date, '%Y-%m') AS periode,
-    b.article_rm    AS rm_code,
     st.article_code AS fg_code,
     SUM(st.delivery_qty) AS qty_kirim
 FROM sj_temporary st
-JOIN boms b ON st.article_code = b.article_fg
 GROUP BY
     DATE_FORMAT(st.delivery_date, '%Y-%m'),
-    b.article_rm,
     st.article_code
 ");
 
+    // Index by fg_code saja — 1 FG bisa punya banyak RM di BOM
+    // sehingga qty tidak ikut terduplikasi
     $kirimIndex = [];
     foreach ($kirimRows as $kr) {
-        $key = $kr->rm_code . '|' . $kr->fg_code;
-        $kirimIndex[$key][$kr->periode] = ($kirimIndex[$key][$kr->periode] ?? 0) + $kr->qty_kirim;
+        $kirimIndex[$kr->fg_code][$kr->periode] = ($kirimIndex[$kr->fg_code][$kr->periode] ?? 0) + $kr->qty_kirim;
     }
 
     /*
@@ -1135,13 +1133,13 @@ GROUP BY
 
             $stockSto = $rm + $buff + $sand + $touch + $wer + $fg + $ot;
 
-            $lookupKey = ($rmCode === 'OTHER') ? null : ($rmCode . '|' . $fgCode);
+            // BELI: lookup by rm_code saja
+            $qtyBeli  = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
+                        ? $beliIndex[$rmCode][$periode] : 0;
 
-            $qtyBeli  = ($lookupKey && isset($beliIndex[$lookupKey][$periode]))
-                        ? $beliIndex[$lookupKey][$periode] : 0;
-
-            $qtyKirim = ($lookupKey && isset($kirimIndex[$lookupKey][$periode]))
-                        ? $kirimIndex[$lookupKey][$periode] : 0;
+            // KIRIM: lookup by fg_code saja
+            $qtyKirim = ($fgCode !== 'OTHER' && isset($kirimIndex[$fgCode][$periode]))
+                        ? $kirimIndex[$fgCode][$periode] : 0;
 
             $stockAdmin = $qtyKirim - $qtyBeli;          // STOCK ADMIN
             $selisih    = $stockSto  - $stockAdmin;       // SELISIH ← BARU
