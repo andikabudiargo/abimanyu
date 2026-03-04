@@ -741,6 +741,8 @@ public function destroy($id)
 
 
 
+<?php
+
 public function exportReport()
 {
     /*
@@ -749,7 +751,7 @@ public function exportReport()
     |--------------------------------------------------------------------------
     */
     $periodes = DB::table('stos')
-        ->selectRaw("DISTINCT SUBSTRING(sto_number,1,7) as periode")
+        ->selectRaw("DISTINCT REPLACE(SUBSTRING(sto_number,1,7), '/', '-') as periode")
         ->orderBy('periode')
         ->pluck('periode')
         ->toArray();
@@ -768,7 +770,7 @@ public function exportReport()
    1. DATA YANG MATCH BOM (NORMAL)
 ===================================================== */
 SELECT
-    SUBSTRING(s.sto_number,1,7) AS periode,
+    REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
     bh.article_rm AS rm_code,
     bh.article_rm_desc AS rm_desc,
     bh.article_fg AS fg_code,
@@ -822,7 +824,7 @@ UNION ALL
    2. DATA TANPA BOM → OTHER
 ===================================================== */
 SELECT
-    SUBSTRING(s.sto_number,1,7) AS periode,
+    REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
     'OTHER' AS rm_code,
     si.other_name AS rm_desc,
     'OTHER' AS fg_code,
