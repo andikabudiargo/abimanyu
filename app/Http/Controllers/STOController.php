@@ -984,7 +984,7 @@ GROUP BY
             $totalBeli = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
                          ? $beliIndex[$rmCode][$periode] : 0;
 
-            $stockAdminByRM[$rmCode][$periode] = $totalKirim - $totalBeli;
+            $stockAdminByRM[$rmCode][$periode] = $totalBeli - $totalKirim;
         }
     }
 
