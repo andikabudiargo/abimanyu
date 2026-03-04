@@ -94,12 +94,12 @@
                 <!-- Hero -->
                 <tr>
                     <td style="padding:32px 36px 24px; border-bottom:1px solid #f1f5f9;">
-                        <p style="margin:0 0 4px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#94a3b8; font-weight:600;">Automated Notification · CAPA Management</p>
+                        <p style="margin:0 0 4px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#94a3b8; font-weight:600;">Automated Notification · Management Representative</p>
                         <h1 style="margin:0 0 16px; font-size:22px; font-weight:700; color:#0f172a; letter-spacing:-0.02em;">CAPA Due Date Reminder</h1>
                         <p style="margin:0; font-size:14px; color:#475569; line-height:1.8;">
                             Dear <strong style="color:#0f172a;">{{ $action->capa->representative->name ?? 'Department Representative' }}</strong>,<br>
-                            The following Corrective &amp; Preventive Action item requires your attention.
-                            Please review the details and ensure all required steps are completed before the deadline.
+                            Corrective atau Preventif Action dari CAPA berikut ini memerlukan perhatian Anda.
+                            Harap tinjau detailnya dan pastikan semua langkah yang diperlukan telah diselesaikan dan disubmit ke sistem sebelum batas waktu.
                         </p>
                     </td>
                 </tr>
@@ -120,15 +120,15 @@
 
                             <tr>
                                 <td style="padding:13px 16px; font-size:11px; color:#94a3b8; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; border-bottom:1px solid #f1f5f9;">Action Type</td>
-                                <td style="padding:13px 16px; border-bottom:1px solid #f1f5f9;">
-                                    <span style="display:inline-block; background:#eff6ff; color:#1d4ed8; font-size:11px; font-weight:700; padding:3px 10px; border-radius:5px; letter-spacing:0.08em; border:1px solid #bfdbfe;">
-                                        {{ $action->type }}
-                                    </span>
-                                </td>
+                               <td style="padding:13px 16px; border-bottom:1px solid #f1f5f9;">
+    <span style="display:inline-block; background:#eff6ff; color:#1d4ed8; font-size:11px; font-weight:700; padding:3px 10px; border-radius:5px; letter-spacing:0.08em; border:1px solid #bfdbfe;">
+        {{ $action->type === 'CA' ? 'Corrective Action' : ($action->type === 'PA' ? 'Preventive Action' : $action->type) }}
+    </span>
+</td>
                             </tr>
 
                             <tr style="background:#f8fafc;">
-                                <td style="padding:13px 16px; font-size:11px; color:#94a3b8; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; border-bottom:1px solid #f1f5f9; vertical-align:top;">Description</td>
+                                <td style="padding:13px 16px; font-size:11px; color:#94a3b8; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; border-bottom:1px solid #f1f5f9; vertical-align:top;">Action</td>
                                 <td style="padding:13px 16px; font-size:13px; color:#334155; line-height:1.7; border-bottom:1px solid #f1f5f9;">
                                     {{ $action->description ?? '—' }}
                                 </td>
@@ -196,9 +196,9 @@
                             <tr>
                                 <td style="padding:16px 20px;">
                                     <p style="margin:0; font-size:13px; color:#1e40af; line-height:1.8;">
-                                        <strong>⚡ Action Required:</strong>
-                                        Ensure all corrective or preventive steps — including submission of supporting documents — are completed before the due date.
-                                        Failure to act may result in escalation to your department supervisor.
+                                        <strong>Action Required:</strong>
+                                        Pastikan semua langkah korektif atau preventif, termasuk pengajuan dokumen pendukung dan evidence, dapat diselesaikan sebelum tanggal jatuh tempo.
+                                        Keterlambatan submit tindakan dapat mengakibatkan peningkatan eskalasi di kemudian hari. Terima kasih.
                                     </p>
                                 </td>
                             </tr>
@@ -225,7 +225,7 @@
                                 </td>
                                 <td align="right" style="vertical-align:bottom;">
                                     <p style="margin:0; font-size:11px; color:#cbd5e1; font-family:'DM Mono', monospace; text-align:right; line-height:1.8;">
-                                        CAPA Management System<br>
+                                        Abimanyu Live System<br>
                                         {{ now()->format('d M Y · H:i') }} WIB
                                     </p>
                                 </td>
@@ -246,7 +246,7 @@
                 <tr>
                     <td align="center">
                         <p style="margin:0; font-size:11px; color:#94a3b8; line-height:1.8;">
-                            This message was generated automatically by the CAPA Management System.<br>
+                            This message was generated automatically by the Abimanyu Live System.<br>
                             Please do not reply to this email. For inquiries, contact your IT administrator.
                         </p>
                     </td>
