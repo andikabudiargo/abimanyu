@@ -743,6 +743,7 @@ public function destroy($id)
 
 
 
+
 public function exportReport()
 {
     /*
@@ -884,7 +885,29 @@ GROUP BY
 
     /*
     |--------------------------------------------------------------------------
-    | 2C. QUERY DATA KIRIM (sj_temporary)
+    | 2C. QUERY DATA TF IN (in_temporary)
+    |     Index: [rm_code][periode] = qty_tfin
+    |--------------------------------------------------------------------------
+    */
+    $tfinRows = DB::select("
+SELECT
+    DATE_FORMAT(it.date, '%Y-%m') AS periode,
+    it.article_code AS rm_code,
+    SUM(it.qty)     AS qty_tfin
+FROM in_temporary it
+GROUP BY
+    DATE_FORMAT(it.date, '%Y-%m'),
+    it.article_code
+");
+
+    $tfinIndex = [];
+    foreach ($tfinRows as $tr) {
+        $tfinIndex[$tr->rm_code][$tr->periode] = ($tfinIndex[$tr->rm_code][$tr->periode] ?? 0) + $tr->qty_tfin;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2D. QUERY DATA KIRIM (sj_temporary)
     |     Index: [fg_code][periode] = qty_kirim
     |--------------------------------------------------------------------------
     */
@@ -984,7 +1007,7 @@ GROUP BY
             $totalBeli = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
                          ? $beliIndex[$rmCode][$periode] : 0;
 
-            $stockAdminByRM[$rmCode][$periode] = $totalBeli - $totalKirim;
+            $stockAdminByRM[$rmCode][$periode] = $totalKirim - $totalBeli;
         }
     }
 
@@ -1047,13 +1070,14 @@ GROUP BY
     |    [6]  OT
     |    [7]  STOCK STO   ← merge per group RM, jumlah semua qty
     |    [8]  BELI        ← merge per group RM
-    |    [9]  KIRIM       ← merge per group RM
-    |    [10] STOCK ADMIN ← merge per group RM, KIRIM - BELI
-    |    [11] SELISIH     ← merge per group RM, STOCK STO - STOCK ADMIN
+    |    [9]  TF IN       ← merge per group RM
+    |    [10] KIRIM       ← merge per group RM
+    |    [11] STOCK ADMIN ← merge per group RM, (BELI + TF IN) - KIRIM
+    |    [12] SELISIH     ← merge per group RM, STOCK STO - STOCK ADMIN
     |--------------------------------------------------------------------------
     */
     $startColIndex = 6;
-    $colCount      = 12;
+    $colCount      = 13; // total kolom per periode
 
     $bulanNama = [
         '01' => 'JANUARI',  '02' => 'FEBRUARI', '03' => 'MARET',
@@ -1108,18 +1132,23 @@ GROUP BY
         $sheet->mergeCells($colBeli . '2:' . $colBeli . '3');
         $sheet->setCellValue($colBeli . '2', 'BELI');
 
+        // TF IN
+        $colTfin = Coordinate::stringFromColumnIndex($startColIndex + 9);
+        $sheet->mergeCells($colTfin . '2:' . $colTfin . '3');
+        $sheet->setCellValue($colTfin . '2', 'TF IN');
+
         // KIRIM
-        $colKirim = Coordinate::stringFromColumnIndex($startColIndex + 9);
+        $colKirim = Coordinate::stringFromColumnIndex($startColIndex + 10);
         $sheet->mergeCells($colKirim . '2:' . $colKirim . '3');
         $sheet->setCellValue($colKirim . '2', 'KIRIM');
 
         // STOCK ADMIN
-        $colStockAdmin = Coordinate::stringFromColumnIndex($startColIndex + 10);
+        $colStockAdmin = Coordinate::stringFromColumnIndex($startColIndex + 11);
         $sheet->mergeCells($colStockAdmin . '2:' . $colStockAdmin . '3');
         $sheet->setCellValue($colStockAdmin . '2', 'STOCK ADMIN');
 
         // SELISIH
-        $colSelisih = Coordinate::stringFromColumnIndex($startColIndex + 11);
+        $colSelisih = Coordinate::stringFromColumnIndex($startColIndex + 12);
         $sheet->mergeCells($colSelisih . '2:' . $colSelisih . '3');
         $sheet->setCellValue($colSelisih . '2', 'SELISIH');
 
@@ -1137,10 +1166,11 @@ GROUP BY
         $color($colFG        . '2:' . $colFG         . '3', '16A34A');
         $color($colOT        . '2:' . $colOT         . '3', '9CA3AF', '000000');
         $color($colStockSto  . '2:' . $colStockSto   . '3', 'DC2626');
-        $color($colBeli      . '2:' . $colBeli        . '3', '7C3AED');
-        $color($colKirim     . '2:' . $colKirim       . '3', '0891B2');
-        $color($colStockAdmin. '2:' . $colStockAdmin  . '3', '92400E');
-        $color($colSelisih   . '2:' . $colSelisih     . '3', '065F46');
+        $color($colBeli      . '2:' . $colBeli        . '3', '7C3AED');           // ungu
+        $color($colTfin      . '2:' . $colTfin        . '3', 'BE185D');           // pink tua
+        $color($colKirim     . '2:' . $colKirim       . '3', '0891B2');           // teal
+        $color($colStockAdmin. '2:' . $colStockAdmin  . '3', '92400E');           // coklat
+        $color($colSelisih   . '2:' . $colSelisih     . '3', '065F46');           // hijau tua
 
         $periodeColMap[$periode] = $startColIndex;
         $startColIndex += $colCount;
@@ -1247,23 +1277,28 @@ GROUP BY
             */
             $cStockSto   = Coordinate::stringFromColumnIndex($col + 7);
             $cBeli       = Coordinate::stringFromColumnIndex($col + 8);
-            $cKirim      = Coordinate::stringFromColumnIndex($col + 9);
-            $cStockAdmin = Coordinate::stringFromColumnIndex($col + 10);
-            $cSelisih    = Coordinate::stringFromColumnIndex($col + 11);
+            $cTfin       = Coordinate::stringFromColumnIndex($col + 9);
+            $cKirim      = Coordinate::stringFromColumnIndex($col + 10);
+            $cStockAdmin = Coordinate::stringFromColumnIndex($col + 11);
+            $cSelisih    = Coordinate::stringFromColumnIndex($col + 12);
 
             if (!$isSameRM) {
                 // Ambil total untuk seluruh group RM
-                $totalStockSto   = $stockStoByRM[$rmCode][$periode]   ?? 0;
-                $totalStockAdmin = $stockAdminByRM[$rmCode][$periode]  ?? 0;
+                $totalStockSto   = $stockStoByRM[$rmCode][$periode]  ?? 0;
+                $totalStockAdmin = $stockAdminByRM[$rmCode][$periode] ?? 0;
                 $totalSelisih    = $totalStockSto - $totalStockAdmin;
 
-                // Hitung BELI dan KIRIM untuk ditampilkan terpisah
+                // Beli, TF IN, Kirim ditampilkan terpisah
                 $totalBeli  = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
                               ? $beliIndex[$rmCode][$periode] : 0;
-                $totalKirim = $totalStockAdmin + $totalBeli; // kirim = admin + beli
+                $totalTfin  = ($rmCode !== 'OTHER' && isset($tfinIndex[$rmCode][$periode]))
+                              ? $tfinIndex[$rmCode][$periode] : 0;
+                // Kirim = (Beli + TfIn) - StockAdmin
+                $totalKirim = ($totalBeli + $totalTfin) - $totalStockAdmin;
 
                 $sheet->setCellValue("{$cStockSto}{$rowIndex}",   $totalStockSto);
                 $sheet->setCellValue("{$cBeli}{$rowIndex}",       $totalBeli);
+                $sheet->setCellValue("{$cTfin}{$rowIndex}",       $totalTfin);
                 $sheet->setCellValue("{$cKirim}{$rowIndex}",      $totalKirim);
                 $sheet->setCellValue("{$cStockAdmin}{$rowIndex}", $totalStockAdmin);
                 $sheet->setCellValue("{$cSelisih}{$rowIndex}",    $totalSelisih);
@@ -1272,6 +1307,7 @@ GROUP BY
                 if ($groupSize > 1) {
                     $sheet->mergeCells("{$cStockSto}{$groupStart}:{$cStockSto}{$groupEnd}");
                     $sheet->mergeCells("{$cBeli}{$groupStart}:{$cBeli}{$groupEnd}");
+                    $sheet->mergeCells("{$cTfin}{$groupStart}:{$cTfin}{$groupEnd}");
                     $sheet->mergeCells("{$cKirim}{$groupStart}:{$cKirim}{$groupEnd}");
                     $sheet->mergeCells("{$cStockAdmin}{$groupStart}:{$cStockAdmin}{$groupEnd}");
                     $sheet->mergeCells("{$cSelisih}{$groupStart}:{$cSelisih}{$groupEnd}");

@@ -380,22 +380,83 @@ $(function () {
             }
         },
 
-        // ======================
-        // REPORT BY BOM (LARAVEL EXPORT)
-        // ======================
-        {
-            text: '<i class="fa fa-file-text-o mr-2"></i> Report (PPIC)',
-            action: function () {
+       // ======================
+// REPORT BY BOM (LARAVEL EXPORT)
+// ======================
+{
+    text: '<i class="fa fa-file-text-o mr-2"></i> Report (PPIC)',
+    action: function (e, dt, node, config) {
 
-                // redirect ke controller export
-                window.location.href = '/facility/sto/report';
+        // Tampilkan toast
+        const toastId = 'toast-export-' + Date.now();
+        const toast = $(`
+            <div id="${toastId}" style="
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                z-index: 9999;
+                background: #1f2937;
+                color: #fff;
+                padding: 14px 20px;
+                border-radius: 10px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 14px;
+                min-width: 280px;
+                animation: slideInToast 0.3s ease;
+            ">
+                <span style="
+                    width: 18px; height: 18px;
+                    border: 3px solid #f97316;
+                    border-top-color: transparent;
+                    border-radius: 50%;
+                    display: inline-block;
+                    animation: spinToast 0.8s linear infinite;
+                    flex-shrink: 0;
+                "></span>
+                <div>
+                    <div style="font-weight: 600; color: #f97316;">Sedang Memproses...</div>
+                    <div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
+                        File Excel sedang disiapkan, harap tunggu.
+                    </div>
+                </div>
+            </div>
+        `);
 
-                setTimeout(() => {
-        $(btn).removeClass('opacity-50 pointer-events-none');
-    }, 3000);
-
-            }
+        // Inject CSS animasi jika belum ada
+        if (!document.getElementById('toast-style')) {
+            $('head').append(`
+                <style id="toast-style">
+                    @keyframes slideInToast {
+                        from { opacity: 0; transform: translateY(16px); }
+                        to   { opacity: 1; transform: translateY(0); }
+                    }
+                    @keyframes slideOutToast {
+                        from { opacity: 1; transform: translateY(0); }
+                        to   { opacity: 0; transform: translateY(16px); }
+                    }
+                    @keyframes spinToast {
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
+            `);
         }
+
+        $('body').append(toast);
+
+        // Redirect ke export
+        window.location.href = '/facility/sto/report';
+
+        // Hapus toast setelah file mulai didownload
+        // (browser biasanya mulai download dalam ~3-8 detik)
+        setTimeout(() => {
+            $(`#${toastId}`).css('animation', 'slideOutToast 0.3s ease forwards');
+            setTimeout(() => $(`#${toastId}`).remove(), 300);
+        }, 8000);
+    }
+}
     ]
 }
 ]
