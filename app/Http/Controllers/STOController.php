@@ -740,6 +740,8 @@ public function destroy($id)
 
 
 
+
+
 public function exportReport()
 {
     /*
@@ -1131,8 +1133,8 @@ GROUP BY
 
             $stockSto = $rm + $buff + $sand + $touch + $wer + $fg + $ot;
 
-            // BELI: lookup by rm_code saja
-            $qtyBeli  = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
+            // BELI: hanya muncul di baris pertama RM (sama seperti qty RM di STO)
+            $qtyBeli  = (!$isSameRM && $rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
                         ? $beliIndex[$rmCode][$periode] : 0;
 
             // KIRIM: lookup by fg_code saja
