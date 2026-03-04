@@ -389,7 +389,6 @@ $(function () {
 
         const toastId = 'toast-export-' + Date.now();
 
-        // Inject CSS animasi jika belum ada
         if (!document.getElementById('toast-style')) {
             $('head').append(`
                 <style id="toast-style">
@@ -408,7 +407,6 @@ $(function () {
             `);
         }
 
-        // Tampilkan toast pojok kanan atas
         const toast = $(`
             <div id="${toastId}" style="
                 position: fixed;
@@ -427,7 +425,7 @@ $(function () {
                 min-width: 280px;
                 animation: slideInToast 0.3s ease;
             ">
-                <span style="
+                <span id="${toastId}-spinner" style="
                     width: 18px; height: 18px;
                     border: 3px solid #f97316;
                     border-top-color: transparent;
@@ -437,8 +435,8 @@ $(function () {
                     flex-shrink: 0;
                 "></span>
                 <div>
-                    <div style="font-weight: 600; color: #f97316;">Sedang Memproses...</div>
-                    <div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
+                    <div id="${toastId}-title" style="font-weight: 600; color: #f97316;">Sedang Memproses...</div>
+                    <div id="${toastId}-desc" style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
                         File Excel sedang disiapkan, harap tunggu.
                     </div>
                 </div>
@@ -447,46 +445,66 @@ $(function () {
 
         $('body').append(toast);
 
-        // Pakai iframe tersembunyi agar halaman TIDAK redirect
-        // sehingga toast tetap tampil sampai download selesai
-        const iframe = $('<iframe>', {
-            src: '/facility/sto/report',
-            style: 'display:none;'
-        });
-
-        // Saat iframe selesai load = response sudah diterima = file mulai didownload
-        iframe.on('load', function () {
-            // Ganti spinner jadi centang hijau
-            $(`#${toastId}`).html(`
+        const dismissToast = (success = true) => {
+            // Update isi toast
+            $(`#${toastId}-spinner`).replaceWith(`
                 <span style="
                     width: 18px; height: 18px;
-                    background: #16a34a;
+                    background: ${success ? '#16a34a' : '#dc2626'};
                     border-radius: 50%;
                     display: inline-flex;
                     align-items: center;
                     justify-content: center;
                     flex-shrink: 0;
                     font-size: 11px;
-                ">✓</span>
-                <div>
-                    <div style="font-weight: 600; color: #16a34a;">File Siap!</div>
-                    <div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
-                        Download dimulai secara otomatis.
-                    </div>
-                </div>
+                    color: #fff;
+                ">${success ? '✓' : '✕'}</span>
             `);
+            $(`#${toastId}-title`).css('color', success ? '#16a34a' : '#dc2626')
+                                  .text(success ? 'File Siap!' : 'Gagal!');
+            $(`#${toastId}-desc`).text(success
+                ? 'Download dimulai secara otomatis.'
+                : 'Terjadi kesalahan saat memproses file.'
+            );
 
-            // Hapus toast + iframe setelah 3 detik
+            // Hilangkan toast setelah 3 detik
             setTimeout(() => {
                 $(`#${toastId}`).css('animation', 'slideOutToast 0.3s ease forwards');
-                setTimeout(() => {
-                    $(`#${toastId}`).remove();
-                    iframe.remove();
-                }, 300);
+                setTimeout(() => $(`#${toastId}`).remove(), 300);
             }, 3000);
-        });
+        };
 
-        $('body').append(iframe);
+        // Fetch file sebagai blob — kita tahu persis kapan selesai
+        fetch('/facility/sto/report')
+            .then(response => {
+                if (!response.ok) throw new Error('Server error');
+
+                // Ambil nama file dari header Content-Disposition jika ada
+                const disposition = response.headers.get('Content-Disposition');
+                let filename = 'STO_REPORT.xlsx';
+                if (disposition) {
+                    const match = disposition.match(/filename[^;=\n]*=["']?([^"';\n]+)["']?/);
+                    if (match) filename = match[1].trim();
+                }
+
+                return response.blob().then(blob => ({ blob, filename }));
+            })
+            .then(({ blob, filename }) => {
+                // Trigger download manual
+                const url = URL.createObjectURL(blob);
+                const a   = document.createElement('a');
+                a.href     = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                dismissToast(true);
+            })
+            .catch(() => {
+                dismissToast(false);
+            });
     }
 }
     ]
