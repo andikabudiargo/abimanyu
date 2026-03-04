@@ -97,7 +97,7 @@
                         <p style="margin:0 0 4px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#94a3b8; font-weight:600;">Automated Notification · Management Representative</p>
                         <h1 style="margin:0 0 16px; font-size:22px; font-weight:700; color:#0f172a; letter-spacing:-0.02em;">CAPA Due Date Reminder</h1>
                         <p style="margin:0; font-size:14px; color:#475569; line-height:1.8;">
-                            Dear <strong style="color:#0f172a;">{{ $action->capa->representative->name ?? 'Department Representative' }}</strong>,<br>
+                            Dear <strong style="color:#0f172a;">{{ $action->capa->representative->name ?? 'Department Representative' }}</strong>,<br><br>
                             Corrective atau Preventif Action dari CAPA berikut ini memerlukan perhatian Anda.
                             Harap tinjau detailnya dan pastikan semua langkah yang diperlukan telah diselesaikan dan disubmit ke sistem sebelum batas waktu.
                         </p>
