@@ -374,7 +374,7 @@ $(function () {
         // ======================
         {
             extend: 'excelHtml5',
-            text: '<i class="fa fa-table mr-2"></i> Summary (FAT)',
+            text: '<i class="fa fa-table mr-2"></i> Summary',
             exportOptions: {
                 columns: ':not(:first-child)'
             }
@@ -384,15 +384,35 @@ $(function () {
 // REPORT BY BOM (LARAVEL EXPORT)
 // ======================
 {
-    text: '<i class="fa fa-file-text-o mr-2"></i> Report (PPIC)',
+    text: '<i class="fa fa-file-text-o mr-2"></i> Review',
     action: function (e, dt, node, config) {
 
-        // Tampilkan toast
         const toastId = 'toast-export-' + Date.now();
+
+        // Inject CSS animasi jika belum ada
+        if (!document.getElementById('toast-style')) {
+            $('head').append(`
+                <style id="toast-style">
+                    @keyframes slideInToast {
+                        from { opacity: 0; transform: translateY(-16px); }
+                        to   { opacity: 1; transform: translateY(0); }
+                    }
+                    @keyframes slideOutToast {
+                        from { opacity: 1; transform: translateY(0); }
+                        to   { opacity: 0; transform: translateY(-16px); }
+                    }
+                    @keyframes spinToast {
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
+            `);
+        }
+
+        // Tampilkan toast pojok kanan atas
         const toast = $(`
             <div id="${toastId}" style="
                 position: fixed;
-                bottom: 24px;
+                top: 24px;
                 right: 24px;
                 z-index: 9999;
                 background: #1f2937;
@@ -425,36 +445,48 @@ $(function () {
             </div>
         `);
 
-        // Inject CSS animasi jika belum ada
-        if (!document.getElementById('toast-style')) {
-            $('head').append(`
-                <style id="toast-style">
-                    @keyframes slideInToast {
-                        from { opacity: 0; transform: translateY(16px); }
-                        to   { opacity: 1; transform: translateY(0); }
-                    }
-                    @keyframes slideOutToast {
-                        from { opacity: 1; transform: translateY(0); }
-                        to   { opacity: 0; transform: translateY(16px); }
-                    }
-                    @keyframes spinToast {
-                        to { transform: rotate(360deg); }
-                    }
-                </style>
-            `);
-        }
-
         $('body').append(toast);
 
-        // Redirect ke export
-        window.location.href = '/facility/sto/report';
+        // Pakai iframe tersembunyi agar halaman TIDAK redirect
+        // sehingga toast tetap tampil sampai download selesai
+        const iframe = $('<iframe>', {
+            src: '/facility/sto/report',
+            style: 'display:none;'
+        });
 
-        // Hapus toast setelah file mulai didownload
-        // (browser biasanya mulai download dalam ~3-8 detik)
-        setTimeout(() => {
-            $(`#${toastId}`).css('animation', 'slideOutToast 0.3s ease forwards');
-            setTimeout(() => $(`#${toastId}`).remove(), 300);
-        }, 8000);
+        // Saat iframe selesai load = response sudah diterima = file mulai didownload
+        iframe.on('load', function () {
+            // Ganti spinner jadi centang hijau
+            $(`#${toastId}`).html(`
+                <span style="
+                    width: 18px; height: 18px;
+                    background: #16a34a;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                    font-size: 11px;
+                ">✓</span>
+                <div>
+                    <div style="font-weight: 600; color: #16a34a;">File Siap!</div>
+                    <div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
+                        Download dimulai secara otomatis.
+                    </div>
+                </div>
+            `);
+
+            // Hapus toast + iframe setelah 3 detik
+            setTimeout(() => {
+                $(`#${toastId}`).css('animation', 'slideOutToast 0.3s ease forwards');
+                setTimeout(() => {
+                    $(`#${toastId}`).remove();
+                    iframe.remove();
+                }, 300);
+            }, 3000);
+        });
+
+        $('body').append(iframe);
     }
 }
     ]
