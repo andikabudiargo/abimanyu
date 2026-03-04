@@ -1050,7 +1050,7 @@ private function generateUniqueFilenamePublic($directory, $originalName)
         // Array-nya
         'evidence_files' => $hasEvidence
             ? 'nullable|array'
-            : 'required|array',
+            : 'nullable|array',
 
         // File-nya
         'evidence_files.*' => 'image|mimes:jpg,jpeg,png|max:5120',
