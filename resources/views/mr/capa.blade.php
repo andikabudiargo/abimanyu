@@ -236,7 +236,7 @@
             class="tab-btn flex-1 flex items-center justify-center gap-2
                    px-4 py-2.5 rounded-lg text-sm font-semibold
                    transition-all duration-200
-                   bg-blue-600 text-white shadow hover:text-blue-600
+                   bg-blue-600 text-white shadow hover:text-blue-500
                    ">
 
             <i class="fa-solid fa-user-clock"></i>
@@ -248,7 +248,7 @@
             class="tab-btn flex-1 flex items-center justify-center gap-2
                    px-4 py-2.5 rounded-lg text-sm font-semibold
                    transition-all duration-200
-                   text-gray-600 hover:text-blue-600">
+                   text-gray-600 hover:text-blue-500">
 
             <i class="fa-solid fa-user-check"></i>
             <span class="hidden sm:inline">CAPA as Auditor</span>
@@ -743,11 +743,11 @@ if ($('#tab-auditor').length && $('#tab-auditee').length) {
         currentTab = 'auditor';
 
         $(this)
-            .addClass('border-blue-500 text-blue-600')
+            .addClass('border-blue-500 text-white')
             .removeClass('text-gray-500 border-transparent');
 
         $('#tab-auditee')
-            .removeClass('border-blue-500 text-blue-600')
+            .removeClass('border-blue-500 text-white')
             .addClass('text-gray-500 border-transparent');
 
         table.ajax.reload(null, false);
@@ -761,11 +761,11 @@ if ($('#tab-auditor').length && $('#tab-auditee').length) {
         currentTab = 'auditee';
 
         $(this)
-            .addClass('border-blue-500 text-blue-600')
+            .addClass('border-blue-500 text-white')
             .removeClass('text-gray-500 border-transparent');
 
         $('#tab-auditor')
-            .removeClass('border-blue-500 text-blue-600')
+            .removeClass('border-blue-500 text-white')
             .addClass('text-gray-500 border-transparent');
 
         table.ajax.reload(null, false);
