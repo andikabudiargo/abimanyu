@@ -293,6 +293,8 @@
 </div>
 @endif
 
+</div>
+
 <div class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 
  <!-- CAPA Number -->
@@ -576,6 +578,7 @@
 
     {{-- Jika TIDAK ADA File → Baru Muncul Upload --}}
     @else
+     <div class="flex flex-col gap-1.5 w-full">
 
         <div class="flex items-center gap-2 text-gray-700 w-full">
 
@@ -589,6 +592,18 @@
                           file:px-3 file:py-1.5
                           file:bg-indigo-50 file:text-indigo-700
                           file:border-0">
+
+        </div>
+
+         <!-- File requirement info -->
+            <div class="flex items-center gap-1.5 px-1">
+                <i class="fa-solid fa-circle-info text-[10px] text-gray-400"></i>
+                <p class="text-[10px] text-gray-400 leading-relaxed">
+                    Accepted formats: <span class="font-semibold text-gray-500">PDF, DOC, DOCX, XLS, XLSX</span>
+                    &nbsp;·&nbsp; Max size: <span class="font-semibold text-gray-500">10 MB</span>
+                    &nbsp;·&nbsp; Ensure document is legible and complete before submission.
+                </p>
+            </div>
 
         </div>
 
@@ -766,21 +781,31 @@
     {{-- Jika TIDAK ADA File → Upload --}}
     @else
 
-        <div class="flex items-center gap-2 text-gray-700 w-full">
+      <div class="flex flex-col gap-1.5 w-full">
 
-            <i class="fa-solid fa-file-lines text-indigo-500 flex-shrink-0"></i>
+            <div class="flex items-center gap-2 text-gray-700 w-full">
+                <i class="fa-solid fa-file-lines text-indigo-500 flex-shrink-0"></i>
+                <input type="file"
+                       name="pa_supporting"
+                       accept=".pdf,.doc,.docx,.xls,.xlsx"
+                       class="flex-1 text-sm
+                              border rounded-md
+                              file:px-3 file:py-1.5
+                              file:bg-indigo-50 file:text-indigo-700
+                              file:border-0">
+            </div>
 
-            <input type="file"
-                   name="pa_supporting"
-                   accept=".pdf,.doc,.docx,.xls,.xlsx"
-                   class="flex-1 text-sm
-                          border rounded-md
-                          file:px-3 file:py-1.5
-                          file:bg-indigo-50 file:text-indigo-700
-                          file:border-0">
+            <!-- File requirement info -->
+            <div class="flex items-center gap-1.5 px-1">
+                <i class="fa-solid fa-circle-info text-[10px] text-gray-400"></i>
+                <p class="text-[10px] text-gray-400 leading-relaxed">
+                    Accepted formats: <span class="font-semibold text-gray-500">PDF, DOC, DOCX, XLS, XLSX</span>
+                    &nbsp;·&nbsp; Max size: <span class="font-semibold text-gray-500">10 MB</span>
+                    &nbsp;·&nbsp; Ensure document is legible and complete before submission.
+                </p>
+            </div>
 
         </div>
-
     @endif
     @endif
 
@@ -929,7 +954,7 @@
     </form>
 
 
-</div>
+
     </div>
 <style>
     /* Supaya select2 full width */
