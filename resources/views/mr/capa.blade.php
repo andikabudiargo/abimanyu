@@ -215,7 +215,7 @@
 @if(
     auth()->user()
         ->departments()
-        ->where('name','Management Representative & hse')
+        ->where('name','Management Representative')
         ->exists()
 )
 
