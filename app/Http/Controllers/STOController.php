@@ -740,13 +740,6 @@ public function destroy($id)
 
 
 
-
-
-
-
-
-
-
 public function exportReport()
 {
     /*
@@ -1023,12 +1016,17 @@ GROUP BY
             $stockAdminByRM[$rmCode][$periode] = $mutasi($periode);
         }
 
-        // Januari dst — kumulatif, saldo awal = 0 di Januari (reset tiap tahun)
+        // Januari dst — kumulatif
+        // Saldo awal Januari = hanya TF IN Desember tahun sebelumnya
+        // (BELI dan KIRIM Desember diabaikan untuk kumulatif)
         $saldoBerjalan = 0;
         foreach ($periodesBln as $periode) {
-            // Reset saldo ke 0 setiap bulan Januari
+            // Di setiap Januari, saldo awal = TF IN Desember tahun sebelumnya saja
             if (substr($periode, 5, 2) === '01') {
-                $saldoBerjalan = 0;
+                $tahun   = substr($periode, 0, 4);
+                $desPrev = ($tahun - 1) . '-12';
+                $saldoBerjalan = ($rmCode !== 'OTHER' && isset($tfinIndex[$rmCode][$desPrev]))
+                                 ? $tfinIndex[$rmCode][$desPrev] : 0;
             }
             $saldoBerjalan += $mutasi($periode);
             $stockAdminByRM[$rmCode][$periode] = $saldoBerjalan;
