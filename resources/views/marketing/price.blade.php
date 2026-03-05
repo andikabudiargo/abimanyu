@@ -11,7 +11,8 @@
 {{-- 📄 TABEL --}}
  <div class="bg-white shadow rounded-xl p-6 mb-6">
     <h2 class="text-lg font-semibold mb-4">Filter Price Management</h2>
-<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+<!-- Toast Container — z-index lebih tinggi dari SweetAlert (1060) -->
+<div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
     <form id="filter-form">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
@@ -496,17 +497,65 @@ $('#basicPriceForm').off('submit').on('submit', function (e) {
             method : 'POST',
             data   : { _token: '{{ csrf_token() }}' },
             success: function (res) {
-                removeToast($loadingToast);
-                showToast(res.message, 'success');
-                $('#conversion-table').DataTable().ajax.reload(null, false);
-            },
-            error: function (xhr) {
-                removeToast($loadingToast);
-                var msg = xhr.responseJSON && xhr.responseJSON.message
-                    ? xhr.responseJSON.message
-                    : 'Terjadi kesalahan.';
-                showToast(msg, 'error');
-            },
+    removeToast($loadingToast);
+
+    // Toast success selalu muncul
+    showToast(res.synced_count + ' price succesfully sync.', 'success');
+
+    // Jika ada yang skip, tampilkan report di SweetAlert
+    if (res.skip_count > 0) {
+        var rows = '';
+        $.each(res.skipped, function (i, item) {
+            rows +=
+                '<tr class="border-b border-gray-100">' +
+                    '<td class="py-1.5 px-3 text-xs font-medium text-gray-700 whitespace-nowrap text-left">' + item.article_code + '</td>' +
+                    '<td class="py-1.5 px-3 text-xs text-red-500 text-left">' + item.reasons.join('<br>') + '</td>' +
+                '</tr>';
+        });
+
+        var html =
+            '<div class="text-left mb-3 flex gap-2">' +
+                '<span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full">' +
+                    '<i class="ri-checkbox-circle-line"></i> ' + res.synced_count + ' berhasil' +
+                '</span>' +
+                '<span class="inline-flex items-center gap-1 bg-red-50 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">' +
+                    '<i class="ri-close-circle-line"></i> ' + res.skip_count + ' diskip' +
+                '</span>' +
+            '</div>' +
+            '<div class="overflow-y-auto max-h-64 rounded-lg border border-gray-200">' +
+                '<table class="w-full">' +
+                    '<thead class="bg-gray-50 sticky top-0">' +
+                        '<tr>' +
+                            '<th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 whitespace-nowrap">Article Code</th>' +
+                            '<th class="px-3 py-2 text-left text-xs font-semibold text-gray-500">Alasan</th>' +
+                        '</tr>' +
+                    '</thead>' +
+                    '<tbody>' + rows + '</tbody>' +
+                '</table>' +
+            '</div>';
+
+        Swal.fire({
+            title              : 'Sync Report',
+            html               : html,
+            icon               : 'warning',
+            confirmButtonText  : 'OK',
+            confirmButtonColor : '#10b981',
+            width              : '640px',
+            customClass        : { popup: 'text-sm' },
+        });
+    }
+
+    $('#conversion-table').DataTable().ajax.reload(null, false);
+},
+
+error: function (xhr) {
+    removeToast($loadingToast);
+    var msg = xhr.responseJSON && xhr.responseJSON.message
+        ? xhr.responseJSON.message
+        : 'Terjadi kesalahan.';
+
+    showToast(msg, 'error');
+},
             complete: function () {
                 $btn.prop('disabled', false);
                 $icon.attr('class', 'ri-refresh-line');

@@ -671,25 +671,60 @@ public function syncPricing(Request $request)
             ->whereRaw("a.status = 'active'")
             ->get();
 
-        // Push ke database
+        $synced  = 0;
+        $skipped = [];
+
+        // Mapping label kolom untuk pesan yang lebih informatif
+        $requiredFields = [
+            'average_raw_material_price' => 'Raw Material Price (tidak ada data di LPB)',
+            'selling_price'              => 'Selling Price (tidak ada data di SJ)',
+            'rm_conversion'              => 'RM Conversion (average_raw_material_price kosong)',
+            'fg_conversion'              => 'FG Conversion (selling_price kosong)',
+            'matome'                     => 'Matome (fg_conversion atau rm_conversion kosong)',
+            'conversion_value_used'      => 'Conversion Value (belum ada nilai konversi aktif)',
+        ];
+
         foreach ($rows as $row) {
+
+            // Cek kolom mana yang null
+            $missingFields = [];
+            foreach ($requiredFields as $field => $reason) {
+                if (is_null($row->$field)) {
+                    $missingFields[$field] = $reason;
+                }
+            }
+
+            // Skip jika ada kolom yang kosong
+            if (!empty($missingFields)) {
+                $skipped[] = [
+                    'article_code' => $row->article_code,
+                    'reasons'      => array_values($missingFields),
+                ];
+                continue;
+            }
+
             DB::table('basic_prices')->updateOrInsert(
                 ['article_code' => $row->article_code],
                 [
-                    'purchase_price' => $row->average_raw_material_price,
-                    'selling_price'              => $row->selling_price,
-                    'rm_conversion'              => $row->rm_conversion,
-                    'fg_conversion'              => $row->fg_conversion,
-                    'matome'                     => $row->matome,
-                    'conversion_value_used'      => $row->conversion_value_used,
-                    'last_calculated_at'         => now(),
+                    'purchase_price'        => $row->average_raw_material_price,
+                    'selling_price'         => $row->selling_price,
+                    'rm_conversion'         => $row->rm_conversion,
+                    'fg_conversion'         => $row->fg_conversion,
+                    'matome'                => $row->matome,
+                    'conversion_value_used' => $row->conversion_value_used,
+                    'last_calculated_at'    => now(),
                 ]
             );
+
+            $synced++;
         }
 
         return response()->json([
-            'success' => true,
-            'message' => $rows->count() . ' Price sucessfully sync.',
+            'success'      => true,
+            'message'      => $synced . ' artikel berhasil disync.',
+            'synced_count' => $synced,
+            'skip_count'   => count($skipped),
+            'skipped'      => $skipped,
         ]);
 
     } catch (\Exception $e) {
