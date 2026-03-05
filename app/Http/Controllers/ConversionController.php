@@ -182,12 +182,12 @@ public function conversionChart(Request $request)
             CASE
                 WHEN bp.matome IS NULL THEN NULL
                 ELSE bp.matome
-            END as conversion,
+            END as matome,
 
             CASE
                 WHEN bp.matome IS NULL THEN NULL
                 ELSE ROUND(agg.delivery_qty * bp.matome, 2)
-            END as total_conversion,
+            END as conversion,
 
             CASE
                 WHEN bp.matome IS NULL
@@ -264,7 +264,7 @@ public function store(Request $request)
                 'month'             => $request->month,
                 'status'            => 'Draft',
                 'total_qty'         => $request->total_qty,
-                'fixed_conversion'  => $request->total_conversion,
+                'total_conversion'  => $request->total_conversion,
                 'created_by'        => Auth::id(),
                 'note'              => $request->note ?? '',
             ]);
@@ -291,8 +291,8 @@ public function store(Request $request)
                 'conversion_id'    => $conversion->id,
                 'article_code'     => $item['article_code'],
                 'delivery_qty'     => $item['delivery_qty'],
-                'matome'           => $item['conversion'],
-                'total_conversion' => $item['total_conversion'],
+                'matome'           => $item['matome'],
+                'conversion' => $item['conversion'],
                 'created_at'       => now(),
                 'updated_at'       => now(),
             ])->toArray();

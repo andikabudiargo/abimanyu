@@ -357,7 +357,7 @@ let table = $('#conversion-table').DataTable({
         |--------------------------------------------------------------
         */
         {
-            data      : 'conversion',
+            data      : 'matome',
             title     : 'Conversion',
             className : 'text-end',
             render    : function (data, type, row) {
@@ -381,7 +381,7 @@ let table = $('#conversion-table').DataTable({
         |--------------------------------------------------------------
         */
         {
-            data      : 'total_conversion',
+            data      : 'conversion',
             title     : 'Total Conversion',
             className : 'text-end',
             render    : function (data, type, row) {
@@ -418,8 +418,8 @@ $('#conversionForm').off('submit').on('submit', function (e) {
     }
 
     // Filter data yang punya matome dan yang tidak
-    const validData   = conversionData.filter(row => row.conversion !== null && row.total_conversion !== null);
-    const invalidData = conversionData.filter(row => row.conversion === null || row.total_conversion === null);
+    const validData   = conversionData.filter(row => row.matome !== null && row.conversion !== null);
+    const invalidData = conversionData.filter(row => row.matome === null || row.conversion === null);
 
     // Jika ada yang tidak punya matome, tampilkan konfirmasi dulu
     if (invalidData.length > 0) {
@@ -470,7 +470,7 @@ function doSubmit($submitBtn, validData) {
 
     // Hitung ulang summary dari data valid saja
     const totalQty        = validData.reduce((acc, row) => acc + (parseFloat(row.delivery_qty)    || 0), 0);
-    const totalConversion = validData.reduce((acc, row) => acc + (parseFloat(row.total_conversion) || 0), 0);
+    const totalConversion = validData.reduce((acc, row) => acc + (parseFloat(row.conversion) || 0), 0);
 
     const formData = new FormData($('#conversionForm')[0]);
     formData.append('details',          JSON.stringify(validData));
