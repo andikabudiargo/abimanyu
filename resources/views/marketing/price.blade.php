@@ -13,28 +13,35 @@
     <h2 class="text-lg font-semibold mb-4">Filter Price Management</h2>
 
     <form id="filter-form">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-                <label for="filter-request-number" class="block text-sm mb-1 font-medium text-gray-700">Customer</label>
-                <input type="text" id="filter-request-number" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
-            </div>
-          
-            <div>
-    <label for="filter-order-type" class="block text-sm mb-1 font-medium text-gray-700">Article</label>
-    <select id="filter-order-type" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-
-        <!-- tambahkan sesuai kebutuhan -->
-    </select>
-</div>
-            </div>
-
-        <div class="flex justify-start gap-2 mt-6">
-            <button id="btn-sync" class="btn btn-primary btn-sm" onclick="startSync()">
-    <i class="ri-refresh-line me-1"></i> Sync Pricing
-</button>
-<span id="sync-info" class="text-muted small ms-2"></span>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div>
+            <label for="filter-request-number" class="block text-sm mb-1 font-medium text-gray-700">Customer</label>
+            <input type="text" id="filter-request-number" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
         </div>
-    </form>
+
+        <div>
+            <label for="filter-order-type" class="block text-sm mb-1 font-medium text-gray-700">Article</label>
+            <select id="filter-order-type" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </select>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-2 mt-6">
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg shadow transition">
+            Search
+        </button>
+
+        <button type="button"
+                id="btn-sync"
+                class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-4 py-2 rounded-lg shadow transition disabled:opacity-50 disabled:cursor-not-allowed">
+            <i id="sync-icon" class="ri-refresh-line"></i>
+            <span id="sync-label">Sync Pricing</span>
+        </button>
+
+        <span id="sync-info" class="text-sm"></span>
+    </div>
+</form>
 </div>
 
 <div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
@@ -419,13 +426,19 @@ $('#basicPriceForm').off('submit').on('submit', function (e) {
     });
 });
 
-function startSync() {
-    const btn  = document.getElementById('btn-sync');
-    const info = document.getElementById('sync-info');
+document.getElementById('btn-sync').addEventListener('click', startSync);
 
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Syncing...';
-    info.textContent = '';
+function startSync() {
+    const btn   = document.getElementById('btn-sync');
+    const icon  = document.getElementById('sync-icon');
+    const label = document.getElementById('sync-label');
+    const info  = document.getElementById('sync-info');
+
+    btn.disabled  = true;
+    icon.className  = 'ri-loader-4-line animate-spin';
+    label.textContent = 'Syncing...';
+    info.textContent  = '';
+    info.className    = 'text-sm';
 
     $.ajax({
         url: '{{ route("marketing.pricing.sync") }}',
@@ -433,19 +446,18 @@ function startSync() {
         data: { _token: '{{ csrf_token() }}' },
         success: function (res) {
             info.textContent = res.message;
-            info.className   = 'text-success small ms-2';
-
-            // Reload datatable setelah sync
-            $('#conversion-table').DataTable().ajax.reload(null, false);
+            info.className   = 'text-sm text-emerald-600';
+            $('#your-datatable-id').DataTable().ajax.reload(null, false);
         },
         error: function (xhr) {
             const msg = xhr.responseJSON?.message ?? 'Terjadi kesalahan.';
             info.textContent = msg;
-            info.className   = 'text-danger small ms-2';
+            info.className   = 'text-sm text-red-500';
         },
         complete: function () {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="ri-refresh-line me-1"></i> Sync Pricing';
+            btn.disabled      = false;
+            icon.className    = 'ri-refresh-line';
+            label.textContent = 'Sync Pricing';
         }
     });
 }
