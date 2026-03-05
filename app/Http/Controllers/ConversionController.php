@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Conversion;
 use App\Models\ConversionValue;
+use App\Models\BasicPrice;
 
 
 class ConversionController extends Controller
@@ -603,71 +604,104 @@ public function getArticles()
     return response()->json($articles);
 }
 
-public function storeBasicPrice(Request $request)
+public function syncPricing(Request $request)
 {
-    $request->validate([
-        'article_code'   => 'required|exists:articles,article_code',
-        'effective_date' => 'required|date',
-        'material_price' => 'nullable|numeric|min:0',
-        'service_price'  => 'nullable|numeric|min:0',
-    ]);
-
-    DB::beginTransaction();
-
     try {
+        $conversion = DB::table('conversion_values')
+            ->where('effective_date', '<=', date('Y-m-d'))
+            ->orderByDesc('effective_date')
+            ->value('value');
 
-        $now = now();
+        $conv = $conversion > 0 ? (float) $conversion : null;
 
-        // ======================
-        // MATERIAL PRICE
-        // ======================
-        if($request->material_price !== null &&
-           $request->material_price !== ''){
+        $rows = DB::table('articles as a')
+            ->selectRaw("
+                a.article_code,
+                avg_rm.average_raw_material_price,
+                sj.selling_price,
+                CASE WHEN ? > 0 THEN avg_rm.average_raw_material_price / ? ELSE NULL END as rm_conversion,
+                CASE WHEN ? > 0 THEN sj.selling_price / ? ELSE NULL END as fg_conversion,
+                CASE WHEN ? > 0 THEN (sj.selling_price / ?) - (avg_rm.average_raw_material_price / ?) ELSE NULL END as matome,
+                ? as conversion_value_used
+            ", [$conv, $conv, $conv, $conv, $conv, $conv, $conv, $conv])
 
-            DB::table('basic_prices')->insert([
-                'article_code'  => $request->article_code,
-                'price_type'    => 'MATERIAL',
-                'price'         => $request->material_price,
-                'effective_date'=> $request->effective_date,
-                'created_by'        => Auth::id(),
-                'created_at'    => $now,
-                'updated_at'    => $now,
-            ]);
+            ->join(DB::raw("
+                (
+                    SELECT
+                        b.article_fg,
+                        AVG(seg.segment_avg) as average_raw_material_price
+                    FROM boms b
+                    INNER JOIN (
+                        SELECT
+                            article_code,
+                            grp,
+                            AVG(price) as segment_avg
+                        FROM (
+                            SELECT
+                                article_code,
+                                price,
+                                @grp := IF(
+                                    @prev_price <> price OR @prev_article <> article_code,
+                                    @grp + 1,
+                                    @grp
+                                ) as grp,
+                                @prev_price   := price,
+                                @prev_article := article_code
+                            FROM lpb_temporary
+                            CROSS JOIN (
+                                SELECT @grp := 0, @prev_price := NULL, @prev_article := NULL
+                            ) init
+                            ORDER BY article_code, id
+                        ) flagged
+                        GROUP BY article_code, grp
+                    ) seg ON seg.article_code = b.article_rm
+                    GROUP BY b.article_fg
+                ) avg_rm
+            "), 'avg_rm.article_fg', '=', 'a.article_code', 'inner')
+
+            ->leftJoin(DB::raw("
+                (
+                    SELECT article_code, SUM(price + service_price) as selling_price
+                    FROM sj_temporary
+                    GROUP BY article_code
+                ) sj
+            "), 'sj.article_code', '=', 'a.article_code')
+
+            ->whereRaw("a.article_type = 'FG'")
+            ->whereRaw("a.status = 'active'")
+            ->get();
+
+        // Push ke database
+        foreach ($rows as $row) {
+            DB::table('basic_prices')->updateOrInsert(
+                ['article_code' => $row->article_code],
+                [
+                    'purchase_price' => $row->average_raw_material_price,
+                    'selling_price'              => $row->selling_price,
+                    'rm_conversion'              => $row->rm_conversion,
+                    'fg_conversion'              => $row->fg_conversion,
+                    'matome'                     => $row->matome,
+                    'conversion_value_used'      => $row->conversion_value_used,
+                    'last_calculated_at'         => now(),
+                ]
+            );
         }
-
-        // ======================
-        // SERVICE PRICE
-        // ======================
-        if($request->service_price !== null &&
-           $request->service_price !== ''){
-
-            DB::table('basic_prices')->insert([
-                'article_code'  => $request->article_code,
-                'price_type'    => 'SERVICE',
-                'price'         => $request->service_price,
-                'effective_date'=> $request->effective_date,
-                'created_by'        => Auth::id(),
-                'created_at'    => $now,
-                'updated_at'    => $now,
-            ]);
-        }
-
-        DB::commit();
 
         return response()->json([
-            'success'=>true,
-            'message'=>'Basic price successfully created'
+            'success' => true,
+            'message' => $rows->count() . ' Price sucessfully sync.',
         ]);
 
-    } catch (\Throwable $e) {
-
-        DB::rollBack();
-
+    } catch (\Exception $e) {
         return response()->json([
-            'success'=>false,
-            'message'=>$e->getMessage()
-        ],500);
+            'success' => false,
+            'message' => 'Gagal sync: ' . $e->getMessage(),
+        ], 500);
     }
 }
+
+
+
+
 
 }
