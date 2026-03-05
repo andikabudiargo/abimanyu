@@ -1022,10 +1022,12 @@ GROUP BY
             $stockAdminByRM[$rmCode][$periode] = $mutasi($periode);
         }
 
-        // Januari dst — kumulatif, saldo awal = 0 di Januari (reset tiap tahun)
+        // Januari dst — running balance
+        // Saldo awal = 0 di Januari, carry forward ke bulan berikutnya
+        // STOCK ADMIN(N) = STOCK ADMIN(N-1) + BELI(N) + TFIN(N) - KIRIM(N)
         $saldoBerjalan = 0;
         foreach ($periodesBln as $periode) {
-            // Reset saldo ke 0 setiap bulan Januari
+            // Reset ke 0 setiap awal Januari (tahun baru)
             if (substr($periode, 5, 2) === '01') {
                 $saldoBerjalan = 0;
             }
@@ -1309,7 +1311,7 @@ GROUP BY
                 // Ambil total untuk seluruh group RM
                 $totalStockSto   = $stockStoByRM[$rmCode][$periode]  ?? 0;
                 $totalStockAdmin = $stockAdminByRM[$rmCode][$periode] ?? 0;
-                $totalSelisih    = $totalStockSto - $totalStockAdmin;
+                $totalSelisih    = $totalStockSto - $totalStockAdmin; // SELISIH = fisik - admin (+ lebih, - kurang)
 
                 // Beli, TF IN, Kirim ditampilkan terpisah (nilai bulan ini saja, bukan kumulatif)
                 $totalBeli  = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
