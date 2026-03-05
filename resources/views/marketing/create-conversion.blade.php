@@ -112,8 +112,7 @@
                     <th class="px-4 py-2">Article</th>
                     <th class="px-4 py-2 !text-right">Qty Delivery</th>
                     <th class="px-4 py-2 !text-right">Conversion</th>
-                    <th class="px-4 py-2 !text-right">Price</th>
-                    <th class="px-4 py-2 !text-right">Grand Total</th>
+                    <th class="px-4 py-2 !text-right">Total Conversion</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -284,81 +283,121 @@ function updateReportInfo() {
         $('#reportInfo').addClass('hidden');
     }
 }
+let conversionData = [];
+let summary = {};
 
-    let conversionData = []; // 🔐 data asli dari backend
-    let summary = {};
-
-   let table = $('#conversion-table').DataTable({
-        processing: true,
-        searching: false,
-        paging: false,
-        info:false,
-        scrollY: '500px',
-    scrollX: true,          // WAJIB aktifkan ini
+let table = $('#conversion-table').DataTable({
+    processing : true,
+    searching  : false,
+    paging     : false,
+    info       : false,
+    scrollY    : '500px',
+    scrollX    : true,
     scrollCollapse: true,
-    autoWidth: false,
-        ajax: {
-            url: "/marketing/conversion/data",
-            data: function(d){
-                d.year  = $('#year').val();
-                d.month = $('#month').val();
-            },
-             dataSrc: function(json){
-        conversionData = json.data; // simpan data asli
-        summary = json.summary; // 🔥 SIMPAN DI SINI
-        updateSummary(json.summary);
-
-        return json.data;
-    }
+    autoWidth  : false,
+    ajax: {
+        url     : '{{ route("marketing.conversion.data") }}',
+        data    : function (d) {
+            d.year  = $('#year').val();
+            d.month = $('#month').val();
         },
-        columns: [
-            {data:'customer'},
-            {
-                data:null,
-                render:function(row){
-                    return row.article_code + ' - ' + row.article_desc;
+        dataSrc : function (json) {
+            conversionData = json.data;
+            summary        = json.summary;
+            updateSummary(json.summary);
+            return json.data;
+        }
+    },
+    columns: [
+        /*
+        |--------------------------------------------------------------
+        | Customer
+        |--------------------------------------------------------------
+        */
+        {
+            data  : 'customer',
+            title : 'Customer',
+        },
+
+        /*
+        |--------------------------------------------------------------
+        | Article
+        |--------------------------------------------------------------
+        */
+        {
+            data   : null,
+            title  : 'Article',
+            render : function (row) {
+                var code = row.article_code  ?? '-';
+                var desc = row.article_desc  ?? '-';
+                return code + ' - ' + desc;
+            }
+        },
+
+        /*
+        |--------------------------------------------------------------
+        | Delivery Qty
+        |--------------------------------------------------------------
+        */
+        {
+            data      : 'delivery_qty',
+            title     : 'Delivery Qty',
+            className : 'text-end',
+            render    : function (data, type) {
+                if (type === 'display') {
+                    return formatNumber(data ?? 0);
                 }
-            },
-           {
-    data: 'delivery_qty',
-    className: 'text-end',
-},
-{
-    data: 'conversion',
-    className: 'text-end',
-    render: function(data, type) {
-        if (type === 'display') {
-            return '<span style="color:green; font-weight:600;">'
-                    + formatNumber(data) +
-                   '</span>';
-        }
-        return data;
-    }
-},
-{
-    data: 'price',
-    className: 'text-end',
-    render: function(data, type) {
-        if (type === 'display') {
-            return formatNumber(data);
-        }
-        return data;
-    }
-},
-{
-    data: 'grand_total',
-    className: 'text-end',
-    render: function(data, type) {
-        if (type === 'display') {
-            return '<span style="color:black; font-weight:600;">'
-                    + formatNumber(data) +
-                   '</span>';
-        }
-        return data;
-    }
-}
-        ]
-    });
+                return data;
+            }
+        },
+
+        /*
+        |--------------------------------------------------------------
+        | Conversion (matome per unit)
+        |--------------------------------------------------------------
+        */
+        {
+            data      : 'conversion',
+            title     : 'Conversion',
+            className : 'text-end',
+            render    : function (data, type, row) {
+                if (type === 'display') {
+                    if (data === null) {
+                        return '<span class="text-xs text-amber-500" title="' + (row.fallback_note ?? '') + '">'
+                                + '<i class="ri-error-warning-line"></i> Belum disync'
+                               + '</span>';
+                    }
+                    return '<span style="color:green; font-weight:600;">'
+                            + formatNumber(data)
+                           + '</span>';
+                }
+                return data ?? 0;
+            }
+        },
+
+        /*
+        |--------------------------------------------------------------
+        | Total Conversion (delivery_qty * matome)
+        |--------------------------------------------------------------
+        */
+        {
+            data      : 'total_conversion',
+            title     : 'Total Conversion',
+            className : 'text-end',
+            render    : function (data, type, row) {
+                if (type === 'display') {
+                    if (data === null) {
+                        return '<span class="text-xs text-gray-400">-</span>';
+                    }
+                    return '<span style="color:black; font-weight:600;">'
+                            + formatNumber(data)
+                           + '</span>';
+                }
+                return data ?? 0;
+            }
+        },
+    ]
+});
 
     // =====================
     // APPLY FILTER
@@ -368,7 +407,7 @@ function updateReportInfo() {
     table.ajax.reload();
 });
 
-//SUBMIT DATA
+// SUBMIT DATA
 $('#conversionForm').off('submit').on('submit', function (e) {
     e.preventDefault();
 
@@ -383,17 +422,16 @@ $('#conversionForm').off('submit').on('submit', function (e) {
 
     const formData = new FormData(this);
 
-    formData.append('details', JSON.stringify(conversionData));
-    formData.append('total_qty', summary.total_qty || 0);
+    formData.append('details',          JSON.stringify(conversionData));
+    formData.append('total_qty',        summary.total_qty        || 0);
     formData.append('total_conversion', summary.total_conversion || 0);
-    formData.append('estimated_profit', summary.total_grand_total || 0);
 
     $.ajax({
-        url: '{{ route("marketing.conversion.store") }}',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
+        url         : '{{ route("marketing.conversion.store") }}',
+        type        : 'POST',
+        data        : formData,
+        processData : false,
+        contentType : false,
         success: function (res) {
             if (res.success) {
                 showToast('success', res.message || 'Conversion saved successfully.');
@@ -413,8 +451,24 @@ $('#conversionForm').off('submit').on('submit', function (e) {
     });
 });
 
-
+/*
+|--------------------------------------------------------------
+| Update Summary Card
+|--------------------------------------------------------------
+*/
 function updateSummary(summary) {
+
+    const noMatomeWarning = summary.total_no_matome > 0
+        ? `<div class="flex justify-between text-amber-500 text-xs mt-1">
+               <span><i class="ri-error-warning-line"></i> Belum disync</span>
+               <span class="font-semibold">
+                   ${summary.total_no_matome} artikel belum punya matome
+               </span>
+           </div>
+           <div class="text-xs text-amber-400 mt-1">
+               ${summary.articles_no_matome.join(', ')}
+           </div>`
+        : '';
 
     $('#summary-card').html(`
         <h3 class="text-sm font-semibold text-slate-700 mb-4">
@@ -424,31 +478,28 @@ function updateSummary(summary) {
         <div class="space-y-2 text-sm">
 
             <div class="flex justify-between">
-                <span>Total Items</span>
+                <span class="text-gray-600">Total Items</span>
                 <span class="font-semibold">${summary.total_rows} type of items delivered</span>
             </div>
 
             <div class="flex justify-between">
-                <span>Total Customers</span>
+                <span class="text-gray-600">Total Customers</span>
                 <span class="font-semibold">${summary.total_customers} customers received</span>
             </div>
 
             <div class="flex justify-between">
-    <span>Total Qty Delivery</span>
-    <span class="font-semibold">
-        ${Number(summary.total_qty).toLocaleString('id-ID')} pcs
-    </span>
-</div>
+                <span class="text-gray-600">Total Qty Delivery</span>
+                <span class="font-semibold">
+                    ${Number(summary.total_qty).toLocaleString('id-ID')} pcs
+                </span>
+            </div>
 
             <div class="flex justify-between text-green-600">
                 <span>Total Conversion</span>
                 <span class="font-semibold">${formatNumber(summary.total_conversion)}</span>
             </div>
 
-            <div class="flex justify-between text-slate-800">
-                <span>Estimated Profit</span>
-                <span class="font-bold">Rp. ${formatNumber(summary.total_grand_total)}</span>
-            </div>
+            ${noMatomeWarning}
 
         </div>
     `);

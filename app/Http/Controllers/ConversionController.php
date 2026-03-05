@@ -155,90 +155,45 @@ public function conversionChart(Request $request)
         ->selectRaw("
             sj.customer,
             sj.article_code,
-            MAX(sj.article_desc) as article_desc,
             SUM(sj.delivery_qty) as delivery_qty,
             MAX(sj.delivery_date) as last_delivery_date
         ")
-        ->when($year, function($q) use ($year){
-            $q->whereYear('sj.delivery_date',$year);
+        ->when($year, function ($q) use ($year) {
+            $q->whereYear('sj.delivery_date', $year);
         })
-        ->when($month, function($q) use ($month){
-            $q->whereMonth('sj.delivery_date',$month);
+        ->when($month, function ($q) use ($month) {
+            $q->whereMonth('sj.delivery_date', $month);
         })
-        ->groupBy('sj.customer','sj.article_code');
+        ->groupBy('sj.customer', 'sj.article_code');
 
-    $query = DB::query()->fromSub($baseQuery,'agg')
+    $query = DB::query()->fromSub($baseQuery, 'agg')
 
-        ->leftJoin('basic_prices as mp', function ($join) {
-    $join->on('mp.article_code','=','agg.article_code')
-         ->where('mp.price_type','=','MATERIAL')
-         ->whereRaw("
-            mp.effective_date = (
-                SELECT MAX(m2.effective_date)
-                FROM basic_prices m2
-                WHERE m2.article_code = agg.article_code
-                AND m2.price_type = 'MATERIAL'
-                AND m2.effective_date <= agg.last_delivery_date
-            )
-         ");
-})
-
-       ->leftJoin('basic_prices as sp', function ($join) {
-    $join->on('sp.article_code','=','agg.article_code')
-         ->where('sp.price_type','=','SERVICE')
-         ->whereRaw("
-            sp.effective_date = (
-                SELECT MAX(s2.effective_date)
-                FROM basic_prices s2
-                WHERE s2.article_code = agg.article_code
-                AND s2.price_type = 'SERVICE'
-                AND s2.effective_date <= agg.last_delivery_date
-            )
-         ");
-})
-
-        ->leftJoin('conversion_values as cv', function ($join) {
-            $join->whereRaw('cv.effective_date = (
-                SELECT MAX(c2.effective_date)
-                FROM conversion_values c2
-                WHERE c2.effective_date <= agg.last_delivery_date
-            )');
-        })
+        ->leftJoin('articles as ar', 'ar.article_code', '=', 'agg.article_code')
+        ->leftJoin('customers as cu', 'cu.name', '=', 'agg.customer')
+        ->leftJoin('basic_prices as bp', 'bp.article_code', '=', 'agg.article_code')
 
         ->selectRaw("
             agg.customer,
+            cu.name as customer_name,
             agg.article_code,
-            agg.article_desc,
+            ar.description as article_desc,
             agg.delivery_qty,
 
-            IFNULL(mp.price,0) as material_price,
-            IFNULL(sp.price,0) as service_price,
-
-            (IFNULL(mp.price,0) + IFNULL(sp.price,0)) as price,
-
-            IFNULL(cv.value,1) as conversion_value,
+            CASE
+                WHEN bp.matome IS NULL THEN NULL
+                ELSE bp.matome
+            END as conversion,
 
             CASE
-                WHEN IFNULL(cv.value,0) > 0
-                THEN (IFNULL(mp.price,0) + IFNULL(sp.price,0)) / cv.value
-                ELSE 0
-            END as fixed_conversion,
+                WHEN bp.matome IS NULL THEN NULL
+                ELSE ROUND(agg.delivery_qty * bp.matome, 2)
+            END as total_conversion,
 
-            ROUND(
-                agg.delivery_qty *
-                (
-                    CASE
-                        WHEN IFNULL(cv.value,0) > 0
-                        THEN (IFNULL(mp.price,0) + IFNULL(sp.price,0)) / cv.value
-                        ELSE 0
-                    END
-                ),2
-            ) as conversion,
-
-            ROUND(
-                agg.delivery_qty *
-                (IFNULL(mp.price,0) + IFNULL(sp.price,0)),2
-            ) as grand_total
+            CASE
+                WHEN bp.matome IS NULL
+                THEN 'Belum disync — jalankan Sync Pricing terlebih dahulu'
+                ELSE NULL
+            END as fallback_note
         ");
 
     $data = $query->get();
@@ -246,18 +201,21 @@ public function conversionChart(Request $request)
     // =======================
     // SUMMARY
     // =======================
-
     $summary = [
-        'total_rows'        => $data->count(),
-        'total_customers'   => $data->pluck('customer')->unique()->count(),
-        'total_qty'         => $data->sum('delivery_qty'),
-        'total_conversion'  => $data->sum('conversion'),
-        'total_grand_total' => $data->sum('grand_total'),
+        'total_rows'          => $data->count(),
+        'total_customers'     => $data->pluck('customer')->unique()->count(),
+        'total_qty'           => $data->sum('delivery_qty'),
+        'total_conversion'    => $data->sum('total_conversion'),
+        'total_no_matome'     => $data->whereNull('conversion')->count(),
+        'articles_no_matome'  => $data->whereNull('conversion')
+                                    ->pluck('article_code')
+                                    ->unique()
+                                    ->values(),
     ];
 
     return response()->json([
         'data'    => $data,
-        'summary' => $summary
+        'summary' => $summary,
     ]);
 }
 
