@@ -11,7 +11,7 @@
 {{-- 📄 TABEL --}}
  <div class="bg-white shadow rounded-xl p-6 mb-6">
     <h2 class="text-lg font-semibold mb-4">Filter Price Management</h2>
-
+<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
     <form id="filter-form">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
@@ -32,14 +32,14 @@
             Search
         </button>
 
-        <button type="button"
+         <button type="button"
                 id="btn-sync"
                 class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-4 py-2 rounded-lg shadow transition disabled:opacity-50 disabled:cursor-not-allowed">
             <i id="sync-icon" class="ri-refresh-line"></i>
             <span id="sync-label">Sync Pricing</span>
         </button>
 
-        <span id="sync-info" class="text-sm"></span>
+      
     </div>
 </form>
 </div>
@@ -426,41 +426,94 @@ $('#basicPriceForm').off('submit').on('submit', function (e) {
     });
 });
 
-document.getElementById('btn-sync').addEventListener('click', startSync);
+  /*
+    |------------------------------------------------------------------
+    | Toast
+    |------------------------------------------------------------------
+    */
+    function showToast(message, type) {
+        var colors = {
+            success : 'bg-emerald-500',
+            error   : 'bg-red-500',
+            loading : 'bg-gray-700',
+        };
+        var icons = {
+            success : 'ri-checkbox-circle-line',
+            error   : 'ri-error-warning-line',
+            loading : 'ri-loader-4-line animate-spin',
+        };
 
-function startSync() {
-    const btn   = document.getElementById('btn-sync');
-    const icon  = document.getElementById('sync-icon');
-    const label = document.getElementById('sync-label');
-    const info  = document.getElementById('sync-info');
+        var $toast = $(
+            '<div id="toast-' + type + '" class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white text-sm opacity-0 translate-x-4 transition-all duration-300 ' + colors[type] + '">' +
+                '<i class="' + icons[type] + ' text-lg shrink-0"></i>' +
+                '<span>' + message + '</span>' +
+            '</div>'
+        );
 
-    btn.disabled  = true;
-    icon.className  = 'ri-loader-4-line animate-spin';
-    label.textContent = 'Syncing...';
-    info.textContent  = '';
-    info.className    = 'text-sm';
+        $('#toast-container').append($toast);
 
-    $.ajax({
-        url: '{{ route("marketing.pricing.sync") }}',
-        method: 'POST',
-        data: { _token: '{{ csrf_token() }}' },
-        success: function (res) {
-            info.textContent = res.message;
-            info.className   = 'text-sm text-emerald-600';
-            $('#your-datatable-id').DataTable().ajax.reload(null, false);
-        },
-        error: function (xhr) {
-            const msg = xhr.responseJSON?.message ?? 'Terjadi kesalahan.';
-            info.textContent = msg;
-            info.className   = 'text-sm text-red-500';
-        },
-        complete: function () {
-            btn.disabled      = false;
-            icon.className    = 'ri-refresh-line';
-            label.textContent = 'Sync Pricing';
+        // Animasi masuk
+        setTimeout(function () {
+            $toast.removeClass('opacity-0 translate-x-4');
+        }, 10);
+
+        // Auto remove kecuali loading
+        if (type !== 'loading') {
+            setTimeout(function () {
+                removeToast($toast);
+            }, 3500);
         }
+
+        return $toast;
+    }
+
+    function removeToast($toast) {
+        if (!$toast || $toast.length === 0) return;
+        $toast.addClass('opacity-0 translate-x-4');
+        setTimeout(function () {
+            $toast.remove();
+        }, 300);
+    }
+
+    /*
+    |------------------------------------------------------------------
+    | Sync Pricing
+    |------------------------------------------------------------------
+    */
+    $('#btn-sync').on('click', function () {
+        var $btn   = $('#btn-sync');
+        var $icon  = $('#sync-icon');
+        var $label = $('#sync-label');
+
+        $btn.prop('disabled', true);
+        $icon.attr('class', 'ri-loader-4-line animate-spin');
+        $label.text('Syncing...');
+
+        var $loadingToast = showToast('Sedang melakukan sync pricing...', 'loading');
+
+        $.ajax({
+            url    : '{{ route("marketing.pricing.sync") }}',
+            method : 'POST',
+            data   : { _token: '{{ csrf_token() }}' },
+            success: function (res) {
+                removeToast($loadingToast);
+                showToast(res.message, 'success');
+                $('#conversion-table').DataTable().ajax.reload(null, false);
+            },
+            error: function (xhr) {
+                removeToast($loadingToast);
+                var msg = xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : 'Terjadi kesalahan.';
+                showToast(msg, 'error');
+            },
+            complete: function () {
+                $btn.prop('disabled', false);
+                $icon.attr('class', 'ri-refresh-line');
+                $label.text('Sync Pricing');
+            }
+        });
     });
-}
 });
 </script>
 @endpush
