@@ -60,7 +60,7 @@
                     <th class="px-4 py-2">RM Conversion</th>
                     <th class="px-4 py-2">FG Conversion</th>
                     <th class="px-4 py-2">Matome</th>
-                    
+                    <th class="px-4 py-2">Last Sync</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -323,6 +323,10 @@ function showToast(icon, title) {
             },
             {
                 data: 'matome',
+               
+            },
+            {
+                data: 'last_calculated_at',
                
             },
             

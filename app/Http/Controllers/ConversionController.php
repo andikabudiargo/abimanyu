@@ -405,110 +405,25 @@ public function dataConversionValue(Request $request)
      
     public function getPricingData(Request $request)
 {
-    $conversion = DB::table('conversion_values')
-        ->where('effective_date','<=',date('Y-m-d'))
-        ->orderByDesc('effective_date')
-        ->value('value');
-
-$query = DB::table('articles as a')
-    ->selectRaw("
-        a.article_code,
-        a.description,
-        c.name as supplier_name,
-
-        avg_rm.average_raw_material_price,
-        sj.selling_price,
-
-        CASE
-            WHEN ? > 0
-            THEN avg_rm.average_raw_material_price / ?
-            ELSE NULL
-        END as rm_conversion,
-
-        CASE
-            WHEN ? > 0
-            THEN sj.selling_price / ?
-            ELSE NULL
-        END as fg_conversion,
-
-        CASE
-            WHEN ? > 0
-            THEN (sj.selling_price / ?) - (avg_rm.average_raw_material_price / ?)
-            ELSE NULL
-        END as matome
-    ", [
-        $conversion, $conversion,
-        $conversion, $conversion,
-        $conversion, $conversion, $conversion,
-    ])
-
-    ->leftJoin('customers as c', 'c.code', '=', 'a.supplier_code')
-
-    /*
-    |--------------------------------------------------------------------------
-    | AVERAGE RAW MATERIAL PRICE
-    | INNER JOIN avg_rm supaya artikel yang tidak ada di boms otomatis excluded
-    |--------------------------------------------------------------------------
-    */
-    ->join(DB::raw("
-        (
-            SELECT
-                b.article_fg,
-                AVG(seg.segment_avg) as average_raw_material_price
-            FROM boms b
-            INNER JOIN (
-                SELECT
-                    article_code,
-                    grp,
-                    AVG(price) as segment_avg
-                FROM (
-                    SELECT
-                        article_code,
-                        price,
-                        @grp := IF(
-                            @prev_price <> price OR @prev_article <> article_code,
-                            @grp + 1,
-                            @grp
-                        ) as grp,
-                        @prev_price    := price,
-                        @prev_article  := article_code
-                    FROM lpb_temporary
-                    CROSS JOIN (
-                        SELECT @grp := 0, @prev_price := NULL, @prev_article := NULL
-                    ) init
-                    ORDER BY article_code, id
-                ) flagged
-                GROUP BY article_code, grp
-            ) seg ON seg.article_code = b.article_rm
-            GROUP BY b.article_fg
-        ) avg_rm
-    "), 'avg_rm.article_fg', '=', 'a.article_code', 'inner')
-
-    /*
-    |--------------------------------------------------------------------------
-    | SELLING PRICE
-    |--------------------------------------------------------------------------
-    */
-    ->leftJoin(DB::raw("
-        (
-            SELECT
-                article_code,
-                SUM(price + service_price) as selling_price
-            FROM sj_temporary
-            GROUP BY article_code
-        ) sj
-    "), 'sj.article_code', '=', 'a.article_code')
-
-    ->whereRaw("a.article_type = 'FG'")
-    ->whereRaw("a.status = 'active'");
+    $query = DB::table('articles as a')
+        ->select(
+            'a.article_code',
+            'a.description',
+            'c.name as supplier_name',
+            'bp.purchase_price as average_raw_material_price',
+            'bp.selling_price',
+            'bp.rm_conversion',
+            'bp.fg_conversion',
+            'bp.matome',
+            'bp.last_calculated_at'
+        )
+        ->leftJoin('customers as c', 'c.code', '=', 'a.supplier_code')
+        ->leftJoin('basic_prices as bp', 'bp.article_code', '=', 'a.article_code')
+        ->whereRaw("a.article_type = 'FG'")
+        ->whereRaw("a.status = 'active'");
 
     return datatables()->of($query)
 
-        /*
-        |--------------------------------------------------------------------------
-        | AVERAGE RAW MATERIAL PRICE
-        |--------------------------------------------------------------------------
-        */
         ->editColumn('average_raw_material_price', function ($row) {
             if ($row->average_raw_material_price === null) {
                 return '<div class="text-end">-</div>';
@@ -518,11 +433,6 @@ $query = DB::table('articles as a')
                 . '</div>';
         })
 
-        /*
-        |--------------------------------------------------------------------------
-        | SELLING PRICE
-        |--------------------------------------------------------------------------
-        */
         ->editColumn('selling_price', function ($row) {
             if ($row->selling_price === null) {
                 return '<div class="text-end">-</div>';
@@ -532,11 +442,6 @@ $query = DB::table('articles as a')
                 . '</div>';
         })
 
-        /*
-        |--------------------------------------------------------------------------
-        | RM CONVERSION
-        |--------------------------------------------------------------------------
-        */
         ->editColumn('rm_conversion', function ($row) {
             if ($row->rm_conversion === null) {
                 return '<div class="text-end">-</div>';
@@ -546,11 +451,6 @@ $query = DB::table('articles as a')
                 . '</div>';
         })
 
-        /*
-        |--------------------------------------------------------------------------
-        | FG CONVERSION
-        |--------------------------------------------------------------------------
-        */
         ->editColumn('fg_conversion', function ($row) {
             if ($row->fg_conversion === null) {
                 return '<div class="text-end">-</div>';
@@ -560,20 +460,22 @@ $query = DB::table('articles as a')
                 . '</div>';
         })
 
-        /*
-        |--------------------------------------------------------------------------
-        | MATOME (fg_conversion - rm_conversion)
-        |--------------------------------------------------------------------------
-        */
         ->editColumn('matome', function ($row) {
             if ($row->matome === null) {
                 return '<div class="text-end">-</div>';
             }
-
             $class = $row->matome >= 0 ? 'text-green-600' : 'text-red-600';
-
             return '<div class="text-end font-bold ' . $class . '">'
                 . number_format($row->matome, 2, ',', '.')
+                . '</div>';
+        })
+
+        ->editColumn('last_calculated_at', function ($row) {
+            if (!$row->last_calculated_at) {
+                return '<div class="text-center text-gray-400 text-xs">Belum disync</div>';
+            }
+            return '<div class="text-center text-xs text-gray-500">'
+                . \Carbon\Carbon::parse($row->last_calculated_at)->format('d/m/Y H:i')
                 . '</div>';
         })
 
@@ -583,6 +485,7 @@ $query = DB::table('articles as a')
             'rm_conversion',
             'fg_conversion',
             'matome',
+            'last_calculated_at',
         ])
 
         ->make(true);
