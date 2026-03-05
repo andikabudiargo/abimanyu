@@ -745,6 +745,7 @@ public function destroy($id)
 
 
 
+<?php
 
 public function exportReport()
 {
@@ -974,13 +975,18 @@ GROUP BY
     }
 
     // Hitung total STOCK STO per rm_code per periode
-    // $stockStoByRM[rm_code][periode] = total_qty_semua_fg
+    // qty_rm hanya dihitung SEKALI (baris FG pertama per RM group)
+    // qty WIP/FG/OT dihitung dari semua baris FG
     $stockStoByRM = [];
+    $rmSeenForSto = []; // track rm yang sudah dihitung qty_rm-nya
     foreach ($data as $key => $item) {
-        $rmCode = $item['info'][0];
+        $rmCode   = $item['info'][0];
+        $isFirstRM = !isset($rmSeenForSto[$rmCode]);
+        $rmSeenForSto[$rmCode] = true;
+
         foreach ($periodes as $periode) {
             $d     = $item['periode'][$periode] ?? null;
-            $rm    = $d->qty_rm     ?? 0;
+            $rm    = $isFirstRM ? ($d->qty_rm ?? 0) : 0; // qty_rm hanya baris pertama
             $buff  = $d->qty_buff   ?? 0;
             $sand  = $d->qty_sand   ?? 0;
             $touch = $d->qty_touch  ?? 0;
