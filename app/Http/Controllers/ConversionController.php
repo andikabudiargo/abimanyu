@@ -272,8 +272,8 @@ public function store(Request $request)
             // Decode dan filter hanya detail yang punya nilai matome valid
             $details = collect(json_decode($request->details, true))
                 ->filter(fn($item) =>
-                    !is_null($item['conversion'])       &&
-                    !is_null($item['total_conversion'])
+                    !is_null($item['matome'])       &&
+                    !is_null($item['conversion'])
                 )
                 ->values();
 
