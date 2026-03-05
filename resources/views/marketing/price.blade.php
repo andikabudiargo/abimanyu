@@ -29,15 +29,10 @@
             </div>
 
         <div class="flex justify-start gap-2 mt-6">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">Search</button>
-              <button type="button" id="addPrice"
-    class="bg-gradient-to-r from-emerald-600 to-teal-600
-           hover:from-emerald-700 hover:to-teal-700
-           text-white px-5 py-2.5 rounded-xl
-           shadow-lg hover:shadow-xl
-           transition-all duration-200">
-    + Add Basic Price
-  </button>
+            <button id="btn-sync" class="btn btn-primary btn-sm" onclick="startSync()">
+    <i class="ri-refresh-line me-1"></i> Sync Pricing
+</button>
+<span id="sync-info" class="text-muted small ms-2"></span>
         </div>
     </form>
 </div>
@@ -423,6 +418,37 @@ $('#basicPriceForm').off('submit').on('submit', function (e) {
         }
     });
 });
+
+function startSync() {
+    const btn  = document.getElementById('btn-sync');
+    const info = document.getElementById('sync-info');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Syncing...';
+    info.textContent = '';
+
+    $.ajax({
+        url: '{{ route("marketing.pricing.sync") }}',
+        method: 'POST',
+        data: { _token: '{{ csrf_token() }}' },
+        success: function (res) {
+            info.textContent = res.message;
+            info.className   = 'text-success small ms-2';
+
+            // Reload datatable setelah sync
+            $('#conversion-table').DataTable().ajax.reload(null, false);
+        },
+        error: function (xhr) {
+            const msg = xhr.responseJSON?.message ?? 'Terjadi kesalahan.';
+            info.textContent = msg;
+            info.className   = 'text-danger small ms-2';
+        },
+        complete: function () {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ri-refresh-line me-1"></i> Sync Pricing';
+        }
+    });
+}
 });
 </script>
 @endpush

@@ -411,6 +411,7 @@ Route::prefix('marketing')->name('marketing.')->group(function () {
      Route::post('/conversion/store', [ConversionController::class,'store'])->name('conversion.store');
      Route::get('/conversion/chart', [ConversionController::class, 'conversionChart'])
     ->name('conversion.chart');
+    Route::post('pricing/sync', [ConversionController::class, 'syncPricing'])->name('pricing.sync');
 });
 
 Route::prefix('it')->name('it.')->group(function () {
