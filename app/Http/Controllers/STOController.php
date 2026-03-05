@@ -745,6 +745,7 @@ public function destroy($id)
 
 
 
+
 public function exportReport()
 {
     /*
@@ -991,30 +992,44 @@ GROUP BY
         }
     }
 
-    // Hitung total STOCK ADMIN per rm_code per periode — KUMULATIF (running balance)
-    // STOCK ADMIN[N] = STOCK ADMIN[N-1] + BELI[N] + TFIN[N] - KIRIM[N]
-    // Periode diproses berurutan (sudah di-orderBy dari query $periodes)
+    // Hitung total STOCK ADMIN per rm_code per periode
+    // - Desember : berdiri sendiri = (BELI + TFIN) - KIRIM bulan itu saja
+    // - Januari+ : kumulatif = saldo Desember + akumulasi (BELI + TFIN - KIRIM) sejak Januari
     $stockAdminByRM = [];
     foreach ($rmGroups as $rmCode => $keys) {
-        $saldoBerjalan = 0; // stock awal = 0 sebelum periode pertama
-        foreach ($periodes as $periode) {
-            // Total kirim semua FG yang berelasi dengan RM ini
-            $totalKirim = 0;
+
+        // Helper closure hitung mutasi 1 periode
+        $mutasi = function($periode) use ($rmCode, $keys, $data, $beliIndex, $tfinIndex, $kirimIndex) {
+            $kirim = 0;
             foreach ($keys as $key) {
-                $fgCode      = $data[$key]['info'][2];
-                $totalKirim += ($fgCode !== 'OTHER' && isset($kirimIndex[$fgCode][$periode]))
-                               ? $kirimIndex[$fgCode][$periode] : 0;
+                $fgCode = $data[$key]['info'][2];
+                $kirim += ($fgCode !== 'OTHER' && isset($kirimIndex[$fgCode][$periode]))
+                          ? $kirimIndex[$fgCode][$periode] : 0;
             }
-            // Beli RM bulan ini
-            $totalBeli = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
-                         ? $beliIndex[$rmCode][$periode] : 0;
+            $beli = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
+                    ? $beliIndex[$rmCode][$periode] : 0;
+            $tfin = ($rmCode !== 'OTHER' && isset($tfinIndex[$rmCode][$periode]))
+                    ? $tfinIndex[$rmCode][$periode] : 0;
+            return ($beli + $tfin) - $kirim;
+        };
 
-            // TF IN bulan ini
-            $totalTfin = ($rmCode !== 'OTHER' && isset($tfinIndex[$rmCode][$periode]))
-                         ? $tfinIndex[$rmCode][$periode] : 0;
+        // Pisahkan periode Desember vs non-Desember
+        $periodesDes = array_filter($periodes, fn($p) => substr($p, 5, 2) === '12');
+        $periodesBln = array_filter($periodes, fn($p) => substr($p, 5, 2) !== '12');
 
-            // Running balance: saldo bulan lalu + masuk - keluar
-            $saldoBerjalan += ($totalBeli + $totalTfin) - $totalKirim;
+        // Desember — berdiri sendiri (tidak kumulatif antar tahun)
+        foreach ($periodesDes as $periode) {
+            $stockAdminByRM[$rmCode][$periode] = $mutasi($periode);
+        }
+
+        // Januari dst — kumulatif, saldo awal = 0 di Januari (reset tiap tahun)
+        $saldoBerjalan = 0;
+        foreach ($periodesBln as $periode) {
+            // Reset saldo ke 0 setiap bulan Januari
+            if (substr($periode, 5, 2) === '01') {
+                $saldoBerjalan = 0;
+            }
+            $saldoBerjalan += $mutasi($periode);
             $stockAdminByRM[$rmCode][$periode] = $saldoBerjalan;
         }
     }
