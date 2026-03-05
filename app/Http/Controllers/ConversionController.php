@@ -205,7 +205,7 @@ public function conversionChart(Request $request)
         'total_rows'          => $data->count(),
         'total_customers'     => $data->pluck('customer')->unique()->count(),
         'total_qty'           => $data->sum('delivery_qty'),
-        'total_conversion'    => $data->sum('total_conversion'),
+        'total_conversion'    => $data->sum('conversion'),
         'total_no_matome'     => $data->whereNull('conversion')->count(),
         'articles_no_matome'  => $data->whereNull('conversion')
                                     ->pluck('article_code')
