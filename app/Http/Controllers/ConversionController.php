@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Conversion;
 use App\Models\ConversionValue;
-use App\Models\BasicPrice;
+use App\Models\Customer;
+use App\Models\Article;
 
 
 class ConversionController extends Controller
@@ -398,8 +399,12 @@ public function dataConversionValue(Request $request)
 
   public function indexPrice()
     {
-        
-        return view('marketing.price');
+         $customers = Customer::orderBy('name')->get();
+
+        $articles = Article::whereIn('article_type', ['FG'])
+        ->orderBy('description')
+        ->get();
+        return view('marketing.price',compact('customers','articles'));
     }
 
      
@@ -420,7 +425,15 @@ public function dataConversionValue(Request $request)
         ->leftJoin('customers as c', 'c.code', '=', 'a.supplier_code')
         ->leftJoin('basic_prices as bp', 'bp.article_code', '=', 'a.article_code')
         ->whereRaw("a.article_type = 'FG'")
-        ->whereRaw("a.status = 'active'");
+        ->whereRaw("a.status = 'active'")
+        // Filter customer — cari berdasarkan nama customer
+        ->when($request->customer, function ($q) use ($request) {
+            $q->where('c.name', $request->customer);
+        })
+        // Filter article — cari berdasarkan article_code
+        ->when($request->article, function ($q) use ($request) {
+            $q->where('a.article_code', $request->article);
+        });
 
     return datatables()->of($query)
 
@@ -472,7 +485,7 @@ public function dataConversionValue(Request $request)
 
         ->editColumn('last_calculated_at', function ($row) {
             if (!$row->last_calculated_at) {
-                return '<div class="text-center text-gray-400 text-xs">Belum disync</div>';
+                return '<div class="text-center text-gray-400 text-xs">Belum ada data</div>';
             }
             return '<div class="text-center text-xs text-gray-500">'
                 . \Carbon\Carbon::parse($row->last_calculated_at)->format('d/m/Y H:i')

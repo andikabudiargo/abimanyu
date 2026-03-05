@@ -16,13 +16,22 @@
     <form id="filter-form">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
-            <label for="filter-request-number" class="block text-sm mb-1 font-medium text-gray-700">Customer</label>
-            <input type="text" id="filter-request-number" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
+            <label class="block text-sm mb-1 font-medium text-gray-700">Customer</label>
+            <select id="filter-customer" name="customer" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                  <option value="">-- All Customer --</option>
+                @foreach ($customers as $customer)
+                <option value="{{ $customer->name }}">{{ $customer->name }}</option>
+                @endforeach
+            </select>
         </div>
 
         <div>
-            <label for="filter-order-type" class="block text-sm mb-1 font-medium text-gray-700">Article</label>
-            <select id="filter-order-type" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <label class="block text-sm mb-1 font-medium text-gray-700">Article</label>
+            <select id="filter-article" name="article" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+              <option value="">-- All Article --</option>
+                @foreach ($articles as $article)
+                <option value="{{ $article->article_code }}">{{ $article->article_code }} - {{ $article->description }}</option>
+                @endforeach
             </select>
         </div>
     </div>
@@ -290,6 +299,18 @@ function showToast(icon, title) {
     });
 }
 
+  $('#filter-customer').select2({
+        width: '100%',
+        placeholder: '-- All Customer --',
+        allowClear: true
+    });
+
+     $('#filter-article').select2({
+        width: '100%',
+        placeholder: '-- All Article --',
+        allowClear: true
+    });
+
     $('#conversion-table').DataTable({
         processing: true,
         serverSide: true,
@@ -300,7 +321,14 @@ function showToast(icon, title) {
         $('#conversion-table').wrap('<div class="scroll-wrapper overflow-x-auto"></div>');
     }
 },
-        ajax: '/marketing/pricing/data',
+        ajax: {
+            url: '{{ route("marketing.pricing.data") }}',
+            
+            data: function (d) {
+                d.customer = $('#filter-customer').val();
+                d.article = $('#filter-article').val(); // nama artikel
+            }
+        },
          lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
         dom: '<"flex justify-between items-center mb-2"l<"flex"f>>rt<"flex justify-between items-center"ip>',
         columns: [
@@ -332,6 +360,12 @@ function showToast(icon, title) {
             
         ]
     });
+
+    // Trigger reload saat form search disubmit
+$('#filter-form').on('submit', function (e) {
+    e.preventDefault();
+    $('#conversion-table').DataTable().ajax.reload();
+});
 
     $('#addPrice').on('click', function(){
     $('#priceModal').removeClass('hidden').addClass('flex');
