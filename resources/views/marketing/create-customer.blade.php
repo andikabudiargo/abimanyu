@@ -1,494 +1,565 @@
 @extends('layouts.app')
 
-@section('title', 'Add New Customer')
-@section('page-title', 'Add New Customer')
-@section('breadcrumb-item', 'Customer Management')
-@section('breadcrumb-active', 'Create Customer')
+@section('title', 'Create Conversion')
+@section('page-title', 'Create Conversion')
+@section('breadcrumb-item', 'Conversion')
+@section('breadcrumb-active', 'Create Conversion')
 
 @section('content')
-<!--<div class="w-full bg-white shadow rounded-xl p-6 mb-6">
-    <h2 class="text-lg font-semibold mb-4">Upload Multiple Supplier</h2>
-    @if(session('success'))
-    <div class="text-green-600 mt-2">{{ session('success') }}</div>
-@endif
-@if(session('error'))
-    <div class="text-red-600 mt-2">{{ session('error') }}</div>
-@endif
+<div class="bg-gradient-to-br from-slate-50 to-white shadow-xl shadow-slate-200/50 rounded-2xl p-8 mb-4 border border-slate-100">
 
-    <div class="bg-gray-50 border border-dashed border-gray-300 p-4 rounded mb-6">
-    <h3 class="text-lg font-medium mb-2">Upload via Excel (.xlsx)</h3>
-    <form action="" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-4">
-         @csrf
-      <input type="file" name="csv_file" accept=".xlsx" class="flex-1 border border-gray-300 rounded p-2">
-      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Upload</button>
-    </form>
-    <p class="text-sm text-gray-500 mt-2">
-      Download template Excel: <a href="" class="text-blue-600 underline" download>Download Template</a>
-    </p>
-  </div>
-</div>-->
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-xl font-semibold text-slate-800 tracking-tight">
+                Create Conversion
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+                Generate monthly official conversion report
+            </p>
+        </div>
 
-<div class="w-full bg-white shadow-md rounded-xl p-4 space-y-6">
-  <!-- 🔝 Step Navigation -->
-  <div class="flex justify-between items-center border-b pb-2 text-sm font-medium">
-    <!-- Step 1 -->
-    <button type="button" 
-      class="step-tab flex flex-col items-center sm:flex-row sm:space-x-2 px-4 py-2 border-b-2 border-indigo-600 text-indigo-600 transition duration-300 ease-in-out"
-      data-step="0">
-      <i class="fas fa-info-circle text-lg"></i>
-      <span class="hidden sm:inline">Base Information</span>
+       <div class="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-semibold 
+            bg-indigo-50 text-indigo-600 rounded-full border border-indigo-100
+            shadow-sm shadow-indigo-100/40 tracking-wide">
+
+    <i class="fa-solid fa-pen-to-square text-indigo-500 text-[11px]"></i>
+    <span>Status: Draft</span>
+
+</div>
+    </div>
+ <form id="conversionForm">
+        @csrf
+    <!-- Form Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+   
+        <!-- Conversion Number -->
+        <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-2 tracking-wide">
+                Conversion Number
+            </label>
+            <input 
+                type="text" 
+                id="conversion_number" 
+                placeholder="Auto-generated"
+                readonly
+                class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-100 text-slate-600
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                       transition duration-200 ease-in-out">
+        </div>
+
+        <!-- Year -->
+        <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-2 tracking-wide">
+                Year
+            </label>
+            <select 
+                id="year"
+                name="year"
+                class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-white
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                       transition duration-200 ease-in-out">
+            </select>
+        </div>
+
+        <!-- Month -->
+        <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-2 tracking-wide">
+                Month
+            </label>
+            <select 
+                id="month"
+                name="month"
+                class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-white
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                       transition duration-200 ease-in-out">
+            </select>
+        </div>
+
+        <!-- Note (colspan 3) -->
+        <div class="md:col-span-3">
+            <label class="block text-xs font-semibold text-slate-600 mb-2 tracking-wide">
+                Notes
+            </label>
+            <textarea
+            id="notes"
+            name="notes"
+                rows="3"
+                placeholder="Optional remarks, explanation, or adjustments for this report..."
+                class="w-full px-3 py-3 text-sm border border-slate-200 rounded-xl bg-white
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                       transition duration-200 ease-in-out resize-none"></textarea>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
+    <h2 class="text-lg font-semibold mb-2">List Delivery</h2>
+    <div id="reportInfo" class="hidden mb-4">
+    <div class="text-sm text-slate-600">
+        Here is the delivery data for 
+        <span id="reportPeriod" class="font-semibold text-slate-800"></span>
+    </div>
+</div>
+    <div class="bg-white rounded-xl">
+    <table id="conversion-table" class="w-max text-sm text-left whitespace-nowrap">
+            <thead class="bg-blue-500 text-white uppercase text-xs font-bold tracking-wider">
+                <tr>
+                    
+                    <th class="px-4 py-2">Customer</th>
+                    <th class="px-4 py-2">Article</th>
+                    <th class="px-4 py-2 !text-right">Qty Delivery</th>
+                    <th class="px-4 py-2 !text-right">Conversion</th>
+                    <th class="px-4 py-2 !text-right">Total Conversion</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {{-- DataTables akan mengisi tbody --}}
+            </tbody>
+        </table>
+    </div>
+    <div class="flex justify-end mt-6">
+    <div id="summary-card"
+         class="w-full md:w-96 bg-white rounded-2xl shadow-lg p-6 border border-slate-100">
+    </div>
+</div>
+<div class="flex justify-start items-center gap-2 mt-4 border-t border-gray-400 pt-8">
+         <a href="{{ route('mr.capa.index') }}" 
+           class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
+           ← Back
+         </a>
+
+         <button type="submit" id="submitBtn"
+        class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded shadow">
+        <i class="fa-solid fa-floppy-disk"></i>
+        Save
     </button>
-
-    <!-- Step 2 -->
-    <button type="button" 
-      class="step-tab flex flex-col items-center sm:flex-row sm:space-x-2 px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition duration-300 ease-in-out"
-      data-step="1">
-      <i class="fas fa-map-marker-alt text-lg"></i>
-      <span class="hidden sm:inline">Address</span>
-    </button>
-
-    <!-- Step 3 -->
-    <button type="button" 
-      class="step-tab flex flex-col items-center sm:flex-row sm:space-x-2 px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition duration-300 ease-in-out"
-      data-step="2">
-      <i class="fas fa-phone text-lg"></i>
-      <span class="hidden sm:inline">Contact</span>
-    </button>
-
-    <!-- Step 4 -->
-    <button type="button" 
-      class="step-tab flex flex-col items-center sm:flex-row sm:space-x-2 px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition duration-300 ease-in-out"
-      data-step="3">
-      <i class="fas fa-credit-card text-lg"></i>
-      <span class="hidden sm:inline">Payment & Terms</span>
-    </button>
-  </div>
-
-
-    <form id="supplier-form" action="" method="POST">
-    @csrf
-      <!-- 🔢 Nomor Referensi -->
-        <!-- STEP 1 -->
-    <div class="step">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="supplier_name" class="block text-sm font-medium text-gray-700 mb-1">Name <small class="text-red-600">*</small></label>
-        <input type="text" name="supplier_name" id="supplier_name"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-        <div>
-        <label for="initial" class="block text-sm font-medium text-gray-700 mb-1">Initial <small class="text-red-600">*</small></label>
-        <input type="text" name="initial" id="initial"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-        <div class="flex items-center h-full pt-6">
-        <input type="checkbox" name="as_customer" value="1" checked class="form-checkbox text-indigo-600 mr-2">
-        <label for="as_customer" class="text-sm text-gray-700">EPTE</label>
-        </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-           <div>
-        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category <small class="text-red-600">*</small></label>
-       <select name="category" id="category"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Category --</option>
-            <option value="Raw Material">Raw Material</option>
-            <option value="Chemical">Chemical</option>
-            <option value="Consumable">Consumable</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-          <div>
-        <label for="join_date" class="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
-        <input type="date" name="join_date" id="join_date"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-        </div>
-         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="coa_hutang" class="block text-sm font-medium text-gray-700 mb-1">Account Receivable</label>
-       <select name="coa_hutang" id="coa_hutang"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Choose Account Receivable --</option>
-          </select>
-        </div>
-        <div>
-        <label for="coa_retur" class="block text-sm font-medium text-gray-700 mb-1">Account Sales Revenue</label>
-       <select name="coa_retur" id="coa_retur"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Choose Account Sales Revenue --</option>
-            <option value="Retur">Retur</option>
-            <option value="Transit">Transit</option>
-          </select>
-        </div>
-        </div>
-    </div>
-
-
-         <!-- STEP 2 -->
-    <div class="step hidden">
- <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div class="col-span-2">
-        <label for="address" class="block text-sm font-medium text-gray-700">Billing Address 1</label>
-        <textarea id="address" name="address" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
-      </div>
-       </div>
-       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="provinsi" class="block text-sm font-medium text-gray-700 mb-1">Provinsi</label>
-       <select name="provinsi" id="provinsi"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Provinsi --</option>
-          </select>
-        </div>
-        <div>
-        <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Kota/Kabupaten</label>
-       <select name="city" id="city"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kota/Kabupaten --</option>
-          </select>
-        </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-         <div>
-        <label for="kecamatan" class="block text-sm font-medium text-gray-700 mb-1">Kecamatan</label>
-       <select name="kecamatan" id="kecamatan"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kecamatan --</option>
-          </select>
-        </div>
-        <div>
-        <label for="kelurahan" class="block text-sm font-medium text-gray-700 mb-1">Kelurahan</label>
-       <select name="kelurahan" id="kelurahan"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kelurahan --</option>
-          </select>
-        </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="postal_code" class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
-        <input type="text" name="postal_code" id="postal_code"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-       <div class="col-span-2">
-        <label for="address" class="block text-sm font-medium text-gray-700">Billing Address 2</label>
-        <textarea id="address" name="address" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
-      </div>
-       </div>
-       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="provinsi" class="block text-sm font-medium text-gray-700 mb-1">Provinsi</label>
-       <select name="provinsi" id="provinsi"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Provinsi --</option>
-          </select>
-        </div>
-        <div>
-        <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Kota/Kabupaten</label>
-       <select name="city" id="city"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kota/Kabupaten --</option>
-          </select>
-        </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-         <div>
-        <label for="kecamatan" class="block text-sm font-medium text-gray-700 mb-1">Kecamatan</label>
-       <select name="kecamatan" id="kecamatan"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kecamatan --</option>
-          </select>
-        </div>
-        <div>
-        <label for="kelurahan" class="block text-sm font-medium text-gray-700 mb-1">Kelurahan</label>
-       <select name="kelurahan" id="kelurahan"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kelurahan --</option>
-          </select>
-        </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="postal_code" class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
-        <input type="text" name="postal_code" id="postal_code"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-       <div class="col-span-2">
-        <label for="address" class="block text-sm font-medium text-gray-700">Delivery Address 1</label>
-        <textarea id="address" name="address" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
-      </div>
-       </div>
-       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="provinsi" class="block text-sm font-medium text-gray-700 mb-1">Provinsi</label>
-       <select name="provinsi" id="provinsi"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Provinsi --</option>
-          </select>
-        </div>
-        <div>
-        <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Kota/Kabupaten</label>
-       <select name="city" id="city"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kota/Kabupaten --</option>
-          </select>
-        </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-         <div>
-        <label for="kecamatan" class="block text-sm font-medium text-gray-700 mb-1">Kecamatan</label>
-       <select name="kecamatan" id="kecamatan"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kecamatan --</option>
-          </select>
-        </div>
-        <div>
-        <label for="kelurahan" class="block text-sm font-medium text-gray-700 mb-1">Kelurahan</label>
-       <select name="kelurahan" id="kelurahan"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kelurahan --</option>
-          </select>
-        </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="postal_code" class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
-        <input type="text" name="postal_code" id="postal_code"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-       <div class="col-span-2">
-        <label for="address" class="block text-sm font-medium text-gray-700">Delivery Address 2</label>
-        <textarea id="address" name="address" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
-      </div>
-       </div>
-       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="provinsi" class="block text-sm font-medium text-gray-700 mb-1">Provinsi</label>
-       <select name="provinsi" id="provinsi"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Provinsi --</option>
-          </select>
-        </div>
-        <div>
-        <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Kota/Kabupaten</label>
-       <select name="city" id="city"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kota/Kabupaten --</option>
-          </select>
-        </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-         <div>
-        <label for="kecamatan" class="block text-sm font-medium text-gray-700 mb-1">Kecamatan</label>
-       <select name="kecamatan" id="kecamatan"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kecamatan --</option>
-          </select>
-        </div>
-        <div>
-        <label for="kelurahan" class="block text-sm font-medium text-gray-700 mb-1">Kelurahan</label>
-       <select name="kelurahan" id="kelurahan"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Pilih Kelurahan --</option>
-          </select>
-        </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="postal_code" class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
-        <input type="text" name="postal_code" id="postal_code"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-      </div>
-    </div>
-
-       <!-- STEP 3 -->
-    <div class="step hidden">
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div class="col-span-2">
-        <label for="contact_person" class="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
-        <input type="text" name="contact_person" id="contact_person"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="telephone" class="block text-sm font-medium text-gray-700 mb-1">Telephone</label>
-        <input type="text" name="telephone" id="telephone"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-        <div>
-        <label for="mobile_phone" class="block text-sm font-medium text-gray-700 mb-1">Mobile Phone</label>
-        <input type="text" name="mobile_phone" id="mobile_phone"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-         <div>
-        <label for="fax" class="block text-sm font-medium text-gray-700 mb-1">Fax</label>
-        <input type="text" name="fax" id="fax"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-        <div>
-        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-        <input type="text" name="email" id="email"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-        </div>
-    </div>
-
-         <!-- STEP 4 -->
-    <div class="step hidden">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="npwp_number" class="block text-sm font-medium text-gray-700 mb-1">Credit Limit</label>
-        <input type="text" name="npwp_number" id="npwp_number"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-        <div>
-        <label for="npwp_name" class="block text-sm font-medium text-gray-700 mb-1">Credit Term</label>
-        <input type="text" name="npwp_name" id="npwp_name"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-</div>
- <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-       <div>
-        <label for="bank_type" class="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
-       <select name="bank_type" id="bank_type"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Choose Payment Term --</option>
-            <option value="Retur">Cash-on-Delivery (COD)</option>
-            <option value="Transit">Cash Before Delivery (CBD)</option>
-             <option value="LC">NET</option>
-            <option value="Transit">Installment/Partiall</option>
-             <option value="LC">Letter of Credit (LC)</option>
-          </select>
-        </div>
-        <div>
-        <label for="bank_type" class="block text-sm font-medium text-gray-700 mb-1">Delivery Terms</label>
-       <select name="bank_type" id="bank_type"
-                  class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">-- Choose Delivery Term --</option>
-            <option value="Retur">Free on Board (FOB)</option>
-            <option value="Transit">Cost, Insurance, and Freight (CIF)</option>
-            <option value="Transit">Ex Works (EXW)</option>
-            <option value="Transit">Delivered At Place (DAP)</option>
-          </select>
-        </div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-  <label for="top" class="block text-sm font-medium text-gray-700 mb-1">Term of Payment (TOP) 1</label>
-  <div class="relative">
-    <input type="number" name="top" id="top"
-           class="w-full px-3 py-2 pr-16 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
-      Days
-    </div>
-  </div>
-        </div>
-   <div>
-  <label for="top" class="block text-sm font-medium text-gray-700 mb-1">Term of Payment (TOP) 2</label>
-  <div class="relative">
-    <input type="number" name="top" id="top"
-           class="w-full px-3 py-2 pr-16 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
-      Days
-    </div>
-  </div>
+</form>
 </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-        <label for="npwp_number" class="block text-sm font-medium text-gray-700 mb-1">NPWP Number</label>
-        <input type="text" name="npwp_number" id="npwp_number"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
         </div>
-        <div>
-        <label for="npwp_name" class="block text-sm font-medium text-gray-700 mb-1">NPWP Name</label>
-        <input type="text" name="npwp_name" id="npwp_name"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div class="col-span-2">
-        <label for="npwp_address" class="block text-sm font-medium text-gray-700">NPWP Address</label>
-        <textarea id="npwp_address" name="npwp_address" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
-      </div>
-        <div class="col-span-2">
-        <label for="bank_type" class="block text-sm font-medium text-gray-700 mb-1">NPPKP Number</label>
-       <input type="text" name="branch" id="branch"
-               class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-        </div>
-</div>
-    </div>
 
 
-       <!-- 🔘 Navigation Buttons -->
-    <div class="flex justify-between items-center border-t pt-5 gap-2 mt-4">
-      <button type="button" id="prevBtn"
-        class="hidden w-24 bg-gray-500 text-white px-4 py-2 rounded shadow hover:bg-gray-600">Previous</button>
-      <button type="button" id="nextBtn"
-        class="w-24 bg-indigo-600 text-white px-6 py-2 rounded shadow hover:bg-indigo-700">Next</button>
-      <button type="submit" id="submitBtn"
-        class="hidden w-24 bg-green-600 text-white px-6 py-2 rounded shadow hover:bg-green-700">Save</button>
-    </div>
-  </form>
-</div>
-</div>
+    
+
+{{-- SCRIPT --}}
+@push('scripts')
+<style>
+/* Ubah warna baris even dan odd */
+#conversion-table tbody tr:nth-child(even) {
+     background-color: #f3f4f6; /* lebih gelap: tailwind slate-100 */
+}
+#conversion-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* 🧭 Spacing */
+#conversion-table_wrapper {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Hilangkan border samping */
+#conversion-table th, #conversion-table td {
+    border: none !important;
+}
+
+/* Biar teks tidak wrap */
+#conversion-table td, #conversion-table th {
+    white-space: nowrap;
+}
+
+.select2-container {
+    width: 100% !important;
+}
+
+.dataTables_scrollHeadInner,
+.dataTables_scrollHeadInner table {
+    width: 100% !important;
+}
+
+.dataTables_scrollBody {
+    overflow-x: auto !important;
+}
+
+
+ .select2-container--default .select2-selection--single {
+        height: 38px !important;
+        padding: 4px 10px !important;
+        border: 1px solid #d1d5db !important; /* gray-300 */
+        border-radius: 0.375rem !important; /* rounded-md */
+        font-size: 1rem !important; /* text-base */
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 28px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px !important;
+        top: 1px;
+    }
+
+</style>
 
 <script>
-  let currentStep = 0;
-  const steps = document.querySelectorAll(".step");
-  const tabs = document.querySelectorAll(".step-tab");
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
-  const submitBtn = document.getElementById("submitBtn");
+$(document).ready(function(){
 
-  function showStep(n) {
-    steps.forEach((step, i) => step.classList.toggle("hidden", i !== n));
-    tabs.forEach((tab, i) => {
-      tab.classList.toggle("text-indigo-600", i === n);
-      tab.classList.toggle("border-indigo-600", i === n);
-      tab.classList.toggle("text-gray-500", i !== n);
-      tab.classList.toggle("border-transparent", i !== n);
+function formatNumber(value) {
+    if (value === null || value === undefined || value === '') return '0.00';
+
+    return new Intl.NumberFormat('id-ID', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(value);
+}
+
+function showToast(icon, title) {
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        icon: icon,
+        title: title
     });
+}
 
-    prevBtn.classList.toggle("hidden", n === 0);
-    nextBtn.classList.toggle("hidden", n === steps.length - 1);
-    submitBtn.classList.toggle("hidden", n !== steps.length - 1);
-  }
+ const $year = $('#year');
+const $month = $('#month');
 
-  prevBtn.addEventListener("click", () => {
-    if (currentStep > 0) {
-      currentStep--;
-      showStep(currentStep);
+    
+
+    const startYear = 2022; // <-- ubah sesuai awal data STO
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    const months = [
+        "Januari","Februari","Maret","April","Mei","Juni",
+        "Juli","Agustus","September","Oktober","November","Desember"
+    ];
+
+    // =========================
+    // GENERATE YEAR
+    // =========================
+    $year.append('<option value="">-- Pilih Tahun --</option>');
+
+    for (let y = currentYear; y >= startYear; y--) {
+        $year.append(`<option value="${y}">${y}</option>`);
     }
-  });
 
-  nextBtn.addEventListener("click", () => {
-    if (currentStep < steps.length - 1) {
-      currentStep++;
-      showStep(currentStep);
+    // =========================
+    // GENERATE MONTH (selalu 12)
+    // =========================
+    $month.append('<option value="">-- Pilih Bulan --</option>');
+
+  $.each(months, function (index, monthName) {
+    let monthNumber = index + 1;
+    $month.append(
+        `<option value="${monthNumber}">${monthName}</option>`
+    );
+});
+
+    // =========================
+    // DEFAULT ke bulan & tahun sekarang
+    // =========================
+    $year.val(currentYear);
+   $month.val(currentMonth);
+
+function updateReportInfo() {
+    const year = $('#year').val();
+    const month = $('#month').val();
+
+    if (year && month) {
+        const monthName = months[parseInt(month) - 1];
+
+        $('#reportPeriod').html(`<strong>${monthName} ${year}</strong>`);
+        $('#reportInfo').removeClass('hidden');
+    } else {
+        $('#reportInfo').addClass('hidden');
     }
-  });
+}
+let conversionData = [];
+let summary = {};
 
-  tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      currentStep = parseInt(tab.dataset.step);
-      showStep(currentStep);
+let table = $('#conversion-table').DataTable({
+    processing : true,
+    searching  : false,
+    paging     : false,
+    info       : false,
+    scrollY    : '500px',
+    scrollX    : true,
+    scrollCollapse: true,
+    autoWidth  : false,
+    ajax: {
+        url     : '{{ route("marketing.conversion.data") }}',
+        data    : function (d) {
+            d.year  = $('#year').val();
+            d.month = $('#month').val();
+        },
+        dataSrc : function (json) {
+            conversionData = json.data;
+            summary        = json.summary;
+            updateSummary(json.summary);
+            return json.data;
+        }
+    },
+    columns: [
+        {
+    data  : 'delivery_dates',
+    title : 'Delivery Date',
+},
+        /*
+        |--------------------------------------------------------------
+        | Customer
+        |--------------------------------------------------------------
+        */
+        {
+            data  : 'customer',
+            title : 'Customer',
+        },
+
+        /*
+        |--------------------------------------------------------------
+        | Article
+        |--------------------------------------------------------------
+        */
+        {
+            data   : null,
+            title  : 'Article',
+            render : function (row) {
+                var code = row.article_code  ?? '-';
+                var desc = row.article_desc  ?? '-';
+                return code + ' - ' + desc;
+            }
+        },
+
+        /*
+        |--------------------------------------------------------------
+        | Delivery Qty
+        |--------------------------------------------------------------
+        */
+        {
+            data      : 'delivery_qty',
+            title     : 'Delivery Qty',
+            className : 'text-end',
+            render    : function (data, type) {
+                if (type === 'display') {
+                    return formatNumber(data ?? 0);
+                }
+                return data;
+            }
+        },
+
+        /*
+        |--------------------------------------------------------------
+        | Conversion (matome per unit)
+        |--------------------------------------------------------------
+        */
+        {
+            data      : 'matome',
+            title     : 'Conversion',
+            className : 'text-end',
+            render    : function (data, type, row) {
+                if (type === 'display') {
+                    if (data === null) {
+                        return '<span class="text-xs text-amber-500" title="' + (row.fallback_note ?? '') + '">'
+                                + '<i class="ri-error-warning-line"></i> Belum disync'
+                               + '</span>';
+                    }
+                    return '<span style="color:green; font-weight:600;">'
+                            + formatNumber(data)
+                           + '</span>';
+                }
+                return data ?? 0;
+            }
+        },
+
+        /*
+        |--------------------------------------------------------------
+        | Total Conversion (delivery_qty * matome)
+        |--------------------------------------------------------------
+        */
+        {
+            data      : 'conversion',
+            title     : 'Total Conversion',
+            className : 'text-end',
+            render    : function (data, type, row) {
+                if (type === 'display') {
+                    if (data === null) {
+                        return '<span class="text-xs text-gray-400">-</span>';
+                    }
+                    return '<span style="color:black; font-weight:600;">'
+                            + formatNumber(data)
+                           + '</span>';
+                }
+                return data ?? 0;
+            }
+        },
+    ]
+});
+
+    // =====================
+    // APPLY FILTER
+    // =====================
+   $('#year, #month').on('change', function () {
+    updateReportInfo();
+    table.ajax.reload();
+});
+
+$('#conversionForm').off('submit').on('submit', function (e) {
+    e.preventDefault();
+
+    const $submitBtn = $('#submitBtn');
+
+    if (!conversionData || conversionData.length === 0) {
+        showToast('error', 'Detail conversion tidak boleh kosong.');
+        return;
+    }
+
+    // Filter data yang punya matome dan yang tidak
+    const validData   = conversionData.filter(row => row.matome !== null && row.conversion !== null);
+    const invalidData = conversionData.filter(row => row.matome === null || row.conversion === null);
+
+    // Jika ada yang tidak punya matome, tampilkan konfirmasi dulu
+    if (invalidData.length > 0) {
+        const articleList = invalidData.map(row =>
+            `<li class="text-xs text-left py-0.5">
+                <span class="font-medium">${row.article_code}</span>
+                <span class="text-gray-500"> — ${row.article_desc ?? '-'}</span>
+            </li>`
+        ).join('');
+
+        Swal.fire({
+            title              : 'Ada Artikel Tanpa Matome',
+            icon               : 'warning',
+            width              : '560px',
+            confirmButtonText  : 'Lanjutkan Simpan',
+            confirmButtonColor : '#10b981',
+            showCancelButton   : true,
+            cancelButtonText   : 'Batal',
+            cancelButtonColor  : '#6b7280',
+            html               :
+                `<p class="text-sm text-gray-600 mb-3">
+                    <strong>${invalidData.length} artikel</strong> berikut tidak memiliki nilai matome
+                    dan <strong>tidak akan disimpan</strong>.
+                    Disarankan untuk melakukan <strong>Sync Pricing</strong> terlebih dahulu.
+                </p>
+                <div class="text-left bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 max-h-48 overflow-y-auto mb-3">
+                    <ul class="list-disc list-inside space-y-0.5">
+                        ${articleList}
+                    </ul>
+                </div>
+                <p class="text-xs text-gray-400">
+                    Hanya <strong>${validData.length} artikel</strong> yang akan disimpan.
+                </p>`,
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                doSubmit($submitBtn, validData);
+            }
+        });
+
+    } else {
+        // Semua valid, langsung submit
+        doSubmit($submitBtn, validData);
+    }
+});
+
+function doSubmit($submitBtn, validData) {
+    $submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+
+    // Hitung ulang summary dari data valid saja
+    const totalQty        = validData.reduce((acc, row) => acc + (parseFloat(row.delivery_qty)    || 0), 0);
+    const totalConversion = validData.reduce((acc, row) => acc + (parseFloat(row.conversion) || 0), 0);
+
+    const formData = new FormData($('#conversionForm')[0]);
+    formData.append('details',          JSON.stringify(validData));
+    formData.append('total_qty',        totalQty);
+    formData.append('total_conversion', totalConversion);
+
+    $.ajax({
+        url         : '{{ route("marketing.conversion.store") }}',
+        type        : 'POST',
+        data        : formData,
+        processData : false,
+        contentType : false,
+        success: function (res) {
+            if (res.success) {
+                showToast('success', res.message || 'Conversion saved successfully.');
+                setTimeout(() => {
+                    window.location.href = '{{ route("marketing.conversion.index") }}';
+                }, 1500);
+            } else {
+                showToast('error', res.message || 'Gagal menyimpan data.');
+                $submitBtn.prop('disabled', false).text('Save');
+            }
+        },
+        error: function (err) {
+            const msg = err.responseJSON?.message || 'Terjadi kesalahan sistem.';
+            showToast('error', msg);
+            $submitBtn.prop('disabled', false).text('Save');
+        }
     });
-  });
+}
 
-  showStep(currentStep);
+/*
+|--------------------------------------------------------------
+| Update Summary Card
+|--------------------------------------------------------------
+*/
+function updateSummary(summary) {
+
+    const noMatomeWarning = summary.total_no_matome > 0
+        ? `<div class="flex justify-between text-amber-500 text-xs mt-1">
+               <span><i class="ri-error-warning-line"></i> Belum disync</span>
+               <span class="font-semibold">
+                   ${summary.total_no_matome} artikel belum punya matome
+               </span>
+           </div>
+          `
+        : '';
+
+    $('#summary-card').html(`
+        <h3 class="text-sm font-semibold text-slate-700 mb-4">
+            Monthly Summary
+        </h3>
+
+        <div class="space-y-2 text-sm">
+
+            <div class="flex justify-between">
+                <span class="text-gray-600">Total Items</span>
+                <span class="font-semibold">${summary.total_rows} type of items delivered</span>
+            </div>
+
+            <div class="flex justify-between">
+                <span class="text-gray-600">Total Customers</span>
+                <span class="font-semibold">${summary.total_customers} customers received</span>
+            </div>
+
+            <div class="flex justify-between">
+                <span class="text-gray-600">Total Qty Delivery</span>
+                <span class="font-semibold">
+                    ${Number(summary.total_qty).toLocaleString('id-ID')} pcs
+                </span>
+            </div>
+
+            <div class="flex justify-between text-green-600">
+                <span>Total Conversion</span>
+                <span class="font-semibold">${formatNumber(summary.total_conversion)}</span>
+            </div>
+
+            ${noMatomeWarning}
+
+        </div>
+    `);
+}
+});
 </script>
+@endpush
+
 
 @endsection
