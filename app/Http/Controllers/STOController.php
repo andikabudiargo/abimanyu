@@ -745,8 +745,6 @@ public function destroy($id)
 
 
 
-<?php
-
 public function exportReport()
 {
     /*
