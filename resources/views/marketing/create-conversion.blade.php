@@ -407,24 +407,75 @@ let table = $('#conversion-table').DataTable({
     table.ajax.reload();
 });
 
-// SUBMIT DATA
 $('#conversionForm').off('submit').on('submit', function (e) {
     e.preventDefault();
 
     const $submitBtn = $('#submitBtn');
-    $submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
 
     if (!conversionData || conversionData.length === 0) {
         showToast('error', 'Detail conversion tidak boleh kosong.');
-        $submitBtn.prop('disabled', false).text('Save');
         return;
     }
 
-    const formData = new FormData(this);
+    // Filter data yang punya matome dan yang tidak
+    const validData   = conversionData.filter(row => row.conversion !== null && row.total_conversion !== null);
+    const invalidData = conversionData.filter(row => row.conversion === null || row.total_conversion === null);
 
-    formData.append('details',          JSON.stringify(conversionData));
-    formData.append('total_qty',        summary.total_qty        || 0);
-    formData.append('total_conversion', summary.total_conversion || 0);
+    // Jika ada yang tidak punya matome, tampilkan konfirmasi dulu
+    if (invalidData.length > 0) {
+        const articleList = invalidData.map(row =>
+            `<li class="text-xs text-left py-0.5">
+                <span class="font-medium">${row.article_code}</span>
+                <span class="text-gray-500"> — ${row.article_desc ?? '-'}</span>
+            </li>`
+        ).join('');
+
+        Swal.fire({
+            title              : 'Ada Artikel Tanpa Matome',
+            icon               : 'warning',
+            width              : '560px',
+            confirmButtonText  : 'Lanjutkan Simpan',
+            confirmButtonColor : '#10b981',
+            showCancelButton   : true,
+            cancelButtonText   : 'Batal',
+            cancelButtonColor  : '#6b7280',
+            html               :
+                `<p class="text-sm text-gray-600 mb-3">
+                    <strong>${invalidData.length} artikel</strong> berikut tidak memiliki nilai matome
+                    dan <strong>tidak akan disimpan</strong>.
+                    Disarankan untuk melakukan <strong>Sync Pricing</strong> terlebih dahulu.
+                </p>
+                <div class="text-left bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 max-h-48 overflow-y-auto mb-3">
+                    <ul class="list-disc list-inside space-y-0.5">
+                        ${articleList}
+                    </ul>
+                </div>
+                <p class="text-xs text-gray-400">
+                    Hanya <strong>${validData.length} artikel</strong> yang akan disimpan.
+                </p>`,
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                doSubmit($submitBtn, validData);
+            }
+        });
+
+    } else {
+        // Semua valid, langsung submit
+        doSubmit($submitBtn, validData);
+    }
+});
+
+function doSubmit($submitBtn, validData) {
+    $submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+
+    // Hitung ulang summary dari data valid saja
+    const totalQty        = validData.reduce((acc, row) => acc + (parseFloat(row.delivery_qty)    || 0), 0);
+    const totalConversion = validData.reduce((acc, row) => acc + (parseFloat(row.total_conversion) || 0), 0);
+
+    const formData = new FormData($('#conversionForm')[0]);
+    formData.append('details',          JSON.stringify(validData));
+    formData.append('total_qty',        totalQty);
+    formData.append('total_conversion', totalConversion);
 
     $.ajax({
         url         : '{{ route("marketing.conversion.store") }}',
@@ -449,7 +500,7 @@ $('#conversionForm').off('submit').on('submit', function (e) {
             $submitBtn.prop('disabled', false).text('Save');
         }
     });
-});
+}
 
 /*
 |--------------------------------------------------------------
@@ -465,9 +516,7 @@ function updateSummary(summary) {
                    ${summary.total_no_matome} artikel belum punya matome
                </span>
            </div>
-           <div class="text-xs text-amber-400 mt-1">
-               ${summary.articles_no_matome.join(', ')}
-           </div>`
+          `
         : '';
 
     $('#summary-card').html(`

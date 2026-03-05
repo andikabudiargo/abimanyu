@@ -220,93 +220,103 @@ public function conversionChart(Request $request)
 }
 
 public function store(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'year'              => 'required|digits:4',
-        'month'             => 'required|integer|min:1|max:12',
-        'note'              => 'nullable|string',
-        'total_qty'         => 'required|numeric|min:0',
-        'total_conversion'  => 'required|numeric|min:0',
-        'estimated_profit'  => 'required|numeric|min:0',
-        'details'           => 'required'
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Validation failed',
-            'errors'  => $validator->errors()
-        ], 422);
-    }
-
-    DB::beginTransaction();
-
-    try {
-
-        $year  = $request->year;
-        $month = str_pad($request->month, 2, '0', STR_PAD_LEFT);
-
-        $last = Conversion::where('year', $year)
-                    ->where('month', $request->month)
-                    ->orderBy('id', 'desc')
-                    ->lockForUpdate()
-                    ->first();
-
-        $sequence = $last ? ((int) substr($last->conversion_number, -4) + 1) : 1;
-        $sequence = str_pad($sequence, 4, '0', STR_PAD_LEFT);
-
-        $conversionNumber = "MKTC{$year}{$month}{$sequence}";
-
-        $conversion = Conversion::create([
-            'conversion_number' => $conversionNumber,
-            'year'              => $year,
-            'month'             => $request->month,
-            'status'            => 'Draft',
-            'total_qty'         => $request->total_qty,
-            'total_conversion'  => $request->total_conversion,
-            'estimated_profit'  => $request->estimated_profit,
-            'created_by'        => Auth::id(),
-            'note'              => $request->notes ?? '',
+    {
+        $validator = Validator::make($request->all(), [
+            'year'             => 'required|digits:4',
+            'month'            => 'required|integer|min:1|max:12',
+            'note'             => 'nullable|string',
+            'total_qty'        => 'required|numeric|min:0',
+            'total_conversion' => 'required|numeric|min:0',
+            'details'          => 'required',
         ]);
 
-        // Decode details
-        $details = json_decode($request->details, true);
-
-        foreach ($details as $item) {
-            DB::table('conversion_details')->insert([
-                'conversion_id'   => $conversion->id,
-                'article_code'    => $item['article_code'],
-                'delivery_qty'    => $item['delivery_qty'],
-                'material_price'  => $item['material_price'],
-                'service_price'   => $item['service_price'],
-                'total_price'     => $item['price'],
-                'conversion_value'=> $item['conversion_value'],
-                'fixed_conversion'=> $item['fixed_conversion'],
-                'conversion'      => $item['conversion'],
-                'grand_total'     => $item['grand_total'],
-                'created_at'      => now(),
-                'updated_at'      => now(),
-            ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors(),
+            ], 422);
         }
 
-        DB::commit();
+        DB::beginTransaction();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Conversion saved successfully.'
-        ]);
+        try {
 
-    } catch (\Throwable $e) {
+            $year  = $request->year;
+            $month = str_pad($request->month, 2, '0', STR_PAD_LEFT);
 
-        DB::rollBack();
+            // Generate conversion number
+            $last = Conversion::where('year', $year)
+                ->where('month', $request->month)
+                ->orderBy('id', 'desc')
+                ->lockForUpdate()
+                ->first();
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to save conversion.',
-            'error'   => $e->getMessage()
-        ], 500);
+            $sequence = $last ? ((int) substr($last->conversion_number, -4) + 1) : 1;
+            $sequence = str_pad($sequence, 4, '0', STR_PAD_LEFT);
+
+            $conversionNumber = "MKTC{$year}{$month}{$sequence}";
+
+            // Simpan header
+            $conversion = Conversion::create([
+                'conversion_number' => $conversionNumber,
+                'year'              => $year,
+                'month'             => $request->month,
+                'status'            => 'Draft',
+                'total_qty'         => $request->total_qty,
+                'fixed_conversion'  => $request->total_conversion,
+                'created_by'        => Auth::id(),
+                'note'              => $request->note ?? '',
+            ]);
+
+            // Decode dan filter hanya detail yang punya nilai matome valid
+            $details = collect(json_decode($request->details, true))
+                ->filter(fn($item) =>
+                    !is_null($item['conversion'])       &&
+                    !is_null($item['total_conversion'])
+                )
+                ->values();
+
+            // Jika setelah filter tidak ada yang valid sama sekali
+            if ($details->isEmpty()) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada artikel dengan matome valid. Lakukan Sync Pricing terlebih dahulu.',
+                ], 422);
+            }
+
+            // Insert detail
+            $insertData = $details->map(fn($item) => [
+                'conversion_id'    => $conversion->id,
+                'article_code'     => $item['article_code'],
+                'delivery_qty'     => $item['delivery_qty'],
+                'matome'           => $item['conversion'],
+                'total_conversion' => $item['total_conversion'],
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ])->toArray();
+
+            DB::table('conversion_details')->insert($insertData);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Conversion saved successfully.',
+            ]);
+
+        } catch (\Throwable $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save conversion.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
     }
-}
 
 
 
