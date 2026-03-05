@@ -413,11 +413,11 @@ $(function () {
                 top: 24px;
                 right: 24px;
                 z-index: 9999;
-                background: #1f2937;
+                background: #0048ac;
                 color: #fff;
                 padding: 14px 20px;
                 border-radius: 10px;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                box-shadow: 0 8px 24px rgb(255, 255, 255);
                 display: flex;
                 align-items: center;
                 gap: 12px;
@@ -427,7 +427,7 @@ $(function () {
             ">
                 <span id="${toastId}-spinner" style="
                     width: 18px; height: 18px;
-                    border: 3px solid #f97316;
+                    border: 3px solid #ddff00;
                     border-top-color: transparent;
                     border-radius: 50%;
                     display: inline-block;
@@ -435,8 +435,8 @@ $(function () {
                     flex-shrink: 0;
                 "></span>
                 <div>
-                    <div id="${toastId}-title" style="font-weight: 600; color: #f97316;">Sedang Memproses...</div>
-                    <div id="${toastId}-desc" style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
+                    <div id="${toastId}-title" style="font-weight: 600; color: #ffffff;">Sedang Memproses...</div>
+                    <div id="${toastId}-desc" style="font-size: 12px; color: #ffffff; margin-top: 2px;">
                         File Excel sedang disiapkan, harap tunggu.
                     </div>
                 </div>

@@ -744,6 +744,8 @@ public function destroy($id)
 
 
 
+<?php
+
 public function exportReport()
 {
     /*
@@ -990,11 +992,12 @@ GROUP BY
         }
     }
 
-    // Hitung total STOCK ADMIN per rm_code per periode
-    // STOCK ADMIN = total KIRIM semua FG terkait - total BELI RM
-    // $stockAdminByRM[rm_code][periode] = (sum kirim fg) - beli_rm
+    // Hitung total STOCK ADMIN per rm_code per periode — KUMULATIF (running balance)
+    // STOCK ADMIN[N] = STOCK ADMIN[N-1] + BELI[N] + TFIN[N] - KIRIM[N]
+    // Periode diproses berurutan (sudah di-orderBy dari query $periodes)
     $stockAdminByRM = [];
     foreach ($rmGroups as $rmCode => $keys) {
+        $saldoBerjalan = 0; // stock awal = 0 sebelum periode pertama
         foreach ($periodes as $periode) {
             // Total kirim semua FG yang berelasi dengan RM ini
             $totalKirim = 0;
@@ -1003,11 +1006,17 @@ GROUP BY
                 $totalKirim += ($fgCode !== 'OTHER' && isset($kirimIndex[$fgCode][$periode]))
                                ? $kirimIndex[$fgCode][$periode] : 0;
             }
-            // Beli RM
+            // Beli RM bulan ini
             $totalBeli = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
                          ? $beliIndex[$rmCode][$periode] : 0;
 
-            $stockAdminByRM[$rmCode][$periode] = $totalKirim - $totalBeli;
+            // TF IN bulan ini
+            $totalTfin = ($rmCode !== 'OTHER' && isset($tfinIndex[$rmCode][$periode]))
+                         ? $tfinIndex[$rmCode][$periode] : 0;
+
+            // Running balance: saldo bulan lalu + masuk - keluar
+            $saldoBerjalan += ($totalBeli + $totalTfin) - $totalKirim;
+            $stockAdminByRM[$rmCode][$periode] = $saldoBerjalan;
         }
     }
 
@@ -1288,13 +1297,18 @@ GROUP BY
                 $totalStockAdmin = $stockAdminByRM[$rmCode][$periode] ?? 0;
                 $totalSelisih    = $totalStockSto - $totalStockAdmin;
 
-                // Beli, TF IN, Kirim ditampilkan terpisah
+                // Beli, TF IN, Kirim ditampilkan terpisah (nilai bulan ini saja, bukan kumulatif)
                 $totalBeli  = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
                               ? $beliIndex[$rmCode][$periode] : 0;
                 $totalTfin  = ($rmCode !== 'OTHER' && isset($tfinIndex[$rmCode][$periode]))
                               ? $tfinIndex[$rmCode][$periode] : 0;
-                // Kirim = (Beli + TfIn) - StockAdmin
-                $totalKirim = ($totalBeli + $totalTfin) - $totalStockAdmin;
+                // Kirim: jumlah semua FG terkait bulan ini
+                $totalKirim = 0;
+                foreach (($rmGroups[$rmCode] ?? []) as $gKey) {
+                    $gFgCode     = $data[$gKey]['info'][2];
+                    $totalKirim += ($gFgCode !== 'OTHER' && isset($kirimIndex[$gFgCode][$periode]))
+                                   ? $kirimIndex[$gFgCode][$periode] : 0;
+                }
 
                 $sheet->setCellValue("{$cStockSto}{$rowIndex}",   $totalStockSto);
                 $sheet->setCellValue("{$cBeli}{$rowIndex}",       $totalBeli);
@@ -1409,6 +1423,5 @@ GROUP BY
         'Cache-Control'       => 'max-age=0',
     ]);
 }
-
 
 }
