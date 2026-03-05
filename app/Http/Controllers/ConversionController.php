@@ -156,7 +156,7 @@ public function conversionChart(Request $request)
         sj.customer,
         sj.article_code,
         SUM(sj.delivery_qty)      as delivery_qty,
-        GROUP_CONCAT(DISTINCT sj.delivery_date ORDER BY sj.delivery_date ASC) as delivery_dates
+        GROUP_CONCAT(DISTINCT sj.delivery_date ORDER BY sj.delivery_date ASC) as delivery_dates,
         MAX(sj.delivery_date)     as last_delivery_date,
         MIN(sj.delivery_date)     as first_delivery_date
     ")
