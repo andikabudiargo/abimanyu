@@ -309,14 +309,9 @@ let table = $('#conversion-table').DataTable({
         }
     },
     columns: [
-          {
-    data  : null,
+        {
+    data  : 'delivery_dates',
     title : 'Delivery Date',
-    render: function () {
-        var month = $('#month').val().padStart(2, '0');
-        var year  = $('#year').val();
-        return month + '/' + year;
-    }
 },
         /*
         |--------------------------------------------------------------
