@@ -322,7 +322,7 @@ function showToast(icon, title) {
     }
 },
         ajax: {
-            url: '{{ route("marketing.pricing.data") }}',
+            url: '{{ route("marketing.price.data") }}',
             
             data: function (d) {
                 d.customer = $('#filter-customer').val();
