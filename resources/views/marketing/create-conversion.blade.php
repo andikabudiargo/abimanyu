@@ -309,11 +309,7 @@ let table = $('#conversion-table').DataTable({
         }
     },
     columns: [
-        {
-    data  : 'delivery_dates',
-    title : 'Delivery Date',
-},
-        /*
+   /*
         |--------------------------------------------------------------
         | Customer
         |--------------------------------------------------------------
