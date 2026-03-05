@@ -155,6 +155,7 @@ public function conversionChart(Request $request)
         ->selectRaw("
             sj.customer,
             sj.article_code,
+            sj.delivery_date,
             SUM(sj.delivery_qty) as delivery_qty,
             MAX(sj.delivery_date) as last_delivery_date
         ")
