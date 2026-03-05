@@ -554,7 +554,7 @@ $query = DB::table('articles as a')
             if ($row->fg_conversion === null) {
                 return '<div class="text-end">-</div>';
             }
-            return '<div class="text-end text-green-600 fw-bold">'
+            return '<div class="text-end">'
                 . number_format($row->fg_conversion, 2, ',', '.')
                 . '</div>';
         })
@@ -569,9 +569,9 @@ $query = DB::table('articles as a')
                 return '<div class="text-end">-</div>';
             }
 
-            $class = $row->matome >= 0 ? 'text-success' : 'text-danger';
+            $class = $row->matome >= 0 ? 'text-green-600' : 'text-red-600';
 
-            return '<div class="text-end fw-bold ' . $class . '">'
+            return '<div class="text-end font-bold ' . $class . '">'
                 . number_format($row->matome, 2, ',', '.')
                 . '</div>';
         })
