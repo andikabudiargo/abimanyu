@@ -746,6 +746,7 @@ public function destroy($id)
 
 
 
+
 public function exportReport()
 {
     /*
@@ -1309,7 +1310,7 @@ GROUP BY
                 // Ambil total untuk seluruh group RM
                 $totalStockSto   = $stockStoByRM[$rmCode][$periode]  ?? 0;
                 $totalStockAdmin = $stockAdminByRM[$rmCode][$periode] ?? 0;
-                $totalSelisih    = $totalStockSto - $totalStockAdmin;
+                $totalSelisih    = $totalStockSto + $totalStockAdmin; // STO + ADMIN (admin negatif = pengurang)
 
                 // Beli, TF IN, Kirim ditampilkan terpisah (nilai bulan ini saja, bukan kumulatif)
                 $totalBeli  = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
