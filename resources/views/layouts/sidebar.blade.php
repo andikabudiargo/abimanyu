@@ -52,10 +52,10 @@
             </li>
 
         <li class="pc-item pc-caption">
-          <label>Supply Chain Management</label>
+          <label>Sales Management</label>
           <i data-feather="feather"></i>
         </li>
-         <li class="pc-item pc-hasmenu">
+         <!--<li class="pc-item pc-hasmenu">
           <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="shopping-cart"></i> </span><span
               class="pc-mtext">Purchase Management</span><span class="pc-arrow"></i><i class="ti ti-chevron-right"></i></span></a>
                <ul class="pc-submenu">
@@ -65,19 +65,17 @@
             <li class="pc-item"><a href="#!" class="pc-link">Forecasting</a></li>
             <li class="pc-item"><a href="{{ route('purchasing.supplier.index') }}" class="pc-link">Supplier Management</a></li>
             <li class="pc-item"><a href="#!" class="pc-link">Delivery Instruction</a></li>
-            
+            <li class="pc-item"><a href="{{ route('marketing.customer.index') }}" class="pc-link">Customer Management</a></li>
              </ul>
-            </li>
+            </li>-->
            
             <li class="pc-item pc-hasmenu">
-          <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="phone-call"></i> </span><span
-              class="pc-mtext">Sales Management</span><span class="pc-arrow"></i><i class="ti ti-chevron-right"></i></span></a>
+          <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="divide"></i> </span><span
+              class="pc-mtext">Conversion</span><span class="pc-arrow"></i><i class="ti ti-chevron-right"></i></span></a>
                <ul class="pc-submenu">
-            <li class="pc-item"><a class="pc-link" href="{{ route('purchasing.pr.index') }}">Sales Order</a></li>
-            <li class="pc-item"><a href="{{ route('purchasing.po.index') }}" class="pc-link">Target Sales Order</a></li>
-            <li class="pc-item"><a href="#!" class="pc-link">Forecasting</a></li>
-            <li class="pc-item"><a href="{{ route('marketing.customer.index') }}" class="pc-link">Customer Management</a></li>
-            <li class="pc-item"><a href="#!" class="pc-link">Conversion</a></li>
+            <li class="pc-item"><a class="pc-link" href="{{ route('marketing.conversion.index') }}">Conversion Management</a></li>
+            <li class="pc-item"><a href="{{ route('marketing.price.index') }}" class="pc-link">Price Management</a></li>
+            <li class="pc-item"><a href="{{ route('marketing.setting.index') }}" class="pc-link">Setting</a></li>
              </ul>
             </li>
             @endif

@@ -3,6 +3,12 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\LpbTemporary;
+use App\Models\SjTemporary;
+use App\Models\ConversionValue;
+use App\Observers\LpbTemporaryObserver;
+use App\Observers\SjTemporaryObserver;
+use App\Observers\ConversionValueObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        LpbTemporary::observe(LpbTemporaryObserver::class);
+        SjTemporary::observe(SjTemporaryObserver::class);
+        ConversionValue::observe(ConversionValueObserver::class);
     }
 }

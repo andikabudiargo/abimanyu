@@ -56,6 +56,7 @@ use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BarcodePartController;
 use App\Http\Controllers\CAPAController;
+use App\Http\Controllers\ConversionController;
 use App\Http\Controllers\ProductKnowledgeController;
 use App\Http\Controllers\RekapBupotController;
 use App\Http\Controllers\RemoteAccessController;
@@ -396,7 +397,20 @@ Route::prefix('purchasing')->name('purchasing.')->group(function () {
 Route::prefix('marketing')->name('marketing.')->group(function () {
     Route::get('/customer/index', [CustomerController::class, 'index'])->name('customer.index');
     Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
-
+    Route::get('/setting/index', [ConversionController::class, 'indexSetting'])->name('setting.index');
+    Route::post('/setting/store', [ConversionController::class, 'storeConversionValue'])->name('setting.store');
+    Route::get('/setting/data', [ConversionController::class, 'dataConversionValue'])->name('setting.data');
+    Route::get('/price/index', [ConversionController::class, 'indexPrice'])->name('price.index');
+    Route::get('/pricing/data', [ConversionController::class,'getPricingData'])->name('price.data');
+    Route::get('/article/data', [ConversionController::class,'getArticles'])->name('article.data');
+    Route::post('/basic-price/store', [ConversionController::class, 'storeBasicPrice'])->name('price.store');
+    Route::get('/conversion/index', [ConversionController::class,'index'])->name('conversion.index');
+    Route::get('/conversion/datatable', [ConversionController::class,'data'])->name('conversion.datatable');
+    Route::get('/conversion/create', [ConversionController::class,'create'])->name('conversion.create');
+     Route::get('/conversion/data', [ConversionController::class,'getConversion'])->name('conversion.data');
+     Route::post('/conversion/store', [ConversionController::class,'store'])->name('conversion.store');
+     Route::get('/conversion/chart', [ConversionController::class, 'conversionChart'])
+    ->name('conversion.chart');
 });
 
 Route::prefix('it')->name('it.')->group(function () {
