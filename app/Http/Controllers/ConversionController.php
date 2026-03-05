@@ -409,11 +409,11 @@ public function dataConversionValue(Request $request)
         ->orderByDesc('effective_date')
         ->value('value');
 
-  $query = DB::table('articles as a')
+$query = DB::table('articles as a')
     ->selectRaw("
         a.article_code,
         a.description,
-        a.supplier_name,
+        c.name as supplier_name,
 
         avg_rm.average_raw_material_price,
         sj.selling_price,
@@ -441,68 +441,65 @@ public function dataConversionValue(Request $request)
         $conversion, $conversion, $conversion,
     ])
 
+    ->leftJoin('customers as c', 'c.code', '=', 'a.supplier_code')
+
     /*
     |--------------------------------------------------------------------------
     | AVERAGE RAW MATERIAL PRICE
-    |
-    | Optimasi:
-    | 1. Pakai boms untuk mapping rm_code -> fg_code
-    | 2. Hitung rata-rata per segmen harga langsung di level lpb_temporary
-    |    menggunakan conditional aggregation (tanpa nested subquery berlebihan)
-    | 3. GROUP BY di level terluar per fg_code
+    | INNER JOIN avg_rm supaya artikel yang tidak ada di boms otomatis excluded
     |--------------------------------------------------------------------------
     */
-   ->leftJoin(DB::raw("
-    (
-        SELECT
-            b.article_fg,
-            AVG(seg.segment_avg) as average_raw_material_price
-        FROM boms b
-        INNER JOIN (
+    ->join(DB::raw("
+        (
             SELECT
-                article_code,
-                grp,
-                AVG(price) as segment_avg
-            FROM (
+                b.article_fg,
+                AVG(seg.segment_avg) as average_raw_material_price
+            FROM boms b
+            INNER JOIN (
                 SELECT
                     article_code,
-                    price,
-                    @grp := IF(
-                        @prev_price <> price OR @prev_article <> article_code,
-                        @grp + 1,
-                        @grp
-                    ) as grp,
-                    @prev_price := price,
-                    @prev_article := article_code
-                FROM lpb_temporary
-                CROSS JOIN (
-                    SELECT @grp := 0, @prev_price := NULL, @prev_article := NULL
-                ) init
-                ORDER BY article_code, id
-            ) flagged
-            GROUP BY article_code, grp
-        ) seg ON seg.article_code = b.article_rm
-        GROUP BY b.article_fg
-    ) avg_rm
-"), 'avg_rm.article_fg', '=', 'a.article_code')
+                    grp,
+                    AVG(price) as segment_avg
+                FROM (
+                    SELECT
+                        article_code,
+                        price,
+                        @grp := IF(
+                            @prev_price <> price OR @prev_article <> article_code,
+                            @grp + 1,
+                            @grp
+                        ) as grp,
+                        @prev_price    := price,
+                        @prev_article  := article_code
+                    FROM lpb_temporary
+                    CROSS JOIN (
+                        SELECT @grp := 0, @prev_price := NULL, @prev_article := NULL
+                    ) init
+                    ORDER BY article_code, id
+                ) flagged
+                GROUP BY article_code, grp
+            ) seg ON seg.article_code = b.article_rm
+            GROUP BY b.article_fg
+        ) avg_rm
+    "), 'avg_rm.article_fg', '=', 'a.article_code', 'inner')
 
     /*
     |--------------------------------------------------------------------------
     | SELLING PRICE
-    | Match fg_code dari sj_temporary via boms
     |--------------------------------------------------------------------------
     */
     ->leftJoin(DB::raw("
         (
             SELECT
                 article_code,
-                (price + service_price) as selling_price
+                SUM(price + service_price) as selling_price
             FROM sj_temporary
+            GROUP BY article_code
         ) sj
     "), 'sj.article_code', '=', 'a.article_code')
 
-   ->whereRaw("a.article_type = 'FG'")
-->whereRaw("a.status = 'active'");
+    ->whereRaw("a.article_type = 'FG'")
+    ->whereRaw("a.status = 'active'");
 
     return datatables()->of($query)
 
