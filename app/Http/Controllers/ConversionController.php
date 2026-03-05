@@ -151,21 +151,21 @@ public function conversionChart(Request $request)
     $year  = $request->year;
     $month = $request->month;
 
-    $baseQuery = DB::table('sj_temporary as sj')
-        ->selectRaw("
-            sj.customer,
-            sj.article_code,
-            sj.delivery_date,
-            SUM(sj.delivery_qty) as delivery_qty,
-            MAX(sj.delivery_date) as last_delivery_date
-        ")
-        ->when($year, function ($q) use ($year) {
-            $q->whereYear('sj.delivery_date', $year);
-        })
-        ->when($month, function ($q) use ($month) {
-            $q->whereMonth('sj.delivery_date', $month);
-        })
-        ->groupBy('sj.customer', 'sj.article_code');
+   $baseQuery = DB::table('sj_temporary as sj')
+    ->selectRaw("
+        sj.customer,
+        sj.article_code,
+        SUM(sj.delivery_qty)      as delivery_qty,
+        MAX(sj.delivery_date)     as last_delivery_date,
+        MIN(sj.delivery_date)     as first_delivery_date
+    ")
+    ->when($year, function ($q) use ($year) {
+        $q->whereYear('sj.delivery_date', $year);
+    })
+    ->when($month, function ($q) use ($month) {
+        $q->whereMonth('sj.delivery_date', $month);
+    })
+    ->groupBy('sj.customer', 'sj.article_code');
 
     $query = DB::query()->fromSub($baseQuery, 'agg')
 
@@ -179,6 +179,8 @@ public function conversionChart(Request $request)
             agg.article_code,
             ar.description as article_desc,
             agg.delivery_qty,
+            agg.first_delivery_date,
+    agg.last_delivery_date,
 
             CASE
                 WHEN bp.matome IS NULL THEN NULL
