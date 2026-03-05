@@ -740,6 +740,12 @@ public function destroy($id)
 
 
 
+
+
+
+
+
+
 public function exportReport()
 {
     /*
@@ -1016,17 +1022,12 @@ GROUP BY
             $stockAdminByRM[$rmCode][$periode] = $mutasi($periode);
         }
 
-        // Januari dst — kumulatif
-        // Saldo awal Januari = hanya TF IN Desember tahun sebelumnya
-        // (BELI dan KIRIM Desember diabaikan untuk kumulatif)
+        // Januari dst — kumulatif, saldo awal = 0 di Januari (reset tiap tahun)
         $saldoBerjalan = 0;
         foreach ($periodesBln as $periode) {
-            // Di setiap Januari, saldo awal = TF IN Desember tahun sebelumnya saja
+            // Reset saldo ke 0 setiap bulan Januari
             if (substr($periode, 5, 2) === '01') {
-                $tahun   = substr($periode, 0, 4);
-                $desPrev = ($tahun - 1) . '-12';
-                $saldoBerjalan = ($rmCode !== 'OTHER' && isset($tfinIndex[$rmCode][$desPrev]))
-                                 ? $tfinIndex[$rmCode][$desPrev] : 0;
+                $saldoBerjalan = 0;
             }
             $saldoBerjalan += $mutasi($periode);
             $stockAdminByRM[$rmCode][$periode] = $saldoBerjalan;
@@ -1308,7 +1309,7 @@ GROUP BY
                 // Ambil total untuk seluruh group RM
                 $totalStockSto   = $stockStoByRM[$rmCode][$periode]  ?? 0;
                 $totalStockAdmin = $stockAdminByRM[$rmCode][$periode] ?? 0;
-                $totalSelisih    = $totalStockSto + $totalStockAdmin; // STO + ADMIN (admin negatif = pengurang)
+                $totalSelisih    = $totalStockSto - $totalStockAdmin;
 
                 // Beli, TF IN, Kirim ditampilkan terpisah (nilai bulan ini saja, bukan kumulatif)
                 $totalBeli  = ($rmCode !== 'OTHER' && isset($beliIndex[$rmCode][$periode]))
