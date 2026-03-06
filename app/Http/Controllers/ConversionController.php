@@ -642,8 +642,7 @@ public function syncPricing(Request $request)
 
 public function show($id)
 {
-    $conversion = DB::table('conversions')->where('id', $id)->first();
-    abort_if(!$conversion, 404);
+   $conversion = \App\Models\Conversion::with('createdBy')->findOrFail($id);
 
     $details = DB::table('conversion_details as cd')
         ->where('cd.conversion_id', $id)
