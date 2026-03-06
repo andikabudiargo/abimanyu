@@ -344,30 +344,32 @@ $('#conversion-table').DataTable({
         }
     ],
     initComplete: function() {
-        $('#filter-matome').on('click', function () {
-            onlyMatome = onlyMatome === 1 ? 0 : 1;
+    // 1. Buat dulu elemennya
+    $('div.matome-toggle').html(`
+        <button id="filter-matome"
+            class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-500 shadow-sm hover:border-blue-400 hover:text-blue-500 transition-all duration-150">
+            <i class="fa-solid fa-filter text-xs"></i>
+            <span>Fix Conversion</span>
+        </button>
+    `);
 
-            if (onlyMatome === 1) {
-                $(this)
-                    .removeClass('border-gray-200 bg-white text-gray-500')
-                    .addClass('border-blue-500 bg-blue-500 text-white');
-            } else {
-                $(this)
-                    .removeClass('border-blue-500 bg-blue-500 text-white')
-                    .addClass('border-gray-200 bg-white text-gray-500');
-            }
+    // 2. Baru pasang event
+    $('#filter-matome').on('click', function () {
+        onlyMatome = onlyMatome === 1 ? 0 : 1;
 
-            $('#conversion-table').DataTable().ajax.reload();
-        });
+        if (onlyMatome === 1) {
+            $(this)
+                .removeClass('border-gray-200 bg-white text-gray-500 hover:border-blue-400 hover:text-blue-500')
+                .addClass('border-blue-500 bg-blue-500 text-white');
+        } else {
+            $(this)
+                .removeClass('border-blue-500 bg-blue-500 text-white')
+                .addClass('border-gray-200 bg-white text-gray-500 hover:border-blue-400 hover:text-blue-500');
+        }
 
-        $('div.matome-toggle').html(`
-            <button id="filter-matome"
-                class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-500 shadow-sm hover:border-blue-400 hover:text-blue-500 transition-all duration-150">
-                <i class="fa-solid fa-filter text-xs"></i>
-                <span>Fix Conversion</span>
-            </button>
-        `);
-    },
+        $('#conversion-table').DataTable().ajax.reload();
+    });
+},
     columns: [
         { data: 'supplier_name',              searchable: false },
         { data: 'article_code',               searchable: true  },
