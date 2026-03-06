@@ -599,45 +599,7 @@ document.getElementById('yearFilter')
         loadChart(this.value);
     });
 
-    function confirmDelete(id, number) {
-    // Tutup dropdown dulu
-    const dropdown = document.getElementById('global-dropdown');
-    if (dropdown) dropdown.remove();
-
-    Swal.fire({
-        title: 'Delete Conversion?',
-        html: `Are you sure you want to delete <strong>${number}</strong>?<br><span class="text-sm text-gray-400">This action cannot be undone.</span>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: '<i class="fa-solid fa-trash mr-1"></i> Yes, Delete',
-        cancelButtonText: 'Cancel',
-        reverseButtons: true,
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: `/marketing/conversion/destroy/${id}`,
-                type: 'DELETE',
-                data: { _token: '{{ csrf_token() }}' },
-                success: function (res) {
-                    Swal.fire({
-                        title: 'Deleted!',
-                        text: `${number} has been deleted.`,
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false,
-                    }).then(() => {
-                        $('#conversion-table').DataTable().ajax.reload();
-                    });
-                },
-                error: function () {
-                    Swal.fire('Error', 'Failed to delete. Please try again.', 'error');
-                }
-            });
-        }
-    });
-}
+    
 
      feather.replace(); // ⬅️ Ini untuk memastikan ikon feather muncul ulang setiap render
   
@@ -687,6 +649,46 @@ document.addEventListener('click', function (e) {
     openDropdown = null;
   }
 });
+
+function confirmDelete(id, number) {
+    // Tutup dropdown dulu
+    const dropdown = document.getElementById('global-dropdown');
+    if (dropdown) dropdown.remove();
+
+    Swal.fire({
+        title: 'Delete Conversion?',
+        html: `Are you sure you want to delete <strong>${number}</strong>?<br><span class="text-sm text-gray-400">This action cannot be undone.</span>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="fa-solid fa-trash mr-1"></i> Yes, Delete',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `/marketing/conversion/destroy/${id}`,
+                type: 'DELETE',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function (res) {
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: `${number} has been deleted.`,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        $('#conversion-table').DataTable().ajax.reload();
+                    });
+                },
+                error: function () {
+                    Swal.fire('Error', 'Failed to delete. Please try again.', 'error');
+                }
+            });
+        }
+    });
+}
 </script>
 @endpush
 
