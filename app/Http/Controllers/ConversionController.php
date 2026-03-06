@@ -509,8 +509,8 @@ public function syncPricing(Request $request)
                 sj.selling_price,
                 CASE WHEN ? > 0 THEN avg_rm.average_raw_material_price / ? ELSE NULL END as rm_conversion,
                 CASE WHEN ? > 0 THEN sj.selling_price / ? ELSE NULL END as fg_conversion,
-                CASE WHEN ? > 0 THEN (sj.selling_price / ?) - (avg_rm.average_raw_material_price / ?) ELSE NULL END as matome,
-                ? as conversion_value_used
+                CASE WHEN ? > 0 THEN (sj.selling_price - avg_rm.average_raw_material_price) / ? ELSE NULL END as matome,
+? as conversion_value_used
             ", [$conv, $conv, $conv, $conv, $conv, $conv, $conv, $conv])
 
             ->join(DB::raw("
