@@ -297,7 +297,7 @@ let table = $('#conversion-table').DataTable({
     scrollX       : true,
     scrollCollapse: true,
     autoWidth     : false,
-    dom: '<"dt-toolbar flex flex-wrap justify-between items-center gap-3 mb-4"<"dt-search"><"dt-actions flex items-center gap-2"><"dt-matome-filter flex items-center gap-1">B>rt',
+    dom: '<"dt-toolbar flex flex-wrap justify-between items-center gap-3 mb-4"<"dt-search"><"flex items-center gap-2"<"dt-matome-filter">B>>rt',
     buttons: [
         {
             extend    : 'excelHtml5',
@@ -396,21 +396,25 @@ let table = $('#conversion-table').DataTable({
                 return data;
             }
         },
-        {
-            data     : 'matome',
-            title    : 'Fix Conversion',
-            className: 'text-end',
-            render   : function (data, type, row) {
-                if (type === 'display') {
-                    if (data === null) {
-                        return '<span class="text-xs text-amber-500" title="' + (row.fallback_note ?? '') + '">'
-                             + '<i class="ri-error-warning-line"></i> Belum disync</span>';
-                    }
-                    return '<span style="color:green; font-weight:600;">' + formatNumber(data) + '</span>';
-                }
-                return data ?? 0;
+       {
+    data     : 'matome',
+    title    : 'Fix Conversion',
+    className: 'text-end',
+    render   : function (data, type, row) {
+        if (type === 'display') {
+            if (data === null) {
+                return '<span class="text-xs text-amber-500" title="' + (row.fallback_note ?? '') + '">'
+                     + '<i class="ri-error-warning-line"></i> Belum disync</span>';
             }
-        },
+            const formatted = parseFloat(data).toLocaleString('id-ID', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 20
+            });
+            return '<span style="color:green; font-weight:600;">' + formatted + '</span>';
+        }
+        return data ?? 0;
+    }
+},
         {
             data     : 'conversion',
             title    : 'Matome',
