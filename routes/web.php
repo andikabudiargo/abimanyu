@@ -399,6 +399,7 @@ Route::prefix('marketing')->name('marketing.')->group(function () {
     Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
     Route::get('/setting/index', [ConversionController::class, 'indexSetting'])->name('setting.index');
     Route::get('/conversion/detail/{id}', [ConversionController::class, 'show'])->name('conversion.show');
+    Route::delete('/conversion/destroy/{id}', [ConversionController::class, 'destroy'])->name('conversion.destroy');
     Route::post('/setting/store', [ConversionController::class, 'storeConversionValue'])->name('setting.store');
     Route::get('/setting/data', [ConversionController::class, 'dataConversionValue'])->name('setting.data');
     Route::get('/price/index', [ConversionController::class, 'indexPrice'])->name('price.index');
@@ -413,6 +414,7 @@ Route::prefix('marketing')->name('marketing.')->group(function () {
      Route::post('/conversion/store', [ConversionController::class,'store'])->name('conversion.store');
      Route::get('/conversion/chart', [ConversionController::class, 'conversionChart'])
     ->name('conversion.chart');
+    
     
 });
 

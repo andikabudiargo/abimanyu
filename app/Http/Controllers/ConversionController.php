@@ -49,13 +49,13 @@ class ConversionController extends Controller
                         <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
                     </a>
                     <button 
-                        type="button" 
-                        class="w-full text-left px-4 py-2 text-red-500 hover:bg-red-500 hover:text-white"
-                        data-url=""
-                        data-id="'. $id . '"
-                        data-number="'. $number . '">
-                        <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
-                    </button>
+    type="button" 
+    class="w-full text-left px-4 py-2 text-red-500 hover:bg-red-500 hover:text-white"
+    onclick="confirmDelete('. $id .', \''. $number .'\')"
+    data-id="'. $id . '"
+    data-number="'. $number . '">
+    <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
+</button>
                 </div>
             </div>
         </div>';
@@ -661,6 +661,17 @@ public function show($id)
         ->get();
 
     return view('marketing.detail-conversion', compact('conversion', 'details'));
+}
+
+public function destroy($id)
+{
+    $conversion = Conversion::findOrFail($id);
+    
+    // Hapus details dulu baru header
+    DB::table('conversion_details')->where('conversion_id', $id)->delete();
+    $conversion->delete();
+
+    return response()->json(['success' => true, 'message' => 'Conversion deleted successfully.']);
 }
 
 
