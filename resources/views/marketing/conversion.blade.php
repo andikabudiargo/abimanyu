@@ -62,19 +62,9 @@
 
         <div class="border-b border-slate-100 pb-4">
             <p class="text-xs text-slate-400 uppercase tracking-widest">
-                Total Conversion
+                Matome
             </p>
             <h3 id="grandTotalConversion"
-                class="text-2xl font-bold text-slate-800 tabular-nums text-right">
-                0
-            </h3>
-        </div>
-
-        <div class="border-b border-slate-100 py-4">
-            <p class="text-xs text-slate-400 uppercase tracking-widest">
-                Total Estimated Profit
-            </p>
-            <h3 id="grandTotalProfit"
                 class="text-2xl font-bold text-slate-800 tabular-nums text-right">
                 0
             </h3>
@@ -118,8 +108,7 @@
                     <th class="px-4 py-2 !text-left">Month</th>
                     <th class="px-4 py-2 !text-center">Status</th>
                     <th class="px-4 py-2 !text-right">Qty Delivery</th>
-                    <th class="px-4 py-2 !text-right">Total Conversion</th>
-                    <th class="px-4 py-2 !text-right">Estimated Profit</th>
+                    <th class="px-4 py-2 !text-right">Matome</th>
                     <th class="px-4 py-2 !text-left">Note</th>
                     <th class="px-4 py-2 !text-left">Created by</th>
                     <th class="px-4 py-2 !text-left">Created at</th>
@@ -478,25 +467,6 @@ function showToast(icon, title) {
             return '<span class="font-bold text-green-600 tabular-nums">'
                     + formatted +
                    '</span>';
-        }
-
-        return data;
-    }
-},
-
-   {
-    data: 'estimated_profit',
-    className: 'text-right', // Tailwind align kanan
-    render: function (data, type, row) {
-
-        if (type === 'display' || type === 'filter') {
-
-            let number = parseFloat(data) || 0;
-            let formatted = number.toLocaleString('id-ID');
-
-            return '<span class="font-semibold text-gray-600 tabular-nums">'
-        + formatted +
-       '</span>';
         }
 
         return data;

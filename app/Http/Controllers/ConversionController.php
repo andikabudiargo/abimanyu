@@ -110,7 +110,6 @@ public function conversionChart(Request $request)
     $summary = DB::table('conversions')
         ->selectRaw('
             SUM(total_conversion) as grand_total_conversion,
-            SUM(estimated_profit) as grand_total_profit,
             SUM(total_qty) as grand_total_qty
         ')
         ->where('year', $year)
@@ -134,7 +133,6 @@ public function conversionChart(Request $request)
         'totals' => $totals,
 
         'grand_total_conversion' => $summary->grand_total_conversion ?? 0,
-        'grand_total_profit' => $summary->grand_total_profit ?? 0,
         'grand_total_qty' => $summary->grand_total_qty ?? 0,
         'total_customer' => $totalCustomer
     ]);
