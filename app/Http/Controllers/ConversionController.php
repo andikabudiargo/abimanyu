@@ -22,7 +22,13 @@ class ConversionController extends Controller
 
     public function data(Request $request)
 {
-    $query = Conversion::all();
+     $query = Conversion::with('createdBy')
+        ->when($request->year, function ($q) use ($request) {
+            $q->where('year', $request->year);
+        })
+        ->when($request->month, function ($q) use ($request) {
+            $q->where('month', $request->month);
+        });
 
     return datatables()->of($query)
 

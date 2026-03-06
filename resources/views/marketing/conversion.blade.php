@@ -12,29 +12,35 @@
  <div class="bg-white shadow rounded-xl p-6 mb-6">
     <h2 class="text-lg font-semibold mb-4">Filter Conversion Management</h2>
 
-    <form id="filter-form">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-    <label class="block text-sm mb-1 font-medium text-gray-700">Year</label>
-    <select id="filter-year" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-
-        <!-- tambahkan sesuai kebutuhan -->
-    </select>
-</div>
- <div>
-    <label class="block text-sm mb-1 font-medium text-gray-700">Month</label>
-    <select id="filter-month" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-
-        <!-- tambahkan sesuai kebutuhan -->
-    </select>
-</div>
-            </div>
-
-        <div class="flex justify-start gap-2 mt-6">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">Search</button>
-              <a href="{{ route('marketing.conversion.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow">Create</a>
+   <form id="filter-form">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div>
+            <label class="block text-sm mb-1 font-medium text-gray-700">Year</label>
+            <select id="filter-year" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">All Years</option>
+                @for($y = now()->year + 1; $y >= now()->year - 5; $y--)
+                    <option value="{{ $y }}" {{ now()->year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                @endfor
+            </select>
         </div>
-    </form>
+        <div>
+            <label class="block text-sm mb-1 font-medium text-gray-700">Month</label>
+            <select id="filter-month" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">All Months</option>
+                @foreach(range(1, 12) as $m)
+                    <option value="{{ $m }}" {{ now()->month == $m ? 'selected' : '' }}>
+                        {{ \Carbon\Carbon::createFromDate(null, $m, 1)->format('F') }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+
+    <div class="flex justify-start gap-2 mt-6">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">Search</button>
+        <a href="{{ route('marketing.conversion.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow">Create</a>
+    </div>
+</form>
 </div>
 
 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-4">
@@ -285,7 +291,13 @@ function showToast(icon, title) {
         $('#conversion-table').wrap('<div class="scroll-wrapper overflow-x-auto"></div>');
     }
 },
-        ajax: '/marketing/conversion/datatable',
+        ajax: {
+    url: '/marketing/conversion/datatable',
+    data: function (d) {
+        d.year  = $('#filter-year').val();
+        d.month = $('#filter-month').val();
+    }
+},
          lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
         dom: '<"flex justify-between items-center mb-2"l<"flex"fB>>rt<"flex justify-between items-center"ip>',
        buttons: [
