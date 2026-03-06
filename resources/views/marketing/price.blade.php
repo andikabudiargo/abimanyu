@@ -331,7 +331,7 @@ $('#conversion-table').DataTable({
         }
     },
     lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-    dom: '<"dt-toolbar flex flex-wrap justify-between items-center gap-3 mb-4"<"dt-length">f<"dt-actions flex items-center gap-2"<"matome-toggle">B>>rt<"dt-footer flex justify-between items-center mt-3"ip>',
+    dom: '<"dt-toolbar flex flex-wrap justify-between items-center gap-3 mb-4"l<"flex items-center gap-2"f<"matome-toggle">B>>rt<"dt-footer flex justify-between items-center mt-3"ip>',
     buttons: [
         {
             extend: 'excelHtml5',
