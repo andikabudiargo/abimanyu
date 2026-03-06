@@ -376,10 +376,12 @@ $('#conversion-table').DataTable({
         { data: 'article_code',               searchable: true  },
         { data: 'description',                searchable: true  },
         { data: 'uom',                        searchable: false  },
-        { data: 'average_raw_material_price', searchable: false },
         { data: 'selling_price',              searchable: false },
-        { data: 'rm_conversion',              searchable: false },
+        { data: 'average_raw_material_price', searchable: false },
+        
+       
         { data: 'fg_conversion',              searchable: false },
+         { data: 'rm_conversion',              searchable: false },
         { data: 'matome',                     searchable: false },
         { data: 'last_calculated_at',         searchable: false },
     ]
