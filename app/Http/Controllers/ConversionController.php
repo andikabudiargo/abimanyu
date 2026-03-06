@@ -29,6 +29,7 @@ class ConversionController extends Controller
  ->addColumn('action', function ($query) {
         $id = $query->id;
         $number = $query->conversion_number;
+        $detail_url = route('marketing.conversion.show', ['id' => $query->id]);
         $dropdownId = 'dropdown-' . $query->id;
 
         return '
@@ -41,7 +42,7 @@ class ConversionController extends Controller
             </button>
             <div id="' . $dropdownId . '" class="dropdown-menu hidden absolute right-0 mt-2 z-50 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 text-sm text-gray-700">
                 <div class="py-1 text-sm text-gray-700">
-                    <a href="" class="block px-4 py-2 hover:bg-gray-100">
+                    <a href="' . $detail_url . '" class="block px-4 py-2 hover:bg-gray-100">
                         <i data-feather="eye" class="w-4 h-4 inline mr-2"></i>Detail
                     </a>
                       <a href="" class="block px-4 py-2 hover:bg-gray-100">
@@ -639,7 +640,29 @@ public function syncPricing(Request $request)
 }
 
 
+public function show($id)
+{
+    $conversion = DB::table('conversions')->where('id', $id)->first();
+    abort_if(!$conversion, 404);
 
+    $details = DB::table('conversion_details as cd')
+        ->where('cd.conversion_id', $id)
+        ->leftJoin('articles as ar', 'ar.article_code', '=', 'cd.article_code')
+        ->leftJoin('customers as cu', 'cu.code', '=', 'ar.supplier_code')
+        ->select(
+            'cd.id',
+            'cd.article_code',
+            'ar.description as article_desc',
+            'cu.name as customer',
+            'cd.delivery_qty',
+            'cd.matome',
+            'cd.conversion',
+            'cd.created_at'
+        )
+        ->get();
+
+    return view('marketing.detail-conversion', compact('conversion', 'details'));
+}
 
 
 }

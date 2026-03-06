@@ -398,10 +398,12 @@ Route::prefix('marketing')->name('marketing.')->group(function () {
     Route::get('/customer/index', [CustomerController::class, 'index'])->name('customer.index');
     Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
     Route::get('/setting/index', [ConversionController::class, 'indexSetting'])->name('setting.index');
+    Route::get('/conversion/detail/{id}', [ConversionController::class, 'show'])->name('conversion.show');
     Route::post('/setting/store', [ConversionController::class, 'storeConversionValue'])->name('setting.store');
     Route::get('/setting/data', [ConversionController::class, 'dataConversionValue'])->name('setting.data');
     Route::get('/price/index', [ConversionController::class, 'indexPrice'])->name('price.index');
     Route::get('/pricing/data', [ConversionController::class,'getPricingData'])->name('price.data');
+    Route::post('pricing/sync', [ConversionController::class, 'syncPricing'])->name('pricing.sync');
     Route::get('/article/data', [ConversionController::class,'getArticles'])->name('article.data');
     Route::post('/basic-price/store', [ConversionController::class, 'storeBasicPrice'])->name('price.store');
     Route::get('/conversion/index', [ConversionController::class,'index'])->name('conversion.index');
@@ -411,7 +413,7 @@ Route::prefix('marketing')->name('marketing.')->group(function () {
      Route::post('/conversion/store', [ConversionController::class,'store'])->name('conversion.store');
      Route::get('/conversion/chart', [ConversionController::class, 'conversionChart'])
     ->name('conversion.chart');
-    Route::post('pricing/sync', [ConversionController::class, 'syncPricing'])->name('pricing.sync');
+    
 });
 
 Route::prefix('it')->name('it.')->group(function () {
