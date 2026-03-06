@@ -311,69 +311,76 @@ function showToast(icon, title) {
         allowClear: true
     });
 
-    let onlyMatome = 0;
+  let onlyMatome = 0;
 
-    $('#conversion-table').DataTable({
-        processing: true,
-        serverSide: true,
-        autowidth:false,
-         drawCallback: function(settings) {
-   
-    if (!$('#conversion-table').parent().hasClass('scroll-wrapper')) {
-        $('#conversion-table').wrap('<div class="scroll-wrapper overflow-x-auto"></div>');
-    }
-},
-        ajax: {
-            url: '{{ route("marketing.price.data") }}',
-            
-            data: function (d) {
-                d.customer = $('#filter-customer').val();
-                d.article = $('#filter-article').val(); // nama artikel
-                d.only_matome = onlyMatome; // pakai variable, bukan baca dari DOM
+$('#conversion-table').DataTable({
+    processing: true,
+    serverSide: true,
+    autowidth: false,
+    drawCallback: function(settings) {
+        if (!$('#conversion-table').parent().hasClass('scroll-wrapper')) {
+            $('#conversion-table').wrap('<div class="scroll-wrapper overflow-x-auto"></div>');
+        }
+    },
+    ajax: {
+        url: '{{ route("marketing.price.data") }}',
+        data: function (d) {
+            d.customer    = $('#filter-customer').val();
+            d.article     = $('#filter-article').val();
+            d.only_matome = onlyMatome;
+        }
+    },
+    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+    dom: '<"dt-toolbar flex flex-wrap justify-between items-center gap-3 mb-4"<"dt-length">f<"dt-actions flex items-center gap-2"<"matome-toggle">B>>rt<"dt-footer flex justify-between items-center mt-3"ip>',
+    buttons: [
+        {
+            extend: 'excelHtml5',
+            text: '<i class="fa-solid fa-file-excel text-xs mr-1"></i> Export Excel',
+            className: 'inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium border border-emerald-500 rounded-lg bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 transition-all duration-150',
+            filename: 'pricing-conversion-' + new Date().toISOString().slice(0,10),
+            exportOptions: {
+                columns: ':visible'
             }
-        },
-         lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-         dom: '<"flex justify-between items-center mb-2"l<"flex items-center gap-2"f<"matome-toggle">>>rt<"flex justify-between items-center"ip>',
-   initComplete: function() {
-        $('div.matome-toggle').html(`
-            <button id="filter-matome" class="flex items-center gap-2 px-3 py-1 text-sm border rounded hover:bg-gray-50 transition-colors">
-                <i class="fa-solid fa-filter text-gray-400"></i>
-                <span class="text-gray-600">Only Show Fix Conversion</span>
-            </button>
-        `);
-
+        }
+    ],
+    initComplete: function() {
         $('#filter-matome').on('click', function () {
-            onlyMatome = onlyMatome === 1 ? 0 : 1; // toggle variable
+            onlyMatome = onlyMatome === 1 ? 0 : 1;
 
             if (onlyMatome === 1) {
-                $(this).removeClass('border hover:bg-gray-50')
-                       .addClass('bg-blue-500 border-blue-500');
-                $(this).find('i').removeClass('text-gray-400').addClass('text-white');
-                $(this).find('span').removeClass('text-gray-600').addClass('text-white');
+                $(this)
+                    .removeClass('border-gray-200 bg-white text-gray-500')
+                    .addClass('border-blue-500 bg-blue-500 text-white');
             } else {
-                $(this).removeClass('bg-blue-500 border-blue-500')
-                       .addClass('border hover:bg-gray-50');
-                $(this).find('i').removeClass('text-white').addClass('text-gray-400');
-                $(this).find('span').removeClass('text-white').addClass('text-gray-600');
+                $(this)
+                    .removeClass('border-blue-500 bg-blue-500 text-white')
+                    .addClass('border-gray-200 bg-white text-gray-500');
             }
 
             $('#conversion-table').DataTable().ajax.reload();
         });
-},
-        columns: [
-        { data: 'supplier_name', searchable: false },
-        { data: 'article_code', searchable: true },
-        { data: 'description', searchable: true },
+
+        $('div.matome-toggle').html(`
+            <button id="filter-matome"
+                class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-500 shadow-sm hover:border-blue-400 hover:text-blue-500 transition-all duration-150">
+                <i class="fa-solid fa-filter text-xs"></i>
+                <span>Fix Conversion</span>
+            </button>
+        `);
+    },
+    columns: [
+        { data: 'supplier_name',              searchable: false },
+        { data: 'article_code',               searchable: true  },
+        { data: 'description',                searchable: true  },
         { data: 'average_raw_material_price', searchable: false },
-        { data: 'selling_price', searchable: false },
-        { data: 'rm_conversion', searchable: false },
-        { data: 'fg_conversion', searchable: false },
-        { data: 'matome', searchable: false },
-        { data: 'last_calculated_at', searchable: false },
+        { data: 'selling_price',              searchable: false },
+        { data: 'rm_conversion',              searchable: false },
+        { data: 'fg_conversion',              searchable: false },
+        { data: 'matome',                     searchable: false },
+        { data: 'last_calculated_at',         searchable: false },
     ]
 });
 
-    // Trigger reload saat form search disubmit
 $('#filter-form').on('submit', function (e) {
     e.preventDefault();
     $('#conversion-table').DataTable().ajax.reload();
