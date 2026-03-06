@@ -327,39 +327,51 @@ function showToast(icon, title) {
             data: function (d) {
                 d.customer = $('#filter-customer').val();
                 d.article = $('#filter-article').val(); // nama artikel
+                d.only_matome = $('#filter-matome').is(':checked') ? 1 : 0;
             }
         },
          lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        dom: '<"flex justify-between items-center mb-2"l<"flex"f>>rt<"flex justify-between items-center"ip>',
-        columns: [
-            { data: 'supplier_name' },
-            { data: 'article_code' },
-            { data: 'description' },
-            {
-                data: 'average_raw_material_price',
-            },
-            {
-                data: 'selling_price',
-            },
-            {
-                data: 'rm_conversion',
-                
-            },
-            {
-                data: 'fg_conversion',
-               
-            },
-            {
-                data: 'matome',
-               
-            },
-            {
-                data: 'last_calculated_at',
-               
-            },
-            
-        ]
+         dom: '<"flex justify-between items-center mb-2"l<"flex items-center gap-2"f<"matome-toggle">>>rt<"flex justify-between items-center"ip>',
+   initComplete: function() {
+    $('div.matome-toggle').html(`
+        <button id="filter-matome" class="flex items-center gap-2 px-3 py-1 text-sm border rounded hover:bg-gray-50 transition-colors" data-active="0">
+            <i class="fa-solid fa-filter text-gray-400"></i>
+            <span class="text-gray-600">Only Show Fix Conversion</span>
+        </button>
+    `);
+
+    $('#filter-matome').on('click', function () {
+        const isActive = $(this).data('active') === 1;
+
+        if (isActive) {
+            $(this).data('active', 0)
+                   .removeClass('bg-blue-500 border-blue-500')
+                   .addClass('border hover:bg-gray-50');
+            $(this).find('i').removeClass('text-white').addClass('text-gray-400');
+            $(this).find('span').removeClass('text-white').addClass('text-gray-600');
+        } else {
+            $(this).data('active', 1)
+                   .removeClass('border hover:bg-gray-50')
+                   .addClass('bg-blue-500 border-blue-500');
+            $(this).find('i').removeClass('text-gray-400').addClass('text-white');
+            $(this).find('span').removeClass('text-gray-600').addClass('text-white');
+        }
+
+        $('#conversion-table').DataTable().ajax.reload();
     });
+},
+        columns: [
+        { data: 'supplier_name', searchable: false },
+        { data: 'article_code', searchable: true },
+        { data: 'description', searchable: true },
+        { data: 'average_raw_material_price', searchable: false },
+        { data: 'selling_price', searchable: false },
+        { data: 'rm_conversion', searchable: false },
+        { data: 'fg_conversion', searchable: false },
+        { data: 'matome', searchable: false },
+        { data: 'last_calculated_at', searchable: false },
+    ]
+});
 
     // Trigger reload saat form search disubmit
 $('#filter-form').on('submit', function (e) {

@@ -398,6 +398,13 @@ public function dataConversionValue(Request $request)
         ->leftJoin('basic_prices as bp', 'bp.article_code', '=', 'a.article_code')
         ->whereRaw("a.article_type = 'FG'")
         ->whereRaw("a.status = 'active'")
+        ->when($request->search['value'] ?? null, function ($q) use ($request) {
+    $search = $request->search['value'];
+    $q->where(function ($q) use ($search) {
+        $q->where('a.article_code', 'like', "%$search%")
+          ->orWhere('a.description', 'like', "%$search%");
+    });
+})
         // Filter customer — cari berdasarkan nama customer
         ->when($request->customer, function ($q) use ($request) {
             $q->where('c.name', $request->customer);
@@ -405,7 +412,10 @@ public function dataConversionValue(Request $request)
         // Filter article — cari berdasarkan article_code
         ->when($request->article, function ($q) use ($request) {
             $q->where('a.article_code', $request->article);
-        });
+        })
+        ->when($request->only_matome, function ($q) {
+    $q->whereNotNull('bp.matome');
+});
 
     return datatables()->of($query)
 
