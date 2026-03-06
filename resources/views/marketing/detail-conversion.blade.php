@@ -139,31 +139,39 @@
 
 </div>
 
-    {{-- Summary Card --}}
-    <div class="flex justify-end mt-6">
-        <div id="summary-card" class="w-full md:w-96 bg-white rounded-2xl shadow-lg p-6 border border-slate-100">
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">Summary</p>
+ {{-- Summary Card --}}
+<div class="flex justify-end mt-6">
+    <div class="w-full md:w-96 bg-white rounded-2xl shadow-lg p-6 border border-slate-100">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">Summary</p>
 
-            <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs text-slate-500">Total Rows</span>
-                    <span id="sum-rows" class="text-sm font-bold text-slate-800">-</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-xs text-slate-500">Total Customers</span>
-                    <span id="sum-customers" class="text-sm font-bold text-slate-800">-</span>
-                </div>
-                <div class="border-t border-slate-100 pt-3 flex justify-between items-center">
-                    <span class="text-xs text-slate-500">Total Qty Delivery</span>
-                    <span id="sum-qty" class="text-sm font-bold text-slate-800">-</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-xs text-slate-500">Total Conversion</span>
-                    <span id="sum-conversion" class="text-sm font-bold text-indigo-600">-</span>
-                </div>
+        <div class="space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-slate-500">Total Rows</span>
+                <span class="text-sm font-bold text-slate-800">
+                    {{ number_format($details->count(), 0, ',', '.') }}
+                </span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-slate-500">Total Customers</span>
+                <span class="text-sm font-bold text-slate-800">
+                    {{ number_format($details->pluck('customer')->filter()->unique()->count(), 0, ',', '.') }}
+                </span>
+            </div>
+            <div class="border-t border-slate-100 pt-3 flex justify-between items-center">
+                <span class="text-xs text-slate-500">Total Qty Delivery</span>
+                <span class="text-sm font-bold text-slate-800">
+                    {{ number_format($conversion->total_qty ?? 0, 0, ',', '.') }}
+                </span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-slate-500">Total Conversion</span>
+                <span class="text-sm font-bold text-indigo-600">
+                    {{ number_format($conversion->total_conversion ?? 0, 2, ',', '.') }}
+                </span>
             </div>
         </div>
     </div>
+</div>
 
     {{-- Action Buttons --}}
     <div class="flex justify-start items-center gap-2 mt-4 border-t border-gray-200 pt-6">
@@ -176,6 +184,7 @@
 </div>
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     // Search filter
     $('#detail-search').on('keyup', function () {
@@ -187,30 +196,26 @@
     });
 
     // Export Excel
-    function exportToExcel() {
-        const rows = [['Customer', 'Article Code', 'Description', 'Qty Delivery', 'Fix Conversion', 'Matome']];
+  function exportToExcel() {
+    const rows = [['Customer', 'Article Code', 'Description', 'Qty Delivery', 'Fix Conversion', 'Matome']];
 
-        $('.detail-row:visible').each(function () {
-            const cols = $(this).find('td');
-            rows.push([
-                $(cols[0]).text().trim(),
-                $(cols[1]).text().trim(),
-                $(cols[2]).text().trim(),
-                $(cols[3]).text().trim(),
-                $(cols[4]).text().trim(),
-                $(cols[5]).text().trim(),
-            ]);
-        });
+    $('.detail-row:visible').each(function () {
+        const cols = $(this).find('td');
+        rows.push([
+            $(cols[0]).text().trim(),
+            $(cols[1]).text().trim(),
+            $(cols[2]).text().trim(),
+            $(cols[3]).text().trim(),
+            $(cols[4]).text().trim(),
+            $(cols[5]).text().trim(),
+        ]);
+    });
 
-        let csv = rows.map(r => r.map(c => '"' + c.replace(/"/g, '""') + '"').join(',')).join('\n');
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href     = url;
-        a.download = 'conversion-detail-{{ $conversion->conversion_number }}.csv';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Conversion Detail');
+    XLSX.writeFile(wb, 'conversion-detail-{{ $conversion->conversion_number }}.xlsx');
+}
 </script>
 @endpush
 @endsection
