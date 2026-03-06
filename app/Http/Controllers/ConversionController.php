@@ -398,6 +398,7 @@ public function dataConversionValue(Request $request)
         ->select(
             'a.article_code',
             'a.description',
+            'a.unit',
             'c.name as supplier_name',
             'bp.purchase_price as average_raw_material_price',
             'bp.selling_price',
@@ -535,39 +536,53 @@ public function syncPricing(Request $request)
 ? as conversion_value_used
             ", [$conv, $conv, $conv, $conv, $conv, $conv, $conv])
 
-            ->join(DB::raw("
-                (
-                    SELECT
-                        b.article_fg,
-                        AVG(seg.segment_avg) as average_raw_material_price
-                    FROM boms b
-                    INNER JOIN (
-                        SELECT
-                            article_code,
-                            grp,
-                            AVG(price) as segment_avg
-                        FROM (
-                            SELECT
-                                article_code,
-                                price,
-                                @grp := IF(
-                                    @prev_price <> price OR @prev_article <> article_code,
-                                    @grp + 1,
-                                    @grp
-                                ) as grp,
-                                @prev_price   := price,
-                                @prev_article := article_code
-                            FROM lpb_temporary
-                            CROSS JOIN (
-                                SELECT @grp := 0, @prev_price := NULL, @prev_article := NULL
-                            ) init
-                            ORDER BY article_code, id
-                        ) flagged
-                        GROUP BY article_code, grp
-                    ) seg ON seg.article_code = b.article_rm
-                    GROUP BY b.article_fg
-                ) avg_rm
-            "), 'avg_rm.article_fg', '=', 'a.article_code', 'inner')
+          ->join(DB::raw("
+    (
+        SELECT
+            b.article_fg,
+            AVG(seg.segment_avg) as average_raw_material_price
+        FROM boms b
+        INNER JOIN (
+            SELECT
+                article_code,
+                grp,
+                AVG(price) as segment_avg
+            FROM (
+                SELECT
+                    article_code,
+                    (total_tanpa_ppn / NULLIF(qty, 0)) as price,
+                    @grp := IF(
+                        @prev_price <> (total_tanpa_ppn / NULLIF(qty, 0)) OR @prev_article <> article_code,
+                        @grp + 1,
+                        @grp
+                    ) as grp,
+                    @prev_price   := (total_tanpa_ppn / NULLIF(qty, 0)),
+                    @prev_article := article_code
+                FROM lpb_temporary
+                CROSS JOIN (
+                    SELECT @grp := 0, @prev_price := NULL, @prev_article := NULL
+                ) init
+                WHERE YEAR(do_date) = (
+                    -- Cek apakah tahun berjalan punya variasi harga
+                    -- Jika semua harga sama (MIN = MAX), fallback ke tahun sebelumnya
+                    CASE
+                        WHEN (
+                            SELECT COUNT(DISTINCT ROUND(total_tanpa_ppn / NULLIF(qty, 0), 2))
+                            FROM lpb_temporary lcheck
+                            WHERE lcheck.article_code = lpb_temporary.article_code
+                            AND YEAR(lcheck.do_date) = YEAR(CURDATE())
+                        ) <= 1
+                        THEN YEAR(CURDATE()) - 1
+                        ELSE YEAR(CURDATE())
+                    END
+                )
+                ORDER BY article_code, id
+            ) flagged
+            GROUP BY article_code, grp
+        ) seg ON seg.article_code = b.article_rm
+        GROUP BY b.article_fg
+    ) avg_rm
+"), 'avg_rm.article_fg', '=', 'a.article_code', 'inner')
 
           ->leftJoin(DB::raw("
     (
