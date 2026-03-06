@@ -15,8 +15,15 @@
     <form id="filter-form">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
-    <label for="filter-order-type" class="block text-sm mb-1 font-medium text-gray-700">Periode</label>
-    <select id="filter-order-type" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+    <label class="block text-sm mb-1 font-medium text-gray-700">Year</label>
+    <select id="filter-year" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+
+        <!-- tambahkan sesuai kebutuhan -->
+    </select>
+</div>
+ <div>
+    <label class="block text-sm mb-1 font-medium text-gray-700">Month</label>
+    <select id="filter-month" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 
         <!-- tambahkan sesuai kebutuhan -->
     </select>
@@ -293,22 +300,22 @@ function showToast(icon, title) {
             },
             {
                 extend: 'excelHtml5',
-                filename: 'QC_Inspection_' + today, // hasil: Laporan_Departemen_2025-07-21.xlsx
+                filename: 'Rekap Matome_' + today, // hasil: Laporan_Departemen_2025-07-21.xlsx
                 title: null,
                 text: '<i class="fas fa-file-excel mr-2 text-green-600"></i>Excel',
                 exportOptions: {
-                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
+                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
                 }
             },
             {
                 extend: 'pdfHtml5',
-                filename: 'QC_Inspection_' + today, // hasil: Laporan_Departemen_2025-07-21.xlsx
+                filename: 'Rekap Matome_' + today, // hasil: Laporan_Departemen_2025-07-21.xlsx
                 title: null,
-                orientation: 'landscape',
+                orientation: 'potrait',
                 pageSize: 'A4',
                 text: '<i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF',
                 exportOptions: {
-                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]// kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
+                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]// kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
                 },
                  customize: function(doc) {
         // Ubah font seluruh tabel
@@ -318,10 +325,10 @@ function showToast(icon, title) {
             },
             {
                 extend: 'print',
-                title: 'QC_Inspection_ ' + today, // hasil: Laporan_Departemen_2025-07-21.xlsx ,
+                title: 'Rekap Matome_ ' + today, // hasil: Laporan_Departemen_2025-07-21.xlsx ,
                 text: '<i class="fas fa-print mr-2"></i>Print',
                 exportOptions: {
-                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
+                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
                 },
                  customize: function (win) {
         // Kecilkan font tabel
@@ -488,6 +495,7 @@ function showToast(icon, title) {
         ]
         
     });
+    feather.replace();
 
    let ctx = document.getElementById('conversionChart').getContext('2d');
 let chart;
@@ -591,8 +599,55 @@ document.getElementById('yearFilter')
         loadChart(this.value);
     });
 
+    
+
      feather.replace(); // ⬅️ Ini untuk memastikan ikon feather muncul ulang setiap render
   
+});
+
+let openDropdown = null;
+
+function toggleDropdown(id, event) {
+    event.stopPropagation(); // penting! cegah event bubble ke document
+    const trigger = event.currentTarget;
+    const existingDropdown = document.getElementById('global-dropdown');
+
+    if (existingDropdown) {
+        existingDropdown.remove();
+        if (openDropdown === id) {
+            openDropdown = null;
+            return;
+        }
+    }
+
+    const dropdownTemplate = document.getElementById(id);
+    if (!dropdownTemplate) return;
+
+    const newDropdown = document.createElement('div');
+    newDropdown.id = 'global-dropdown';
+    newDropdown.className = 'fixed z-[9999] w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 text-sm text-gray-700';
+    newDropdown.innerHTML = dropdownTemplate.innerHTML;
+    document.body.appendChild(newDropdown);
+
+    // Re-init feather di dalam dropdown yang baru dibuat
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+
+    const rect = trigger.getBoundingClientRect();
+    newDropdown.style.top  = `${rect.bottom + 4}px`;
+    newDropdown.style.left = `${rect.left}px`;
+
+    openDropdown = id;
+}
+
+// Tutup saat klik di luar
+document.addEventListener('click', function (e) {
+  const dropdown = document.getElementById('global-dropdown');
+  if (dropdown && !dropdown.contains(e.target) && !e.target.closest('button[data-dropdown-id]')) {
+    dropdown.remove();
+    openDropdown = null;
+  }
 });
 </script>
 @endpush
