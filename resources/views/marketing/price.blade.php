@@ -55,7 +55,7 @@
 </div>
 
 <div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
-    <h2 class="text-lg font-semibold mb-2">Price List</h2>
+    <h2 class="text-lg font-semibold mb-2">Price & Conversion List</h2>
     <div class="bg-white rounded-xl">
     <table id="conversion-table" class="w-max text-sm text-left whitespace-nowrap">
             <thead class="bg-blue-500 text-white uppercase text-xs font-bold tracking-wider">
@@ -68,7 +68,7 @@
                     <th class="px-4 py-2">Selling Price</th>
                     <th class="px-4 py-2">RM Conversion</th>
                     <th class="px-4 py-2">FG Conversion</th>
-                    <th class="px-4 py-2">Matome</th>
+                    <th class="px-4 py-2">Fixed Conversion</th>
                     <th class="px-4 py-2">Last Sync</th>
                 </tr>
             </thead>

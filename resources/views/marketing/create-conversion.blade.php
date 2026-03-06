@@ -111,8 +111,8 @@
                     <th class="px-4 py-2">Customer</th>
                     <th class="px-4 py-2">Article</th>
                     <th class="px-4 py-2 !text-right">Qty Delivery</th>
-                    <th class="px-4 py-2 !text-right">Conversion</th>
-                    <th class="px-4 py-2 !text-right">Total Conversion</th>
+                    <th class="px-4 py-2 !text-right">Fix Conversion</th>
+                    <th class="px-4 py-2 !text-right">Matome</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -358,7 +358,7 @@ let table = $('#conversion-table').DataTable({
         */
         {
             data      : 'matome',
-            title     : 'Conversion',
+            title     : 'Fix Conversion',
             className : 'text-end',
             render    : function (data, type, row) {
                 if (type === 'display') {
@@ -382,7 +382,7 @@ let table = $('#conversion-table').DataTable({
         */
         {
             data      : 'conversion',
-            title     : 'Total Conversion',
+            title     : 'Matome',
             className : 'text-end',
             render    : function (data, type, row) {
                 if (type === 'display') {

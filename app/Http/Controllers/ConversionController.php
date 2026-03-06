@@ -431,9 +431,9 @@ public function dataConversionValue(Request $request)
             if ($row->rm_conversion === null) {
                 return '<div class="text-end">-</div>';
             }
-            return '<div class="text-end">'
-                . number_format($row->rm_conversion, 2, ',', '.')
-                . '</div>';
+             return '<div class="text-end">'
+        . rtrim(rtrim(number_format($row->rm_conversion, 16, ',', '.'), '0'), ',')
+        . '</div>';
         })
 
         ->editColumn('fg_conversion', function ($row) {
@@ -441,8 +441,8 @@ public function dataConversionValue(Request $request)
                 return '<div class="text-end">-</div>';
             }
             return '<div class="text-end">'
-                . number_format($row->fg_conversion, 2, ',', '.')
-                . '</div>';
+        . rtrim(rtrim(number_format($row->fg_conversion, 16, ',', '.'), '0'), ',')
+        . '</div>';
         })
 
         ->editColumn('matome', function ($row) {
@@ -450,9 +450,9 @@ public function dataConversionValue(Request $request)
                 return '<div class="text-end">-</div>';
             }
             $class = $row->matome >= 0 ? 'text-green-600' : 'text-red-600';
-            return '<div class="text-end font-bold ' . $class . '">'
-                . number_format($row->matome, 2, ',', '.')
-                . '</div>';
+             return '<div class="text-end font-bold ' . $class . '">'
+        . rtrim(rtrim(number_format($row->matome, 16, ',', '.'), '0'), ',')
+        . '</div>';
         })
 
         ->editColumn('last_calculated_at', function ($row) {
