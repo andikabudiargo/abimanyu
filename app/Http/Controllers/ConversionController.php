@@ -547,13 +547,13 @@ public function syncPricing(Request $request)
                 ) avg_rm
             "), 'avg_rm.article_fg', '=', 'a.article_code', 'inner')
 
-            ->leftJoin(DB::raw("
-                (
-                    SELECT article_code, SUM(price + service_price) as selling_price
-                    FROM sj_temporary
-                    GROUP BY article_code
-                ) sj
-            "), 'sj.article_code', '=', 'a.article_code')
+          ->leftJoin(DB::raw("
+    (
+        SELECT article_code, AVG(price + service_price) as selling_price
+        FROM sj_temporary
+        GROUP BY article_code
+    ) sj
+"), 'sj.article_code', '=', 'a.article_code')
 
             ->whereRaw("a.article_type = 'FG'")
             ->whereRaw("a.status = 'active'")
