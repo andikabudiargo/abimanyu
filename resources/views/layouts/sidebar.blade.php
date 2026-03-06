@@ -50,7 +50,13 @@
             <li class="pc-item"><a href="#!" class="pc-link">UOM Conversion</a></li>
              </ul>
             </li>
+            @endif
 
+               @if(
+    in_array('Marketing', $userDepartments) ||
+     in_array('Finance & Accounting', $userDepartments) ||
+      in_array('Superuser', $userRoles)
+)
         <li class="pc-item pc-caption">
           <label>Sales Management</label>
           <i data-feather="feather"></i>
