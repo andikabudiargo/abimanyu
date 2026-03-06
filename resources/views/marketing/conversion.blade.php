@@ -19,7 +19,7 @@
             <select id="filter-year" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">All Years</option>
                 @for($y = now()->year + 1; $y >= now()->year - 5; $y--)
-                    <option value="{{ $y }}" {{ now()->year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    <option value="{{ $y }}">{{ $y }}</option>
                 @endfor
             </select>
         </div>
@@ -28,9 +28,9 @@
             <select id="filter-month" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">All Months</option>
                 @foreach(range(1, 12) as $m)
-                    <option value="{{ $m }}" {{ now()->month == $m ? 'selected' : '' }}>
-                        {{ \Carbon\Carbon::createFromDate(null, $m, 1)->format('F') }}
-                    </option>
+                    <option value="{{ $m }}">
+            {{ \Carbon\Carbon::createFromDate(null, $m, 1)->format('F') }}
+        </option>
                 @endforeach
             </select>
         </div>
@@ -507,6 +507,10 @@ function showToast(icon, title) {
         ]
         
     });
+    $('#filter-form').on('submit', function (e) {
+    e.preventDefault();
+    $('#conversion-table').DataTable().ajax.reload();
+});
     feather.replace();
 
    let ctx = document.getElementById('conversionChart').getContext('2d');
