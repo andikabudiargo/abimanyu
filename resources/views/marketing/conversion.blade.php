@@ -502,10 +502,6 @@ function loadChart(year) {
                 .innerText = new Intl.NumberFormat('id-ID')
                 .format(res.grand_total_conversion);
 
-            document.getElementById('grandTotalProfit')
-                .innerText = new Intl.NumberFormat('id-ID')
-                .format(res.grand_total_profit);
-
             document.getElementById('grandTotalQty')
                 .innerText = new Intl.NumberFormat('id-ID')
                 .format(res.grand_total_qty);
