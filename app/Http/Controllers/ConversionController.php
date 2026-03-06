@@ -398,7 +398,7 @@ public function dataConversionValue(Request $request)
         ->select(
             'a.article_code',
             'a.description',
-            'a.unit',
+            'a.unit as uom',
             'c.name as supplier_name',
             'bp.purchase_price as average_raw_material_price',
             'bp.selling_price',
@@ -440,6 +440,15 @@ public function dataConversionValue(Request $request)
                 . number_format($row->average_raw_material_price, 0, ',', '.')
                 . '</div>';
         })
+
+        ->editColumn('uom', function ($row) {
+    if (!$row->uom) {
+        return '<div class="text-center text-gray-400">-</div>';
+    }
+    return '<div class="text-center text-xs font-medium text-slate-600">'
+        . strtoupper($row->uom)
+        . '</div>';
+})
 
         ->editColumn('selling_price', function ($row) {
             if ($row->selling_price === null) {
@@ -488,6 +497,7 @@ public function dataConversionValue(Request $request)
         })
 
         ->rawColumns([
+            'uom',
             'average_raw_material_price',
             'selling_price',
             'rm_conversion',

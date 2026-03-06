@@ -64,10 +64,11 @@
                     <th class="px-4 py-2">Customer</th>
                     <th class="px-4 py-2">Article Code</th>
                     <th class="px-4 py-2">Description</th>
-                    <th class="px-4 py-2">Purchase Price</th>
+                    <th class="px-4 py-2">UoM</th>
                     <th class="px-4 py-2">Selling Price</th>
-                    <th class="px-4 py-2">RM Conversion</th>
+                    <th class="px-4 py-2">RM Purchase Price</th>
                     <th class="px-4 py-2">FG Conversion</th>
+                    <th class="px-4 py-2">RM Conversion</th>
                     <th class="px-4 py-2">Fixed Conversion</th>
                     <th class="px-4 py-2">Last Sync</th>
                 </tr>
@@ -374,6 +375,7 @@ $('#conversion-table').DataTable({
         { data: 'supplier_name',              searchable: false },
         { data: 'article_code',               searchable: true  },
         { data: 'description',                searchable: true  },
+        { data: 'uom',                        searchable: false  },
         { data: 'average_raw_material_price', searchable: false },
         { data: 'selling_price',              searchable: false },
         { data: 'rm_conversion',              searchable: false },
