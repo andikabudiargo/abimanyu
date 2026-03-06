@@ -166,6 +166,7 @@ public function conversionChart(Request $request)
     ->when($month, function ($q) use ($month) {
         $q->whereMonth('sj.delivery_date', $month);
     })
+    
     ->groupBy('sj.customer', 'sj.article_code');
 
     $query = DB::query()->fromSub($baseQuery, 'agg')
@@ -198,7 +199,13 @@ public function conversionChart(Request $request)
                 THEN 'Belum disync — jalankan Sync Pricing terlebih dahulu'
                 ELSE NULL
             END as fallback_note
-        ");
+        ")
+        ->when($request->matome_filter === 'with', function ($q) {
+        $q->whereNotNull('bp.matome');
+    })
+    ->when($request->matome_filter === 'without', function ($q) {
+        $q->whereNull('bp.matome');
+    });
 
     $data = $query->get();
 

@@ -209,12 +209,12 @@
 <script>
 $(document).ready(function(){
 
-function formatNumber(value) {
-    if (value === null || value === undefined || value === '') return '0.00';
+function formatNumber(value, decimals = 2) {
+    if (value === null || value === undefined || value === '') return decimals === 0 ? '0' : '0.00';
 
     return new Intl.NumberFormat('id-ID', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
     }).format(value);
 }
 
@@ -286,112 +286,139 @@ function updateReportInfo() {
 let conversionData = [];
 let summary = {};
 
+let matomeFilter = 'all'; // 'all' | 'with' | 'without'
+
 let table = $('#conversion-table').DataTable({
-    processing : true,
-    searching  : false,
-    paging     : false,
-    info       : false,
-    scrollY    : '500px',
-    scrollX    : true,
+    processing    : true,
+    searching     : false,
+    paging        : false,
+    info          : false,
+    scrollY       : '500px',
+    scrollX       : true,
     scrollCollapse: true,
-    autoWidth  : false,
+    autoWidth     : false,
+    dom: '<"dt-toolbar flex flex-wrap justify-between items-center gap-3 mb-4"<"dt-search"><"dt-actions flex items-center gap-2"><"dt-matome-filter flex items-center gap-1">B>rt',
+    buttons: [
+        {
+            extend    : 'excelHtml5',
+            text      : '<i class="fa-solid fa-file-excel text-xs mr-1"></i> Export Excel',
+            className : 'inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium border border-emerald-500 rounded-lg bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 transition-all duration-150',
+            filename  : 'conversion-' + new Date().toISOString().slice(0, 10),
+            exportOptions: { columns: ':visible' }
+        }
+    ],
     ajax: {
-        url     : '{{ route("marketing.conversion.data") }}',
-        data    : function (d) {
-            d.year  = $('#year').val();
-            d.month = $('#month').val();
+        url : '{{ route("marketing.conversion.data") }}',
+        data: function (d) {
+            d.year         = $('#year').val();
+            d.month        = $('#month').val();
+            d.matome_filter = matomeFilter;
         },
-        dataSrc : function (json) {
+        dataSrc: function (json) {
             conversionData = json.data;
             summary        = json.summary;
             updateSummary(json.summary);
             return json.data;
         }
     },
-    columns: [
-   /*
-        |--------------------------------------------------------------
-        | Customer
-        |--------------------------------------------------------------
-        */
-        {
-            data  : 'customer',
-            title : 'Customer',
-        },
+    initComplete: function () {
 
-        /*
-        |--------------------------------------------------------------
-        | Article
-        |--------------------------------------------------------------
-        */
+        // === Search box ===
+        $('div.dt-search').html(`
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                <input id="dt-custom-search" type="text" placeholder="Search customer / article..."
+                    class="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56">
+            </div>
+        `);
+
+        $('#dt-custom-search').on('keyup', function () {
+            const keyword = $(this).val().toLowerCase();
+            table.rows().every(function () {
+                const row  = this.data();
+                const text = (row.customer + ' ' + (row.article_code ?? '') + ' ' + (row.article_desc ?? '')).toLowerCase();
+                $(this.node()).toggle(text.includes(keyword));
+            });
+        });
+
+        // === Matome Filter Buttons ===
+        $('div.dt-matome-filter').html(`
+            <div class="inline-flex border border-gray-200 rounded-lg overflow-hidden shadow-sm text-sm font-medium">
+                <button data-filter="all"
+                    class="matome-btn active-filter px-3 py-1.5 bg-blue-500 text-white border-r border-gray-200 transition-all duration-150">
+                    <i class="fa-solid fa-list text-xs mr-1"></i> All Data
+                </button>
+                <button data-filter="with"
+                    class="matome-btn px-3 py-1.5 bg-white text-gray-500 border-r border-gray-200 hover:bg-gray-50 transition-all duration-150">
+                    <i class="fa-solid fa-circle-check text-xs mr-1"></i> Only Conversion
+                </button>
+                <button data-filter="without"
+                    class="matome-btn px-3 py-1.5 bg-white text-gray-500 hover:bg-gray-50 transition-all duration-150">
+                    <i class="fa-solid fa-circle-xmark text-xs mr-1"></i> Without Conversion
+                </button>
+            </div>
+        `);
+
+        $(document).on('click', '.matome-btn', function () {
+            matomeFilter = $(this).data('filter');
+
+            // Reset semua button
+            $('.matome-btn')
+                .removeClass('bg-blue-500 text-white')
+                .addClass('bg-white text-gray-500');
+
+            // Aktifkan yang diklik
+            $(this)
+                .removeClass('bg-white text-gray-500')
+                .addClass('bg-blue-500 text-white');
+
+            table.ajax.reload();
+        });
+    },
+    columns: [
         {
-            data   : null,
-            title  : 'Article',
-            render : function (row) {
-                var code = row.article_code  ?? '-';
-                var desc = row.article_desc  ?? '-';
-                return code + ' - ' + desc;
+            data : 'customer',
+            title: 'Customer',
+        },
+        {
+            data  : null,
+            title : 'Article',
+            render: function (row) {
+                return (row.article_code ?? '-') + ' - ' + (row.article_desc ?? '-');
             }
         },
-
-        /*
-        |--------------------------------------------------------------
-        | Delivery Qty
-        |--------------------------------------------------------------
-        */
         {
-            data      : 'delivery_qty',
-            title     : 'Delivery Qty',
-            className : 'text-end',
-            render    : function (data, type) {
-                if (type === 'display') {
-                    return formatNumber(data ?? 0);
-                }
+            data     : 'delivery_qty',
+            title    : 'Delivery Qty',
+            className: 'text-end',
+            render   : function (data, type) {
+               if (type === 'display') return formatNumber(data ?? 0, 0);
                 return data;
             }
         },
-
-        /*
-        |--------------------------------------------------------------
-        | Conversion (matome per unit)
-        |--------------------------------------------------------------
-        */
         {
-            data      : 'matome',
-            title     : 'Fix Conversion',
-            className : 'text-end',
-            render    : function (data, type, row) {
+            data     : 'matome',
+            title    : 'Fix Conversion',
+            className: 'text-end',
+            render   : function (data, type, row) {
                 if (type === 'display') {
                     if (data === null) {
                         return '<span class="text-xs text-amber-500" title="' + (row.fallback_note ?? '') + '">'
-                                + '<i class="ri-error-warning-line"></i> Belum disync'
-                               + '</span>';
+                             + '<i class="ri-error-warning-line"></i> Belum disync</span>';
                     }
-                    return '<span style="color:green; font-weight:600;">'
-                            + formatNumber(data)
-                           + '</span>';
+                    return '<span style="color:green; font-weight:600;">' + formatNumber(data) + '</span>';
                 }
                 return data ?? 0;
             }
         },
-
-        /*
-        |--------------------------------------------------------------
-        | Total Conversion (delivery_qty * matome)
-        |--------------------------------------------------------------
-        */
         {
-            data      : 'conversion',
-            title     : 'Matome',
-            className : 'text-end',
-            render    : function (data, type, row) {
+            data     : 'conversion',
+            title    : 'Matome',
+            className: 'text-end',
+            render   : function (data, type) {
                 if (type === 'display') {
-                    if (data === null) {
-                        return '<span class="text-xs text-gray-400">-</span>';
-                    }
-                    return '<span style="color:black; font-weight:600;">'
-                            + formatNumber(data)
-                           + '</span>';
+                    if (data === null) return '<span class="text-xs text-gray-400">-</span>';
+                    return '<span style="color:black; font-weight:600;">' + formatNumber(data) + '</span>';
                 }
                 return data ?? 0;
             }
@@ -399,10 +426,7 @@ let table = $('#conversion-table').DataTable({
     ]
 });
 
-    // =====================
-    // APPLY FILTER
-    // =====================
-   $('#year, #month').on('change', function () {
+$('#year, #month').on('change', function () {
     updateReportInfo();
     table.ajax.reload();
 });
@@ -431,17 +455,17 @@ $('#conversionForm').off('submit').on('submit', function (e) {
         ).join('');
 
         Swal.fire({
-            title              : 'Ada Artikel Tanpa Matome',
+            title              : 'Ada Artikel Tanpa Fix Conversion',
             icon               : 'warning',
             width              : '560px',
-            confirmButtonText  : 'Lanjutkan Simpan',
+            confirmButtonText  : 'Lanjutkan',
             confirmButtonColor : '#10b981',
             showCancelButton   : true,
             cancelButtonText   : 'Batal',
             cancelButtonColor  : '#6b7280',
             html               :
                 `<p class="text-sm text-gray-600 mb-3">
-                    <strong>${invalidData.length} artikel</strong> berikut tidak memiliki nilai matome
+                    <strong>${invalidData.length} artikel</strong> berikut tidak memiliki nilai fix conversion
                     dan <strong>tidak akan disimpan</strong>.
                     Disarankan untuk melakukan <strong>Sync Pricing</strong> terlebih dahulu.
                 </p>
@@ -513,7 +537,7 @@ function updateSummary(summary) {
         ? `<div class="flex justify-between text-amber-500 text-xs mt-1">
                <span><i class="ri-error-warning-line"></i> Belum disync</span>
                <span class="font-semibold">
-                   ${summary.total_no_matome} artikel belum punya matome
+                   ${summary.total_no_matome} artikel belum punya fix conversion
                </span>
            </div>
           `
@@ -521,14 +545,14 @@ function updateSummary(summary) {
 
     $('#summary-card').html(`
         <h3 class="text-sm font-semibold text-slate-700 mb-4">
-            Monthly Summary
+            Summary
         </h3>
 
         <div class="space-y-2 text-sm">
 
             <div class="flex justify-between">
                 <span class="text-gray-600">Total Items</span>
-                <span class="font-semibold">${summary.total_rows} type of items delivered</span>
+                <span class="font-semibold">${summary.total_rows} type article delivered</span>
             </div>
 
             <div class="flex justify-between">
