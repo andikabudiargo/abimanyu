@@ -311,6 +311,8 @@ function showToast(icon, title) {
         allowClear: true
     });
 
+    let onlyMatome = 0;
+
     $('#conversion-table').DataTable({
         processing: true,
         serverSide: true,
@@ -327,38 +329,36 @@ function showToast(icon, title) {
             data: function (d) {
                 d.customer = $('#filter-customer').val();
                 d.article = $('#filter-article').val(); // nama artikel
-                d.only_matome = $('#filter-matome').is(':checked') ? 1 : 0;
+                d.only_matome = onlyMatome; // pakai variable, bukan baca dari DOM
             }
         },
          lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
          dom: '<"flex justify-between items-center mb-2"l<"flex items-center gap-2"f<"matome-toggle">>>rt<"flex justify-between items-center"ip>',
    initComplete: function() {
-    $('div.matome-toggle').html(`
-        <button id="filter-matome" class="flex items-center gap-2 px-3 py-1 text-sm border rounded hover:bg-gray-50 transition-colors" data-active="0">
-            <i class="fa-solid fa-filter text-gray-400"></i>
-            <span class="text-gray-600">Only Show Fix Conversion</span>
-        </button>
-    `);
+        $('div.matome-toggle').html(`
+            <button id="filter-matome" class="flex items-center gap-2 px-3 py-1 text-sm border rounded hover:bg-gray-50 transition-colors">
+                <i class="fa-solid fa-filter text-gray-400"></i>
+                <span class="text-gray-600">Only Show Fix Conversion</span>
+            </button>
+        `);
 
-    $('#filter-matome').on('click', function () {
-        const isActive = $(this).data('active') === 1;
+        $('#filter-matome').on('click', function () {
+            onlyMatome = onlyMatome === 1 ? 0 : 1; // toggle variable
 
-        if (isActive) {
-            $(this).data('active', 0)
-                   .removeClass('bg-blue-500 border-blue-500')
-                   .addClass('border hover:bg-gray-50');
-            $(this).find('i').removeClass('text-white').addClass('text-gray-400');
-            $(this).find('span').removeClass('text-white').addClass('text-gray-600');
-        } else {
-            $(this).data('active', 1)
-                   .removeClass('border hover:bg-gray-50')
-                   .addClass('bg-blue-500 border-blue-500');
-            $(this).find('i').removeClass('text-gray-400').addClass('text-white');
-            $(this).find('span').removeClass('text-gray-600').addClass('text-white');
-        }
+            if (onlyMatome === 1) {
+                $(this).removeClass('border hover:bg-gray-50')
+                       .addClass('bg-blue-500 border-blue-500');
+                $(this).find('i').removeClass('text-gray-400').addClass('text-white');
+                $(this).find('span').removeClass('text-gray-600').addClass('text-white');
+            } else {
+                $(this).removeClass('bg-blue-500 border-blue-500')
+                       .addClass('border hover:bg-gray-50');
+                $(this).find('i').removeClass('text-white').addClass('text-gray-400');
+                $(this).find('span').removeClass('text-white').addClass('text-gray-600');
+            }
 
-        $('#conversion-table').DataTable().ajax.reload();
-    });
+            $('#conversion-table').DataTable().ajax.reload();
+        });
 },
         columns: [
         { data: 'supplier_name', searchable: false },
