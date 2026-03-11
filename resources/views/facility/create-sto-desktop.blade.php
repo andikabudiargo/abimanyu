@@ -63,7 +63,7 @@
 
     @php
   $year  = 2026;
-  $month = '01';
+  $month = ['01', '02']; // ← tambah bulan di sini
 
   // Mapping lokasi → range
   $stoRange = [
