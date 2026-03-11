@@ -62,26 +62,24 @@
            bg-gray-50 text-gray-700">
 
     @php
-  $year  = 2026;
-  $month = ['01', '02']; // ← tambah bulan di sini
+  $year   = 2026;
+  $months = ['01', '02']; // ← tambah bulan di sini
 
-  // Mapping lokasi → range
   $stoRange = [
     'Dead Stock CM1' => [1, 999],
-    'Chemical'     => [1000, 1999],
-    'Consumable'   => [2000, 2999],
-    'Raw Material' => [3000, 3999],
-    'WIP Buffing'  => [4000, 4999],
-    'WIP Sanding'  => [5000, 5999],
-    'WIP Touch Up' => [6000, 6999],
-    'Finish Goods' => [7000, 7999],
-    'OT'           => [8000, 8999],
-    'Werate'       => [9000, 9999],
+    'Chemical'       => [1000, 1999],
+    'Consumable'     => [2000, 2999],
+    'Raw Material'   => [3000, 3999],
+    'WIP Buffing'    => [4000, 4999],
+    'WIP Sanding'    => [5000, 5999],
+    'WIP Touch Up'   => [6000, 6999],
+    'Finish Goods'   => [7000, 7999],
+    'OT'             => [8000, 8999],
+    'Werate'         => [9000, 9999],
   ];
 
   $ranges = [];
 
-  // 🔒 User terkunci / mapped
   if (is_array($allowedWarehouses)) {
     foreach ($allowedWarehouses as $wh) {
       if (isset($stoRange[$wh])) {
@@ -90,23 +88,24 @@
     }
   }
 
-  // 🔥 User bebas → semua range
   if (empty($ranges)) {
     $ranges = array_values($stoRange);
   }
 @endphp
 
-    @foreach ($ranges as [$start, $end])
-  @for ($i = $start; $i <= $end; $i++)
-    @php
-      $number = str_pad($i, 4, '0', STR_PAD_LEFT);
-      $val = "{$year}/{$month}/{$number}";
-    @endphp
+@foreach ($months as $month)
+  @foreach ($ranges as [$start, $end])
+    @for ($i = $start; $i <= $end; $i++)
+      @php
+        $number = str_pad($i, 4, '0', STR_PAD_LEFT);
+        $val = "{$year}/{$month}/{$number}";
+      @endphp
 
-    @if (!in_array($val, $usedStoNumbers))
-      <option value="{{ $val }}">{{ $val }}</option>
-    @endif
-  @endfor
+      @if (!in_array($val, $usedStoNumbers))
+        <option value="{{ $val }}">{{ $val }}</option>
+      @endif
+    @endfor
+  @endforeach
 @endforeach
 
   </select>
