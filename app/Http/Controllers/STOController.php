@@ -1204,13 +1204,12 @@ $sheet->getStyle($fullRange)->applyFromArray([
 
 
 
+
 public function exportReview(Request $request)
 {
     /*
     |--------------------------------------------------------------------------
     | 1. TENTUKAN PERIODE FILTER
-    |    - Jika user id=53 dan ada filter → pakai filter
-    |    - Selain itu → pakai periode STO terbaru
     |--------------------------------------------------------------------------
     */
     $allPeriodes = DB::table('stos')
@@ -1223,48 +1222,36 @@ public function exportReview(Request $request)
         abort(404, 'Tidak ada data STO');
     }
 
-    // Periode yang difilter (bulan aktif)
     if (auth()->id() == 53 && $request->filled('periode')) {
-        // Ubah format dari "2026/02" → "2026-02"
         $periodeAktif = str_replace('/', '-', $request->input('periode'));
     } else {
-        // Default: periode terbaru
         $periodeAktif = end($allPeriodes);
     }
 
-    // Periode sebelumnya = satu bulan sebelum periodeAktif
-    $periodeAktifCarbon  = \Carbon\Carbon::createFromFormat('Y-m', $periodeAktif);
-    $periodeSebelumnya   = $periodeAktifCarbon->copy()->subMonth()->format('Y-m');
-
-    // Pastikan periodeSebelumnya ada di data; jika tidak ada, set null
+    $periodeAktifCarbon   = \Carbon\Carbon::createFromFormat('Y-m', $periodeAktif);
+    $periodeSebelumnya    = $periodeAktifCarbon->copy()->subMonth()->format('Y-m');
     $hasPeriodeSebelumnya = in_array($periodeSebelumnya, $allPeriodes);
 
     /*
     |--------------------------------------------------------------------------
-    | 2. QUERY DATA STO — HANYA 2 PERIODE
-    |    (periodeSebelumnya + periodeAktif)
+    | 2. QUERY DATA STO
     |--------------------------------------------------------------------------
     */
-    $periodeFilter = array_filter(
+    $periodeFilter = array_values(array_filter(
         [$periodeSebelumnya, $periodeAktif],
         fn($p) => in_array($p, $allPeriodes)
-    );
+    ));
 
-    // Build IN clause placeholders
     $placeholders = implode(',', array_fill(0, count($periodeFilter), '?'));
 
     $rows = DB::select("
-/* =====================================================
-   1. DATA YANG MATCH BOM (NORMAL)
-===================================================== */
 SELECT
     REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
-    bh.article_rm     AS rm_code,
+    bh.article_rm      AS rm_code,
     bh.article_rm_desc AS rm_desc,
-    bh.article_fg     AS fg_code,
+    bh.article_fg      AS fg_code,
     bh.article_fg_desc AS fg_desc,
     COALESCE(a.unit,'PCS') AS uom,
-
     SUM(CASE WHEN si.location='Raw Material' THEN si.qty ELSE 0 END) AS qty_rm,
     SUM(CASE WHEN si.location='WIP Buffing'  THEN si.qty ELSE 0 END) AS qty_buff,
     SUM(CASE WHEN si.location='WIP Sanding'  THEN si.qty ELSE 0 END) AS qty_sand,
@@ -1272,44 +1259,28 @@ SELECT
     SUM(CASE WHEN si.location='Werate'       THEN si.qty ELSE 0 END) AS qty_werate,
     SUM(CASE WHEN si.location='Finish Goods' THEN si.qty ELSE 0 END) AS qty_fg,
     SUM(CASE WHEN si.location='OT'           THEN si.qty ELSE 0 END) AS qty_ot,
-
     1 AS sort_group
-
 FROM stos s
 JOIN sto_items si ON si.sto_id = s.id
-
 LEFT JOIN (
     SELECT code AS bom_code, article_rm, article_rm_desc, article_fg, article_fg_desc
     FROM boms
     GROUP BY code, article_rm, article_rm_desc, article_fg, article_fg_desc
 ) bh ON (
     (si.location='Raw Material' AND si.article_code = bh.article_rm)
-    OR
-    (si.location!='Raw Material' AND si.article_code = bh.article_fg)
+    OR (si.location!='Raw Material' AND si.article_code = bh.article_fg)
 )
-
 LEFT JOIN articles a ON a.article_code = bh.article_fg
-
 WHERE bh.bom_code IS NOT NULL
   AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') IN ({$placeholders})
-
-GROUP BY
-    periode, bh.bom_code, bh.article_rm, bh.article_rm_desc,
-    bh.article_fg, bh.article_fg_desc, a.unit
+GROUP BY periode, bh.bom_code, bh.article_rm, bh.article_rm_desc, bh.article_fg, bh.article_fg_desc, a.unit
 
 UNION ALL
 
-/* =====================================================
-   2. DATA TANPA BOM → OTHER
-===================================================== */
 SELECT
     REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
-    'OTHER' AS rm_code,
-    si.other_name  AS rm_desc,
-    'OTHER' AS fg_code,
-    si.other_name  AS fg_desc,
-    'PCS'   AS uom,
-
+    'OTHER' AS rm_code, si.other_name AS rm_desc,
+    'OTHER' AS fg_code, si.other_name AS fg_desc, 'PCS' AS uom,
     SUM(CASE WHEN si.location='Raw Material' THEN si.qty ELSE 0 END) AS qty_rm,
     SUM(CASE WHEN si.location='WIP Buffing'  THEN si.qty ELSE 0 END) AS qty_buff,
     SUM(CASE WHEN si.location='WIP Sanding'  THEN si.qty ELSE 0 END) AS qty_sand,
@@ -1317,106 +1288,65 @@ SELECT
     SUM(CASE WHEN si.location='Werate'       THEN si.qty ELSE 0 END) AS qty_werate,
     SUM(CASE WHEN si.location='Finish Goods' THEN si.qty ELSE 0 END) AS qty_fg,
     SUM(CASE WHEN si.location='OT'           THEN si.qty ELSE 0 END) AS qty_ot,
-
     0 AS sort_group
-
 FROM stos s
 JOIN sto_items si ON si.sto_id = s.id
-
 LEFT JOIN boms b ON si.article_code IN (b.article_rm, b.article_fg)
-
 WHERE b.code IS NULL
-  AND si.other_name IS NOT NULL
-  AND si.other_name <> ''
+  AND si.other_name IS NOT NULL AND si.other_name <> ''
   AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') IN ({$placeholders})
-
-GROUP BY
-    periode, si.other_name
-
-ORDER BY
-    sort_group ASC, rm_code, fg_code
+GROUP BY periode, si.other_name
+ORDER BY sort_group ASC, rm_code, fg_code
 ", array_merge($periodeFilter, $periodeFilter));
 
     /*
     |--------------------------------------------------------------------------
-    | 2B. QUERY BELI — hanya periode aktif
+    | 2B-2D. BELI / TF IN / KIRIM — periode aktif saja
     |--------------------------------------------------------------------------
     */
-    $beliRows = DB::select("
-SELECT
-    lt.article_code AS rm_code,
-    SUM(lt.qty)     AS qty_beli
-FROM lpb_temporary lt
-WHERE DATE_FORMAT(lt.do_date, '%Y-%m') = ?
-GROUP BY lt.article_code
-", [$periodeAktif]);
-
+    $beliRows = DB::select(
+        "SELECT lt.article_code AS rm_code, SUM(lt.qty) AS qty_beli
+         FROM lpb_temporary lt WHERE DATE_FORMAT(lt.do_date, '%Y-%m') = ?
+         GROUP BY lt.article_code",
+        [$periodeAktif]
+    );
     $beliIndex = [];
-    foreach ($beliRows as $br) {
-        $beliIndex[$br->rm_code] = $br->qty_beli;
-    }
+    foreach ($beliRows as $br) { $beliIndex[$br->rm_code] = $br->qty_beli; }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 2C. QUERY TF IN — hanya periode aktif
-    |--------------------------------------------------------------------------
-    */
-    $tfinRows = DB::select("
-SELECT
-    it.article_code AS rm_code,
-    SUM(it.qty)     AS qty_tfin
-FROM in_temporary it
-WHERE DATE_FORMAT(it.date, '%Y-%m') = ?
-GROUP BY it.article_code
-", [$periodeAktif]);
-
+    $tfinRows = DB::select(
+        "SELECT it.article_code AS rm_code, SUM(it.qty) AS qty_tfin
+         FROM in_temporary it WHERE DATE_FORMAT(it.date, '%Y-%m') = ?
+         GROUP BY it.article_code",
+        [$periodeAktif]
+    );
     $tfinIndex = [];
-    foreach ($tfinRows as $tr) {
-        $tfinIndex[$tr->rm_code] = $tr->qty_tfin;
-    }
+    foreach ($tfinRows as $tr) { $tfinIndex[$tr->rm_code] = $tr->qty_tfin; }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 2D. QUERY KIRIM — hanya periode aktif
-    |--------------------------------------------------------------------------
-    */
-    $kirimRows = DB::select("
-SELECT
-    st.article_code         AS fg_code,
-    SUM(st.delivery_qty)    AS qty_kirim
-FROM sj_temporary st
-WHERE DATE_FORMAT(st.delivery_date, '%Y-%m') = ?
-GROUP BY st.article_code
-", [$periodeAktif]);
-
+    $kirimRows = DB::select(
+        "SELECT st.article_code AS fg_code, SUM(st.delivery_qty) AS qty_kirim
+         FROM sj_temporary st WHERE DATE_FORMAT(st.delivery_date, '%Y-%m') = ?
+         GROUP BY st.article_code",
+        [$periodeAktif]
+    );
     $kirimIndex = [];
-    foreach ($kirimRows as $kr) {
-        $kirimIndex[$kr->fg_code] = $kr->qty_kirim;
-    }
+    foreach ($kirimRows as $kr) { $kirimIndex[$kr->fg_code] = $kr->qty_kirim; }
 
     /*
     |--------------------------------------------------------------------------
     | 3. PIVOT DATA STO
-    |    $data[key]['info']          = [rm_code, rm_desc, fg_code, fg_desc, uom]
-    |    $data[key]['periode'][p]    = row object
     |--------------------------------------------------------------------------
     */
     $data = [];
-
     foreach ($rows as $r) {
-        $key = ($r->rm_code === 'OTHER')
-            ? 'OTHER|' . $r->rm_desc
-            : $r->rm_code . '|' . $r->fg_code;
-
-        $data[$key]['info']              = [$r->rm_code, $r->rm_desc, $r->fg_code, $r->fg_desc, $r->uom];
+        $key = ($r->rm_code === 'OTHER') ? 'OTHER|' . $r->rm_desc : $r->rm_code . '|' . $r->fg_code;
+        $data[$key]['info']                 = [$r->rm_code, $r->rm_desc, $r->fg_code, $r->fg_desc, $r->uom];
         $data[$key]['periode'][$r->periode] = $r;
     }
-
     ksort($data, SORT_NATURAL);
 
     /*
     |--------------------------------------------------------------------------
-    | 3B. RM GROUPS & STOCK STO PER PERIODE
+    | 3B. RM GROUPS + HELPER CALC
     |--------------------------------------------------------------------------
     */
     $rmGroups = [];
@@ -1424,55 +1354,44 @@ GROUP BY st.article_code
         $rmGroups[$item['info'][0]][] = $key;
     }
 
-    // Helper: hitung total stock STO (semua lokasi) untuk satu rmCode + periode
     $calcStockSto = function (string $rmCode, string $periode) use ($data, $rmGroups) {
-        $total     = 0;
-        $rmSeen    = false;
+        $total = 0; $rmSeen = false;
         foreach ($rmGroups[$rmCode] as $key) {
-            $d      = $data[$key]['periode'][$periode] ?? null;
-            $rmQty  = (!$rmSeen) ? ($d->qty_rm ?? 0) : 0;
+            $d = $data[$key]['periode'][$periode] ?? null;
+            $total += (!$rmSeen ? ($d->qty_rm ?? 0) : 0)
+                    + ($d->qty_buff ?? 0) + ($d->qty_sand ?? 0)
+                    + ($d->qty_touch ?? 0) + ($d->qty_werate ?? 0)
+                    + ($d->qty_fg ?? 0) + ($d->qty_ot ?? 0);
             $rmSeen = true;
-            $total += $rmQty
-                    + ($d->qty_buff   ?? 0)
-                    + ($d->qty_sand   ?? 0)
-                    + ($d->qty_touch  ?? 0)
-                    + ($d->qty_werate ?? 0)
-                    + ($d->qty_fg     ?? 0)
-                    + ($d->qty_ot     ?? 0);
         }
         return $total;
     };
 
     /*
     |--------------------------------------------------------------------------
-    | 3C. STOCK ADMIN PER RM
-    |
-    |    STOCK ADMIN = Total STO Sebelumnya + BELI + TF IN − KIRIM
-    |                  (semua nilai periode aktif kecuali "STO sebelumnya")
+    | 3C. PRE-COMPUTE BELI / TFIN / KIRIM / STOCK ADMIN PER RM
     |--------------------------------------------------------------------------
     */
-    $stockAdminByRM = [];
+    $beliByRM = $tfinByRM = $kirimByRM = $stockAdminByRM = [];
+
     foreach ($rmGroups as $rmCode => $keys) {
-
-        $totalStoSebelumnya = $hasPeriodeSebelumnya
-            ? $calcStockSto($rmCode, $periodeSebelumnya)
-            : 0;
-
-        $beli  = ($rmCode !== 'OTHER') ? ($beliIndex[$rmCode]  ?? 0) : 0;
-        $tfin  = ($rmCode !== 'OTHER') ? ($tfinIndex[$rmCode]  ?? 0) : 0;
-
+        $stoSebel = $hasPeriodeSebelumnya ? $calcStockSto($rmCode, $periodeSebelumnya) : 0;
+        $beli  = ($rmCode !== 'OTHER') ? ($beliIndex[$rmCode] ?? 0) : 0;
+        $tfin  = ($rmCode !== 'OTHER') ? ($tfinIndex[$rmCode] ?? 0) : 0;
         $kirim = 0;
         foreach ($keys as $key) {
             $fgCode = $data[$key]['info'][2];
             $kirim += ($fgCode !== 'OTHER') ? ($kirimIndex[$fgCode] ?? 0) : 0;
         }
-
-        $stockAdminByRM[$rmCode] = $totalStoSebelumnya + $beli + $tfin - $kirim;
+        $beliByRM[$rmCode]       = $beli;
+        $tfinByRM[$rmCode]       = $tfin;
+        $kirimByRM[$rmCode]      = $kirim;
+        $stockAdminByRM[$rmCode] = $stoSebel + $beli + $tfin - $kirim;
     }
 
     /*
     |--------------------------------------------------------------------------
-    | 4. CREATE EXCEL
+    | 4. BUAT EXCEL
     |--------------------------------------------------------------------------
     */
     $spreadsheet = new Spreadsheet();
@@ -1488,181 +1407,177 @@ GROUP BY st.article_code
 
     /*
     |--------------------------------------------------------------------------
-    | 5. HEADER TITLE (baris 1)
+    | 5. HEADER BARIS 1 — Judul tabel (A-E)
     |--------------------------------------------------------------------------
     */
     $sheet->mergeCells('A1:E1');
     $sheet->setCellValue('A1', 'BILL OF MATERIAL');
     $sheet->getStyle('A1:E1')->applyFromArray([
         'font'      => ['bold' => true, 'size' => 14, 'color' => ['rgb' => 'FFFFFF']],
-        'alignment' => [
-            'horizontal' => Alignment::HORIZONTAL_CENTER,
-            'vertical'   => Alignment::VERTICAL_CENTER,
-        ],
-        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '111827']],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '111827']],
     ]);
-
     $sheet->fromArray(['RM Code', 'RM Description', 'FG Code', 'FG Description', 'UOM'], null, 'A2');
     $color('A2:E3', '000000');
 
     /*
     |--------------------------------------------------------------------------
-    | 5B. HEADER KOLOM PER PERIODE
+    | 5B. DEFINISI OFFSET KOLOM
     |
-    |    === BLOK STO SEBELUMNYA (8 kolom) ===
-    |    [0] RM
-    |    [1] WIP Buffing   \
-    |    [2] WIP Sanding    > WIP (merge row 2)
-    |    [3] WIP Touch Up  /
-    |    [4] WIP Werate   /
-    |    [5] FG
-    |    [6] OT
-    |    [7] TOTAL STO SEBELUMNYA  ← merge row 2-3
+    |  BASE = 6 (kolom F)
     |
-    |    === BLOK PERIODE AKTIF (12 kolom) ===
-    |    [0] RM
-    |    [1-4] WIP (Buffing, Sanding, Touch Up, Werate)
-    |    [5] FG
-    |    [6] OT
-    |    [7] STOCK STO AKTIF      ← merge row 2-3
-    |    [8] BELI                 ← merge row 2-3
-    |    [9] TF IN                ← merge row 2-3
-    |    [10] KIRIM               ← merge row 2-3
-    |    [11] STOCK ADMIN         ← merge row 2-3
-    |    [12] SELISIH             ← merge row 2-3
+    |  ┌─────────────────────────────────────────────────────────────────────┐
+    |  │  BLOK A  │  BLOK B   │       BLOK C        │       BLOK D          │
+    |  │ STO SBEL │  MUTASI   │     STO AKTIF        │   PERBANDINGAN        │
+    |  ├──────────┼───────────┼──────────────────────┼───────────────────────┤
+    |  │+0  RM    │+8  BELI   │+12 RM                │+20 STOCK ADMIN        │
+    |  │+1  Buff  │+9  TF IN  │+13 WIP Buffing       │+21 SELISIH            │
+    |  │+2  Sand  │+10 KIRIM  │+14 WIP Sanding       │                       │
+    |  │+3  Touch │+11 SADMIN │+15 WIP Touch Up      │                       │
+    |  │+4  Wer   │           │+16 WIP Werate        │                       │
+    |  │+5  FG    │           │+17 FG                │                       │
+    |  │+6  OT    │           │+18 OT                │                       │
+    |  │+7  TOTAL │           │+19 STOCK STO         │                       │
+    |  └──────────┴───────────┴──────────────────────┴───────────────────────┘
+    |--------------------------------------------------------------------------
+    */
+    $BASE = 6;
+
+    $OFF = [
+        // BLOK A — STO Sebelumnya (8 kolom)
+        'A_RM'      =>  0, 'A_BUFF'  =>  1, 'A_SAND'  =>  2, 'A_TOUCH' =>  3,
+        'A_WER'     =>  4, 'A_FG'    =>  5, 'A_OT'    =>  6, 'A_TOTAL' =>  7,
+        // BLOK B — Mutasi periode aktif (4 kolom)
+        'B_BELI'    =>  8, 'B_TFIN'  =>  9, 'B_KIRIM' => 10, 'B_SADMIN' => 11,
+        // BLOK C — STO Aktif (8 kolom)
+        'C_RM'      => 12, 'C_BUFF'  => 13, 'C_SAND'  => 14, 'C_TOUCH' => 15,
+        'C_WER'     => 16, 'C_FG'    => 17, 'C_OT'    => 18, 'C_STOCKSTO' => 19,
+        // BLOK D — Perbandingan (2 kolom)
+        'D_SADMIN'  => 20, 'D_SELISIH' => 21,
+    ];
+
+    // Konversi offset → string kolom Excel
+    $col = fn(int $off): string => Coordinate::stringFromColumnIndex($BASE + $off);
+
+    /*
+    |--------------------------------------------------------------------------
+    | 5C. HEADER BARIS 1 — Judul blok
     |--------------------------------------------------------------------------
     */
     $bulanNama = [
-        '01' => 'JANUARI',  '02' => 'FEBRUARI', '03' => 'MARET',
-        '04' => 'APRIL',    '05' => 'MEI',       '06' => 'JUNI',
-        '07' => 'JULI',     '08' => 'AGUSTUS',   '09' => 'SEPTEMBER',
-        '10' => 'OKTOBER',  '11' => 'NOVEMBER',  '12' => 'DESEMBER',
+        '01'=>'JANUARI','02'=>'FEBRUARI','03'=>'MARET','04'=>'APRIL',
+        '05'=>'MEI','06'=>'JUNI','07'=>'JULI','08'=>'AGUSTUS',
+        '09'=>'SEPTEMBER','10'=>'OKTOBER','11'=>'NOVEMBER','12'=>'DESEMBER',
     ];
 
-    $colStart = 6; // kolom F (index 6)
+    $titleSebel  = 'STO '   . ($bulanNama[substr($periodeSebelumnya,5,2)] ?? '') . ' ' . substr($periodeSebelumnya,0,4);
+    $titleMutasi = 'MUTASI ' . ($bulanNama[substr($periodeAktif,5,2)]     ?? '') . ' ' . substr($periodeAktif,0,4);
+    $titleAktif  = 'STO '   . ($bulanNama[substr($periodeAktif,5,2)]     ?? '') . ' ' . substr($periodeAktif,0,4);
 
-    // ── BLOK STO SEBELUMNYA ──────────────────────────────────────────────────
-    $colSebelumnyaStart = $colStart;
-    $colCountSebel      = 8;
+    // BLOK A (offset 0-7)
+    $sheet->mergeCells($col($OFF['A_RM'])    . '1:' . $col($OFF['A_TOTAL'])   . '1');
+    $sheet->setCellValue($col($OFF['A_RM'])  . '1', $titleSebel);
+    $color($col($OFF['A_RM']) . '1:' . $col($OFF['A_TOTAL']) . '1', '0369A1');
 
-    $yearSebel  = substr($periodeSebelumnya, 0, 4);
-    $monthSebel = substr($periodeSebelumnya, 5, 2);
-    $titleSebel = "STO " . ($bulanNama[$monthSebel] ?? $monthSebel) . " {$yearSebel}";
+    // BLOK B (offset 8-11)
+    $sheet->mergeCells($col($OFF['B_BELI'])  . '1:' . $col($OFF['B_SADMIN']) . '1');
+    $sheet->setCellValue($col($OFF['B_BELI']) . '1', $titleMutasi);
+    $color($col($OFF['B_BELI']) . '1:' . $col($OFF['B_SADMIN']) . '1', '4C1D95');
 
-    $sS = Coordinate::stringFromColumnIndex($colSebelumnyaStart);
-    $sE = Coordinate::stringFromColumnIndex($colSebelumnyaStart + $colCountSebel - 1);
-    $sheet->mergeCells("{$sS}1:{$sE}1");
-    $sheet->setCellValue("{$sS}1", $titleSebel);
-    $color("{$sS}1:{$sE}1", '0369A1'); // biru tua
+    // BLOK C (offset 12-19)
+    $sheet->mergeCells($col($OFF['C_RM'])    . '1:' . $col($OFF['C_STOCKSTO']) . '1');
+    $sheet->setCellValue($col($OFF['C_RM'])  . '1', $titleAktif);
+    $color($col($OFF['C_RM']) . '1:' . $col($OFF['C_STOCKSTO']) . '1', 'F97316');
 
-    // Sub-header STO Sebelumnya
-    $cs = $colSebelumnyaStart;
+    // BLOK D (offset 20-21)
+    $sheet->mergeCells($col($OFF['D_SADMIN']) . '1:' . $col($OFF['D_SELISIH']) . '1');
+    $sheet->setCellValue($col($OFF['D_SADMIN']) . '1', 'PERBANDINGAN');
+    $color($col($OFF['D_SADMIN']) . '1:' . $col($OFF['D_SELISIH']) . '1', '065F46');
 
-    // RM
-    $cRM = Coordinate::stringFromColumnIndex($cs);
-    $sheet->mergeCells($cRM . '2:' . $cRM . '3');
-    $sheet->setCellValue($cRM . '2', 'RM');
-    $color($cRM . '2:' . $cRM . '3', '2563EB');
+    /*
+    |--------------------------------------------------------------------------
+    | 5D. HEADER BARIS 2-3 — Sub-header tiap blok
+    |--------------------------------------------------------------------------
+    */
 
-    // WIP
-    $wipS = Coordinate::stringFromColumnIndex($cs + 1);
-    $wipE = Coordinate::stringFromColumnIndex($cs + 4);
-    $sheet->mergeCells($wipS . '2:' . $wipE . '2');
-    $sheet->setCellValue($wipS . '2', 'WIP');
-    $color($wipS . '2:' . $wipE . '3', 'FACC15', '000000');
-    foreach (['Buffing', 'Sanding', 'Touch Up', 'Werate'] as $i => $sub) {
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($cs + 1 + $i) . '3', $sub);
+    // ── BLOK A ───────────────────────────────────────────────────────────────
+    $sheet->mergeCells($col($OFF['A_RM'])   . '2:' . $col($OFF['A_RM'])    . '3');
+    $sheet->setCellValue($col($OFF['A_RM']) . '2', 'RM');
+    $color($col($OFF['A_RM']) . '2:' . $col($OFF['A_RM']) . '3', '2563EB');
+
+    $sheet->mergeCells($col($OFF['A_BUFF']) . '2:' . $col($OFF['A_WER'])   . '2');
+    $sheet->setCellValue($col($OFF['A_BUFF']) . '2', 'WIP');
+    $color($col($OFF['A_BUFF']) . '2:' . $col($OFF['A_WER']) . '3', 'FACC15', '000000');
+    foreach (['Buffing','Sanding','Touch Up','Werate'] as $i => $sub) {
+        $sheet->setCellValue($col($OFF['A_BUFF'] + $i) . '3', $sub);
     }
 
-    // FG
-    $cFG = Coordinate::stringFromColumnIndex($cs + 5);
-    $sheet->mergeCells($cFG . '2:' . $cFG . '3');
-    $sheet->setCellValue($cFG . '2', 'FG');
-    $color($cFG . '2:' . $cFG . '3', '16A34A');
+    $sheet->mergeCells($col($OFF['A_FG'])    . '2:' . $col($OFF['A_FG'])   . '3');
+    $sheet->setCellValue($col($OFF['A_FG'])  . '2', 'FG');
+    $color($col($OFF['A_FG']) . '2:' . $col($OFF['A_FG']) . '3', '16A34A');
 
-    // OT
-    $cOT = Coordinate::stringFromColumnIndex($cs + 6);
-    $sheet->mergeCells($cOT . '2:' . $cOT . '3');
-    $sheet->setCellValue($cOT . '2', 'OT');
-    $color($cOT . '2:' . $cOT . '3', '9CA3AF', '000000');
+    $sheet->mergeCells($col($OFF['A_OT'])    . '2:' . $col($OFF['A_OT'])   . '3');
+    $sheet->setCellValue($col($OFF['A_OT'])  . '2', 'OT');
+    $color($col($OFF['A_OT']) . '2:' . $col($OFF['A_OT']) . '3', '9CA3AF', '000000');
 
-    // TOTAL STO SEBELUMNYA
-    $cTotSebel = Coordinate::stringFromColumnIndex($cs + 7);
-    $sheet->mergeCells($cTotSebel . '2:' . $cTotSebel . '3');
-    $sheet->setCellValue($cTotSebel . '2', 'TOTAL STO');
-    $color($cTotSebel . '2:' . $cTotSebel . '3', 'DC2626');
+    $sheet->mergeCells($col($OFF['A_TOTAL']) . '2:' . $col($OFF['A_TOTAL']) . '3');
+    $sheet->setCellValue($col($OFF['A_TOTAL']) . '2', 'TOTAL STO');
+    $color($col($OFF['A_TOTAL']) . '2:' . $col($OFF['A_TOTAL']) . '3', 'DC2626');
 
-    // ── BLOK PERIODE AKTIF ───────────────────────────────────────────────────
-    $colAktifStart = $colSebelumnyaStart + $colCountSebel;
-    $colCountAktif = 13;
-
-    $yearAktif  = substr($periodeAktif, 0, 4);
-    $monthAktif = substr($periodeAktif, 5, 2);
-    $titleAktif = "STO " . ($bulanNama[$monthAktif] ?? $monthAktif) . " {$yearAktif}";
-
-    $aS = Coordinate::stringFromColumnIndex($colAktifStart);
-    $aE = Coordinate::stringFromColumnIndex($colAktifStart + $colCountAktif - 1);
-    $sheet->mergeCells("{$aS}1:{$aE}1");
-    $sheet->setCellValue("{$aS}1", $titleAktif);
-    $color("{$aS}1:{$aE}1", 'F97316');
-
-    $ca = $colAktifStart;
-
-    $cRMa = Coordinate::stringFromColumnIndex($ca);
-    $sheet->mergeCells($cRMa . '2:' . $cRMa . '3');
-    $sheet->setCellValue($cRMa . '2', 'RM');
-    $color($cRMa . '2:' . $cRMa . '3', '2563EB');
-
-    $wipSa = Coordinate::stringFromColumnIndex($ca + 1);
-    $wipEa = Coordinate::stringFromColumnIndex($ca + 4);
-    $sheet->mergeCells($wipSa . '2:' . $wipEa . '2');
-    $sheet->setCellValue($wipSa . '2', 'WIP');
-    $color($wipSa . '2:' . $wipEa . '3', 'FACC15', '000000');
-    foreach (['Buffing', 'Sanding', 'Touch Up', 'Werate'] as $i => $sub) {
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($ca + 1 + $i) . '3', $sub);
-    }
-
-    $cFGa = Coordinate::stringFromColumnIndex($ca + 5);
-    $sheet->mergeCells($cFGa . '2:' . $cFGa . '3');
-    $sheet->setCellValue($cFGa . '2', 'FG');
-    $color($cFGa . '2:' . $cFGa . '3', '16A34A');
-
-    $cOTa = Coordinate::stringFromColumnIndex($ca + 6);
-    $sheet->mergeCells($cOTa . '2:' . $cOTa . '3');
-    $sheet->setCellValue($cOTa . '2', 'OT');
-    $color($cOTa . '2:' . $cOTa . '3', '9CA3AF', '000000');
-
-    $cStockStoA   = Coordinate::stringFromColumnIndex($ca + 7);
-    $cBeliA       = Coordinate::stringFromColumnIndex($ca + 8);
-    $cTfinA       = Coordinate::stringFromColumnIndex($ca + 9);
-    $cKirimA      = Coordinate::stringFromColumnIndex($ca + 10);
-    $cStockAdminA = Coordinate::stringFromColumnIndex($ca + 11);
-    $cSelisihA    = Coordinate::stringFromColumnIndex($ca + 12);
-
+    // ── BLOK B ───────────────────────────────────────────────────────────────
     foreach ([
-        [$cStockStoA,   'STOCK STO',   'DC2626'],
-        [$cBeliA,       'BELI',        '7C3AED'],
-        [$cTfinA,       'TF IN',       'BE185D'],
-        [$cKirimA,      'KIRIM',       '0891B2'],
-        [$cStockAdminA, 'STOCK ADMIN', '92400E'],
-        [$cSelisihA,    'SELISIH',     '065F46'],
-    ] as [$c, $label, $bg]) {
-        $sheet->mergeCells($c . '2:' . $c . '3');
-        $sheet->setCellValue($c . '2', $label);
-        $color($c . '2:' . $c . '3', $bg);
+        [$OFF['B_BELI'],   'BELI',        '7C3AED'],
+        [$OFF['B_TFIN'],   'TF IN',       'BE185D'],
+        [$OFF['B_KIRIM'],  'KIRIM',       '0891B2'],
+        [$OFF['B_SADMIN'], 'STOCK ADMIN', '92400E'],
+    ] as [$off, $label, $bg]) {
+        $sheet->mergeCells($col($off) . '2:' . $col($off) . '3');
+        $sheet->setCellValue($col($off) . '2', $label);
+        $color($col($off) . '2:' . $col($off) . '3', $bg);
     }
+
+    // ── BLOK C ───────────────────────────────────────────────────────────────
+    $sheet->mergeCells($col($OFF['C_RM'])      . '2:' . $col($OFF['C_RM'])      . '3');
+    $sheet->setCellValue($col($OFF['C_RM'])    . '2', 'RM');
+    $color($col($OFF['C_RM']) . '2:' . $col($OFF['C_RM']) . '3', '2563EB');
+
+    $sheet->mergeCells($col($OFF['C_BUFF'])    . '2:' . $col($OFF['C_WER'])     . '2');
+    $sheet->setCellValue($col($OFF['C_BUFF'])  . '2', 'WIP');
+    $color($col($OFF['C_BUFF']) . '2:' . $col($OFF['C_WER']) . '3', 'FACC15', '000000');
+    foreach (['Buffing','Sanding','Touch Up','Werate'] as $i => $sub) {
+        $sheet->setCellValue($col($OFF['C_BUFF'] + $i) . '3', $sub);
+    }
+
+    $sheet->mergeCells($col($OFF['C_FG'])      . '2:' . $col($OFF['C_FG'])      . '3');
+    $sheet->setCellValue($col($OFF['C_FG'])    . '2', 'FG');
+    $color($col($OFF['C_FG']) . '2:' . $col($OFF['C_FG']) . '3', '16A34A');
+
+    $sheet->mergeCells($col($OFF['C_OT'])      . '2:' . $col($OFF['C_OT'])      . '3');
+    $sheet->setCellValue($col($OFF['C_OT'])    . '2', 'OT');
+    $color($col($OFF['C_OT']) . '2:' . $col($OFF['C_OT']) . '3', '9CA3AF', '000000');
+
+    $sheet->mergeCells($col($OFF['C_STOCKSTO']) . '2:' . $col($OFF['C_STOCKSTO']) . '3');
+    $sheet->setCellValue($col($OFF['C_STOCKSTO']) . '2', 'STOCK STO');
+    $color($col($OFF['C_STOCKSTO']) . '2:' . $col($OFF['C_STOCKSTO']) . '3', 'DC2626');
+
+    // ── BLOK D ───────────────────────────────────────────────────────────────
+    $sheet->mergeCells($col($OFF['D_SADMIN'])  . '2:' . $col($OFF['D_SADMIN'])  . '3');
+    $sheet->setCellValue($col($OFF['D_SADMIN']) . '2', 'STOCK ADMIN');
+    $color($col($OFF['D_SADMIN']) . '2:' . $col($OFF['D_SADMIN']) . '3', '92400E');
+
+    $sheet->mergeCells($col($OFF['D_SELISIH']) . '2:' . $col($OFF['D_SELISIH']) . '3');
+    $sheet->setCellValue($col($OFF['D_SELISIH']) . '2', 'SELISIH');
+    $color($col($OFF['D_SELISIH']) . '2:' . $col($OFF['D_SELISIH']) . '3', '065F46');
 
     /*
     |--------------------------------------------------------------------------
     | 6. INSERT DATA
     |--------------------------------------------------------------------------
     */
-    $rowIndex = 4;
 
-    // Pass 1: hitung posisi & size tiap rm group
+    // Pass 1: hitung posisi & jumlah baris tiap RM group
     $rmGroupRows = [];
-    $tempRow     = 4;
-    $tempLastRM  = null;
+    $tempRow = 4; $tempLastRM = null;
     foreach ($data as $key => $item) {
         $rmCode = $item['info'][0];
         if ($rmCode !== 'OTHER' && $rmCode === $tempLastRM) {
@@ -1675,24 +1590,21 @@ GROUP BY st.article_code
     }
 
     // Pass 2: tulis data
-    $lastRM    = null;
-    $rmSeenSto = []; // track apakah rm sudah ditulis qty_rm-nya (untuk STO sebelumnya)
+    $rowIndex = 4; $lastRM = null; $rmSeenSto = [];
 
     foreach ($data as $key => $item) {
 
         $rmCode = $item['info'][0];
-        $rmDesc = $item['info'][1];
-        $fgCode = $item['info'][2];
+        $isSameRM   = ($rmCode !== 'OTHER' && $rmCode === $lastRM);
+        $groupInfo  = $rmGroupRows[$rmCode] ?? null;
+        $groupSize  = $groupInfo ? $groupInfo['count'] : 1;
+        $groupStart = $groupInfo ? $groupInfo['start'] : $rowIndex;
+        $groupEnd   = $groupStart + $groupSize - 1;
+        $isFirstRM  = !isset($rmSeenSto[$rmCode]);
 
-        $isSameRM  = ($rmCode !== 'OTHER' && $rmCode === $lastRM);
-        $groupInfo = $rmGroupRows[$rmCode] ?? null;
-        $groupSize = $groupInfo ? $groupInfo['count'] : 1;
-        $groupStart= $groupInfo ? $groupInfo['start'] : $rowIndex;
-        $groupEnd  = $groupStart + $groupSize - 1;
-
-        // ── Kolom A-E ──────────────────────────────────────────────────────
+        // ── A-E: identitas RM/FG ─────────────────────────────────────────────
         $sheet->setCellValue("A{$rowIndex}", $isSameRM ? '' : $rmCode);
-        $sheet->setCellValue("B{$rowIndex}", $isSameRM ? '' : $rmDesc);
+        $sheet->setCellValue("B{$rowIndex}", $isSameRM ? '' : $item['info'][1]);
         $sheet->setCellValue("C{$rowIndex}", $item['info'][2]);
         $sheet->setCellValue("D{$rowIndex}", $item['info'][3]);
         $sheet->setCellValue("E{$rowIndex}", $item['info'][4]);
@@ -1702,87 +1614,74 @@ GROUP BY st.article_code
             $sheet->mergeCells("B{$groupStart}:B{$groupEnd}");
         }
 
-        // ── BLOK STO SEBELUMNYA ────────────────────────────────────────────
-        $dSebel   = $hasPeriodeSebelumnya ? ($item['periode'][$periodeSebelumnya] ?? null) : null;
-        $isFirstRM = !isset($rmSeenSto[$rmCode]);
+        // ── BLOK A: STO Sebelumnya ───────────────────────────────────────────
+        $dS = $hasPeriodeSebelumnya ? ($item['periode'][$periodeSebelumnya] ?? null) : null;
 
-        $rmQtySebel = $isFirstRM ? ($dSebel->qty_rm ?? 0) : 0;
-        $buffSebel  = $dSebel->qty_buff   ?? 0;
-        $sandSebel  = $dSebel->qty_sand   ?? 0;
-        $touchSebel = $dSebel->qty_touch  ?? 0;
-        $werSebel   = $dSebel->qty_werate ?? 0;
-        $fgSebel    = $dSebel->qty_fg     ?? 0;
-        $otSebel    = $dSebel->qty_ot     ?? 0;
+        $sheet->setCellValue($col($OFF['A_RM'])    . $rowIndex, $isFirstRM ? ($dS->qty_rm    ?? 0) : 0);
+        $sheet->setCellValue($col($OFF['A_BUFF'])  . $rowIndex, $dS->qty_buff   ?? 0);
+        $sheet->setCellValue($col($OFF['A_SAND'])  . $rowIndex, $dS->qty_sand   ?? 0);
+        $sheet->setCellValue($col($OFF['A_TOUCH']) . $rowIndex, $dS->qty_touch  ?? 0);
+        $sheet->setCellValue($col($OFF['A_WER'])   . $rowIndex, $dS->qty_werate ?? 0);
+        $sheet->setCellValue($col($OFF['A_FG'])    . $rowIndex, $dS->qty_fg     ?? 0);
+        $sheet->setCellValue($col($OFF['A_OT'])    . $rowIndex, $dS->qty_ot     ?? 0);
 
-        $cs2 = $colSebelumnyaStart;
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($cs2)     . $rowIndex, $rmQtySebel);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($cs2 + 1) . $rowIndex, $buffSebel);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($cs2 + 2) . $rowIndex, $sandSebel);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($cs2 + 3) . $rowIndex, $touchSebel);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($cs2 + 4) . $rowIndex, $werSebel);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($cs2 + 5) . $rowIndex, $fgSebel);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($cs2 + 6) . $rowIndex, $otSebel);
-
-        // TOTAL STO SEBELUMNYA — merge per group RM, hanya tulis di baris pertama
-        $cTotSebelCol = Coordinate::stringFromColumnIndex($cs2 + 7);
-        if (!$isSameRM) {
-            $totalStockStoSebel = $hasPeriodeSebelumnya
-                ? $calcStockSto($rmCode, $periodeSebelumnya)
-                : 0;
-            $sheet->setCellValue("{$cTotSebelCol}{$rowIndex}", $totalStockStoSebel);
+        // TOTAL STO Sebelumnya (merge per group, tulis di baris pertama)
+        if ($isFirstRM) {
+            $totalStoSebel = $hasPeriodeSebelumnya ? $calcStockSto($rmCode, $periodeSebelumnya) : 0;
+            $sheet->setCellValue($col($OFF['A_TOTAL']) . $rowIndex, $totalStoSebel);
             if ($groupSize > 1) {
-                $sheet->mergeCells("{$cTotSebelCol}{$groupStart}:{$cTotSebelCol}{$groupEnd}");
+                $sheet->mergeCells($col($OFF['A_TOTAL']) . $groupStart . ':' . $col($OFF['A_TOTAL']) . $groupEnd);
+            }
+        }
+
+        // ── BLOK B: Mutasi (merge per group, tulis di baris pertama) ─────────
+        if ($isFirstRM) {
+            $sheet->setCellValue($col($OFF['B_BELI'])   . $rowIndex, $beliByRM[$rmCode]      ?? 0);
+            $sheet->setCellValue($col($OFF['B_TFIN'])   . $rowIndex, $tfinByRM[$rmCode]      ?? 0);
+            $sheet->setCellValue($col($OFF['B_KIRIM'])  . $rowIndex, $kirimByRM[$rmCode]     ?? 0);
+            $sheet->setCellValue($col($OFF['B_SADMIN']) . $rowIndex, $stockAdminByRM[$rmCode] ?? 0);
+
+            if ($groupSize > 1) {
+                foreach ([$OFF['B_BELI'], $OFF['B_TFIN'], $OFF['B_KIRIM'], $OFF['B_SADMIN']] as $off) {
+                    $sheet->mergeCells($col($off) . $groupStart . ':' . $col($off) . $groupEnd);
+                }
             }
         }
 
         $rmSeenSto[$rmCode] = true;
 
-        // ── BLOK PERIODE AKTIF ─────────────────────────────────────────────
-        $dAktif   = $item['periode'][$periodeAktif] ?? null;
+        // ── BLOK C: STO Aktif ────────────────────────────────────────────────
+        $dA = $item['periode'][$periodeAktif] ?? null;
 
-        $rmQtyAktif  = $isSameRM ? 0 : ($dAktif->qty_rm     ?? 0);
-        $buffAktif   = $dAktif->qty_buff   ?? 0;
-        $sandAktif   = $dAktif->qty_sand   ?? 0;
-        $touchAktif  = $dAktif->qty_touch  ?? 0;
-        $werAktif    = $dAktif->qty_werate ?? 0;
-        $fgAktif     = $dAktif->qty_fg     ?? 0;
-        $otAktif     = $dAktif->qty_ot     ?? 0;
+        $sheet->setCellValue($col($OFF['C_RM'])    . $rowIndex, $isSameRM ? 0 : ($dA->qty_rm ?? 0));
+        $sheet->setCellValue($col($OFF['C_BUFF'])  . $rowIndex, $dA->qty_buff   ?? 0);
+        $sheet->setCellValue($col($OFF['C_SAND'])  . $rowIndex, $dA->qty_sand   ?? 0);
+        $sheet->setCellValue($col($OFF['C_TOUCH']) . $rowIndex, $dA->qty_touch  ?? 0);
+        $sheet->setCellValue($col($OFF['C_WER'])   . $rowIndex, $dA->qty_werate ?? 0);
+        $sheet->setCellValue($col($OFF['C_FG'])    . $rowIndex, $dA->qty_fg     ?? 0);
+        $sheet->setCellValue($col($OFF['C_OT'])    . $rowIndex, $dA->qty_ot     ?? 0);
 
-        $ca2 = $colAktifStart;
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($ca2)     . $rowIndex, $rmQtyAktif);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($ca2 + 1) . $rowIndex, $buffAktif);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($ca2 + 2) . $rowIndex, $sandAktif);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($ca2 + 3) . $rowIndex, $touchAktif);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($ca2 + 4) . $rowIndex, $werAktif);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($ca2 + 5) . $rowIndex, $fgAktif);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($ca2 + 6) . $rowIndex, $otAktif);
-
-        // STOCK STO AKTIF, BELI, TF IN, KIRIM, STOCK ADMIN, SELISIH
-        // → hanya baris pertama per RM group, di-merge
+        // STOCK STO Aktif (merge per group, tulis di baris pertama)
         if (!$isSameRM) {
-            $totalStockStoAktif = $calcStockSto($rmCode, $periodeAktif);
-            $totalStockAdmin    = $stockAdminByRM[$rmCode] ?? 0;
-            $totalSelisih       = $totalStockStoAktif - $totalStockAdmin;
-
-            $totalBeli  = ($rmCode !== 'OTHER') ? ($beliIndex[$rmCode]  ?? 0) : 0;
-            $totalTfin  = ($rmCode !== 'OTHER') ? ($tfinIndex[$rmCode]  ?? 0) : 0;
-            $totalKirim = 0;
-            foreach (($rmGroups[$rmCode] ?? []) as $gKey) {
-                $gFgCode    = $data[$gKey]['info'][2];
-                $totalKirim += ($gFgCode !== 'OTHER') ? ($kirimIndex[$gFgCode] ?? 0) : 0;
+            $totalStoAktif = $calcStockSto($rmCode, $periodeAktif);
+            $sheet->setCellValue($col($OFF['C_STOCKSTO']) . $rowIndex, $totalStoAktif);
+            if ($groupSize > 1) {
+                $sheet->mergeCells($col($OFF['C_STOCKSTO']) . $groupStart . ':' . $col($OFF['C_STOCKSTO']) . $groupEnd);
             }
+        }
 
-            $sheet->setCellValue("{$cStockStoA}{$rowIndex}",   $totalStockStoAktif);
-            $sheet->setCellValue("{$cBeliA}{$rowIndex}",       $totalBeli);
-            $sheet->setCellValue("{$cTfinA}{$rowIndex}",       $totalTfin);
-            $sheet->setCellValue("{$cKirimA}{$rowIndex}",      $totalKirim);
-            $sheet->setCellValue("{$cStockAdminA}{$rowIndex}", $totalStockAdmin);
-            $sheet->setCellValue("{$cSelisihA}{$rowIndex}",    $totalSelisih);
+        // ── BLOK D: Perbandingan (merge per group, tulis di baris pertama) ───
+        if (!$isSameRM) {
+            $stockAdmin = $stockAdminByRM[$rmCode] ?? 0;
+            $stoAktif   = $calcStockSto($rmCode, $periodeAktif);
+            $selisih    = $stoAktif - $stockAdmin;
+
+            $sheet->setCellValue($col($OFF['D_SADMIN'])  . $rowIndex, $stockAdmin);
+            $sheet->setCellValue($col($OFF['D_SELISIH']) . $rowIndex, $selisih);
 
             if ($groupSize > 1) {
-                foreach ([$cStockStoA, $cBeliA, $cTfinA, $cKirimA, $cStockAdminA, $cSelisihA] as $mc) {
-                    $sheet->mergeCells("{$mc}{$groupStart}:{$mc}{$groupEnd}");
-                }
+                $sheet->mergeCells($col($OFF['D_SADMIN'])  . $groupStart . ':' . $col($OFF['D_SADMIN'])  . $groupEnd);
+                $sheet->mergeCells($col($OFF['D_SELISIH']) . $groupStart . ':' . $col($OFF['D_SELISIH']) . $groupEnd);
             }
         }
 
@@ -1799,16 +1698,12 @@ GROUP BY st.article_code
     $firstDataRow = 4;
     $lastDataRow  = $rowIndex - 1;
 
-    $sheet->setCellValue("A{$totalRow}", "TOTAL");
+    $sheet->setCellValue("A{$totalRow}", 'TOTAL');
     $sheet->mergeCells("A{$totalRow}:E{$totalRow}");
 
-    $totalColCount = $colCountSebel + $colCountAktif;
-    for ($i = 0; $i < $totalColCount; $i++) {
-        $c = Coordinate::stringFromColumnIndex($colStart + $i);
-        $sheet->setCellValue(
-            "{$c}{$totalRow}",
-            "=SUM({$c}{$firstDataRow}:{$c}{$lastDataRow})"
-        );
+    for ($i = 0; $i <= 21; $i++) {
+        $c = $col($i);
+        $sheet->setCellValue("{$c}{$totalRow}", "=SUM({$c}{$firstDataRow}:{$c}{$lastDataRow})");
     }
 
     $highestCol = $sheet->getHighestColumn();
@@ -1833,27 +1728,45 @@ GROUP BY st.article_code
             'wrapText'   => false,
         ],
         'borders' => [
-            'allBorders' => [
-                'borderStyle' => Border::BORDER_THIN,
-                'color'       => ['rgb' => '000000'],
-            ],
+            'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
         ],
     ]);
 
     $sheet->getStyle("A4:B{$lastDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
     $sheet->getStyle("C4:D{$lastDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
-    // Warna SELISIH: merah jika negatif (kurang), hijau jika positif/nol
+    // Warna kondisional SELISIH
+    // < 0  → merah  (stok fisik kurang dari admin)
+    // > 0  → kuning (stok fisik lebih dari admin)
+    // = 0  → hijau  (balance sempurna)
+    $colSelisih = $col($OFF['D_SELISIH']);
     for ($r = $firstDataRow; $r <= $lastDataRow; $r++) {
-        $val = $sheet->getCell("{$cSelisihA}{$r}")->getValue();
-        if (is_numeric($val)) {
-            $bg = ($val < 0) ? 'FEE2E2' : 'D1FAE5'; // merah muda / hijau muda
-            $sheet->getStyle("{$cSelisihA}{$r}")->applyFromArray([
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
-                'font' => ['color' => ['rgb' => ($val < 0) ? 'DC2626' : '065F46']],
-            ]);
+        $val = $sheet->getCell("{$colSelisih}{$r}")->getValue();
+        if (!is_numeric($val)) continue;
+
+        if ($val < 0) {
+            $bg   = 'FEE2E2'; // merah muda
+            $font = 'DC2626'; // merah tua
+        } elseif ($val > 0) {
+            $bg   = 'FEF9C3'; // kuning muda
+            $font = '854D0E'; // kuning tua / amber
+        } else {
+            $bg   = 'D1FAE5'; // hijau muda
+            $font = '065F46'; // hijau tua
         }
+
+        $sheet->getStyle("{$colSelisih}{$r}")->applyFromArray([
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
+            'font' => ['bold' => true, 'color' => ['rgb' => $font]],
+        ]);
     }
+
+    // Warna STOCK ADMIN Blok D — highlight kuning muda agar mudah dibedakan
+    $colSadmin2 = $col($OFF['D_SADMIN']);
+    $sheet->getStyle("{$colSadmin2}{$firstDataRow}:{$colSadmin2}{$lastDataRow}")->applyFromArray([
+        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FEF3C7']],
+        'font' => ['color' => ['rgb' => '92400E']],
+    ]);
 
     /*
     |--------------------------------------------------------------------------

@@ -441,8 +441,8 @@ $(function () {
       `);
     }
  
-    // Toast "memproses"
-    const toast = $(`
+    // ── Toast "memproses" ────────────────────────────────────────
+    const $toast = $(`
       <div id="${toastId}" style="
         position: fixed; top: 24px; right: 24px; z-index: 9999;
         background: #1f2937; color: #fff;
@@ -466,20 +466,51 @@ $(function () {
         </div>
       </div>
     `);
+    $('body').append($toast);
  
-    $('body').append(toast);
+    // ── Fetch → blob → auto-download ────────────────────────────
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        // Kirim CSRF token jika diperlukan Laravel
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') ?? '',
+      },
+      credentials: 'same-origin',
+    })
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('Server error: ' + response.status);
+      }
  
-    // iframe tersembunyi — trigger download tanpa redirect halaman
-    const iframe = $('<iframe>', { src: url, style: 'display:none;' });
+      // Ambil nama file dari header Content-Disposition jika ada
+      const disposition = response.headers.get('Content-Disposition') ?? '';
+      const match       = disposition.match(/filename[^;=\n]*=["']?([^"';\n]+)["']?/i);
+      const filename    = match ? match[1].trim() : 'export.xlsx';
  
-    iframe.on('load', function () {
-      // Ganti spinner → centang hijau
-      $(`#${toastId}`).html(`
+      return response.blob().then(function (blob) {
+        return { blob, filename };
+      });
+    })
+    .then(function ({ blob, filename }) {
+      // Buat object URL sementara lalu klik otomatis
+      const objectUrl = URL.createObjectURL(blob);
+      const a         = document.createElement('a');
+      a.href          = objectUrl;
+      a.download      = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+ 
+      // Bebaskan memory setelah 60 detik
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+ 
+      // ── Toast "File Siap" ──────────────────────────────────────
+      $toast.html(`
         <span style="
           width: 18px; height: 18px; background: #16a34a;
           border-radius: 50%; display: inline-flex;
           align-items: center; justify-content: center;
-          flex-shrink: 0; font-size: 11px;
+          flex-shrink: 0; font-size: 13px; font-weight: bold;
         ">✓</span>
         <div>
           <div style="font-weight: 600; color: #16a34a;">File Siap!</div>
@@ -489,18 +520,38 @@ $(function () {
         </div>
       `);
  
-      // Hapus toast + iframe setelah 3 detik
-      setTimeout(() => {
-        $(`#${toastId}`).css('animation', 'slideOutToast 0.3s ease forwards');
-        setTimeout(() => {
-          $(`#${toastId}`).remove();
-          iframe.remove();
-        }, 300);
+      // Hapus toast setelah 3 detik
+      setTimeout(function () {
+        $toast.css('animation', 'slideOutToast 0.3s ease forwards');
+        setTimeout(function () { $toast.remove(); }, 300);
       }, 3000);
-    });
+    })
+    .catch(function (err) {
+      console.error('Export error:', err);
  
-    $('body').append(iframe);
+      // ── Toast "Gagal" ──────────────────────────────────────────
+      $toast.html(`
+        <span style="
+          width: 18px; height: 18px; background: #dc2626;
+          border-radius: 50%; display: inline-flex;
+          align-items: center; justify-content: center;
+          flex-shrink: 0; font-size: 13px; font-weight: bold;
+        ">✕</span>
+        <div>
+          <div style="font-weight: 600; color: #dc2626;">Gagal!</div>
+          <div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
+            Terjadi kesalahan saat mengunduh file.
+          </div>
+        </div>
+      `);
+ 
+      setTimeout(function () {
+        $toast.css('animation', 'slideOutToast 0.3s ease forwards');
+        setTimeout(function () { $toast.remove(); }, 300);
+      }, 4000);
+    });
   }
+
  
   // ─────────────────────────────────────────────────────────────
   // Feather icons refresh setiap draw
