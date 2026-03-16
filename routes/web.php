@@ -229,6 +229,7 @@ Route::get('/article/select', [STOController::class, 'selectArticle'])
      Route::get('/articles/by-warehouse', [STOController::class, 'getArticlesByWarehouse']);
 Route::get('/sto/get-sto-by-warehouse', [STOController::class, 'getStoByWarehouse']);
 Route::get('/sto/report', [STOController::class, 'exportReport']);
+Route::get('/sto/review', [STOController::class, 'exportReview']);
 
 
 

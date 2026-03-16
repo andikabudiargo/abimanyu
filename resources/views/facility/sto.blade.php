@@ -360,167 +360,163 @@ $(function () {
       <"flex items-center justify-between mt-4"ip>
     `,
 
-   buttons: [
-{
-    extend: 'collection',
-    text: '<i class="fa fa-download mr-1"></i> Export',
-    className: 'px-3 py-1.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm',
-    autoClose: true,
-
     buttons: [
-
-        // ======================
-        // SUMMARY (EXPORT DATATABLE)
-        // ======================
-        {
+      {
+        extend: 'collection',
+        text: '<i class="fa fa-download mr-1"></i> Export',
+        className: 'px-3 py-1.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm',
+        autoClose: true,
+ 
+        buttons: [
+ 
+          // ======================
+          // SUMMARY (EXPORT DATATABLE)
+          // ======================
+          {
             extend: 'excelHtml5',
             text: '<i class="fa fa-table mr-2"></i> Summary',
             exportOptions: {
-                columns: ':not(:first-child)'
+              columns: ':not(:first-child)'
             }
-        },
-
-       // ======================
-// REPORT BY BOM (LARAVEL EXPORT)
-// ======================
-{
-    text: '<i class="fa fa-file-text-o mr-2"></i> Review',
-    action: function (e, dt, node, config) {
-
-        const toastId = 'toast-export-' + Date.now();
-
-        if (!document.getElementById('toast-style')) {
-            $('head').append(`
-                <style id="toast-style">
-                    @keyframes slideInToast {
-                        from { opacity: 0; transform: translateY(-16px); }
-                        to   { opacity: 1; transform: translateY(0); }
-                    }
-                    @keyframes slideOutToast {
-                        from { opacity: 1; transform: translateY(0); }
-                        to   { opacity: 0; transform: translateY(-16px); }
-                    }
-                    @keyframes spinToast {
-                        to { transform: rotate(360deg); }
-                    }
-                </style>
-            `);
-        }
-
-        const toast = $(`
-            <div id="${toastId}" style="
-                position: fixed;
-                top: 24px;
-                right: 24px;
-                z-index: 9999;
-                background: #0048ac;
-                color: #fff;
-                padding: 14px 20px;
-                border-radius: 10px;
-                box-shadow: 0 8px 24px rgb(255, 255, 255);
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                font-size: 14px;
-                min-width: 280px;
-                animation: slideInToast 0.3s ease;
-            ">
-                <span id="${toastId}-spinner" style="
-                    width: 18px; height: 18px;
-                    border: 3px solid #ddff00;
-                    border-top-color: transparent;
-                    border-radius: 50%;
-                    display: inline-block;
-                    animation: spinToast 0.8s linear infinite;
-                    flex-shrink: 0;
-                "></span>
-                <div>
-                    <div id="${toastId}-title" style="font-weight: 600; color: #ffffff;">Sedang Memproses...</div>
-                    <div id="${toastId}-desc" style="font-size: 12px; color: #ffffff; margin-top: 2px;">
-                        File Excel sedang disiapkan, harap tunggu.
-                    </div>
-                </div>
-            </div>
-        `);
-
-        $('body').append(toast);
-
-        const dismissToast = (success = true) => {
-            // Update isi toast
-            $(`#${toastId}-spinner`).replaceWith(`
-                <span style="
-                    width: 18px; height: 18px;
-                    background: ${success ? '#16a34a' : '#dc2626'};
-                    border-radius: 50%;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                    font-size: 11px;
-                    color: #fff;
-                ">${success ? '✓' : '✕'}</span>
-            `);
-            $(`#${toastId}-title`).css('color', success ? '#16a34a' : '#dc2626')
-                                  .text(success ? 'File Siap!' : 'Gagal!');
-            $(`#${toastId}-desc`).text(success
-                ? 'Download dimulai secara otomatis.'
-                : 'Terjadi kesalahan saat memproses file.'
-            );
-
-            // Hilangkan toast setelah 3 detik
-            setTimeout(() => {
-                $(`#${toastId}`).css('animation', 'slideOutToast 0.3s ease forwards');
-                setTimeout(() => $(`#${toastId}`).remove(), 300);
-            }, 3000);
-        };
-
-        // Fetch file sebagai blob — kita tahu persis kapan selesai
-        fetch('/facility/sto/report')
-            .then(response => {
-                if (!response.ok) throw new Error('Server error');
-
-                // Ambil nama file dari header Content-Disposition jika ada
-                const disposition = response.headers.get('Content-Disposition');
-                let filename = 'STO_REPORT.xlsx';
-                if (disposition) {
-                    const match = disposition.match(/filename[^;=\n]*=["']?([^"';\n]+)["']?/);
-                    if (match) filename = match[1].trim();
-                }
-
-                return response.blob().then(blob => ({ blob, filename }));
-            })
-            .then(({ blob, filename }) => {
-                // Trigger download manual
-                const url = URL.createObjectURL(blob);
-                const a   = document.createElement('a');
-                a.href     = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                dismissToast(true);
-            })
-            .catch(() => {
-                dismissToast(false);
-            });
-    }
-}
+          },
+ 
+          // ======================
+          // REPORT BY BOM (LARAVEL EXPORT)
+          // ======================
+          {
+            text: '<i class="fa fa-file-text-o mr-2"></i> Report',
+            action: function (e, dt, node, config) {
+              triggerExport('/facility/sto/report');
+            }
+          },
+ 
+          // ======================
+          // REVIEW BY BOM (LARAVEL EXPORT) — ikut filter periode
+          // ======================
+          {
+            text: '<i class="fa fa-square-poll-vertical mr-2"></i> Review',
+            action: function (e, dt, node, config) {
+ 
+              // Ambil nilai filter periode dari dropdown
+              const periode = $('#filter-sto-periode').val(); // e.g. "2026/02" atau ""
+ 
+              // Bangun URL dengan query param jika ada
+              let url = '/facility/sto/review';
+              if (periode) {
+                url += '?periode=' + encodeURIComponent(periode);
+              }
+ 
+              triggerExport(url);
+            }
+          }
+ 
+        ]
+      }
     ]
-}
-]
   });
-// 🔍 Feather icons
+ 
+  // ─────────────────────────────────────────────────────────────
+  // Helper: tampilkan toast + trigger download via iframe
+  // ─────────────────────────────────────────────────────────────
+  function triggerExport(url) {
+ 
+    const toastId = 'toast-export-' + Date.now();
+ 
+    // Inject CSS animasi (sekali saja)
+    if (!document.getElementById('toast-style')) {
+      $('head').append(`
+        <style id="toast-style">
+          @keyframes slideInToast {
+            from { opacity: 0; transform: translateY(-16px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes slideOutToast {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(-16px); }
+          }
+          @keyframes spinToast {
+            to { transform: rotate(360deg); }
+          }
+        </style>
+      `);
+    }
+ 
+    // Toast "memproses"
+    const toast = $(`
+      <div id="${toastId}" style="
+        position: fixed; top: 24px; right: 24px; z-index: 9999;
+        background: #1f2937; color: #fff;
+        padding: 14px 20px; border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        display: flex; align-items: center; gap: 12px;
+        font-size: 14px; min-width: 280px;
+        animation: slideInToast 0.3s ease;
+      ">
+        <span style="
+          width: 18px; height: 18px;
+          border: 3px solid #f97316; border-top-color: transparent;
+          border-radius: 50%; display: inline-block;
+          animation: spinToast 0.8s linear infinite; flex-shrink: 0;
+        "></span>
+        <div>
+          <div style="font-weight: 600; color: #f97316;">Sedang Memproses...</div>
+          <div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
+            File Excel sedang disiapkan, harap tunggu.
+          </div>
+        </div>
+      </div>
+    `);
+ 
+    $('body').append(toast);
+ 
+    // iframe tersembunyi — trigger download tanpa redirect halaman
+    const iframe = $('<iframe>', { src: url, style: 'display:none;' });
+ 
+    iframe.on('load', function () {
+      // Ganti spinner → centang hijau
+      $(`#${toastId}`).html(`
+        <span style="
+          width: 18px; height: 18px; background: #16a34a;
+          border-radius: 50%; display: inline-flex;
+          align-items: center; justify-content: center;
+          flex-shrink: 0; font-size: 11px;
+        ">✓</span>
+        <div>
+          <div style="font-weight: 600; color: #16a34a;">File Siap!</div>
+          <div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
+            Download dimulai secara otomatis.
+          </div>
+        </div>
+      `);
+ 
+      // Hapus toast + iframe setelah 3 detik
+      setTimeout(() => {
+        $(`#${toastId}`).css('animation', 'slideOutToast 0.3s ease forwards');
+        setTimeout(() => {
+          $(`#${toastId}`).remove();
+          iframe.remove();
+        }, 300);
+      }, 3000);
+    });
+ 
+    $('body').append(iframe);
+  }
+ 
+  // ─────────────────────────────────────────────────────────────
+  // Feather icons refresh setiap draw
+  // ─────────────────────────────────────────────────────────────
   table.on('draw', function () {
     feather.replace();
   });
-  // 🔍 Submit filter
+ 
+  // ─────────────────────────────────────────────────────────────
+  // Submit filter
+  // ─────────────────────────────────────────────────────────────
   $('#filter-form').on('submit', function (e) {
     e.preventDefault();
     table.ajax.reload();
   });
-
+ 
 });
 
 $(document).ready(function () {
