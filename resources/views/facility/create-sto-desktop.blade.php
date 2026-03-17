@@ -63,10 +63,10 @@
 
     @php
   $year   = 2026;
-  $months = ['01', '02']; // ← tambah bulan di sini
+  $months = 03; // ← tambah bulan di sini
 
   $stoRange = [
-    'Dead Stock CM1' => [1, 999],
+    'Dead Stock CM1' => [1, 50],
     'Chemical'       => [1000, 1999],
     'Consumable'     => [2000, 2999],
     'Raw Material'   => [3000, 3999],
@@ -74,7 +74,7 @@
     'WIP Sanding'    => [5000, 5999],
     'WIP Touch Up'   => [6000, 6999],
     'Finish Goods'   => [7000, 7999],
-    'OT'             => [8000, 8999],
+    'OT'             => [51, 999],
     'Werate'         => [9000, 9999],
   ];
 
@@ -127,7 +127,7 @@
                    <th class="px-4 py-3 text-center font-medium w-32">UOM</th>
                   <th class="px-4 py-3 text-center font-medium w-48">LOCATION
 
-  @if(in_array(auth()->id(), [2, 53]))
+  @if(in_array(auth()->id(), [2, 53, 92]))
     
     @if($warehouse === null)
       <select name="warehouse"
