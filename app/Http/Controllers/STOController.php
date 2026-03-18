@@ -431,7 +431,7 @@ public function datatables(Request $request)
        // =====================
 // 📅 FILTER STO MONTH (TAMBAH DI SINI)
 // =====================
-$defaultMonth = '2026/02';
+$defaultMonth = '2026/03';
 
 $selectedMonth = $request->filled('sto_month')
     ? $request->sto_month
