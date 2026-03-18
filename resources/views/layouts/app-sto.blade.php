@@ -302,17 +302,17 @@ $ticketsToApprove = $canApprove
   $month = '03';
 
   // Mapping lokasi → range
-  $stoRange = [
+ $stoRange = [
     'Dead Stock CM1' => [1, 50],
-    'Chemical'     => [1000, 1999],
-    'Consumable'   => [2000, 2999],
-    'Raw Material' => [3000, 3999],
-    'WIP Buffing'  => [4000, 4999],
-    'WIP Sanding'  => [5000, 5999],
-    'WIP Touch Up' => [6000, 6999],
-    'Finish Goods' => [7000, 7999],
-    'OT'           => [51, 999],
-    'Werate'       => [8000, 8999],
+    'Chemical'       => [1000, 1999],
+    'Consumable'     => [2000, 2999],
+    'Raw Material'   => [3000, 3999],
+    'WIP Buffing'    => [5000, 5999],
+    'WIP Sanding'    => [6000, 6999],
+    'WIP Touch Up'   => [7000, 7999],
+    'Finish Goods'   => [4000, 4999],
+    'OT'             => [51, 999],
+    'Werate'         => [8000, 8999],
   ];
 
   $ranges = [];
@@ -348,7 +348,7 @@ $ticketsToApprove = $canApprove
 
 
   <!-- Warehouse Selector untuk user 67 & 53 -->
-  @if(in_array(auth()->id(), [2, 53, 92]))
+  @if(in_array(auth()->id(), [2, 53, 92, 54, 118, 45, 85]))
 
     @if($warehouse === null)
       <select

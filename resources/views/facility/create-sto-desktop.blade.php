@@ -61,21 +61,23 @@
            focus:ring-[#8b5cf6] focus:border-[#8b5cf6]
            bg-gray-50 text-gray-700">
 
-    @php
-  $year   = 2026;
-  $months = 03; // ← tambah bulan di sini
+  @php
+  $year  = 2026;
+  $month = '03'; // langsung string saja
+
+  $month = str_pad($month, 2, '0', STR_PAD_LEFT);
 
   $stoRange = [
     'Dead Stock CM1' => [1, 50],
     'Chemical'       => [1000, 1999],
     'Consumable'     => [2000, 2999],
     'Raw Material'   => [3000, 3999],
-    'WIP Buffing'    => [4000, 4999],
-    'WIP Sanding'    => [5000, 5999],
-    'WIP Touch Up'   => [6000, 6999],
-    'Finish Goods'   => [7000, 7999],
+    'WIP Buffing'    => [5000, 5999],
+    'WIP Sanding'    => [6000, 6999],
+    'WIP Touch Up'   => [7000, 7999],
+    'Finish Goods'   => [4000, 4999],
     'OT'             => [51, 999],
-    'Werate'         => [9000, 9999],
+    'Werate'         => [8000, 8999],
   ];
 
   $ranges = [];
@@ -93,19 +95,17 @@
   }
 @endphp
 
-@foreach ($months as $month)
-  @foreach ($ranges as [$start, $end])
-    @for ($i = $start; $i <= $end; $i++)
-      @php
-        $number = str_pad($i, 4, '0', STR_PAD_LEFT);
-        $val = "{$year}/{$month}/{$number}";
-      @endphp
+@foreach ($ranges as [$start, $end])
+  @for ($i = $start; $i <= $end; $i++)
+    @php
+      $number = str_pad($i, 4, '0', STR_PAD_LEFT);
+      $val = "{$year}/{$month}/{$number}";
+    @endphp
 
-      @if (!in_array($val, $usedStoNumbers))
-        <option value="{{ $val }}">{{ $val }}</option>
-      @endif
-    @endfor
-  @endforeach
+    @if (!in_array($val, $usedStoNumbers))
+      <option value="{{ $val }}">{{ $val }}</option>
+    @endif
+  @endfor
 @endforeach
 
   </select>
@@ -127,7 +127,7 @@
                    <th class="px-4 py-3 text-center font-medium w-32">UOM</th>
                   <th class="px-4 py-3 text-center font-medium w-48">LOCATION
 
-  @if(in_array(auth()->id(), [2, 53, 92]))
+  @if(in_array(auth()->id(), [2, 53, 92, 54, 118, 45, 85]))
     
     @if($warehouse === null)
       <select name="warehouse"

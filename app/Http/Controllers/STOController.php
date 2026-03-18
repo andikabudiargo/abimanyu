@@ -78,18 +78,26 @@ public function index()
         99        => 'Consumable',
         67        => 'Chemical',
         68        => 'Finish Goods',
-        53,2, 92  => null, // 🔥 BOLEH PILIH SENDIRI
+        53,2,92,118,45,85,54  => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
 
 private function allowedWarehouses(): array
 {
-  $userId = Auth::id();
+    $userId = Auth::id();
 
-if ($userId == 92) {
-    return ['Dead Stock CM1', 'OT', 'WIP Buffing'];
-}
+    $mapping = [
+        92  => ['Dead Stock CM1', 'OT'],
+        54  => ['Chemical', 'Consumable'],
+        118 => ['Raw Material', 'Finish Goods'],
+        45  => ['WIP Buffing', 'WIP Sanding'],
+        85  => ['WIP Touch Up', 'Werate'],
+    ];
+
+    if (isset($mapping[$userId])) {
+        return $mapping[$userId];
+    }
 
     // 🔥 User bebas pilih
     if (is_null($this->userWarehouse())) {
