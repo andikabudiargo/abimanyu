@@ -135,7 +135,7 @@ private function allowedArticleTypes(?string $warehouse): array
         'WIP Sanding'      => ['RMP','RMNP', 'FG'],
         'OT'               => ['FG'],
         'Chemical'         => ['CM1'],
-        'Consumable'       => ['CM2','RMP','RMNP'],
+        'Consumable'       => ['CM2', 'CM3', 'RMP','RMNP'],
         'Dead Stock CM1'   => ['CM1'],
         default            => [],
     };
