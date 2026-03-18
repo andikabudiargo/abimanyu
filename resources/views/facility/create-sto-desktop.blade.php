@@ -127,7 +127,7 @@
                    <th class="px-4 py-3 text-center font-medium w-32">UOM</th>
                   <th class="px-4 py-3 text-center font-medium w-48">LOCATION
 
-  @if(in_array(auth()->id(), [2, 53, 92, 54, 118, 45, 85]))
+  @if(in_array(auth()->id(), [2, 53, 92]))
     
     @if($warehouse === null)
       <select name="warehouse"

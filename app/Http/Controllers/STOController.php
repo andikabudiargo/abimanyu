@@ -70,15 +70,15 @@ public function index()
     $userId = Auth::id();
 
     return match ($userId) {
-        69        => 'Raw Material',
-        88        => 'Werate',
-        108    => 'WIP Buffing',
-        44    => 'WIP Touch Up',
-        71    => 'WIP Sanding',
-        99        => 'Consumable',
-        67        => 'Chemical',
-        68        => 'Finish Goods',
-        53,2,92,118,45,85,54  => null, // 🔥 BOLEH PILIH SENDIRI
+        118        => 'Raw Material',
+        120        => 'Werate',
+        45    	  => 'WIP Buffing',
+        119        => 'WIP Touch Up',
+        122        => 'WIP Sanding',
+        121       => 'Consumable',
+        54        => 'Chemical',
+        85        => 'Finish Goods',
+        53,2,92  => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -89,10 +89,6 @@ private function allowedWarehouses(): array
 
     $mapping = [
         92  => ['Dead Stock CM1', 'OT'],
-        54  => ['Chemical', 'Consumable'],
-        118 => ['Raw Material'],
-        45  => ['WIP Buffing', 'WIP Sanding'],
-        85  => ['WIP Touch Up', 'Werate', 'Finish Goods'],
     ];
 
     if (isset($mapping[$userId])) {
