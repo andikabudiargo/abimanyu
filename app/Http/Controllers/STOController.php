@@ -73,8 +73,8 @@ public function index()
         69        => 'Raw Material',
         88        => 'Werate',
         108    => 'WIP Buffing',
-        44,45     => 'WIP Touch Up',
-        85, 71    => 'WIP Sanding',
+        44    => 'WIP Touch Up',
+        71    => 'WIP Sanding',
         99        => 'Consumable',
         67        => 'Chemical',
         68        => 'Finish Goods',
@@ -90,9 +90,9 @@ private function allowedWarehouses(): array
     $mapping = [
         92  => ['Dead Stock CM1', 'OT'],
         54  => ['Chemical', 'Consumable'],
-        118 => ['Raw Material', 'Finish Goods'],
+        118 => ['Raw Material'],
         45  => ['WIP Buffing', 'WIP Sanding'],
-        85  => ['WIP Touch Up', 'Werate'],
+        85  => ['WIP Touch Up', 'Werate', 'Finish Goods'],
     ];
 
     if (isset($mapping[$userId])) {
