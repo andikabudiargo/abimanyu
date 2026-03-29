@@ -1217,11 +1217,16 @@ public function exportReview(Request $request)
     | 1. TENTUKAN PERIODE FILTER
     |--------------------------------------------------------------------------
     */
-    $allPeriodes = DB::table('stos')
-        ->selectRaw("DISTINCT REPLACE(SUBSTRING(sto_number,1,7), '/', '-') as periode")
-        ->orderBy('periode')
-        ->pluck('periode')
-        ->toArray();
+  $allPeriodes = DB::table('stos')
+    ->selectRaw("
+        DISTINCT DATE_FORMAT(
+            STR_TO_DATE(SUBSTRING(sto_number,1,7), '%Y/%m'),
+            '%Y-%m'
+        ) as periode
+    ")
+    ->orderBy('periode')
+    ->pluck('periode')
+    ->toArray();
 
     if (empty($allPeriodes)) {
         abort(404, 'Tidak ada data STO');
@@ -1251,7 +1256,10 @@ public function exportReview(Request $request)
 
     $rows = DB::select("
 SELECT
-    REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
+    DATE_FORMAT(
+    STR_TO_DATE(SUBSTRING(s.sto_number,1,7), '%Y/%m'),
+    '%Y-%m'
+) AS periode,
     bh.article_rm      AS rm_code,
     bh.article_rm_desc AS rm_desc,
     bh.article_fg      AS fg_code,
