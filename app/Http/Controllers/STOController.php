@@ -78,7 +78,8 @@ public function index()
         121       => 'Consumable',
         54        => 'Chemical',
         85        => 'Finish Goods',
-        53,2,92  => null, // 🔥 BOLEH PILIH SENDIRI
+        92        => 'OT',
+        53,2 => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -88,7 +89,7 @@ private function allowedWarehouses(): array
     $userId = Auth::id();
 
     $mapping = [
-        92  => ['Dead Stock CM1', 'OT'],
+        2  => ['Dead Stock CM1', 'OT'],
     ];
 
     if (isset($mapping[$userId])) {

@@ -348,7 +348,7 @@ $ticketsToApprove = $canApprove
 
 
   <!-- Warehouse Selector untuk user 67 & 53 -->
-  @if(in_array(auth()->id(), [2, 53, 92, 54, 118, 45, 85]))
+  @if(in_array(auth()->id(), [2, 53]))
 
     @if($warehouse === null)
       <select
