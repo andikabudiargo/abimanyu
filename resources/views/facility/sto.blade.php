@@ -59,7 +59,8 @@
   <select id="filter-sto-periode"
           class="w-full px-3 py-2 border border-gray-300 rounded-md">
     <option value="">-- All STO Periode --</option>
-    <option value="2026/02">2026 Februari</option>
+     <option value="2026/02">2026 Maret</option>
+    <option value="2026/02">2026 Februari (Closed)</option>
     <option value="2026/01">2026 Januari (Closed)</option>
     <option value="2025/12">2025 Desember (Closed)</option>
   </select>
