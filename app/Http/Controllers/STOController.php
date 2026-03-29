@@ -1212,83 +1212,30 @@ $sheet->getStyle($fullRange)->applyFromArray([
 
 public function exportReview(Request $request)
 {
-  /*
-|--------------------------------------------------------------------------
-| 1. TENTUKAN PERIODE FILTER (SAFE VERSION)
-|--------------------------------------------------------------------------
-*/
-$allPeriodes = DB::table('stos')
-    ->selectRaw("
-        DISTINCT DATE_FORMAT(
-            STR_TO_DATE(SUBSTRING(sto_number,1,7), '%Y/%m'),
-            '%Y-%m'
-        ) as periode
-    ")
-    ->whereNotNull('sto_number')
-    ->whereRaw("SUBSTRING(sto_number,1,7) REGEXP '^[0-9]{4}/[0-9]{2}$'")
-    ->pluck('periode')
-    ->filter(fn($p) => preg_match('/^\d{4}-\d{2}$/', $p)) // extra guard
-    ->unique()
-    ->sort()
-    ->values()
-    ->toArray();
+    /*
+    |--------------------------------------------------------------------------
+    | 1. TENTUKAN PERIODE FILTER
+    |--------------------------------------------------------------------------
+    */
+    $allPeriodes = DB::table('stos')
+        ->selectRaw("DISTINCT REPLACE(SUBSTRING(sto_number,1,7), '/', '-') as periode")
+        ->orderBy('periode')
+        ->pluck('periode')
+        ->toArray();
 
-if (empty($allPeriodes)) {
-    abort(404, 'Tidak ada data STO valid');
-}
-
-/*
-|--------------------------------------------------------------------------
-| NORMALISASI PERIODE REQUEST
-|--------------------------------------------------------------------------
-*/
-$normalizePeriode = function ($periode) {
-    if (!$periode) return null;
-
-    // ubah 2026/3 → 2026-03
-    $periode = str_replace('/', '-', $periode);
-
-    if (preg_match('/^\d{4}-\d{1}$/', $periode)) {
-        [$y, $m] = explode('-', $periode);
-        $periode = $y . '-' . str_pad($m, 2, '0', STR_PAD_LEFT);
+    if (empty($allPeriodes)) {
+        abort(404, 'Tidak ada data STO');
     }
 
-    return preg_match('/^\d{4}-\d{2}$/', $periode) ? $periode : null;
-};
+    if (auth()->id() == 53 && $request->filled('periode')) {
+        $periodeAktif = str_replace('/', '-', $request->input('periode'));
+    } else {
+        $periodeAktif = end($allPeriodes);
+    }
 
-/*
-|--------------------------------------------------------------------------
-| TENTUKAN PERIODE AKTIF
-|--------------------------------------------------------------------------
-*/
-if (auth()->id() == 53 && $request->filled('periode')) {
-    $periodeAktif = $normalizePeriode($request->input('periode'));
-} else {
-    $periodeAktif = end($allPeriodes);
-}
-
-// fallback safety kalau request aneh
-if (!$periodeAktif || !in_array($periodeAktif, $allPeriodes)) {
-    $periodeAktif = end($allPeriodes);
-}
-
-/*
-|--------------------------------------------------------------------------
-| CARBON (ANTI ERROR)
-|--------------------------------------------------------------------------
-*/
-try {
-    $periodeAktifCarbon = \Carbon\Carbon::parse($periodeAktif . '-01');
-} catch (\Exception $e) {
-    abort(500, 'Format periode tidak valid: ' . $periodeAktif);
-}
-
-$periodeSebelumnya = $periodeAktifCarbon
-    ->copy()
-    ->subMonth()
-    ->format('Y-m');
-
-$hasPeriodeSebelumnya = in_array($periodeSebelumnya, $allPeriodes);
+    $periodeAktifCarbon   = \Carbon\Carbon::createFromFormat('Y-m', $periodeAktif);
+    $periodeSebelumnya    = $periodeAktifCarbon->copy()->subMonth()->format('Y-m');
+    $hasPeriodeSebelumnya = in_array($periodeSebelumnya, $allPeriodes);
 
     /*
     |--------------------------------------------------------------------------
@@ -1304,10 +1251,7 @@ $hasPeriodeSebelumnya = in_array($periodeSebelumnya, $allPeriodes);
 
     $rows = DB::select("
 SELECT
-    DATE_FORMAT(
-    STR_TO_DATE(SUBSTRING(s.sto_number,1,7), '%Y/%m'),
-    '%Y-%m'
-) AS periode,
+    REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
     bh.article_rm      AS rm_code,
     bh.article_rm_desc AS rm_desc,
     bh.article_fg      AS fg_code,
