@@ -79,7 +79,7 @@ public function index()
         54        => 'Chemical',
         85        => 'Finish Goods',
         92        => 'OT',
-        53,2 => null, // 🔥 BOLEH PILIH SENDIRI
+        53,2, 71 => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -1222,31 +1222,34 @@ public function exportReview(Request $request)
         ->orderBy('periode')
         ->pluck('periode')
         ->toArray();
- 
+
     if (empty($allPeriodes)) {
         abort(404, 'Tidak ada data STO');
     }
- 
+
     if (auth()->id() == 53 && $request->filled('periode')) {
         $periodeAktif = str_replace('/', '-', $request->input('periode'));
     } else {
         $periodeAktif = end($allPeriodes);
     }
- 
-    $periodeAktifCarbon = \Carbon\Carbon::createFromFormat('Y-m-d', $periodeAktif . '-01');
+
+    $periodeAktifCarbon   = \Carbon\Carbon::createFromFormat('Y-m', $periodeAktif);
     $periodeSebelumnya    = $periodeAktifCarbon->copy()->subMonth()->format('Y-m');
     $hasPeriodeSebelumnya = in_array($periodeSebelumnya, $allPeriodes);
- 
+
     /*
     |--------------------------------------------------------------------------
-    | 2. QUERY DATA STO - VERSI YANG BENAR
+    | 2. QUERY DATA STO
     |--------------------------------------------------------------------------
     */
-    
-    // ✅ QUERY PERIODE SEBELUMNYA (jika ada)
-    $rowsSebelumnya = [];
-    if ($hasPeriodeSebelumnya) {
-        $rowsSebelumnya = DB::select("
+    $periodeFilter = array_values(array_filter(
+        [$periodeSebelumnya, $periodeAktif],
+        fn($p) => in_array($p, $allPeriodes)
+    ));
+
+    $placeholders = implode(',', array_fill(0, count($periodeFilter), '?'));
+
+    $rows = DB::select("
 SELECT
     REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
     bh.article_rm      AS rm_code,
@@ -1274,11 +1277,11 @@ LEFT JOIN (
 )
 LEFT JOIN articles a ON a.article_code = bh.article_fg
 WHERE bh.bom_code IS NOT NULL
-  AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') = ?
+  AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') IN ({$placeholders})
 GROUP BY periode, bh.bom_code, bh.article_rm, bh.article_rm_desc, bh.article_fg, bh.article_fg_desc, a.unit
- 
+
 UNION ALL
- 
+
 SELECT
     REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
     'OTHER' AS rm_code, si.other_name AS rm_desc,
@@ -1296,71 +1299,11 @@ JOIN sto_items si ON si.sto_id = s.id
 LEFT JOIN boms b ON si.article_code IN (b.article_rm, b.article_fg)
 WHERE b.code IS NULL
   AND si.other_name IS NOT NULL AND si.other_name <> ''
-  AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') = ?
+  AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') IN ({$placeholders})
 GROUP BY periode, si.other_name
 ORDER BY sort_group ASC, rm_code, fg_code
-        ", [$periodeSebelumnya, $periodeSebelumnya]);
-    }
- 
-    // ✅ QUERY PERIODE AKTIF
-    $rowsAktif = DB::select("
-SELECT
-    REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
-    bh.article_rm      AS rm_code,
-    bh.article_rm_desc AS rm_desc,
-    bh.article_fg      AS fg_code,
-    bh.article_fg_desc AS fg_desc,
-    COALESCE(a.unit,'PCS') AS uom,
-    SUM(CASE WHEN si.location='Raw Material' THEN si.qty ELSE 0 END) AS qty_rm,
-    SUM(CASE WHEN si.location='WIP Buffing'  THEN si.qty ELSE 0 END) AS qty_buff,
-    SUM(CASE WHEN si.location='WIP Sanding'  THEN si.qty ELSE 0 END) AS qty_sand,
-    SUM(CASE WHEN si.location='WIP Touch Up' THEN si.qty ELSE 0 END) AS qty_touch,
-    SUM(CASE WHEN si.location='Werate'       THEN si.qty ELSE 0 END) AS qty_werate,
-    SUM(CASE WHEN si.location='Finish Goods' THEN si.qty ELSE 0 END) AS qty_fg,
-    SUM(CASE WHEN si.location='OT'           THEN si.qty ELSE 0 END) AS qty_ot,
-    1 AS sort_group
-FROM stos s
-JOIN sto_items si ON si.sto_id = s.id
-LEFT JOIN (
-    SELECT code AS bom_code, article_rm, article_rm_desc, article_fg, article_fg_desc
-    FROM boms
-    GROUP BY code, article_rm, article_rm_desc, article_fg, article_fg_desc
-) bh ON (
-    (si.location='Raw Material' AND si.article_code = bh.article_rm)
-    OR (si.location!='Raw Material' AND si.article_code = bh.article_fg)
-)
-LEFT JOIN articles a ON a.article_code = bh.article_fg
-WHERE bh.bom_code IS NOT NULL
-  AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') = ?
-GROUP BY periode, bh.bom_code, bh.article_rm, bh.article_rm_desc, bh.article_fg, bh.article_fg_desc, a.unit
- 
-UNION ALL
- 
-SELECT
-    REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
-    'OTHER' AS rm_code, si.other_name AS rm_desc,
-    'OTHER' AS fg_code, si.other_name AS fg_desc, 'PCS' AS uom,
-    SUM(CASE WHEN si.location='Raw Material' THEN si.qty ELSE 0 END) AS qty_rm,
-    SUM(CASE WHEN si.location='WIP Buffing'  THEN si.qty ELSE 0 END) AS qty_buff,
-    SUM(CASE WHEN si.location='WIP Sanding'  THEN si.qty ELSE 0 END) AS qty_sand,
-    SUM(CASE WHEN si.location='WIP Touch Up' THEN si.qty ELSE 0 END) AS qty_touch,
-    SUM(CASE WHEN si.location='Werate'       THEN si.qty ELSE 0 END) AS qty_werate,
-    SUM(CASE WHEN si.location='Finish Goods' THEN si.qty ELSE 0 END) AS qty_fg,
-    SUM(CASE WHEN si.location='OT'           THEN si.qty ELSE 0 END) AS qty_ot,
-    0 AS sort_group
-FROM stos s
-JOIN sto_items si ON si.sto_id = s.id
-LEFT JOIN boms b ON si.article_code IN (b.article_rm, b.article_fg)
-WHERE b.code IS NULL
-  AND si.other_name IS NOT NULL AND si.other_name <> ''
-  AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') = ?
-GROUP BY periode, si.other_name
-ORDER BY sort_group ASC, rm_code, fg_code
-", [$periodeAktif, $periodeAktif]);
- 
-    // ✅ MERGE RESULTS
-    $rows = array_merge($rowsSebelumnya, $rowsAktif);
- 
+", array_merge($periodeFilter, $periodeFilter));
+
     /*
     |--------------------------------------------------------------------------
     | 2B-2D. BELI / TF IN / KIRIM — periode aktif saja
@@ -1374,7 +1317,7 @@ ORDER BY sort_group ASC, rm_code, fg_code
     );
     $beliIndex = [];
     foreach ($beliRows as $br) { $beliIndex[$br->rm_code] = $br->qty_beli; }
- 
+
     $tfinRows = DB::select(
         "SELECT it.article_code AS rm_code, SUM(it.qty) AS qty_tfin
          FROM in_temporary it WHERE DATE_FORMAT(it.date, '%Y-%m') = ?
@@ -1383,7 +1326,7 @@ ORDER BY sort_group ASC, rm_code, fg_code
     );
     $tfinIndex = [];
     foreach ($tfinRows as $tr) { $tfinIndex[$tr->rm_code] = $tr->qty_tfin; }
- 
+
     $kirimRows = DB::select(
         "SELECT st.article_code AS fg_code, SUM(st.delivery_qty) AS qty_kirim
          FROM sj_temporary st WHERE DATE_FORMAT(st.delivery_date, '%Y-%m') = ?
@@ -1392,7 +1335,7 @@ ORDER BY sort_group ASC, rm_code, fg_code
     );
     $kirimIndex = [];
     foreach ($kirimRows as $kr) { $kirimIndex[$kr->fg_code] = $kr->qty_kirim; }
- 
+
     /*
     |--------------------------------------------------------------------------
     | 3. PIVOT DATA STO
@@ -1405,7 +1348,7 @@ ORDER BY sort_group ASC, rm_code, fg_code
         $data[$key]['periode'][$r->periode] = $r;
     }
     ksort($data, SORT_NATURAL);
- 
+
     /*
     |--------------------------------------------------------------------------
     | 3B. RM GROUPS + HELPER CALC
@@ -1415,7 +1358,7 @@ ORDER BY sort_group ASC, rm_code, fg_code
     foreach ($data as $key => $item) {
         $rmGroups[$item['info'][0]][] = $key;
     }
- 
+
     $calcStockSto = function (string $rmCode, string $periode) use ($data, $rmGroups) {
         $total = 0; $rmSeen = false;
         foreach ($rmGroups[$rmCode] as $key) {
@@ -1428,14 +1371,14 @@ ORDER BY sort_group ASC, rm_code, fg_code
         }
         return $total;
     };
- 
+
     /*
     |--------------------------------------------------------------------------
     | 3C. PRE-COMPUTE BELI / TFIN / KIRIM / STOCK ADMIN PER RM
     |--------------------------------------------------------------------------
     */
     $beliByRM = $tfinByRM = $kirimByRM = $stockAdminByRM = [];
- 
+
     foreach ($rmGroups as $rmCode => $keys) {
         $stoSebel = $hasPeriodeSebelumnya ? $calcStockSto($rmCode, $periodeSebelumnya) : 0;
         $beli  = ($rmCode !== 'OTHER') ? ($beliIndex[$rmCode] ?? 0) : 0;
