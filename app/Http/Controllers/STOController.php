@@ -1242,12 +1242,14 @@ public function exportReview(Request $request)
     | 2. QUERY DATA STO
     |--------------------------------------------------------------------------
     */
-    $periodeFilter = array_values(array_filter(
-        [$periodeSebelumnya, $periodeAktif],
-        fn($p) => in_array($p, $allPeriodes)
-    ));
-
-    $placeholders = implode(',', array_fill(0, count($periodeFilter), '?'));
+    $periodeFilter = [];
+if ($hasPeriodeSebelumnya) {
+    $periodeFilter[] = $periodeSebelumnya;
+}
+$periodeFilter[] = $periodeAktif;
+ 
+// Build placeholders untuk kedua periode
+$placeholders = implode(',', array_fill(0, count($periodeFilter), '?'));
 
     $rows = DB::select("
 SELECT
@@ -1302,7 +1304,7 @@ WHERE b.code IS NULL
   AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') IN ({$placeholders})
 GROUP BY periode, si.other_name
 ORDER BY sort_group ASC, rm_code, fg_code
-", array_merge($periodeFilter, $periodeFilter));
+", $periodeFilter);
 
     /*
     |--------------------------------------------------------------------------
