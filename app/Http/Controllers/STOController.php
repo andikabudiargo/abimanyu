@@ -1247,11 +1247,10 @@ if ($hasPeriodeSebelumnya) {
     $periodeFilter[] = $periodeSebelumnya;
 }
 $periodeFilter[] = $periodeAktif;
- 
-// Build placeholders untuk kedua periode
-$placeholders = implode(',', array_fill(0, count($periodeFilter), '?'));
 
-    $rows = DB::select("
+
+   // ✅ GUNAKAN PLACEHOLDER (?) di KEDUA bagian UNION
+$rows = DB::select("
 SELECT
     REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
     bh.article_rm      AS rm_code,
@@ -1279,11 +1278,11 @@ LEFT JOIN (
 )
 LEFT JOIN articles a ON a.article_code = bh.article_fg
 WHERE bh.bom_code IS NOT NULL
-  AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') IN ({$placeholders})
+  AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') IN ('" . implode("','", $periodeFilter) . "')
 GROUP BY periode, bh.bom_code, bh.article_rm, bh.article_rm_desc, bh.article_fg, bh.article_fg_desc, a.unit
-
+ 
 UNION ALL
-
+ 
 SELECT
     REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') AS periode,
     'OTHER' AS rm_code, si.other_name AS rm_desc,
@@ -1301,10 +1300,10 @@ JOIN sto_items si ON si.sto_id = s.id
 LEFT JOIN boms b ON si.article_code IN (b.article_rm, b.article_fg)
 WHERE b.code IS NULL
   AND si.other_name IS NOT NULL AND si.other_name <> ''
-  AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') IN ({$placeholders})
+  AND REPLACE(SUBSTRING(s.sto_number,1,7), '/', '-') IN ('" . implode("','", $periodeFilter) . "')
 GROUP BY periode, si.other_name
 ORDER BY sort_group ASC, rm_code, fg_code
-", $periodeFilter);
+");
 
     /*
     |--------------------------------------------------------------------------
