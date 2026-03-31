@@ -1233,7 +1233,7 @@ public function exportReview(Request $request)
         $periodeAktif = end($allPeriodes);
     }
 
-    $periodeAktifCarbon   = \Carbon\Carbon::createFromFormat('Y-m', $periodeAktif);
+   $periodeAktifCarbon = \Carbon\Carbon::createFromFormat('Y-m-d', $periodeAktif . '-01');
     $periodeSebelumnya    = $periodeAktifCarbon->copy()->subMonth()->format('Y-m');
     $hasPeriodeSebelumnya = in_array($periodeSebelumnya, $allPeriodes);
 
