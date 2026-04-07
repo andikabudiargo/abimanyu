@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app-op-qc')
 
 @section('title', 'Edit Daily Inspection')
 @section('page-title', 'EDIT DAILY INSPECTION')
@@ -859,8 +859,7 @@ $(document).ready(function () {
     updateAllSummary();
   });
 
-
-  /* =====================================================
+/* =====================================================
    * PART SELECT2 (AJAX)
    * ===================================================== */
   $('#part_name').select2({
@@ -887,8 +886,20 @@ $(document).ready(function () {
     }
   });
 
+  // ✅ Pre-select Part Name untuk Edit — HARUS di dalam $(document).ready
+  @if(!empty($inspection->article_code) && !empty($inspection->article_description))
+  (function() {
+    var partOption = new Option(
+      "{{ addslashes($inspection->article_description) }}",
+      "{{ $inspection->article_code }}",
+      true,
+      true
+    );
+    $('#part_name').append(partOption).trigger('change');
+  })();
+  @endif
+
   $('#inspection_post, #supplier, #customer').on('change', function () {
-    // Hanya reset part jika bukan inisiasi awal
     if ($(this).data('initialized')) {
       $('#part_name').val(null).trigger('change');
     }
@@ -902,7 +913,6 @@ $(document).ready(function () {
     $('[data-info="supplier"]').text(data.partner_name || '-');
     $('#supplier_code').val(data.partner_code || '');
   });
-
 
   /* =====================================================
    * EVENTS (total check, qty, dll)
