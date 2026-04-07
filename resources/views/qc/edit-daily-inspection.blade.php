@@ -885,9 +885,9 @@ $(document).ready(function () {
   });
 
   // ✅ Pre-select dengan fetch data dulu ke endpoint baru
-  @if(!empty($inspection->article_code))
+  @if(!empty($inspection->part_name))
   (function() {
-    const articleCode = "{{ $inspection->article_code }}";
+    const articleCode = "{{ $inspection->part_name }}";  // ← kolom di tabel inspections
     const post        = "{{ $inspection->inspection_post }}";
 
     $.getJSON('/qc/get-article-by-code', { code: articleCode, post: post })
