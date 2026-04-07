@@ -488,6 +488,27 @@ $item = TransferInItems::with(['article', 'transferIn'])
     );
 }
 
+// Fetch single article by code (untuk pre-select edit)
+public function getArticleByCode(Request $request)
+{
+    $article = Article::where('article_code', $request->code)
+        ->with(['supplier', 'customer'])
+        ->first();
+
+    if (!$article) return response()->json(null);
+
+    $post = $request->post;
+
+    return response()->json([
+        'article_code' => $article->article_code,
+        'description'  => $article->description,
+        'partner_name' => $post === 'Incoming'
+            ? optional($article->supplier)->name
+            : optional($article->customer)->name,
+        'partner_code' => $article->supplier_code,
+    ]);
+}
+
 
 
 public function getBySupplier($supplierCode)

@@ -240,6 +240,7 @@ Route::get('/sto/review', [STOController::class, 'exportReview']);
 Route::prefix('mr')->name('mr.')->group(function () {
     Route::get('/document/index', [DocumentController::class, 'index'])->name('doc.index');
     Route::get('/document/create', [DocumentController::class, 'create'])->name('doc.create');
+    Route::get('/get-document-number', [DocumentController::class, 'getDocumentNumber']);
     Route::get('/document/data', [DocumentController::class, 'data'])->name('doc.data');
     Route::get('/document/{id}/detail', [DocumentController::class, 'show'])->name('doc.show');
     Route::post('/document/store', [DocumentController::class, 'store'])->name('doc.store');
@@ -248,6 +249,7 @@ Route::prefix('mr')->name('mr.')->group(function () {
     Route::get('/document/copies/{id}', [DocumentController::class, 'getCopies']);
     Route::get('/document/editor/{filename}', [DocumentController::class, 'loadExcel']);
     Route::post('/document/editor-save/{id}', [DocumentController::class, 'saveExcel']);
+    Route::post('/document/return/{id}', [DocumentController::class, 'returnDocument'])->name('doc.return');
     Route::post('/document/{id}/reject', [DocumentController::class, 'reject'])->name('doc.reject');
     Route::post('/document/{id}/obsolete', [DocumentController::class, 'obsolete'])->name('doc.obsolete');
     Route::post('/document/{id}/authorized', [DocumentController::class, 'authorized'])->name('doc.authorized');
@@ -488,6 +490,7 @@ Route::post('agent/backup-log', [BackupAgentController::class, 'storeLog']);
     Route::get('/qc/master-defect/dashboard', [DefectController::class, 'index'])->name('defect.index');
     Route::get('/qc/master-defect/data', [DefectController::class, 'data'])->name('defect.data');
     Route::get('/get-articles', [ArticleController::class, 'getByInspectionPost']);
+    Route::get('/get-article-by-code', [ArticleController::class, 'getArticleByCode']);
     Route::get('/get-defects/{post}', [DefectController::class, 'getByInspectionPost']);
     Route::post('/qc/master-defect/store', [DefectController::class, 'store'])->name('defect.store');
     Route::get('/qc/unloading/dashboard', [InspectionController::class, 'unloading'])->name('unloading.index');

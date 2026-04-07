@@ -1,4 +1,4 @@
-@extends('layouts.app-op-qc')
+@extends('layouts')
 
 @section('title', 'Edit Daily Inspection')
 @section('page-title', 'EDIT DAILY INSPECTION')
@@ -859,9 +859,7 @@ $(document).ready(function () {
     updateAllSummary();
   });
 
-/* =====================================================
-   * PART SELECT2 (AJAX)
-   * ===================================================== */
+// Inisiasi Select2 AJAX dulu
   $('#part_name').select2({
     placeholder: "-- Select Part --",
     allowClear: true,
@@ -886,16 +884,23 @@ $(document).ready(function () {
     }
   });
 
-  // ✅ Pre-select Part Name untuk Edit — HARUS di dalam $(document).ready
-  @if(!empty($inspection->article_code) && !empty($inspection->article_description))
+  // ✅ Pre-select dengan fetch data dulu ke endpoint baru
+  @if(!empty($inspection->article_code))
   (function() {
-    var partOption = new Option(
-      "{{ addslashes($inspection->article_description) }}",
-      "{{ $inspection->article_code }}",
-      true,
-      true
-    );
-    $('#part_name').append(partOption).trigger('change');
+    const articleCode = "{{ $inspection->article_code }}";
+    const post        = "{{ $inspection->inspection_post }}";
+
+    $.getJSON('/qc/get-article-by-code', { code: articleCode, post: post })
+      .done(function(data) {
+        if (!data) return;
+
+        // Simpan ke articleMap agar handler onChange bisa baca
+        articleMap[data.article_code] = data;
+
+        // Append option & set sebagai selected
+        const option = new Option(data.description, data.article_code, true, true);
+        $('#part_name').append(option).trigger('change');
+      });
   })();
   @endif
 
