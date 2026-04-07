@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app-op-qc')
 
 @section('title', 'Edit Daily Inspection')
 @section('page-title', 'EDIT DAILY INSPECTION')
@@ -8,958 +8,1018 @@
 @section('content')
 <div class="space-y-4">
   <div class="w-full bg-white shadow-md rounded-xl px-8 space-y-4 pt-6 pb-12">
-   <div class="flex items-center gap-2 border-b border-gray-200 pb-3 mb-6">
+    <div class="flex items-center gap-2 border-b border-gray-200 pb-3 mb-6">
       <i class="fa-solid fa-pen-to-square text-indigo-700 text-sm"></i>
       <h2 class="text-base font-semibold text-indigo-700 tracking-wide">
         Edit Daily Inspection
       </h2>
+      <span class="ml-auto text-xs text-gray-400 font-mono">ID: #{{ $inspection->id }}</span>
     </div>
 
-    <form id="inspectionForm" class="space-y-4" method="POST" data-id="{{ $inspection->id ?? '' }}">
-    @csrf
-    @method('PUT')
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-1">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Inspection Date<span class="text-red-600"> *</span>
-                </label>
-                <input type="date" name="inspection_date" id="inspection_date"
-                       value="{{ $inspection->inspection_date }}"
-                       max="{{ date('Y-m-d') }}"
-                       class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-                       required>
-            </div>
+    <form id="inspectionForm" class="space-y-4">
+      @csrf
+      @method('PUT')
+      <input type="hidden" name="inspection_id" value="{{ $inspection->id }}">
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Inspection Post <span class="text-red-600">*</span>
-                </label>
-                <select name="inspection_post" id="inspection_post"
-                        class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm"
-                        required>
-                    <option value="">-- Choose Post --</option>
-                    @foreach(['Incoming','Unloading','Buffing','Touch Up','Final','Outgoing'] as $post)
-                        <option value="{{ $post }}" {{ $inspection->inspection_post == $post ? 'selected' : '' }}>
-                            {{ $post }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div id="spraybooth-wrapper">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Spray Booth <span class="text-red-600">*</span>
-                </label>
-                <select name="spraybooth" id="spraybooth"
-                        class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm">
-                    <option value="">-- Pilih Booth --</option>
-                    @foreach([
-                        'Spraybooth 1A','Spraybooth 1B','Spraybooth 1C',
-                        'Spraybooth 2A','Spraybooth 2B','Spraybooth 2C',
-                        'Spraybooth 3A','Spraybooth 3B','Spraybooth 3C',
-                        'Spraybooth 4A','Spraybooth 4B','Spraybooth 4C',
-                        'Spraybooth 5A','Spraybooth 5B','Spraybooth 5C'
-                    ] as $booth)
-                        <option value="{{ $booth }}" {{ $inspection->spraybooth == $booth ? 'selected' : '' }}>
-                            {{ $booth }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-1">
+        <!-- Inspection Date -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Inspection Date<span class="text-red-600"> *</span>
+          </label>
+          <input type="date" name="inspection_date" id="inspection_date"
+            max="{{ date('Y-m-d') }}"
+            value="{{ \Carbon\Carbon::parse($inspection->inspection_date)->format('Y-m-d') }}"
+            class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm
+                   focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+            required>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-2">
-    <div id="supplier-wrapper">
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <!-- Inspection Post -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Inspection Post <span class="text-red-600">*</span>
+          </label>
+          <select name="inspection_post" id="inspection_post"
+            class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm"
+            required>
+            <option value="">-- Choose Post --</option>
+            @foreach(['Incoming','Unloading','Buffing','Touch Up','Final','Outgoing'] as $post)
+              <option value="{{ $post }}" {{ $inspection->inspection_post === $post ? 'selected' : '' }}>
+                {{ $post }}
+              </option>
+            @endforeach
+          </select>
+        </div>
+
+        <!-- Spray Booth -->
+        <div id="spraybooth-wrapper">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Spray Booth <span class="text-red-600">*</span>
+          </label>
+          <select name="spraybooth" id="spraybooth"
+            class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm">
+            <option value="">-- Pilih Booth --</option>
+            @foreach(['1A','1B','1C','2A','2B','2C','3A','3B','3C','4A','4B','4C','5A','5B','5C'] as $booth)
+              <option value="Spraybooth {{ $booth }}"
+                {{ $inspection->spraybooth === "Spraybooth $booth" ? 'selected' : '' }}>
+                Spraybooth {{ $booth }}
+              </option>
+            @endforeach
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-2">
+        <!-- Supplier -->
+        <div id="supplier-wrapper">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
             Supplier <span class="text-red-600">*</span>
-        </label>
-        <select name="supplier" id="supplier" class="select2 w-full">
+          </label>
+          <select name="supplier" id="supplier" class="select2 w-full">
             <option value="">-- Pilih Supplier --</option>
-            @foreach ($suppliers as $supplier)
-                <option value="{{ $supplier->code }}"
-                    {{ $inspection->supplier_code == $supplier->code ? 'selected' : '' }}>
-                    {{ $supplier->name }}
-                </option>
+            @foreach ($suppliers as $sup)
+              <option value="{{ $sup->code }}"
+                {{ $inspection->inspection_post === 'Incoming' && $inspection->supplier_code === $sup->code ? 'selected' : '' }}>
+                {{ $sup->name }}
+              </option>
             @endforeach
-        </select>
-    </div>
+          </select>
+        </div>
 
-    <div id="customer-wrapper" class="{{ $inspection->inspection_post !== 'Incoming' ? '' : 'hidden' }}">
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <!-- Customer -->
+        <div id="customer-wrapper" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
             Customer <span class="text-red-600">*</span>
-        </label>
-        <select name="customer" id="customer" class="select2 w-full">
+          </label>
+          <select name="customer" id="customer" class="select2 w-full">
             <option value="">-- Pilih Customer --</option>
-            @foreach ($customers as $customer)
-                <option value="{{ $customer->code }}"
-                    {{ $inspection->supplier_code == $customer->code ? 'selected' : '' }}>
-                    {{ $customer->name }}
-                </option>
+            @foreach ($customers as $cust)
+              <option value="{{ $cust->code }}"
+                {{ $inspection->inspection_post !== 'Incoming' && $inspection->supplier_code === $cust->code ? 'selected' : '' }}>
+                {{ $cust->name }}
+              </option>
             @endforeach
-        </select>
-    </div>
-
-
-            <div class="w-full">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Part Name <span class="text-red-600">*</span></label>
-                <select name="part_name" id="part_name" class="select2 w-full">
-                    <option value="">-- Select Part --</option>
-                   
-                </select>
-            </div>
+          </select>
         </div>
 
-        <!-- Row 3 & Row 4 tetap sama, tinggal isi value dari $inspection -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-3">
-            <div id="check_method_container" class="w-full {{ $inspection->check_method ? '' : 'hidden' }}">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Inspection Method <span class="text-red-600">*</span></label>
-                <select name="check_method" id="check_method" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-                    <option value="">-- Choose Method --</option>
-                    <option value="100%" {{ $inspection->check_method == '100%' ? 'selected' : '' }}>100% (A)</option>
-                    <option value="Sampling" {{ $inspection->check_method == 'Sampling' ? 'selected' : '' }}>Sampling (S)</option>
-                </select>
-            </div>
-
-            <div class="w-full {{ $inspection->qty_received ? '' : 'hidden' }}" id="qty-received-wrapper">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Qty Received <span class="text-red-600">*</span>
-                </label>
-                <input type="number" name="qty_received" id="qty_received"
-                       value="{{ $inspection->qty_received }}"
-                       placeholder="Masukan Qty Total Kedatangan Barang ..."
-                       class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-                       required>
-            </div>
+        <!-- Part Name -->
+        <div class="w-full">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Part Name <span class="text-red-600">*</span>
+          </label>
+          <select name="part_name" id="part_name" class="select2 w-full">
+            {{-- Pre-fill selected option --}}
+            @if($inspection->article_code && $inspection->article_description)
+              <option value="{{ $inspection->article_code }}" selected>
+                {{ $inspection->article_description }}
+              </option>
+            @else
+              <option value="">-- Select Part --</option>
+            @endif
+          </select>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-4">
-          <div class="col-span-2 
-            flex flex-col md:flex-row 
-            md:items-center 
-            gap-2 md:gap-6
-            bg-gray-50 border border-gray-200 rounded-lg 
-            px-4 md:px-5 py-3
-            transition focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-300">
-
-    <label for="total_check"
-           class="text-sm font-medium text-gray-700 md:min-w-[110px]">
-        Total Check <span class="text-red-500">*</span>
-    </label>
-
-    <input type="number"
-           name="total_check"
-           id="total_check"
-           value="{{ $inspection->total_check }}"
-           placeholder="Masukan Qty..."
-           class="w-full md:flex-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm
-                  focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300 transition"/>
-</div>
-
-        </div>
-</div>
-
-        <!-- Table defect -->
-        <div class="w-full bg-white shadow-md rounded-xl p-8 space-y-4">
-            <div class="flex items-center gap-2 border-b border-gray-200 pb-2 mb-4">
-                <i class="fa-solid fa-circle-exclamation text-indigo-700 text-sm"></i>
-                <h2 class="text-base font-semibold text-indigo-700 tracking-wide">Add List Defect</h2>
-            </div>
-
-            <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-                <table id="itemTable" class="min-w-full text-sm text-gray-700">
-                    <thead class="bg-gray-100 border-b border-gray-200">
-                        <tr>
-                            <th class="px-3 py-2 text-center font-medium min-w-[20px]">No</th>
-                            <th class="px-3 py-2 font-medium min-w-[160px]">Defect</th>
-                            <th class="px-3 py-2 text-center font-medium min-w-[60px]">Qty</th>
-                            <th class="px-3 py-2 text-center font-medium min-w-[60px] ok-repair-wrapper">OK Repair</th>
-                            <th class="px-3 py-2 font-medium min-w-[180px]">Note</th>
-                            <th class="px-3 py-2 text-center font-medium min-w-[72px]">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="defectTableBody" class="divide-y divide-gray-100">
-                        @foreach($inspection->defects as $i => $defect)
-                            <tr id="row-{{ $i+1 }}">
-                                <td class="text-center px-3 py-2">{{ $i+1 }}</td>
-                                <td>
-                                    <select name="defect[]" class="w-full px-2 py-1 border border-gray-300 rounded">
-                                        <option value="">-- Choose Defect --</option>
-                                        @foreach($allDefects as $d)
-                                            <option value="{{ $d->id }}" {{ $defect->defect_id == $d->id ? 'selected' : '' }}>
-                                                {{ $d->defect }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                                <td class="text-center px-3 py-2">
-                                    <input type="number" name="qty[]" value="{{ $defect->qty }}" class="w-full text-center border rounded px-1 py-1">
-                                </td>
-                                <td class="text-center px-3 py-2 ok-repair-wrapper">
-                                    <input type="number" name="ok_repair[]" value="{{ $defect->ok_repair }}" class="w-full text-center border rounded px-1 py-1">
-                                </td>
-                                <td class="px-3 py-2">
-                                    <input type="text" name="note[]" value="{{ $defect->note }}" class="w-full border rounded px-2 py-1">
-                                </td>
-                                <td class="text-center px-3 py-2">
-                                    <button type="button" class="removeRowBtn text-red-500 font-bold">×</button>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-3 flex justify-end">
-                <button type="button" id="addRowBtn" class="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                    <span class="text-lg leading-none">+</span> Add Row
-                </button>
-            </div>
-       
-        <!-- Inspection Summary -->
-<div class="mt-6 flex justify-start">
-  <div class="w-full md:w-96 border border-gray-200 bg-white px-2 rounded-md pb-8">
-
-   <div class="flex items-center gap-2 border-b border-gray-200 py-3 px-2 mb-6">
-  <i class="fa-solid fa-file text-indigo-700 text-sm"></i>
-
-  <h2 class="text-base font-semibold text-indigo-700 tracking-wide">
-    Inspection Summary
-  </h2>
-   </div>
-
-    <div class="divide-y divide-gray-100 text-sm">
-
-      <div class="flex justify-between px-4 py-2 hidden">
-  <span class="text-gray-600">Total Defect Qty</span>
-  <span class="font-medium text-gray-900">
-    <span id="totalDefectQty">0</span>
-    <span class="text-gray-500">(<span id="totalDefectPercent">0</span>%)</span>
-  </span>
-</div>
-
- <div class="flex justify-between px-4 py-2 border-t border-gray-200 mt-4">
-  <span class="text-sm text-gray-600">Total Check</span>
-  <span class="text-sm font-semibold text-gray-900">
-    <span id="totalCheckDisplay">0</span>
-  </span>
-</div>
-
-
-<div class="flex justify-between px-4 py-2">
-  <span class="text-sm text-gray-600">Total OK</span>
-  <span class="text-sm font-semibold text-gray-900">
-    <span id="totalOkDisplay">0</span>
-    <span class="text-gray-500">
-      (<span id="totalOkPercent">0</span>%)
-    </span>
-  </span>
-</div>
-
-
-      <div class="flex justify-between px-4 py-2">
-  <span class="text-sm text-gray-600">Total NG</span>
-  <span class="text-sm font-semibold text-gray-900">
-    <span id="totalNGDisplay">0</span>
-    <span class="text-gray-500">
-      (<span id="totalNGPercent">0</span>%)
-    </span>
-  </span>
-</div>
-
-
-      <div class="flex justify-between px-4 py-2">
-  <span id="totalNCLabel" class="text-sm text-gray-600">Total NC / OK Repair</span>
-  <span class="text-sm font-semibold text-gray-900">
-    <span id="totalNCDisplay">0</span>
-    <span class="text-gray-500">
-      (<span id="totalNCPercent">0</span>%)
-    </span>
-  </span>
-</div>
-
-     <div id="totalPTWrapper" class="flex justify-between px-4 py-2">
-  <span class="text-gray-600">Total Pass Through</span>
-  <span id="totalPTDisplay" class="font-medium text-gray-900">0</span>
-</div>
-
-      <div class="flex justify-between px-4 py-2">
-        <span class="text-gray-600">Pass Rate</span>
-        <span id="passRate" class="font-medium text-gray-900">0</span>
       </div>
 
-        <div class="flex justify-between px-4 py-2">
-        <span id="passTroughLabel" class="text-gray-600">Pass Trough / Performance</span>
-        <span id="passTroughDisplay" class="font-medium text-gray-900">0</span>
-      </div>
-    </div>
-  </div>
-</div>
-        
-        <hr class="mt-8">
-        <div class="flex flex-col md:flex-row gap-2 mt-4">
-            <button id="resetBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
-                <i data-feather="refresh-cw" class="h-4 w-4"></i> Reset
-            </button>
-            <button type="submit" id="submitBtn" class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
-                <i data-feather="save" class="h-4 w-4"></i> Save
-            </button>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-3">
+        <!-- Check Method -->
+        <div id="check_method_container" class="w-full hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Inspection Method <span class="text-red-600">*</span>
+          </label>
+          <select name="check_method" id="check_method"
+            class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm
+                   focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">-- Choose Method --</option>
+            <option value="100%" {{ $inspection->check_method === '100%' ? 'selected' : '' }}>100% (A)</option>
+            <option value="Sampling" {{ $inspection->check_method === 'Sampling' ? 'selected' : '' }}>Sampling (S)</option>
+          </select>
         </div>
 
+        <!-- Qty Received -->
+        <div class="w-full hidden" id="qty-received-wrapper">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Qty Received <span class="text-red-600">*</span>
+          </label>
+          <input type="number" name="qty_received" id="qty_received"
+            value="{{ $inspection->qty_received }}"
+            placeholder="Masukan Qty Total Kedatangan Barang ..."
+            class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm
+                   focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="row-4">
+        <div class="col-span-2 flex items-center gap-6 bg-gray-50 border border-gray-200 rounded-lg
+                    px-5 py-3 transition focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-300">
+          <label for="total_check" class="text-sm font-medium text-gray-700 min-w-[110px]">
+            Total Check <span class="text-red-500">*</span>
+          </label>
+          <input type="number" name="total_check" id="total_check"
+            value="{{ $inspection->total_check }}"
+            placeholder="Masukan Qty. . ."
+            class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm
+                   focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300 transition"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== DEFECT SECTION ==================== -->
+    <div class="w-full bg-white shadow-md rounded-xl p-8 space-y-4">
+      <div class="flex items-center gap-2 border-b border-gray-200 pb-2 mb-4">
+        <i class="fa-solid fa-circle-exclamation text-indigo-700 text-sm"></i>
+        <h2 class="text-base font-semibold text-indigo-700 tracking-wide">
+          Edit List Defect
+        </h2>
+      </div>
+
+      <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <table id="itemTable" class="min-w-full text-sm text-gray-700">
+          <thead class="bg-gray-100 border-b border-gray-200">
+            <tr>
+              <th class="px-3 py-2 text-center font-medium min-w-[20px]">No</th>
+              <th class="px-3 py-2 font-medium min-w-[160px]">Defect</th>
+              <th class="px-3 py-2 text-center font-medium min-w-[60px]">Qty</th>
+              <th class="px-3 py-2 text-center font-medium min-w-[60px] ok-repair-wrapper">OK Repair</th>
+              <th class="px-3 py-2 font-medium min-w-[180px]">Note</th>
+              <th class="px-3 py-2 text-center font-medium min-w-[72px]">Action</th>
+            </tr>
+          </thead>
+          <tbody id="defectTableBody" class="divide-y divide-gray-100">
+            {{-- Rows diisi via JS (lihat existingDefects di bawah) --}}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-3 flex justify-end">
+        <button type="button" id="addRowBtn"
+          class="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium
+                 px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <span class="text-lg leading-none">+</span>
+          Add Row
+        </button>
+      </div>
+
+      <!-- Inspection Summary -->
+      <div class="mt-6 flex justify-start">
+        <div class="w-full md:w-96 border border-gray-200 bg-white px-2 rounded-md pb-8">
+          <div class="flex items-center gap-2 border-b border-gray-200 py-3 px-2 mb-6">
+            <i class="fa-solid fa-file text-indigo-700 text-sm"></i>
+            <h2 class="text-base font-semibold text-indigo-700 tracking-wide">
+              Inspection Summary
+            </h2>
+          </div>
+
+          <div class="divide-y divide-gray-100 text-sm">
+            <div class="flex justify-between px-4 py-2 hidden">
+              <span class="text-gray-600">Total Defect Qty</span>
+              <span class="font-medium text-gray-900">
+                <span id="totalDefectQty">0</span>
+                <span class="text-gray-500">(<span id="totalDefectPercent">0</span>%)</span>
+              </span>
+            </div>
+
+            <div class="flex justify-between px-4 py-2 border-t border-gray-200 mt-4">
+              <span class="text-sm text-gray-600">Total Check</span>
+              <span class="text-sm font-semibold text-gray-900">
+                <span id="totalCheckDisplay">0</span>
+              </span>
+            </div>
+
+            <div class="flex justify-between px-4 py-2">
+              <span class="text-sm text-gray-600">Total OK</span>
+              <span class="text-sm font-semibold text-gray-900">
+                <span id="totalOkDisplay">0</span>
+                <span class="text-gray-500">(<span id="totalOkPercent">0</span>%)</span>
+              </span>
+            </div>
+
+            <div class="flex justify-between px-4 py-2">
+              <span class="text-sm text-gray-600">Total NG</span>
+              <span class="text-sm font-semibold text-gray-900">
+                <span id="totalNGDisplay">0</span>
+                <span class="text-gray-500">(<span id="totalNGPercent">0</span>%)</span>
+              </span>
+            </div>
+
+            <div class="flex justify-between px-4 py-2">
+              <span id="totalNCLabel" class="text-sm text-gray-600">Total NC / OK Repair</span>
+              <span class="text-sm font-semibold text-gray-900">
+                <span id="totalNCDisplay">0</span>
+                <span class="text-gray-500">(<span id="totalNCPercent">0</span>%)</span>
+              </span>
+            </div>
+
+            <div id="totalPTWrapper" class="flex justify-between px-4 py-2">
+              <span class="text-gray-600">Total Pass Through</span>
+              <span id="totalPTDisplay" class="font-medium text-gray-900">0</span>
+            </div>
+
+            <div class="flex justify-between px-4 py-2">
+              <span class="text-gray-600">Pass Rate</span>
+              <span id="passRate" class="font-medium text-gray-900">0</span>
+            </div>
+
+            <div class="flex justify-between px-4 py-2">
+              <span id="passTroughLabel" class="text-gray-600">Pass Trough / Performance</span>
+              <span id="passTroughDisplay" class="font-medium text-gray-900">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="mt-8">
+
+      <div class="flex flex-col md:flex-row gap-2 mt-4">
+        <a href="{{ url()->previous() }}"
+          class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2
+                 bg-gray-500 hover:bg-gray-600 text-white rounded shadow">
+          <i data-feather="arrow-left" class="h-4 w-4"></i> Back
+        </a>
+        <button id="resetBtn" type="button"
+          class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2
+                 bg-gray-700 hover:bg-gray-800 text-white rounded shadow">
+          <i data-feather="refresh-cw" class="h-4 w-4"></i> Reset
+        </button>
+        <button type="submit" id="submitBtn"
+          class="w-full md:w-28 flex items-center justify-center gap-2 px-4 py-2
+                 bg-green-700 hover:bg-green-800 text-white rounded shadow">
+          <i data-feather="save" class="h-4 w-4"></i> Update
+        </button>
+      </div>
     </form>
   </div>
 </div>
 
 
-<style>
+{{-- ===== DATA EXISTING DEFECTS (JSON untuk JS) ===== --}}
+<script>
+  // Data existing dari controller
+  const existingDefects = @json($inspection->details ?? []);
+  // Contoh struktur: [{defect_id, qty, ok_repair, note_defect, defect_category, defect_name}, ...]
 
-  /* ✅ Perbaiki Border dan Padding Kolom */
+  const inspectionPost  = @json($inspection->inspection_post ?? '');
+  const savedTotalCheck = @json($inspection->total_check ?? 0);
+</script>
+
+
+<style>
   #itemTable th, #itemTable td {
-    border: 1px solid #e5e7eb !important;  /* Tailwind gray-200 */
+    border: 1px solid #e5e7eb !important;
     padding: 8px 12px !important;
     vertical-align: middle !important;
     white-space: nowrap !important;
-    font-size: 0.875rem;  /* Tailwind text-sm */
+    font-size: 0.875rem;
   }
-
-  /* ✅ Baris Genap & Ganjil */
-  #itemTable tbody tr:nth-child(even) {
-    background-color: #f9fafb !important;  /* Tailwind gray-50 */
-  }
-  #itemTable tbody tr:nth-child(odd) {
-    background-color: #ffffff !important;
-  }
-
-  /* ✅ Hover Warna */
-  #itemTable tbody tr:hover {
-    background-color: #e0f2fe !important;  /* Tailwind blue-100 */
-  }
-
-  /* ✅ Hilangkan border horizontal agar tampak lebih modern */
+  #itemTable tbody tr:nth-child(even) { background-color: #f9fafb !important; }
+  #itemTable tbody tr:nth-child(odd)  { background-color: #ffffff !important; }
+  #itemTable tbody tr:hover           { background-color: #e0f2fe !important; }
   #itemTable td, #itemTable th {
     border-left: none !important;
     border-right: none !important;
   }
-
-  /* ✅ Pagar kiri-kanan (opsional) */
   #itemTable {
     border-left: 1px solid #e5e7eb;
     border-right: 1px solid #e5e7eb;
   }
-
-  /* ✅ Perbaiki Search, Length, Info, Pagination */
-  #itemTable_wrapper .dataTables_filter input {
+  .select2-container .select2-selection--single {
+    height: 42px;
+    background-color: #f9fafb;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 0.875rem;
+    border-radius: 0.5rem;
   }
-
-  #itemTable_wrapper .dataTables_length select {
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 0.875rem;
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 40px;
   }
-
-  #itemTable_wrapper .dataTables_info {
-    font-size: 0.75rem;  /* Tailwind text-xs */
-    color: #6b7280;      /* Tailwind gray-500 */
+  .select2-container--default .select2-selection--single:focus,
+  .select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4);
   }
-
-  #itemTable_wrapper .dataTables_paginate {
-    font-size: 0.75rem;
-  }
-
-  /* ✅ Scroll wrapper */
-  .datatable-container {
-    overflow-x: auto;
-  }
-
- .select2-container .select2-selection--single {
-  height: 42px;
-  background-color: #f9fafb; /* gray-50 */
-  border: 1px solid #d1d5db; /* gray-300 */
-  border-radius: 0.5rem;
-}
-
-.select2-container--default
-.select2-selection--single
-.select2-selection__rendered {
-  line-height: 40px;
-}
-
-.select2-container--default
-.select2-selection--single:focus,
-.select2-container--default.select2-container--focus
-.select2-selection--single {
-  border-color: #60a5fa; /* blue-400 */
-  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4);
-}
-
-
- .defect-select {
-  min-height: 1.8rem;
-  line-height: 0.8rem;
-}
-
-select:disabled {
-  background-color: #f3f4f6; /* Tailwind gray-100 */
-  color: #9ca3af; /* Tailwind gray-400 */
-}
-
-
-
+  .defect-select { min-height: 1.8rem; line-height: 0.8rem; }
+  select:disabled { background-color: #f3f4f6; color: #9ca3af; }
 </style>
+
 @push('scripts')
 <script>
-
-
 $(document).ready(function () {
- toggleInspectionPost($('#inspection_post').val());
-  let rowIndex = 1;
+
+  /* =====================================================
+   * DOM REFERENCES
+   * ===================================================== */
+  const $checkMethod        = $('#check_method');
+  const $qtyReceiving       = $('#qty_received');
+  const $totalCheck         = $('#total_check');
+  const $totalCheckDisplay  = $('#totalCheckDisplay');
+  const $postSelect         = $('#inspection_post');
+  const $totalNGDisplay     = $('#totalNGDisplay');
+  const $totalNGPercent     = $('#totalNGPercent');
+  const $totalOkDisplay     = $('#totalOkDisplay');
+  const $totalOkPercent     = $('#totalOkPercent');
+  const $totalNCLabel       = $('#totalNCLabel');
+  const $totalNCDisplay     = $('#totalNCDisplay');
+  const $totalNCPercent     = $('#totalNCPercent');
+  const $totalPTWrapper     = $('#totalPTWrapper');
+  const $totalPTDisplay     = $('#totalPTDisplay');
+  const $passRate           = $('#passRate');
+  const $passTroughLabel    = $('#passTroughLabel');
+  const $passTroughDisplay  = $('#passTroughDisplay');
+
+  let rowIndex = 0;
   let articleMap = {};
 
-// ================== PART SELECT2 ==================
-$('#part_name').select2({
-    placeholder: "-- Select Part --",
-    allowClear: true,
-    width: '100%',
-    ajax: {
-        url: '/qc/get-articles',
-        dataType: 'json',
-        data: params => {
-            const post = $('#inspection_post').val();
-            return {
-                term: params.term,
-                post: post,
-                supplier: post === 'Incoming'
-                    ? $('#supplier').val()
-                    : $('#customer').val()
-            };
-        },
-        processResults: data => {
-            articleMap = {};
-            data.forEach(item => {
-                articleMap[item.article_code] = item;
-            });
 
-            return {
-                results: data.map(item => ({
-                    id: item.article_code,
-                    text: item.description
-                }))
-            };
-        },
-        cache: true
-    }
-});
-
-@if(isset($inspection))
-const selectedArticle = {
-    id: '{{ $inspection->part_name }}', // tetap article_code
-    text: '{{ $inspection->article->description ?? $inspection->part_name }}'
-};
-
-const option = new Option(
-    selectedArticle.text,
-    selectedArticle.id,
-    true,
-    true
-);
-
-$('#part_name').append(option).trigger('change');
-@endif
-
-  const $checkMethod       = $('#check_method');
-  const $qtyReceiving      = $('#qty_received');
-  const $totalCheck        = $('#total_check');
-  const $totalCheckDisplay = $('#totalCheckDisplay');
-
-  const $postSelect        = $('#inspection_post');
-
-  const $totalNGDisplay    = $('#totalNGDisplay');
-  const $totalNGPercent    = $('#totalNGPercent');
-
-  const $totalOkDisplay    = $('#totalOkDisplay');
-  const $totalOkPercent    = $('#totalOkPercent');
-
-  const $totalNCLabel      = $('#totalNCLabel');
-  const $totalNCDisplay    = $('#totalNCDisplay');
-  const $totalNCPercent    = $('#totalNCPercent');
-
-  const $totalPTWrapper    = $('#totalPTWrapper');
-  const $totalPTDisplay    = $('#totalPTDisplay');
-
-  const $passRate          = $('#passRate');
-  const $passTroughLabel   = $('#passTroughLabel');
-  const $passTroughDisplay = $('#passTroughDisplay');
-
-  // ==================== SELECT2 INIT ====================
-  $('#inspection_post, #supplier, #customer, #check_method, #spraybooth').select2({
-      placeholder: "-- Pilih --",
-      allowClear: true,
-      width: '100%'
-  });
-
-  // ==================== HELPER ====================
+  /* =====================================================
+   * HELPER
+   * ===================================================== */
   function getSamplingCheck(qty) {
-      if (qty >= 2 && qty <= 8) return 2;
-      if (qty <= 15) return 3;
-      if (qty <= 25) return 5;
-      if (qty <= 50) return 8;
-      if (qty <= 90) return 13;
-      if (qty <= 150) return 20;
-      if (qty <= 280) return 32;
-      if (qty <= 500) return 50;
-      if (qty <= 1200) return 80;
-      if (qty <= 3200) return 125;
-      if (qty <= 10000) return 200;
-      if (qty <= 35000) return 315;
-      return 0;
+    if (qty >= 2 && qty <= 8)    return 2;
+    if (qty <= 15)  return 3;
+    if (qty <= 25)  return 5;
+    if (qty <= 50)  return 8;
+    if (qty <= 90)  return 13;
+    if (qty <= 150) return 20;
+    if (qty <= 280) return 32;
+    if (qty <= 500) return 50;
+    if (qty <= 1200) return 80;
+    if (qty <= 3200) return 125;
+    if (qty <= 10000) return 200;
+    if (qty <= 35000) return 315;
+    return 0;
   }
 
+
+  /* =====================================================
+   * TOTAL CHECK
+   * ===================================================== */
   function updateTotalCheck() {
-      const method = $checkMethod.val();
-      const qty = parseInt($qtyReceiving.val()) || 0;
-      let val = '';
-      if (method === '100%') val = qty;
-      if (method === 'Sampling') val = getSamplingCheck(qty) || '';
-      $totalCheck.val(val).trigger('input');
-      $totalCheckDisplay.text(val);
+    const method = $checkMethod.val();
+    const qty    = parseInt($qtyReceiving.val()) || 0;
+    let val = '';
+    if (method === '100%')      val = qty;
+    if (method === 'Sampling')  val = getSamplingCheck(qty) || '';
+    $totalCheck.val(val).trigger('input');
   }
 
-  function calculateTotalQty() {
-      let total = 0;
-      $('.qty-defect').each(function () {
-          total += parseInt($(this).val()) || 0;
+  function syncTotalCheckDisplay() {
+    $totalCheckDisplay.text(parseInt($totalCheck.val()) || 0);
+  }
+
+
+  /* =====================================================
+   * TOTAL DEFECT (VALIDASI)
+   * ===================================================== */
+  function updateTotalDefectSummary() {
+    let totalDefect = 0;
+    $('input[name="qty[]"]').each(function () {
+      totalDefect += parseInt($(this).val()) || 0;
+    });
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    if (totalCheck > 0 && totalDefect > totalCheck) {
+      Swal.fire({ icon: 'warning', title: 'Validasi Gagal',
+        text: 'Total Defect Qty melebihi Total Check. Nilai akan direset.' });
+      $('input[name="qty[]"]').val(0);
+      totalDefect = 0;
+    }
+    $('#totalDefectQty').text(totalDefect);
+    const percent = totalCheck > 0 ? ((totalDefect / totalCheck) * 100).toFixed(0) : 0;
+    $('#totalDefectPercent').text(percent);
+  }
+
+
+  /* =====================================================
+   * TOTAL NG
+   * ===================================================== */
+  function updateTotalNG() {
+    let totalNG = 0;
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    $('#defectTableBody tr').each(function () {
+      const defectText = $(this).find('.defect-select option:selected').text().trim();
+      const qty = parseInt($(this).find('.qty-defect').val()) || 0;
+      if (defectText.startsWith('NG')) totalNG += qty;
+    });
+    $totalNGDisplay.text(totalNG);
+    const percent = totalCheck > 0 ? ((totalNG / totalCheck) * 100).toFixed(0) : 0;
+    $totalNGPercent.text(percent);
+  }
+
+
+  /* =====================================================
+   * TOTAL OK
+   * ===================================================== */
+  function updateTotalOK() {
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const totalNG    = parseInt($totalNGDisplay.text()) || 0;
+    const totalOK    = Math.max(totalCheck - totalNG, 0);
+    $totalOkDisplay.text(totalOK);
+    const percent = totalCheck > 0 ? ((totalOK / totalCheck) * 100).toFixed(0) : 0;
+    $totalOkPercent.text(percent);
+  }
+
+
+  /* =====================================================
+   * NC / OK REPAIR
+   * ===================================================== */
+  function updateNcOrOkRepair() {
+    const post = $postSelect.val();
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    let totalValue = 0;
+    if (post === 'Incoming') {
+      $totalNCLabel.text('Total OK Repair');
+      $('input[name="ok_repair[]"]').each(function () {
+        totalValue += parseInt($(this).val()) || 0;
       });
-      return total;
+    } else {
+      $totalNCLabel.text('Total NC');
+      $('#defectTableBody tr').each(function () {
+        const defectText = $(this).find('.defect-select option:selected').text().trim();
+        const qty = parseInt($(this).find('.qty-defect').val()) || 0;
+        if (defectText.startsWith('NC')) totalValue += qty;
+      });
+    }
+    $totalNCDisplay.text(totalValue);
+    const percent = totalCheck > 0 ? ((totalValue / totalCheck) * 100).toFixed(0) : 0;
+    $totalNCPercent.text(percent);
+  }
+
+
+  /* =====================================================
+   * TOTAL PASS THROUGH
+   * ===================================================== */
+  function updateTotalPassThrough() {
+    const post = $postSelect.val();
+    if (post === 'Incoming') { $totalPTWrapper.addClass('hidden'); return; }
+    $totalPTWrapper.removeClass('hidden');
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const totalNG    = parseInt($totalNGDisplay.text()) || 0;
+    const totalNC    = parseInt($totalNCDisplay.text()) || 0;
+    const passThrough = Math.max(totalCheck - totalNG - totalNC, 0);
+    $totalPTDisplay.text(passThrough);
+  }
+
+
+  /* =====================================================
+   * PASS RATE
+   * ===================================================== */
+  function updatePassRate() {
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    const totalOK    = parseInt($totalOkDisplay.text()) || 0;
+    const passRate   = totalCheck > 0 ? ((totalOK / totalCheck) * 100).toFixed(0) : 0;
+    $passRate.text(`${passRate}%`);
+  }
+
+
+  /* =====================================================
+   * PASS THROUGH / PERFORMANCE
+   * ===================================================== */
+  function updatePassTrough() {
+    const post       = $postSelect.val();
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    let numerator = 0;
+    if (totalCheck <= 0) { $passTroughDisplay.text('0%'); return; }
+    if (post === 'Incoming') {
+      $passTroughLabel.text('Performa');
+      const totalOK       = parseInt($totalOkDisplay.text()) || 0;
+      const totalOkRepair = parseInt($totalNCDisplay.text()) || 0;
+      numerator = totalOK - totalOkRepair;
+    } else {
+      $passTroughLabel.text('Pass Through');
+      numerator = parseInt($totalPTDisplay.text()) || 0;
+    }
+    if (numerator < 0) numerator = 0;
+    const percent = ((numerator / totalCheck) * 100).toFixed(0);
+    $passTroughDisplay.text(`${percent}%`);
+  }
+
+
+  /* =====================================================
+   * RESET SUMMARY
+   * ===================================================== */
+  function resetSummary() {
+    $totalNGDisplay.text(0);   $totalNGPercent.text(0);
+    $totalOkDisplay.text(0);   $totalOkPercent.text(0);
+    $totalNCDisplay.text(0);   $totalNCPercent.text(0);
+    $totalPTDisplay.text(0);   $passTroughDisplay.text('0%');
+  }
+
+
+  /* =====================================================
+   * MASTER UPDATE
+   * ===================================================== */
+  function updateAllSummary() {
+    updateTotalNG();
+    updateTotalOK();
+    updateNcOrOkRepair();
+    updateTotalPassThrough();
+    updatePassRate();
+    updatePassTrough();
+  }
+
+
+  /* =====================================================
+   * TOGGLE OK REPAIR
+   * ===================================================== */
+  function toggleOkRepair() {
+    const post = $('#inspection_post').val();
+    if (post === 'Incoming') {
+      $('.ok-repair-wrapper').removeClass('hidden')
+        .find('input').prop('required', true).prop('disabled', false);
+      $passTroughLabel.text('Performance');
+    } else {
+      $('.ok-repair-wrapper').addClass('hidden')
+        .find('input').prop('required', false).prop('disabled', true).val('');
+      if (post === 'Unloading') {
+        $passTroughLabel.text('Pass Through');
+      } else {
+        $passTroughLabel.text('Performance');
+      }
+    }
+  }
+
+
+  /* =====================================================
+   * VALIDASI QTY DEFECT
+   * ===================================================== */
+  function calculateTotalQty() {
+    let total = 0;
+    $('.qty-defect').each(function () { total += parseInt($(this).val()) || 0; });
+    return total;
   }
 
   function validateTotalQty(changedInput = null) {
-      const totalCheck = parseInt($('#total_check').val()) || 0;
-      const totalQty = calculateTotalQty();
-
-      if (totalCheck === 0) return;
-
-      if (totalQty > totalCheck && changedInput) {
-          const currentVal = parseInt($(changedInput).val()) || 0;
-          const selisih = totalQty - totalCheck;
-          $(changedInput).val(Math.max(currentVal - selisih, 0));
-          Swal.fire({
-              icon: 'error',
-              title: 'Qty Melebihi Total Check',
-              text: 'Akumulasi Qty Defect tidak boleh lebih dari Total Check.',
-              confirmButtonColor: '#2563eb'
-          });
+    const totalCheck = parseInt($('#total_check').val()) || 0;
+    const totalQty   = calculateTotalQty();
+    if (totalCheck === 0) return;
+    if (totalQty > totalCheck) {
+      if (changedInput) {
+        const currentVal = parseInt($(changedInput).val()) || 0;
+        const selisih    = totalQty - totalCheck;
+        const corrected  = currentVal - selisih;
+        $(changedInput).val(corrected > 0 ? corrected : 0);
       }
-      updateAllSummary();
+      Swal.fire({ icon: 'error', title: 'Qty Melebihi Total Check',
+        text: 'Akumulasi Qty Defect tidak boleh lebih dari Total Check.',
+        confirmButtonColor: '#2563eb' });
+    }
   }
 
-  function toggleOkRepair() {
-      const post = $postSelect.val();
-      if (post === 'Incoming') {
-          $('.ok-repair-wrapper').removeClass('hidden').find('input').prop('disabled', false).prop('required', true);
-          $('[data-info="total-ok-repair"]').closest('div.flex').removeClass('hidden');
-          $('[data-info="ok-repair-rate"]').closest('div.flex').removeClass('hidden');
-          $passTroughLabel.text('Performance');
-      } else {
-          $('.ok-repair-wrapper').addClass('hidden').find('input').prop('disabled', true).prop('required', false).val('');
-          $('[data-info="total-ok-repair"]').closest('div.flex').addClass('hidden');
-          $('[data-info="ok-repair-rate"]').closest('div.flex').addClass('hidden');
-          $passTroughLabel.text(post === 'Unloading' ? 'Pass Through' : 'Performance');
-      }
-  }
 
-  // ==================== SUMMARY ====================
-  function updateTotalNG() {
-      let totalNG = 0;
-      const totalCheck = parseInt($totalCheck.val()) || 0;
-
-      $('#defectTableBody tr').each(function () {
-          const defectText = $(this).find('.defect-select option:selected').text().trim();
-          const qty = parseInt($(this).find('.qty-defect').val()) || 0;
-          if (defectText.startsWith('NG')) totalNG += qty;
-      });
-
-      $totalNGDisplay.text(totalNG);
-      $totalNGPercent.text(totalCheck > 0 ? ((totalNG / totalCheck) * 100).toFixed(0) : 0);
-  }
-
-  function updateTotalOK() {
-      const totalCheck = parseInt($totalCheck.val()) || 0;
-      const totalNG = parseInt($totalNGDisplay.text()) || 0;
-      const totalOK = Math.max(totalCheck - totalNG, 0);
-      $totalOkDisplay.text(totalOK);
-      $totalOkPercent.text(totalCheck > 0 ? ((totalOK / totalCheck) * 100).toFixed(0) : 0);
-  }
-
-  function updateNcOrOkRepair() {
-      const post = $postSelect.val();
-      const totalCheck = parseInt($totalCheck.val()) || 0;
-      let totalValue = 0;
-
-      if (post === 'Incoming') {
-          $totalNCLabel.text('Total OK Repair');
-          $('input[name="ok_repair[]"]').each(function () {
-              totalValue += parseInt($(this).val()) || 0;
-          });
-      } else {
-          $totalNCLabel.text('Total NC');
-          $('#defectTableBody tr').each(function () {
-              const defectText = $(this).find('.defect-select option:selected').text().trim();
-              const qty = parseInt($(this).find('.qty-defect').val()) || 0;
-              if (defectText.startsWith('NC')) totalValue += qty;
-          });
-      }
-
-      $totalNCDisplay.text(totalValue);
-      $totalNCPercent.text(totalCheck > 0 ? ((totalValue / totalCheck) * 100).toFixed(0) : 0);
-  }
-
-  function updateTotalPassThrough() {
-      const post = $postSelect.val();
-      if (post === 'Incoming') {
-          $totalPTWrapper.addClass('hidden');
-          return;
-      }
-      $totalPTWrapper.removeClass('hidden');
-      const totalCheck = parseInt($totalCheck.val()) || 0;
-      const totalNG = parseInt($totalNGDisplay.text()) || 0;
-      const totalNC = parseInt($totalNCDisplay.text()) || 0;
-      const passThrough = Math.max(totalCheck - totalNG - totalNC, 0);
-      $totalPTDisplay.text(passThrough);
-  }
-
-  function updatePassRate() {
-      const totalCheck = parseInt($totalCheck.val()) || 0;
-      const totalOK = parseInt($totalOkDisplay.text()) || 0;
-      $passRate.text(totalCheck > 0 ? ((totalOK / totalCheck) * 100).toFixed(0) + '%' : '0%');
-  }
-
-  function updatePassTrough() {
-      const post = $postSelect.val();
-      const totalCheck = parseInt($totalCheck.val()) || 0;
-      if (totalCheck <= 0) { $passTroughDisplay.text('0%'); return; }
-
-      let numerator = 0;
-      if (post === 'Incoming') {
-          const totalOK = parseInt($totalOkDisplay.text()) || 0;
-          const totalOkRepair = parseInt($totalNCDisplay.text()) || 0;
-          numerator = Math.max(totalOK - totalOkRepair, 0);
-          $passTroughLabel.text('Performance');
-      } else {
-          numerator = parseInt($totalPTDisplay.text()) || 0;
-          $passTroughLabel.text(post === 'Unloading' ? 'Pass Through' : 'Performance');
-      }
-      $passTroughDisplay.text(((numerator / totalCheck) * 100).toFixed(0) + '%');
-  }
-
-  function updateAllSummary() {
-      updateTotalNG();
-      updateTotalOK();
-      updateNcOrOkRepair();
-      updateTotalPassThrough();
-      updatePassRate();
-      updatePassTrough();
-  }
-
-  // ==================== CREATE ROW ====================
-  function createRow(index, defects = [], existing = null) {
-
+  /* =====================================================
+   * CREATE ROW  ← sama persis dengan Create, +param prefill
+   * ===================================================== */
+  function createRow(index, defects = [], prefill = {}) {
     const $row = $('<tr>');
 
     let defectOptions = '<option value="">-- Choose Defect --</option>';
     defects.forEach(defect => {
-        defectOptions += `
-            <option value="${defect.id}" data-defect="${defect.defect}">
-                ${defect.category} - ${defect.defect}
-            </option>`;
+      const selected = prefill.defect_id && parseInt(prefill.defect_id) === parseInt(defect.id)
+        ? 'selected' : '';
+      defectOptions += `
+        <option value="${defect.id}"
+          data-defect="${defect.defect}"
+          ${selected}>
+          ${defect.category} - ${defect.defect}
+        </option>`;
     });
+
+    // Jika prefill ada tapi defect tidak ada di list (misal defect beda post),
+    // tambahkan sebagai option sementara agar nilai terbaca
+    if (prefill.defect_id && defects.length === 0) {
+      defectOptions += `
+        <option value="${prefill.defect_id}" selected
+          data-defect="${prefill.defect_name ?? ''}">
+          ${prefill.defect_category ?? ''} - ${prefill.defect_name ?? ''}
+        </option>`;
+    }
 
     $row.html(`
-        <td class="border p-2 text-center w-[20px]">${index}</td>
-
-        <td class="border p-2 min-w-[140px]">
-            <select name="defect_id[]" class="w-full border rounded defect-select">
-                ${defectOptions}
-            </select>
-        </td>
-
-        <td class="border p-2 w-[60px]">
-            <input type="number" name="qty[]" 
-                   class="qty-defect w-full border rounded px-2 py-1 text-right" required>
-        </td>
-
-        <td class="border p-2 w-[60px] ok-repair-wrapper">
-            <input type="number" name="ok_repair[]" 
-                   class="qty-ok-repair w-full border rounded px-2 py-1 text-right">
-        </td>
-
-        <td class="border p-2">
-            <input type="text" name="note_defect[]" 
-                   class="w-full border rounded px-2 py-1">
-        </td>
-
-        <td class="border p-2 text-center">
-            <button type="button" class="removeBtn text-red-600">X</button>
-        </td>
+      <td class="border p-2 text-center w-[20px]">${index}</td>
+      <td class="border p-2 min-w-[140px]">
+        <select name="defect_id[]" class="w-full border rounded defect-select">
+          ${defectOptions}
+        </select>
+      </td>
+      <td class="border p-2 w-[60px]">
+        <div class="flex items-stretch">
+          <input type="number" name="qty[]" min="1"
+            value="${prefill.qty ?? ''}"
+            class="flex-1 border border-gray-300 border-r-0 rounded-l-md px-3 py-2
+                   text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300
+                   qty-defect text-right" required>
+          <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100
+                       border border-gray-300 border-l-0 rounded-r-md">PCS</span>
+        </div>
+      </td>
+      <td class="border p-2 w-[60px] ok-repair-wrapper">
+        <div class="flex items-stretch">
+          <input type="number" name="ok_repair[]"
+            value="${prefill.ok_repair ?? ''}"
+            class="flex-1 border border-gray-300 border-r-0 rounded-l-md px-3 py-2
+                   text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300
+                   qty-ok-repair text-right">
+          <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100
+                       border border-gray-300 border-l-0 rounded-r-md">PCS</span>
+        </div>
+      </td>
+      <td class="border p-2 min-w-[120px]">
+        <input type="text" name="note_defect[]"
+          value="${prefill.note_defect ?? ''}"
+          class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
+      </td>
+      <td class="border p-2 text-center min-w-[60px]">
+        <button type="button" class="removeBtn text-red-600 hover:text-red-800">X</button>
+      </td>
     `);
 
-    // isi data existing (EDIT MODE)
-    if (existing) {
-        $row.find('.defect-select').val(String(existing.defect_id));
-        $row.find('.qty-defect').val(existing.qty);
-        $row.find('.qty-ok-repair').val(existing.ok_repair);
-        $row.find('[name="note_defect[]"]').val(existing.note);
-    }
+    // Init Select2 pada row ini
+    const $defectSelect = $row.find('.defect-select');
+    $defectSelect.select2({ placeholder: '-- Choose Defect --', allowClear: true, width: '100%' });
 
-    // limit ok repair
+    // Duplicate check
+    $defectSelect.on('select2:select', function (e) {
+      const currentDefect = e.params.data.element.dataset.defect?.trim().toLowerCase();
+      if (!currentDefect) return;
+      let isDuplicate = false;
+      $('.defect-select').not(this).each(function () {
+        const data = $(this).select2('data');
+        if (!data.length) return;
+        const defect = data[0].element.dataset.defect?.trim().toLowerCase();
+        if (defect === currentDefect) isDuplicate = true;
+      });
+      if (isDuplicate) {
+        Swal.fire({ icon: 'warning', title: 'Duplikasi Defect!',
+          text: 'Defect yang sama sudah dipilih di baris lain.', confirmButtonText: 'OK' });
+        $(this).val(null).trigger('select2:clear');
+      }
+    });
+
+    // Validasi OK Repair <= Qty
     $row.find('.qty-ok-repair').on('input', function () {
-        const qtyDefect = parseInt($row.find('.qty-defect').val()) || 0;
-        const qtyOkRepair = parseInt($(this).val()) || 0;
-        if (qtyOkRepair > qtyDefect) $(this).val(qtyDefect);
-    });
-
-    return $row;
-}
-
-
-function applyRowPlugins($row){
-
-    const $select = $row.find('.defect-select');
-
-    // destroy kalau pernah di-init (anti double init)
-    if ($select.hasClass('select2-hidden-accessible')) {
-        $select.select2('destroy');
-    }
-
-    // delay 1 frame supaya DOM selesai render
-    requestAnimationFrame(() => {
-
-        $select.select2({
-            placeholder: '-- Choose Defect --',
-            allowClear: true,
-            width: '100%',
-            dropdownParent: $('#defectTableBody') // 🔥 penting!
-        });
-
-        $select.trigger('change');
-    });
-}
-
-
-
- // ==================== LOAD EXISTING DATA ====================
-
-// kalau sudah ada row dari blade → berarti EDIT MODE
-$.getJSON(`/qc/get-defects/${post}`, function (defects) {
-
-    $('#defectTableBody').empty();
-    rowIndex = 1;
-
-    existingRows.forEach(data => {
-
-        const $row = createRow(rowIndex++, defects, data);
-
-        $('#defectTableBody').append($row);
-
-        applyRowPlugins($row);
+      const qtyDefect   = parseInt($row.find('.qty-defect').val()) || 0;
+      const qtyOkRepair = parseInt($(this).val()) || 0;
+      if (qtyOkRepair > qtyDefect) {
+        Swal.fire({ icon: 'error', title: 'Input tidak valid',
+          text: 'Qty OK Repair tidak boleh melebihi Qty Defect di baris ini.',
+          confirmButtonText: 'OK' });
+        $(this).val(qtyDefect);
+      }
     });
 
     toggleOkRepair();
-    updateAllSummary();
-});
+    return $row;
+  }
 
 
+  /* =====================================================
+   * INIT SELECT2 (header fields)
+   * ===================================================== */
+  $('#inspection_post').select2({ placeholder: "-- Pilih Inspection Post --", allowClear: true, width: '100%' });
+  $('#supplier').select2({ placeholder: "-- Pilih Supplier --", allowClear: true, width: '100%' });
+  $('#customer').select2({ placeholder: "-- Pilih Customer --", allowClear: true, width: '100%' });
+  $('#check_method').select2({ placeholder: "-- Pilih Metode Inspection --", allowClear: true, width: '100%' });
+  $('#spraybooth').select2({ placeholder: "-- Pilih Booth --", allowClear: true, width: '100%' });
+
+  feather.replace();
 
 
-  // ==================== EVENTS ====================
-  $('#addRowBtn').on('click', function () {
-      if (!post) return alert('Select inspection post first!');
-      $.getJSON(`/qc/get-defects/${post}`, function (defects) {
-          rowIndex++;
-         const $row = createRow(++rowIndex, defects);
-
-        $('#defectTableBody').append($row);
-          applyRowPlugins($row);
-          toggleOkRepair();
-          updateAllSummary();
-      });
-  });
-
-  $('#defectTableBody').on('click', '.removeBtn', function () {
-      $(this).closest('tr').remove();
-      $('#defectTableBody tr').each(function (i) { $(this).find('td:first').text(i + 1); });
-      rowIndex = $('#defectTableBody tr').length;
-      toggleOkRepair();
-      updateAllSummary();
-  });
-
-  $(document).on('input', '.qty-defect', function () { validateTotalQty(this); updateAllSummary(); });
-  $('#total_check').on('input', function () { validateTotalQty(); updateAllSummary(); });
-  $checkMethod.on('change', updateTotalCheck);
-  $qtyReceiving.on('input', updateTotalCheck);
-});
-
-$('#inspectionForm').off('submit').on('submit', function (e) {
-    e.preventDefault();
-
-    const $form = $(this);
-    const $btn = $('#submitBtn');
-    const inspectionId = $form.data('id'); // penting untuk update
-
-    // ===== Disable Button + Spinner =====
-    const originalHtml = $btn.html();
-    $btn.prop('disabled', true)
-        .addClass('opacity-50 cursor-not-allowed')
-        .html('<i class="fa fa-spinner fa-spin mr-1"></i> Saving...');
-
-    const formData = new FormData(this);
-
-    // ===== Method spoofing untuk PUT =====
-    if (inspectionId) formData.set('_method', 'PUT');
-
-    // ===== Kirim inspection ID =====
-    formData.set('inspection_id', inspectionId);
-
-    // ===== Incoming vs Non Incoming =====
-    const post = $('#inspection_post').val();
-    const supplierCode = (post === 'Incoming')
-        ? $('#supplier').val()
-        : $('#customer').val();
-    formData.set('supplier_code', supplierCode);
-
-    // ===== Summary =====
-    formData.set('total_check', $('#totalCheckDisplay').text() || 0);
-    formData.set('total_ok', $('#totalOkDisplay').text() || 0);
-    formData.set('total_ng', $('#totalNGDisplay').text() || 0);
-    formData.set('total_ok_repair', $('#totalNCDisplay').text() || 0);
-    formData.set('pass_rate', $('#passRate').text() || 0);
-    formData.set('pass_through', $('#passTroughDisplay').text() || 0);
-
-    // ===== Bersihkan FormData defect =====
-    formData.delete('defect_id[]');
-    formData.delete('qty[]');
-    formData.delete('ok_repair[]');
-    formData.delete('note_defect[]');
-
-    // ===== Loop semua row defect =====
-    $('#defectTableBody tr').each(function(i, tr) {
-        const defectId = $(tr).find('.defect-select').val();
-        const qty      = $(tr).find('.qty-defect').val() || 0;
-        const okRepair = $(tr).find('.qty-ok-repair').val() || 0;
-        const note     = $(tr).find('input[name="note_defect[]"]').val() || null;
-
-        if (!defectId) return;
-
-        formData.append('defect_id[]', defectId);
-        formData.append('qty[]', qty);
-        formData.append('ok_repair[]', okRepair);
-        formData.append('note_defect[]', note);
-    });
-
-    // ===== AJAX =====
-    $.ajax({
-        url: inspectionId ? `/qc/inspections/${inspectionId}` : '/qc/inspections/store',
-        method: 'POST', // PUT dikirim via _method
-        data: formData,
-        processData: false,
-        contentType: false,
-
-        success: function (res) {
-            Swal.fire({
-                icon: 'success',
-                title: inspectionId ? 'Updated' : 'Saved',
-                text: res.message,
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => location.reload());
-        },
-
-        error: function (xhr) {
-            let msg = 'Something went wrong';
-
-            if (xhr.status === 422 && xhr.responseJSON.errors) {
-                msg = Object.values(xhr.responseJSON.errors)
-                    .map(e => e.join(', '))
-                    .join('<br>');
-            }
-
-            Swal.fire('Error', msg, 'error');
-
-            $btn.prop('disabled', false)
-                .removeClass('opacity-50 cursor-not-allowed')
-                .html(originalHtml);
-        }
-    });
-});
-
-
-
-
-function toggleInspectionPost(post) {
-
+  /* =====================================================
+   * INSPECTION POST CHANGE (logic tampil/sembunyi field)
+   * ===================================================== */
+  function applyPostVisibility(post) {
     const supplierWrap   = $('#supplier-wrapper');
     const customerWrap   = $('#customer-wrapper');
     const qtyWrap        = $('#qty-received-wrapper');
     const checkMethod    = $('#check_method_container');
     const sprayboothWrap = $('#spraybooth-wrapper');
 
-    // ========= RESET SEMUA =========
     supplierWrap.addClass('hidden');
     customerWrap.addClass('hidden');
     qtyWrap.addClass('hidden');
     checkMethod.addClass('hidden');
     sprayboothWrap.addClass('hidden');
 
-    $('#supplier, #customer, #spraybooth').prop('required', false);
-    $('#qty_received').prop('required', false).val('');
-    $('#check_method').prop('required', false).val('');
+    $('#supplier, #customer').prop('required', false);
+    $('#qty_received').prop('required', false);
+    $('#check_method').prop('required', false);
+    $('#spraybooth').prop('required', false);
 
-    // ========= LOGIC =========
     if (post === 'Incoming') {
+      supplierWrap.removeClass('hidden');
+      $('#supplier').prop('required', true);
+      qtyWrap.removeClass('hidden');
+      $('#qty_received').prop('required', true);
+      checkMethod.removeClass('hidden');
+      $('#check_method').prop('required', true);
+    } else if (post) {
+      customerWrap.removeClass('hidden');
+      $('#customer').prop('required', true);
+      sprayboothWrap.removeClass('hidden');
+      $('#spraybooth').prop('required', true);
+    }
+  }
 
-        // ✅ Supplier aktif
-        supplierWrap.removeClass('hidden');
-        $('#supplier').prop('required', true);
+  // Terapkan visibility berdasarkan nilai yang sudah tersimpan
+  applyPostVisibility(inspectionPost);
 
-        // ✅ Incoming only fields
-        qtyWrap.removeClass('hidden');
-        checkMethod.removeClass('hidden');
+  // Sinkronkan total check display
+  syncTotalCheckDisplay();
+  updateAllSummary();
 
-        $('#qty_received').prop('required', true);
-        $('#check_method').prop('required', true);
+  // Event change post
+  $postSelect.on('change', function () {
+    const post = $(this).val();
+    applyPostVisibility(post);
+    resetSummary();
+    updateAllSummary();
+    toggleOkRepair();
 
-        // reset customer
-        $('#customer').val(null).trigger('change');
-
-    } 
-    else if (post) {
-
-        // ✅ Customer aktif
-        customerWrap.removeClass('hidden');
-        $('#customer').prop('required', true);
-
-        // ✅ Spraybooth aktif
-        sprayboothWrap.removeClass('hidden');
-        $('#spraybooth').prop('required', true);
-
-        // reset supplier
-        $('#supplier').val(null).trigger('change');
+    // Reset Part & supplier/customer pilihan lama
+    $('#part_name').val(null).trigger('change');
+    if (post === 'Incoming') {
+      $('#customer').val(null).trigger('change');
+    } else {
+      $('#supplier').val(null).trigger('change');
     }
 
-    // reset part setiap post berubah
-    $('#part_name').val(null).trigger('change');
-}
+    // Reload defects sesuai post
+    if (!post) return;
+    $.getJSON(`/qc/get-defects/${post}`, function (defects) {
+      $('#defectTableBody').empty();
+      rowIndex = 1;
+      $('#defectTableBody').append(createRow(rowIndex, defects));
+      toggleOkRepair();
+      feather.replace();
+    });
+  });
 
-$('#inspection_post').on('change', function () {
-    toggleInspectionPost($(this).val());
+
+  /* =====================================================
+   * LOAD EXISTING DEFECTS (saat halaman pertama dibuka)
+   * ===================================================== */
+  if (inspectionPost) {
+    $.getJSON(`/qc/get-defects/${inspectionPost}`, function (defects) {
+      $('#defectTableBody').empty();
+      rowIndex = 0;
+
+      if (existingDefects && existingDefects.length > 0) {
+        existingDefects.forEach(function (detail) {
+          rowIndex++;
+          const prefill = {
+            defect_id:       detail.defect_id,
+            defect_name:     detail.defect_name   ?? detail.defect?.defect   ?? '',
+            defect_category: detail.defect_category ?? detail.defect?.category ?? '',
+            qty:             detail.qty,
+            ok_repair:       detail.ok_repair,
+            note_defect:     detail.note_defect
+          };
+          $('#defectTableBody').append(createRow(rowIndex, defects, prefill));
+        });
+      } else {
+        rowIndex = 1;
+        $('#defectTableBody').append(createRow(rowIndex, defects));
+      }
+
+      toggleOkRepair();
+      feather.replace();
+      updateAllSummary();
+    });
+  } else {
+    rowIndex = 1;
+    $('#defectTableBody').append(createRow(rowIndex, []));
+    toggleOkRepair();
+  }
+
+
+  /* =====================================================
+   * ADD ROW
+   * ===================================================== */
+  $('#addRowBtn').on('click', function () {
+    const post = $('#inspection_post').val();
+    if (!post) return alert('Select inspection post first!');
+    $.getJSON(`/qc/get-defects/${post}`, function (defects) {
+      rowIndex++;
+      $('#defectTableBody').append(createRow(rowIndex, defects));
+      toggleOkRepair();
+      feather.replace();
+    });
+  });
+
+
+  /* =====================================================
+   * REMOVE ROW
+   * ===================================================== */
+  $('#defectTableBody').on('click', '.removeBtn', function () {
+    $(this).closest('tr').remove();
+    $('#defectTableBody tr').each(function (i) {
+      $(this).find('td:first').text(i + 1);
+    });
+    rowIndex = $('#defectTableBody tr').length;
+    toggleOkRepair();
+    updateAllSummary();
+  });
+
+
+  /* =====================================================
+   * PART SELECT2 (AJAX)
+   * ===================================================== */
+  $('#part_name').select2({
+    placeholder: "-- Select Part --",
+    allowClear: true,
+    width: '100%',
+    ajax: {
+      url: '/qc/get-articles',
+      dataType: 'json',
+      data: params => {
+        const post = $('#inspection_post').val();
+        return {
+          term: params.term,
+          post: post,
+          supplier: post === 'Incoming' ? $('#supplier').val() : $('#customer').val()
+        };
+      },
+      processResults: data => {
+        articleMap = {};
+        data.forEach(item => { articleMap[item.article_code] = item; });
+        return { results: data.map(item => ({ id: item.article_code, text: item.description })) };
+      },
+      cache: true
+    }
+  });
+
+  $('#inspection_post, #supplier, #customer').on('change', function () {
+    // Hanya reset part jika bukan inisiasi awal
+    if ($(this).data('initialized')) {
+      $('#part_name').val(null).trigger('change');
+    }
+    $(this).data('initialized', true);
+  });
+
+  $('#part_name').on('change', function () {
+    const data = articleMap[$(this).val()];
+    if (!data) return;
+    $('[data-info="part-name"]').text(data.description || '-');
+    $('[data-info="supplier"]').text(data.partner_name || '-');
+    $('#supplier_code').val(data.partner_code || '');
+  });
+
+
+  /* =====================================================
+   * EVENTS (total check, qty, dll)
+   * ===================================================== */
+  $checkMethod.on('change', updateTotalCheck);
+  $qtyReceiving.on('input', updateTotalCheck);
+
+  $totalCheck.on('input', function () {
+    syncTotalCheckDisplay();
+    updateAllSummary();
+  });
+
+  $(document).on('input change', '.qty-defect, .defect-select, .qty-ok-repair', updateAllSummary);
+  $(document).on('click', '.removeBtn', function () {
+    $(this).closest('tr').remove();
+    updateAllSummary();
+  });
+
+  $(document).on('input', '.qty-defect', function () { validateTotalQty(this); });
+  $('#total_check').on('input', function () { validateTotalQty(); });
+
+
+  /* =====================================================
+   * RESET BUTTON
+   * ===================================================== */
+  $('#resetBtn').on('click', function () {
+    Swal.fire({
+      icon: 'question',
+      title: 'Reset Form?',
+      text: 'Data yang belum disimpan akan direset ke nilai awal.',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Reset',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#374151'
+    }).then(result => {
+      if (result.isConfirmed) location.reload();
+    });
+  });
+
+
+  /* =====================================================
+   * SUBMIT → PUT ke /qc/inspections/{id}
+   * ===================================================== */
+  $('#inspectionForm').off('submit').on('submit', function (e) {
+    e.preventDefault();
+
+    const $btn = $('#submitBtn');
+    const originalHtml = $btn.html();
+    $btn.prop('disabled', true)
+      .addClass('opacity-50 cursor-not-allowed')
+      .html('<i class="fa fa-spinner fa-spin mr-1"></i> Updating...');
+
+    const formData = new FormData(this);
+    const post = $('#inspection_post').val();
+    const supplierCode = (post === 'Incoming') ? $('#supplier').val() : $('#customer').val();
+    formData.set('supplier_code', supplierCode);
+
+    formData.set('total_check',    $('#totalCheckDisplay').text() || 0);
+    formData.set('total_ok',       $('#totalOkDisplay').text()    || 0);
+    formData.set('total_ng',       $('#totalNGDisplay').text()    || 0);
+    formData.set('total_ok_repair', $('#totalNCDisplay').text()   || 0);
+
+    // Override method → PUT
+    formData.set('_method', 'PUT');
+
+    formData.delete('defect_id[]');
+    formData.delete('qty[]');
+    formData.delete('ok_repair[]');
+    formData.delete('note_defect[]');
+
+    $('#defectTableBody tr').each(function (i, tr) {
+      const defectId = $(tr).find('.defect-select').val();
+      const qty      = $(tr).find('.qty-defect').val() || 0;
+      const okRepair = $(tr).find('.qty-ok-repair').val() || 0;
+      const note     = $(tr).find('input[name="note_defect[]"]').val() || null;
+      if (!defectId) return;
+      formData.append('defect_id[]', defectId);
+      formData.append('qty[]', qty);
+      formData.append('ok_repair[]', okRepair);
+      formData.append('note_defect[]', note);
+    });
+
+    const inspectionId = $('input[name="inspection_id"]').val();
+
+    $.ajax({
+      url: `/qc/inspections/${inspectionId}`,
+      method: 'POST',         // FormData pakai POST + _method=PUT
+      data: formData,
+      processData: false,
+      contentType: false,
+
+      success: function (res) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Updated',
+          text: res.message,
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.href = res.redirect ?? `/qc/inspections/${inspectionId}`;
+        });
+      },
+
+      error: function (xhr) {
+        let msg = 'Something went wrong';
+        if (xhr.status === 422 && xhr.responseJSON?.errors) {
+          msg = Object.values(xhr.responseJSON.errors).map(e => e.join(', ')).join('<br>');
+        }
+        Swal.fire('Error', msg, 'error');
+        $btn.prop('disabled', false)
+          .removeClass('opacity-50 cursor-not-allowed')
+          .html(originalHtml);
+      }
+    });
+  });
+
 });
-
-
-
 </script>
 @endpush
 @endsection
