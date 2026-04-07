@@ -1003,7 +1003,7 @@ $(document).ready(function () {
     const inspectionId = $('input[name="inspection_id"]').val();
 
     $.ajax({
-      url: `/qc/inspections/${inspectionId}`,
+      url: `/qc/inspections/${inspectionId}/update`,
       method: 'POST',         // FormData pakai POST + _method=PUT
       data: formData,
       processData: false,
