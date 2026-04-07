@@ -1017,7 +1017,7 @@ $(document).ready(function () {
           timer: 1500,
           showConfirmButton: false
         }).then(() => {
-          window.location.href = res.redirect ?? `/qc/inspections/${inspectionId}`;
+          window.location.href = res.redirect ?? `/qc/inspections/dashboard`;
         });
       },
 
