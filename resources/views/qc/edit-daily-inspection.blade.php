@@ -295,7 +295,7 @@
 {{-- ===== DATA EXISTING DEFECTS (JSON untuk JS) ===== --}}
 <script>
   // Data existing dari controller
-  const existingDefects = @json($inspection->details ?? []);
+  const existingDefects = @json($inspection->defects ?? []);
   // Contoh struktur: [{defect_id, qty, ok_repair, note_defect, defect_category, defect_name}, ...]
 
   const inspectionPost  = @json($inspection->inspection_post ?? '');
