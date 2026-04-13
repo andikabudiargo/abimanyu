@@ -258,9 +258,10 @@
                                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                                         <i data-feather="user" class="w-4 h-4 text-gray-400"></i>
                                     </span>
-                                    <input type="text" id="assigned_to" name="assigned_to"
-                                        placeholder="Search user..."
-                                        class="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm shadow-sm focus:ring-2 focus:ring-indigo-400 transition" />
+                                     <select name="assigned_to" id="assigned_to"
+                                    class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm shadow-sm focus:ring-2 focus:ring-indigo-400">
+                                    <option value="">-- Choose PIC --</option>
+                                </select>
                                 </div>
                             </div>
 
