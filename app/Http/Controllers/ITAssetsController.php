@@ -260,7 +260,7 @@ $actionButtons = '
 
 ->addColumn('location', function ($row) {
     $icon = '<i data-feather="home" class="w-3 h-3 mr-2"></i>';
-    return '<span class="flex items-center">'.$icon.'<span>'.($row->location_update ?? '-').'</span></span>';
+    return '<span class="flex items-center">'.$icon.'<span>'.($row->location ?? '-').'</span></span>';
 })
 ->addColumn('asset_type', function ($row) {
     $icon = '<i data-feather="tag" class="w-3 h-3 mr-2"></i>';
