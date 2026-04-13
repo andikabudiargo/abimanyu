@@ -260,7 +260,7 @@ $actionButtons = '
 
 ->addColumn('location', function ($row) {
     $icon = '<i data-feather="home" class="w-3 h-3 mr-2"></i>';
-    return '<span class="flex items-center">'.$icon.'<span>'.($row->location ?? '-').'</span></span>';
+    return '<span class="flex items-center">'.$icon.'<span>'.($row->location_update ?? '-').'</span></span>';
 })
 ->addColumn('asset_type', function ($row) {
     $icon = '<i data-feather="tag" class="w-3 h-3 mr-2"></i>';
@@ -299,6 +299,8 @@ $actionButtons = '
             'assignment_type'=> 'required|string',
             'conditions'      => 'nullable|string',
             'photo'          => 'nullable|image|mimes:jpg,jpeg,png|max:51200', // 50MB
+            'location'          => 'nullable|string', // 50MB
+            'location_update'          => 'nullable|string', // 50MB
             'note'          => 'nullable|string', // 50MB
         ]);
 

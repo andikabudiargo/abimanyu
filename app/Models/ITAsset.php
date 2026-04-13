@@ -11,7 +11,7 @@ class ITAsset extends Model
     protected $fillable = [
         'asset_number','asset_name','asset_type','acquistion_type','supplier_id',
         'purchase_date','warranty','assignment_type','assigned_to',
-        'location','conditions','photo', 'status', 'note'
+        'location', 'location_update', 'conditions','photo', 'status', 'note'
     ];
 
     public function user()
