@@ -539,7 +539,7 @@ $qtyFormatted = in_array($row->location, $twoDecimalLocations)
 
      // 🔥 CEK USER LOGIN
     $editButton = '';
-    if (auth()->id() == 2) {
+    if (auth()->id() == 53) {
         $editButton = '
             <a href="' . $editUrl . '" class="block px-4 py-2 hover:bg-gray-100">
                 <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
