@@ -516,8 +516,12 @@
             <li class="pc-item"><a href="#!" class="pc-link">Resign</a></li>
              </ul>
             </li>
-           
+           @endif
 
+           @if(
+    in_array('Information & Technology', $userDepartments) || 
+    in_array('Superuser', $userRoles)
+)
              <li class="pc-item pc-caption">
           <label>IT & Network Management</label>
           <i data-feather="monitor"></i>
@@ -578,7 +582,7 @@
           <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="file-plus"></i> </span><span
               class="pc-mtext">Document Management</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span></a>
           <ul class="pc-submenu">
-            <li class="pc-item"><a class="pc-link" href="{{ route('mr.doc.index') }}">Document Control Center</a></li>
+            <li class="pc-item"><a class="pc-link" href="{{ route('mr.doc.index') }}">Document Registration</a></li>
              </ul>
             </li>
             <li class="pc-item pc-hasmenu">
