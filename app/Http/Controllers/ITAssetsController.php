@@ -238,20 +238,31 @@ $actionButtons = '
     })
 
 ->addColumn('assigned_to', function ($row) {
+
+    // 1. Kalau status loaned → ambil dari AssetLoan
     if (strtolower($row->status) === 'loaned') {
-        // Ambil record peminjaman aktif dari AssetLoan
         $loan = \App\Models\AssetLoan::where('asset_id', $row->id)
-                    ->whereNull('date_return') // null artinya masih dipinjam
+                    ->whereNull('date_return')
                     ->latest()
                     ->first();
 
-        if ($loan && $loan->user) { // jika ada peminjaman aktif
+        if ($loan && $loan->user) {
             return $loan->user->name;
         }
     }
 
-    // Jika tidak sedang dipinjam, ambil assigned_to dari ITAsset
-    return $row->user ? ($row->user->name ?? '-') : '-';
+    // 2. Kalau tidak loaned → pakai assigned_to (user relasi)
+    if ($row->user && $row->user->name) {
+        return $row->user->name;
+    }
+
+    // 3. 🔥 Fallback ke PIC kalau assigned_to kosong
+    if (!empty($row->pic)) {
+        return $row->pic;
+    }
+
+    // 4. Default
+    return '-';
 })
 
 ->addColumn('supplier_id', function ($row) {
