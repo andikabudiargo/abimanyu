@@ -157,32 +157,36 @@ $actionButtons = '
 })
 
 ->addColumn('warranty', function ($row) {
-    if (!$row->purchase_date || !$row->warranty) {
+
+    // Validasi lebih ketat
+    if (empty($row->purchase_date) || !is_numeric($row->warranty)) {
         return '-';
     }
 
-    $purchaseDate = Carbon::parse($row->purchase_date);
-    $now = Carbon::now();
+    $purchaseDate = \Carbon\Carbon::parse($row->purchase_date);
+    $now = \Carbon\Carbon::now();
+
+    // CAST ke integer (WAJIB)
+    $warrantyMonths = (int) $row->warranty;
 
     // Hitung tanggal garansi berakhir
-    $warrantyEnd = $purchaseDate->copy()->addMonths($row->warranty);
+    $warrantyEnd = $purchaseDate->copy()->addMonths($warrantyMonths);
 
     // Jika garansi sudah habis
     if ($now->greaterThan($warrantyEnd)) {
         return '<span class="text-red-500 font-semibold">Expired</span>';
     }
 
-    // Hitung sisa waktu garansi
+    // Hitung sisa waktu
     $remainingDays = $now->diffInDays($warrantyEnd);
 
-    // Kalau kurang dari 30 hari → tampilkan hari
     if ($remainingDays < 30) {
         return '<span class="text-green-500 font-semibold">' . 
             $remainingDays . ' day' . ($remainingDays != 1 ? 's' : '') . ' remaining</span>';
     }
 
-    // Jika lebih dari 30 hari → tampilkan dalam bulan
     $remainingMonths = floor($remainingDays / 30);
+
     return '<span class="text-green-500 font-semibold">' . 
         $remainingMonths . ' month' . ($remainingMonths > 1 ? 's' : '') . ' remaining</span>';
 })
