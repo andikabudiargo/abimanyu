@@ -537,6 +537,16 @@ $qtyFormatted = in_array($row->location, $twoDecimalLocations)
     ? number_format($row->qty, 2)
     : number_format($row->qty, 0);
 
+     // 🔥 CEK USER LOGIN
+    $editButton = '';
+    if (auth()->id() == 2) {
+        $editButton = '
+            <a href="' . $editUrl . '" class="block px-4 py-2 hover:bg-gray-100">
+                <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
+            </a>
+        ';
+    }
+
     $result[] = [
         'DT_RowAttr' => [
             'data-id' => $row->sto_id,
@@ -550,9 +560,8 @@ $qtyFormatted = in_array($row->location, $twoDecimalLocations)
           </button>
           <div id="' . $dropdownId . '" class="hidden origin-top-right absolute right-100 mt-2 w-28 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
             <div class="py-1 text-sm text-gray-700">
-             <a href="' . $editUrl . '" class="block px-4 py-2 hover:bg-gray-100">
-                <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
-              </a>
+            
+              ' . $editButton . '
              <button onclick="deleteSTO(' . $row->sto_id . ')" class="w-full text-red-500 text-left px-4 py-2 hover:bg-red-500 hover:text-gray-100">
     <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
 </button>
