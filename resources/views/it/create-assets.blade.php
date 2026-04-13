@@ -304,6 +304,19 @@
                                 </p>
                             </div>
 
+                            <div id="assignedToDept" class="hidden col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Person in Charge (PIC) <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                        <i data-feather="user" class="w-4 h-4 text-gray-400"></i>
+                                    </span>
+                                     <input type="text" name="assigned_to" id="assigned_to"
+                                    class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm shadow-sm focus:ring-2 focus:ring-indigo-400">
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -478,12 +491,14 @@ $(document).ready(function () {
         $('#assignedToGroup').addClass('hidden');
         $('#locationGroup').addClass('hidden');
         $('#locationUpdateGroup').addClass('hidden');
+        $('#assignedToDept').addClass('hidden');
 
         if (val === 'Personal') {
             $('#assignedToGroup').removeClass('hidden');
         } else if (val) {
             $('#locationGroup').removeClass('hidden');
             $('#locationUpdateGroup').removeClass('hidden');
+            $('#assignedToDept').removeClass('hidden');
         }
     });
 
