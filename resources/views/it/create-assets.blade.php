@@ -274,9 +274,9 @@
                                     @php
                                         $locations = [
                                             'Ruang General Affair', 'Ruang HR', 'Ruang Server',
-                                            'Pantry', 'Lobby Lt.1', 'Lobby Lt.2', 'Resepsionis',
+                                            'Pantry', 'Lobby Lt.1', 'R. Accounting', 'R. Purchasing & Marketing', 'Resepsionis',
                                             'Ruang Office LT.1', 'Ruang Office LT.2',
-                                            'Ruang Bima', 'Ruang Arjuna',
+                                            'Ruang Bima', 'Ruang Arjuna', 'Ruang Srikandi', Ruang Yudhistira',
                                         ];
                                     @endphp
                                     <option value="">-- Choose Location --</option>
