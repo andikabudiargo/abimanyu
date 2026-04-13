@@ -306,12 +306,27 @@ $actionButtons = '
 
         $data = $request->all();
 
-        // Upload photo jika ada
-      if ($request->hasFile('photo')) {
+       // Upload photo jika ada
+if ($request->hasFile('photo')) {
+
     $file = $request->file('photo');
-    $filename = time().'_'.$file->getClientOriginalName();
-    $file->move(public_path('uploads/assets'), $filename);
-    $data['photo'] = 'uploads/assets/'.$filename;
+
+    // rapihin nama file (hindari spasi & karakter aneh)
+    $filename = time() . '_' . preg_replace('/\s+/', '-', $file->getClientOriginalName());
+
+    // PATH FIX ke public_html
+    $destination = $_SERVER['DOCUMENT_ROOT'] . '/uploads/assets';
+
+    // buat folder kalau belum ada
+    if (!file_exists($destination)) {
+        mkdir($destination, 0755, true);
+    }
+
+    // pindahkan file
+    $file->move($destination, $filename);
+
+    // simpan ke database
+    $data['photo'] = 'uploads/assets/' . $filename;
 }
 
 
