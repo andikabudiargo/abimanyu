@@ -301,6 +301,7 @@ $actionButtons = '
             'photo'          => 'nullable|image|mimes:jpg,jpeg,png|max:51200', // 50MB
             'location'          => 'nullable|string', // 50MB
             'location_update'          => 'nullable|string', // 50MB
+            'pic'               => 'nullable|string',
             'note'          => 'nullable|string', // 50MB
         ]);
 

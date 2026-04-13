@@ -309,7 +309,7 @@
                                     Person in Charge (PIC) <span class="text-red-500">*</span>
                                 </label>
                                 <div>
-                                     <input type="text" name="assigned_to" id="assigned_to"
+                                     <input type="text" name="pic" id="pic"
                                     class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm shadow-sm focus:ring-2 focus:ring-indigo-400">
                                 </div>
                             </div>
