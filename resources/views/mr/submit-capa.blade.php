@@ -567,7 +567,7 @@
 
                 <!-- Delete -->
                <button type="button"
-    onclick="deleteDocument('{{ $capa->id }}','CA')"
+    onclick="deleteDocument('{{ $capa->id }}')"
     class="px-2 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">
     <i class="fa-solid fa-trash"></i>
 </button>
@@ -767,7 +767,7 @@
                 <!-- Delete -->
 
                   <button type="button"
-    onclick="deleteDocument('{{ $capa->id }}','PA')"
+    onclick="deleteDocument('{{ $capa->id }}')"
     class="px-2 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">
     <i class="fa-solid fa-trash"></i>
 </button>
@@ -1351,7 +1351,7 @@ $(document).on('click', '.delete-evidence', function (e) {
 
 });
 
-function deleteDocument(capaId, type) {
+function deleteDocument(capaId) {
 
     Swal.fire({
         title: 'Delete Document?',
