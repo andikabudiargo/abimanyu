@@ -1377,16 +1377,12 @@ function deleteDocument(capaId, type) {
             }
         });
 
-        $.ajax({
-
-           url: "{{ route('mr.capa.document.delete', ['capa'=>'__ID__','type'=>'__TYPE__']) }}"
-        .replace('__ID__', capaId)
-        .replace('__TYPE__', type),
-            type: 'DELETE',
-
-            data: {
-                _token: '{{ csrf_token() }}'
-            },
+      $.ajax({
+    url: "{{ route('capa.evidence.destroy', '__ID__') }}".replace('__ID__', capaId),
+    type: 'DELETE',
+    data: {
+        _token: '{{ csrf_token() }}'
+    },
 
             success: function (res) {
 
