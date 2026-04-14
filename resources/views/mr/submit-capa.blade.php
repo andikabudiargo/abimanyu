@@ -1378,7 +1378,7 @@ function deleteDocument(capaId, type) {
         });
 
       $.ajax({
-    url: "{{ route('capa.evidence.destroy', '__ID__') }}".replace('__ID__', capaId),
+    url: "{{ route('mr.capa.evidence.destroy', '__ID__') }}".replace('__ID__', capaId),
     type: 'DELETE',
     data: {
         _token: '{{ csrf_token() }}'
