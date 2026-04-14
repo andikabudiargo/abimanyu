@@ -1355,7 +1355,7 @@ function deleteDocument(capaId) {
 
     Swal.fire({
         title: 'Delete Document?',
-        text: `This ${type} file will be permanently removed`,
+        text: `This file will be permanently removed`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc2626',
