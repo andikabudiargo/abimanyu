@@ -567,7 +567,7 @@
 
                 <!-- Delete -->
                <button type="button"
-    onclick="deleteDocument('{{ $capa->id }}')"
+    onclick="deleteDocument('{{ $capa->id }}','CA')"
     class="px-2 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">
     <i class="fa-solid fa-trash"></i>
 </button>
@@ -767,7 +767,7 @@
                 <!-- Delete -->
 
                   <button type="button"
-    onclick="deleteDocument('{{ $capa->id }}')"
+    onclick="deleteDocument('{{ $capa->id }}','PA')"
     class="px-2 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">
     <i class="fa-solid fa-trash"></i>
 </button>
@@ -1351,11 +1351,11 @@ $(document).on('click', '.delete-evidence', function (e) {
 
 });
 
-function deleteDocument(capaId) {
+function deleteDocument(capaId, type) {
 
     Swal.fire({
         title: 'Delete Document?',
-        text: `This file will be permanently removed`,
+        text: `This ${type} file will be permanently removed`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc2626',
@@ -1377,11 +1377,15 @@ function deleteDocument(capaId) {
             }
         });
 
-      $.ajax({
-    url: "{{ route('mr.capa.evidence.destroy', '__ID__') }}".replace('__ID__', capaId),
-    type: 'DELETE',
+       $.ajax({
+    url: "{{ route('mr.capa.document.delete', ['capa'=>'__ID__','type'=>'__TYPE__']) }}"
+        .replace('__ID__', capaId)
+        .replace('__TYPE__', type),
+
+    type: 'POST',
     data: {
-        _token: '{{ csrf_token() }}'
+        _token: '{{ csrf_token() }}',
+        _method: 'DELETE'
     },
 
             success: function (res) {
