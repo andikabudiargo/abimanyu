@@ -464,19 +464,16 @@ $('#department').on('change', function () {
     let $rep2 = $('#representative2');
     let $auditeeList = $('#auditee-list');
 
-    // 🔥 destroy select2
-    $rep1.select2('destroy');
-    $rep2.select2('destroy');
-
-    // reset
+    // reset (JANGAN destroy select2)
     $rep1.empty().append('<option></option>');
     $rep2.empty().append('<option></option>');
     $auditeeList.html('<p class="text-gray-400">Loading...</p>');
 
     if (!deptId) {
-        console.log('No department selected');
         $auditeeList.html('<p class="text-gray-400">Choose department first...</p>');
-        initSelect2();
+        
+        $rep1.trigger('change');
+        $rep2.trigger('change');
         return;
     }
 
@@ -492,28 +489,26 @@ $('#department').on('change', function () {
             $rep2.empty().append('<option></option>');
 
             if (!users || users.length === 0) {
-                console.log('No users found');
-
                 $rep1.append('<option disabled>No staff found</option>');
                 $rep2.append('<option disabled>No staff found</option>');
                 $auditeeList.html('<p class="text-red-500">No users found in this department.</p>');
 
-                initSelect2();
+                $rep1.trigger('change');
+                $rep2.trigger('change');
                 return;
             }
 
             // isi dropdown
             $.each(users, function (i, user) {
-                console.log('APPEND USER:', user.id, user.name);
-
                 $rep1.append(`<option value="${user.id}">${user.name}</option>`);
                 $rep2.append(`<option value="${user.id}">${user.name}</option>`);
             });
 
-            // 🔥 init ulang select2
-            initSelect2();
+            // 🔥 INI PENTING: refresh select2 TANPA destroy
+            $rep1.trigger('change');
+            $rep2.trigger('change');
 
-            // debug (optional)
+            // debug
             $rep1.off('change').on('change', function () {
                 console.log('REP1 SELECTED:', $(this).val());
             });
@@ -522,7 +517,7 @@ $('#department').on('change', function () {
                 console.log('FINAL REP1 VALUE:', $rep1.val());
             }, 500);
 
-            // list auditee
+            // auditee list
             let html = '';
             $.each(users, function (i, user) {
                 html += `
@@ -543,15 +538,6 @@ $('#department').on('change', function () {
             });
 
             $auditeeList.html(html);
-        },
-        error: function (err) {
-            console.log('AJAX ERROR:', err);
-
-            $rep1.empty().append('<option></option>');
-            $rep2.empty().append('<option></option>');
-            $auditeeList.html('<p class="text-red-500">Failed to load auditee list.</p>');
-
-            initSelect2();
         }
     });
 });
