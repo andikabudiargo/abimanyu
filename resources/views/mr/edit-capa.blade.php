@@ -498,8 +498,8 @@ const selectedRep2 = "{{ $capa->dept_representative_2 ?? '' }}";
 $('#department').on('change', function () {
     let deptId = $(this).val();
 
-    let $rep1 = $('#representative');
-    let $rep2 = $('#representative2');
+    let $rep1 = $('#representative_1');
+    let $rep2 = $('#representative_2');
     let $auditeeList = $('#auditee-list');
 
     // reset (pakai kosong biar aman untuk select2)
@@ -602,12 +602,6 @@ $('#department').on('change', function () {
         }
     });
 });
-
-$(document).ready(function () {
-    console.log('DEPT VALUE AWAL:', $('#department').val());
-    $('#department').trigger('change');
-});
-
 
 function addAuditorRow() {
     const tableBody = document.getElementById('auditorTable');
