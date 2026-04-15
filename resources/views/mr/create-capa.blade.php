@@ -242,9 +242,6 @@
      </div>
 
 
-   <!-- Department & Representative -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
     <!-- LEFT: Department -->
     <div class="col-span-2">
         <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -261,7 +258,7 @@
         </select>
     </div>
 
-    <!-- RIGHT: Representative (VERTICAL) -->
+
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
             Dept. Representative <span class="text-red-600">*</span>
@@ -287,7 +284,6 @@
             </select>
 
         </div>
-    </div>
 
     <!-- Finding -->
     <div>
