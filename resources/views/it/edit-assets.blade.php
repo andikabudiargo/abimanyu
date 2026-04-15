@@ -597,7 +597,7 @@ $(document).ready(function () {
                         showConfirmButton: false, timer: 2000, timerProgressBar: true
                     });
                     setTimeout(() => {
-                        window.location.href = "{{ route('it.assets.show', $asset->id) }}";
+                        window.location.href = "{{ route('it.assets.index', $asset->id) }}";
                     }, 2000);
                 } else {
                     Swal.fire({
