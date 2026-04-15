@@ -262,7 +262,7 @@
     </div>
 
     <!-- RIGHT: Representative (VERTICAL) -->
-    <div>
+    <div class="col-span-2">
         <label class="block text-sm font-medium text-gray-700 mb-1">
             Dept. Representative <span class="text-red-600">*</span>
         </label>
@@ -273,14 +273,6 @@
                 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">Auditee 1</option>
             </select>
-    </div>
-     <div class="hidden">
-        <label class="block text-sm font-medium text-gray-700 mb-1">
-            Dept. Representative <span class="text-red-600">*</span>
-        </label>
-
-            <!-- PIC 1 -->
-           
     </div>
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -471,7 +463,7 @@ $('#department').on('change', function () {
     let $rep2 = $('#representative2');
     let $auditeeList = $('#auditee-list');
 
-     // Reset
+    // Reset
     $rep1.html('<option value="">Loading...</option>');
     $rep2.html('<option value="">Loading...</option>');
     $auditeeList.html('<p class="text-gray-400">Loading...</p>');
@@ -479,7 +471,6 @@ $('#department').on('change', function () {
     if (!deptId) {
         $rep1.html('<option value="">-- Choose Auditee 1 --</option>');
         $rep2.html('<option value="">-- Choose Auditee 2 --</option>');
-        $auditeeList.html('<p class="text-gray-400">Choose department first...</p>');
         return;
     }
 
@@ -489,13 +480,12 @@ $('#department').on('change', function () {
         dataType: 'json',
         success: function (users) {
 
-            // Isi representative
-             $rep1.html('<option value="">-- Choose Auditee 1 --</option>');
+            $rep1.html('<option value="">-- Choose Auditee 1 --</option>');
             $rep2.html('<option value="">-- Choose Auditee 2 --</option>');
-            
+
             if (users.length === 0) {
-                $repSelect.html('<option value="">No staff found</option>');
-                $auditeeList.html('<p class="text-red-500">No users found in this department.</p>');
+                $rep1.html('<option value="">No staff found</option>');
+                $rep2.html('<option value="">No staff found</option>');
                 return;
             }
 
@@ -504,11 +494,10 @@ $('#department').on('change', function () {
                 $rep2.append(`<option value="${user.id}">${user.name}</option>`);
             });
 
-            // ✅ 🔥 TARUH DI SINI (setelah dropdown keisi)
+            // 🔥 prevent duplicate binding
             $rep1.off('change').on('change', function () {
                 let val = $(this).val();
 
-                // reset disable dulu
                 $rep2.find('option').prop('disabled', false);
 
                 if (val) {
@@ -516,32 +505,34 @@ $('#department').on('change', function () {
                 }
             });
 
-            // Isi list auditee
+            // (optional) bidirectional
+            $rep2.off('change').on('change', function () {
+                let val = $(this).val();
+
+                $rep1.find('option').prop('disabled', false);
+
+                if (val) {
+                    $rep1.find(`option[value="${val}"]`).prop('disabled', true);
+                }
+            });
+
+            // Auditee list
             let html = '';
             $.each(users, function (i, user) {
                 html += `
-    <div class="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
-        <div class="flex items-center gap-3 min-w-0">
-            <span class="inline-flex items-center justify-center
-                         w-7 h-7 text-xs font-semibold
-                         rounded-full
-                         bg-gray-100 text-gray-700">
-                ${i + 1}
-            </span>
-
-            <span class="text-sm text-gray-800 truncate">
-                ${user.name}
-            </span>
-        </div>
-    </div>
-`;
-
+                <div class="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-7 h-7 flex items-center justify-center text-xs font-semibold bg-gray-100 rounded-full">
+                            ${i + 1}
+                        </span>
+                        <span class="text-sm text-gray-800 truncate">
+                            ${user.name}
+                        </span>
+                    </div>
+                </div>`;
             });
+
             $auditeeList.html(html);
-        },
-        error: function () {
-            $repSelect.html('<option value="">Error loading data</option>');
-            $auditeeList.html('<p class="text-red-500">Failed to load auditee list.</p>');
         }
     });
 });
