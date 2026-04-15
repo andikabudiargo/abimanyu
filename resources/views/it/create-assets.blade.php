@@ -134,6 +134,7 @@
                                     <option value="Laptop">Laptop / Notebook</option>
                                     <option value="Desktop">Desktop / PC</option>
                                     <option value="Server">Server</option>
+                                     <option value="CCTV">CCTV</option>
                                     <option value="Printer">Printer</option>
                                     <option value="Scanner">Scanner</option>
                                     <option value="Monitor">Monitor</option>
