@@ -399,6 +399,15 @@ $(document).ready(function () {
         allowClear: true
     });
 
+    $('#representative_1').on('select2:select', function (e) {
+    let data = e.params.data;
+
+    console.log('SELECTED DATA:', data);
+
+    // 🔥 paksa render text ke select2
+    let option = new Option(data.text, data.id, true, true);
+    $(this).append(option).trigger('change');
+});
 });
 
 $('#capa-form').off('submit').on('submit', function (e) {
