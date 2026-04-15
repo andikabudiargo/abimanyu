@@ -60,9 +60,9 @@
                             </div>
 
                             <img id="previewImage"
-                                src="{{ $asset->photo ? asset('storage/' . $asset->photo) : '' }}"
-                                alt="Preview"
-                                class="{{ $asset->photo ? '' : 'hidden' }} absolute inset-0 w-full h-full object-cover">
+     src="{{ $asset->photo ? asset($asset->photo) : '' }}"
+     alt="Preview"
+     class="{{ $asset->photo ? '' : 'hidden' }} absolute inset-0 w-full h-full object-cover">
 
                             <button type="button" id="resetPhoto"
                                 class="{{ $asset->photo ? '' : 'hidden' }} absolute top-2 right-2 z-10 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow transition">
