@@ -376,7 +376,7 @@
     </form>
 
     {{-- Hidden delete form --}}
-    <form id="delete-form" action="{{ route('it.assets.destroy', $asset->id) }}" method="POST" class="hidden">
+    <form id="delete-form" action="{{ route('it.assets.index', $asset->id) }}" method="POST" class="hidden">
         @csrf
         @method('DELETE')
     </form>
