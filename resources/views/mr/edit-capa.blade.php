@@ -603,6 +603,11 @@ $('#department').on('change', function () {
     });
 });
 
+$(document).ready(function () {
+    console.log('DEPT VALUE AWAL:', $('#department').val());
+    $('#department').trigger('change');
+});
+
 
 function addAuditorRow() {
     const tableBody = document.getElementById('auditorTable');
