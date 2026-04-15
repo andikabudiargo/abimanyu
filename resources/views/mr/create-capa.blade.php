@@ -458,6 +458,7 @@ function showToast(icon, title) {
 
 $('#department').on('change', function () {
     let deptId = $(this).val();
+    console.log('DEPT CHANGED:', deptId);
 
     let $rep1 = $('#representative');
     let $rep2 = $('#representative2');
@@ -469,6 +470,8 @@ $('#department').on('change', function () {
     $auditeeList.html('<p class="text-gray-400">Loading...</p>');
 
     if (!deptId) {
+        console.log('No department selected');
+
         $rep1.empty().append('<option value="">-- Choose Auditee 1 --</option>');
         $rep2.empty().append('<option value="">-- Choose Auditee 2 --</option>');
         $auditeeList.html('<p class="text-gray-400">Choose department first...</p>');
@@ -484,11 +487,15 @@ $('#department').on('change', function () {
         dataType: 'json',
         success: function (users) {
 
+            console.log('USERS RESPONSE:', users);
+
             // Reset option
             $rep1.empty().append('<option value="">-- Choose Auditee 1 --</option>');
             $rep2.empty().append('<option value="">-- Choose Auditee 2 --</option>');
 
             if (!users || users.length === 0) {
+                console.log('No users found');
+
                 $rep1.empty().append('<option value="">No staff found</option>');
                 $rep2.empty().append('<option value="">No staff found</option>');
                 $auditeeList.html('<p class="text-red-500">No users found in this department.</p>');
@@ -500,27 +507,38 @@ $('#department').on('change', function () {
 
             // Isi dropdown
             $.each(users, function (i, user) {
+                console.log('APPEND USER:', user.id, user.name);
+
                 $rep1.append(`<option value="${user.id}">${user.name}</option>`);
                 $rep2.append(`<option value="${user.id}">${user.name}</option>`);
             });
 
-            // 🔥 Refresh select2 biar kebaca
+            // Cek isi option setelah append
+            console.log('REP1 OPTIONS:', $rep1.html());
+
+            // 🔥 Refresh select2
             $rep1.trigger('change.select2');
             $rep2.trigger('change.select2');
 
-            // Disable pilihan yang sama di rep2
+            // 🔥 MONITOR CHANGE
             $rep1.off('change').on('change', function () {
                 let val = $(this).val();
+                console.log('REP1 SELECTED:', val);
 
                 $rep2.find('option').prop('disabled', false);
 
                 if (val) {
+                    console.log('DISABLE DI REP2:', val);
                     $rep2.find(`option[value="${val}"]`).prop('disabled', true);
                 }
 
-                // refresh lagi biar update UI select2
                 $rep2.trigger('change.select2');
             });
+
+            // 🔥 TAMBAHAN: cek setelah klik (delayed check)
+            setTimeout(() => {
+                console.log('FINAL REP1 VALUE (after render):', $rep1.val());
+            }, 500);
 
             // Isi list auditee
             let html = '';
@@ -545,7 +563,9 @@ $('#department').on('change', function () {
 
             $auditeeList.html(html);
         },
-        error: function () {
+        error: function (err) {
+            console.log('AJAX ERROR:', err);
+
             $rep1.empty().append('<option value="">Error loading data</option>');
             $rep2.empty().append('<option value="">Error loading data</option>');
             $auditeeList.html('<p class="text-red-500">Failed to load auditee list.</p>');
