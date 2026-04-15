@@ -464,20 +464,22 @@ $('#department').on('change', function () {
     let $rep2 = $('#representative2');
     let $auditeeList = $('#auditee-list');
 
-    // Reset
-    $rep1.empty().append('<option value="">Loading...</option>');
-    $rep2.empty().append('<option value="">Loading...</option>');
+    // 🔥 DESTROY select2 dulu biar bersih
+    $rep1.select2('destroy');
+    $rep2.select2('destroy');
+
+    // Reset (PAKAI OPTION KOSONG TANPA TEXT)
+    $rep1.empty().append('<option></option>');
+    $rep2.empty().append('<option></option>');
     $auditeeList.html('<p class="text-gray-400">Loading...</p>');
 
     if (!deptId) {
         console.log('No department selected');
 
-        $rep1.empty().append('<option value="">-- Choose Auditee 1 --</option>');
-        $rep2.empty().append('<option value="">-- Choose Auditee 2 --</option>');
         $auditeeList.html('<p class="text-gray-400">Choose department first...</p>');
 
-        $rep1.trigger('change.select2');
-        $rep2.trigger('change.select2');
+        // init ulang select2
+        initSelect2();
         return;
     }
 
@@ -489,23 +491,22 @@ $('#department').on('change', function () {
 
             console.log('USERS RESPONSE:', users);
 
-            // Reset option
-            $rep1.empty().append('<option value="">-- Choose Auditee 1 --</option>');
-            $rep2.empty().append('<option value="">-- Choose Auditee 2 --</option>');
+            // reset lagi (biar clean)
+            $rep1.empty().append('<option></option>');
+            $rep2.empty().append('<option></option>');
 
             if (!users || users.length === 0) {
                 console.log('No users found');
 
-                $rep1.empty().append('<option value="">No staff found</option>');
-                $rep2.empty().append('<option value="">No staff found</option>');
+                $rep1.append('<option disabled>No staff found</option>');
+                $rep2.append('<option disabled>No staff found</option>');
                 $auditeeList.html('<p class="text-red-500">No users found in this department.</p>');
 
-                $rep1.trigger('change.select2');
-                $rep2.trigger('change.select2');
+                initSelect2();
                 return;
             }
 
-            // Isi dropdown
+            // isi dropdown
             $.each(users, function (i, user) {
                 console.log('APPEND USER:', user.id, user.name);
 
@@ -513,14 +514,10 @@ $('#department').on('change', function () {
                 $rep2.append(`<option value="${user.id}">${user.name}</option>`);
             });
 
-            // Cek isi option setelah append
-            console.log('REP1 OPTIONS:', $rep1.html());
+            // 🔥 INIT ULANG SELECT2 (INI KUNCI)
+            initSelect2();
 
-            // 🔥 Refresh select2
-            $rep1.trigger('change.select2');
-            $rep2.trigger('change.select2');
-
-            // 🔥 MONITOR CHANGE
+            // disable duplikat (INI AMAN, BUKAN PENYEBAB)
             $rep1.off('change').on('change', function () {
                 let val = $(this).val();
                 console.log('REP1 SELECTED:', val);
@@ -535,12 +532,12 @@ $('#department').on('change', function () {
                 $rep2.trigger('change.select2');
             });
 
-            // 🔥 TAMBAHAN: cek setelah klik (delayed check)
+            // debug final
             setTimeout(() => {
-                console.log('FINAL REP1 VALUE (after render):', $rep1.val());
+                console.log('FINAL REP1 VALUE:', $rep1.val());
             }, 500);
 
-            // Isi list auditee
+            // list auditee
             let html = '';
             $.each(users, function (i, user) {
                 html += `
@@ -552,7 +549,6 @@ $('#department').on('change', function () {
                                      bg-gray-100 text-gray-700">
                             ${i + 1}
                         </span>
-
                         <span class="text-sm text-gray-800 truncate">
                             ${user.name}
                         </span>
@@ -566,15 +562,30 @@ $('#department').on('change', function () {
         error: function (err) {
             console.log('AJAX ERROR:', err);
 
-            $rep1.empty().append('<option value="">Error loading data</option>');
-            $rep2.empty().append('<option value="">Error loading data</option>');
+            $rep1.empty().append('<option></option>');
+            $rep2.empty().append('<option></option>');
             $auditeeList.html('<p class="text-red-500">Failed to load auditee list.</p>');
 
-            $rep1.trigger('change.select2');
-            $rep2.trigger('change.select2');
+            initSelect2();
         }
     });
 });
+
+
+// 🔥 FUNCTION INIT SELECT2 (BIAR RAPI)
+function initSelect2() {
+    $('#representative').select2({
+        width: '100%',
+        placeholder: '-- Select Dept. Representative --',
+        allowClear: true
+    });
+
+    $('#representative2').select2({
+        width: '100%',
+        placeholder: '-- Select Dept. Representative 2 --',
+        allowClear: true
+    });
+}
 
 function addAuditorRow() {
     const tableBody = document.getElementById('auditorTable');
