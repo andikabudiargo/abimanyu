@@ -267,7 +267,7 @@
 
     <!-- Department & Representative -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div>
+        <div class="col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">
                 Department <span class="text-red-600">*</span>
             </label>
@@ -292,9 +292,7 @@
     <select name="dept_representative" id="representative_1"
         class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
         focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-         <option value="{{ $user->id }}"
-{{ $capa->dept_representative == $user->id ? 'selected' : '' }}>
-    {{ $user->name }}
+         <option>
 </option>
     </select>
 </div>
@@ -307,9 +305,7 @@
     <select name="dept_representative_2" id="representative_2"
         class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
         focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-         <option value="{{ $user->id }}"
-{{ $capa->dept_representative_2 == $user->id ? 'selected' : '' }}>
-    {{ $user->name }}
+         <option>
 </option>
     </select>
 </div>
@@ -496,25 +492,25 @@ function showToast(icon, title) {
     });
 }
 
- const selectedRep1 = "{{ $capa->dept_representative ?? '' }}";
+const selectedRep1 = "{{ $capa->dept_representative ?? '' }}";
 const selectedRep2 = "{{ $capa->dept_representative_2 ?? '' }}";
 
 $('#department').on('change', function () {
     let deptId = $(this).val();
 
-    let $repSelect1 = $('#representative');
-    let $repSelect2 = $('#representative2');
+    let $rep1 = $('#representative');
+    let $rep2 = $('#representative2');
     let $auditeeList = $('#auditee-list');
 
-    // Reset
-    $repSelect1.html('<option value="">Loading...</option>');
-      $repSelect2.html('<option value="">Loading...</option>');
+    // reset (pakai kosong biar aman untuk select2)
+    $rep1.empty().append('<option></option>');
+    $rep2.empty().append('<option></option>');
     $auditeeList.html('<p class="text-gray-400">Loading...</p>');
 
     if (!deptId) {
-        $repSelect1.html('<option value="">-- Choose Dept. Representative --</option>');
-         $repSelect2.html('<option value="">-- Choose Dept. Representative --</option>');
         $auditeeList.html('<p class="text-gray-400">Choose department first...</p>');
+        $rep1.val(null).trigger('change');
+        $rep2.val(null).trigger('change');
         return;
     }
 
@@ -524,87 +520,84 @@ $('#department').on('change', function () {
         dataType: 'json',
         success: function (users) {
 
-            // Isi representative
-            $repSelect1.html('<option value="">-- Choose Dept. Representative --</option>');
-             $repSelect2.html('<option value="">-- Choose Dept. Representative --</option>');
+            $rep1.empty().append('<option></option>');
+            $rep2.empty().append('<option></option>');
 
-            if (users.length === 0) {
-                $repSelect1.html('<option value="">No staff found</option>');
-                 $repSelect2.html('<option value="">No staff found</option>');
+            if (!users || users.length === 0) {
+                $rep1.append('<option disabled>No staff found</option>');
+                $rep2.append('<option disabled>No staff found</option>');
                 $auditeeList.html('<p class="text-red-500">No users found in this department.</p>');
                 return;
             }
 
+            // 🔥 isi dropdown (pakai new Option biar select2 kenal)
             $.each(users, function (i, user) {
-    $repSelect1.append(`<option value="${user.id}">${user.name}</option>`);
-     $repSelect2.append(`<option value="${user.id}">${user.name}</option>`);
-});
+                $rep1.append(new Option(user.name, user.id, false, false));
+                $rep2.append(new Option(user.name, user.id, false, false));
+            });
 
+            // =========================
+            // 🔥 SET SELECTED REP 1 (FIX)
+            // =========================
+            if (selectedRep1) {
+                let user1 = users.find(u => String(u.id) === String(selectedRep1));
+                if (user1) {
+                    $rep1.val(String(user1.id)).trigger('change');
+                }
+            }
 
-    // =========================
-    // 🔥 SET SELECTED REP 1
-    // =========================
-    if (selectedRep1) {
-        let user1 = users.find(u => String(u.id) === String(selectedRep1));
+            // =========================
+            // 🔥 SET SELECTED REP 2 (FIX)
+            // =========================
+            if (selectedRep2) {
+                let user2 = users.find(u => String(u.id) === String(selectedRep2));
+                if (user2) {
+                    $rep2.val(String(user2.id)).trigger('change');
+                }
+            }
 
-        if (user1) {
-            let option1 = new Option(user1.name, user1.id, true, true);
-            $repSelect1.append(option1).trigger('change');
-        }
-    }
+            // =========================
+            // 🔥 PREVENT DUPLICATE
+            // =========================
+            $rep1.off('change').on('change', function () {
+                let val = $(this).val();
 
-    // =========================
-    // 🔥 SET SELECTED REP 2
-    // =========================
-    if (selectedRep2) {
-        let user2 = users.find(u => String(u.id) === String(selectedRep2));
+                $rep2.find('option').prop('disabled', false);
 
-        if (user2) {
-            let option2 = new Option(user2.name, user2.id, true, true);
-            $repSelect2.append(option2).trigger('change');
-        }
-    }
+                if (val) {
+                    $rep2.find(`option[value="${val}"]`).prop('disabled', true);
+                }
 
-    // 🔥 OPTIONAL: cegah duplicate (kalau mau aktif lagi)
-    $repSelect1.off('change').on('change', function () {
-        let val = $(this).val();
+                $rep2.trigger('change.select2');
+            });
 
-        $repSelect2.find('option').prop('disabled', false);
-
-        if (val) {
-            $repSelect2.find(`option[value="${val}"]`).prop('disabled', true);
-        }
-
-        $repSelect2.trigger('change.select2');
-    });
-
-
-            // Isi list auditee
+            // =========================
+            // AUDITEE LIST
+            // =========================
             let html = '';
             $.each(users, function (i, user) {
                 html += `
-    <div class="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
-        <div class="flex items-center gap-3 min-w-0">
-            <span class="inline-flex items-center justify-center
-                         w-7 h-7 text-xs font-semibold
-                         rounded-full
-                         bg-gray-100 text-gray-700">
-                ${i + 1}
-            </span>
-
-            <span class="text-sm text-gray-800 truncate">
-                ${user.name}
-            </span>
-        </div>
-    </div>
-`;
-
+                <div class="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="inline-flex items-center justify-center
+                                     w-7 h-7 text-xs font-semibold
+                                     rounded-full
+                                     bg-gray-100 text-gray-700">
+                            ${i + 1}
+                        </span>
+                        <span class="text-sm text-gray-800 truncate">
+                            ${user.name}
+                        </span>
+                    </div>
+                </div>
+                `;
             });
+
             $auditeeList.html(html);
         },
         error: function () {
-            $repSelect1.html('<option value="">Error loading data</option>');
-            $repSelect2.html('<option value="">Error loading data</option>');
+            $rep1.empty().append('<option></option>');
+            $rep2.empty().append('<option></option>');
             $auditeeList.html('<p class="text-red-500">Failed to load auditee list.</p>');
         }
     });
