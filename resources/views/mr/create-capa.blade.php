@@ -243,33 +243,48 @@
 
 
     <!-- Department & Representative -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-                Department <span class="text-red-600">*</span>
-            </label>
-            <select name="dept_id" id="department" required
-                class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
-                focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="">Select department</option>
-                 <option value="2">HRGAIT</option>
-                @foreach ($departments as $dept)
-                    <option value="{{ $dept->id }}">{{ $dept->name }}</option>
-                @endforeach
-            </select>
-        </div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-                Dept. Representative <span class="text-red-600">*</span>
-            </label>
-            <select id="representative" name="dept_representative" required
+    <!-- LEFT: Department -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+            Department <span class="text-red-600">*</span>
+        </label>
+        <select name="dept_id" id="department" required
+            class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
+            focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">Select department</option>
+            <option value="2">HRGAIT</option>
+            @foreach ($departments as $dept)
+                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <!-- RIGHT: Representative (2 kolom dalam) -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+            Dept. Representative <span class="text-red-600">*</span>
+        </label>
+
+        <div class="grid grid-cols-2 gap-3">
+            <!-- PIC 1 -->
+            <select name="dept_representative" id="representative" required
                 class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
                 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="">Select representative</option>
+                <option value="">Auditee 1</option>
+            </select>
+
+            <!-- PIC 2 -->
+            <select name="dept_representative_2" id="representative2"
+                class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
+                focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">Auditee 2</option>
             </select>
         </div>
     </div>
+
+</div>
 
     <!-- Finding -->
     <div>
@@ -365,6 +380,12 @@ $(document).ready(function () {
         allowClear: true
     });
 
+      $('#representative2').select2({
+        width: '100%',
+        placeholder: '-- Select Dept. Representative 2 --',
+        allowClear: true
+    });
+
      $('#auditors').select2({
         width: '100%',
         placeholder: '-- Select Auditor --',
@@ -435,15 +456,18 @@ function showToast(icon, title) {
 $('#department').on('change', function () {
     let deptId = $(this).val();
 
-    let $repSelect = $('#representative');
+    let $rep1 = $('#representative');
+    let $rep2 = $('#representative2');
     let $auditeeList = $('#auditee-list');
 
-    // Reset
-    $repSelect.html('<option value="">Loading...</option>');
+     // Reset
+    $rep1.html('<option value="">Loading...</option>');
+    $rep2.html('<option value="">Loading...</option>');
     $auditeeList.html('<p class="text-gray-400">Loading...</p>');
 
     if (!deptId) {
-        $repSelect.html('<option value="">-- Choose Dept. Representative --</option>');
+        $rep1.html('<option value="">-- Choose Auditee 1 --</option>');
+        $rep2.html('<option value="">-- Choose Auditee 2 --</option>');
         $auditeeList.html('<p class="text-gray-400">Choose department first...</p>');
         return;
     }
@@ -455,8 +479,9 @@ $('#department').on('change', function () {
         success: function (users) {
 
             // Isi representative
-            $repSelect.html('<option value="">-- Choose Dept. Representative --</option>');
-
+             $rep1.html('<option value="">-- Choose Auditee 1 --</option>');
+            $rep2.html('<option value="">-- Choose Auditee 2 --</option>');
+            
             if (users.length === 0) {
                 $repSelect.html('<option value="">No staff found</option>');
                 $auditeeList.html('<p class="text-red-500">No users found in this department.</p>');
@@ -464,7 +489,20 @@ $('#department').on('change', function () {
             }
 
             $.each(users, function (i, user) {
-                $repSelect.append(`<option value="${user.id}">${user.name}</option>`);
+                $rep1.append(`<option value="${user.id}">${user.name}</option>`);
+                $rep2.append(`<option value="${user.id}">${user.name}</option>`);
+            });
+
+            // ✅ 🔥 TARUH DI SINI (setelah dropdown keisi)
+            $rep1.off('change').on('change', function () {
+                let val = $(this).val();
+
+                // reset disable dulu
+                $rep2.find('option').prop('disabled', false);
+
+                if (val) {
+                    $rep2.find(`option[value="${val}"]`).prop('disabled', true);
+                }
             });
 
             // Isi list auditee
