@@ -540,22 +540,6 @@ $('#department').on('change', function () {
     });
 });
 
-
-// init select2
-function initSelect2() {
-    $('#representative_1').select2({
-        width: '100%',
-        placeholder: '-- Select Dept. Representative --',
-        allowClear: true
-    });
-
-    $('#representative_2').select2({
-        width: '100%',
-        placeholder: '-- Select Dept. Representative 2 --',
-        allowClear: true
-    });
-}
-
 function addAuditorRow() {
     const tableBody = document.getElementById('auditorTable');
     const rowCount = tableBody.querySelectorAll('.auditor-row').length + 1;

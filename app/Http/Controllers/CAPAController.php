@@ -650,6 +650,7 @@ $auditorList .= '</div>';
         'category' => 'required',
         'dept_id' => 'required|integer',
         'dept_representative' => 'required|integer',
+         'dept_representative_2' => 'nullable|integer',
         'detail_of_information' => 'required|string',
         'Problem' => 'required|string',
         'auditors' => 'required|array|min:1',
@@ -666,6 +667,7 @@ $auditorList .= '</div>';
             'category' => $request->category,
             'dept_id' => $request->dept_id,
             'dept_representative' => $request->dept_representative,
+            'dept_representative_2' => $request->dept_representative_2,
             'detail_of_information' => $request->detail_of_information,
             'problem' => $request->Problem,
             'created_by' => Auth::id()
@@ -1577,7 +1579,7 @@ $targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
 
 }
 
-public function destroyEvidence($id)
+public function destroyEvidence($id, $type)
 {
     $evidence = CAPAEvidence::findOrFail($id);
 
@@ -1606,7 +1608,7 @@ if (file_exists($filePath)) {
 
     return response()->json([
         'status' => 'success',
-        'message' => 'Evidence berhasil dihapus'
+        'message' => 'Evidence {$type} berhasil dihapus'
     ]);
 }
 
