@@ -502,9 +502,6 @@ if ($row->status == 'Closed') {
 ->addColumn('approved_by', function ($row) {
     return $row->approvedBy ? $row->approvedBy->name : '-';
 })
-->addColumn('dept_representative', function ($row) {
-    return $row->representative ? $row->representative->name : '-';
-})
 
 ->editColumn('auditors', function ($row) {
     $auditorList = '';
@@ -546,21 +543,6 @@ $auditorList .= '</div>';
         <div class="flex items-center justify-start gap-2 text-sm text-gray-700 font-medium">
             <i class="fa-solid fa-building text-slate-500"></i>
             <span>'.e($deptName).'</span>
-        </div>
-    ';
-})
-
-
-->editColumn('dept_representative', function ($row) {
-
-    if (empty($row->representative)) {
-        return '<span class="italic text-xs text-gray-400">No Department</span>';
-    }
-
-    return '
-        <div class="flex items-center justify-start gap-2 text-sm text-gray-700 font-medium">
-            <i class="fa-solid fa-people-group text-slate-500"></i>
-            <span>'.e($row->representative->name).'</span>
         </div>
     ';
 })
