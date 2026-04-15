@@ -36,9 +36,77 @@ class ITAssetsController extends Controller
      public function edit($id)
     {
 
-        $asset = ITAsset::FindorFail($id);
+        $asset = ITAsset::findOrFail($id);
         return view('it.edit-assets', compact('asset'));
     }
+
+    public function update(Request $request, $id)
+{
+    // ======================
+    // VALIDATION
+    // ======================
+    $request->validate([
+        'asset_name'       => 'required|string|max:255',
+        'asset_type'       => 'required|string|max:100',
+        'acquistion_type'  => 'required|string|max:50',
+        'supplier_id'      => 'nullable|exists:suppliers,id',
+        'purchase_date'    => 'nullable|date',
+        'warranty'         => 'nullable|integer|min:0',
+        'assignment_type'  => 'required|string',
+        'conditions'       => 'nullable|string',
+        'photo'            => 'nullable|image|mimes:jpg,jpeg,png|max:51200',
+        'location'         => 'nullable|string',
+        'location_update'  => 'nullable|string',
+        'pic'              => 'nullable|string',
+        'note'             => 'nullable|string',
+    ]);
+
+    // ======================
+    // FIND DATA
+    // ======================
+    $asset = ITAsset::findOrFail($id);
+
+    $data = $request->all();
+
+    // ======================
+    // HANDLE PHOTO UPDATE
+    // ======================
+    if ($request->hasFile('photo')) {
+
+        // 🔥 hapus foto lama (kalau ada)
+        if ($asset->photo && file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . $asset->photo)) {
+            unlink($_SERVER['DOCUMENT_ROOT'] . '/' . $asset->photo);
+        }
+
+        $file = $request->file('photo');
+
+        $filename = time() . '_' . preg_replace('/\s+/', '-', $file->getClientOriginalName());
+
+        $destination = $_SERVER['DOCUMENT_ROOT'] . '/uploads/assets';
+
+        if (!file_exists($destination)) {
+            mkdir($destination, 0755, true);
+        }
+
+        $file->move($destination, $filename);
+
+        $data['photo'] = 'uploads/assets/' . $filename;
+    }
+
+    // ======================
+    // UPDATE DATA
+    // ======================
+    $asset->update($data);
+
+    // ======================
+    // RESPONSE
+    // ======================
+    return response()->json([
+        'success' => true,
+        'message' => 'Asset updated successfully',
+        'data'    => $asset
+    ]);
+}
 
     
   public function data(Request $request)
