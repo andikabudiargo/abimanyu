@@ -267,7 +267,7 @@
         Dept. Representative <span class="text-red-600">*</span>
     </label>
 
-    <select name="dept_representative" id="representative"
+    <select name="dept_representative" id="representative_1"
         class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
         focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
         <option></option>
@@ -279,7 +279,7 @@
         Dept. Representative 2
     </label>
 
-    <select name="dept_representative_2" id="representative2"
+    <select name="dept_representative_2" id="representative_2"
         class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
         focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
         <option></option>
@@ -375,13 +375,13 @@ $(document).ready(function () {
         allowClear: true
     });
 
-    $('#representative').select2({
+    $('#representative_1').select2({
         width: '100%',
         placeholder: '-- Select Dept. Representative --',
         allowClear: true
     });
 
-      $('#representative2').select2({
+      $('#representative_2').select2({
         width: '100%',
         placeholder: '-- Select Dept. Representative 2 --',
         allowClear: true
@@ -458,8 +458,8 @@ $('#department').on('change', function () {
     let deptId = $(this).val();
     console.log('DEPT CHANGED:', deptId);
 
-    let $rep1 = $('#representative');
-    let $rep2 = $('#representative2');
+    let $rep1 = $('#representative_1');
+    let $rep2 = $('#representative_2');
     let $auditeeList = $('#auditee-list');
 
     // reset (JANGAN destroy select2)
@@ -543,13 +543,13 @@ $('#department').on('change', function () {
 
 // init select2
 function initSelect2() {
-    $('#representative').select2({
+    $('#representative_1').select2({
         width: '100%',
         placeholder: '-- Select Dept. Representative --',
         allowClear: true
     });
 
-    $('#representative2').select2({
+    $('#representative_2').select2({
         width: '100%',
         placeholder: '-- Select Dept. Representative 2 --',
         allowClear: true
