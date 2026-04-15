@@ -38,6 +38,10 @@ public function auditors()
         return $this->belongsTo(User::class,'dept_representative', 'id');
     }
 
+    public function representative2(){
+        return $this->belongsTo(User::class,'dept_representative_2', 'id');
+    }
+
       public function comments(){
         return $this->hasMany(CAPACommentary::class,'capa_id', 'id');
     }

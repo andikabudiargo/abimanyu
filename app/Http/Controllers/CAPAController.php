@@ -441,7 +441,41 @@ if ($row->status == 'Closed') {
 })
 
 ->addColumn('dept_representative', function ($row) {
-    return $row->representative ? $row->representative->name : '-';
+
+    $html = '';
+
+    $rep1 = $row->representative->name ?? null;
+    $rep2 = $row->representative2->name ?? null;
+
+    if ($rep1 || $rep2) {
+
+        $html .= '<div class="flex flex-wrap gap-2 mt-1">';
+
+        if ($rep1) {
+            $html .= '
+                <span class="inline-flex items-center gap-1 py-1 text-sm font-medium text-indigo-700">
+                    <i class="fa fa-user text-xs"></i>
+                    ' . $rep1 . '
+                </span>
+            ';
+        }
+
+        if ($rep2) {
+            $html .= '
+                <span class="inline-flex items-center gap-1 py-1 text-sm font-medium text-indigo-700">
+                    <i class="fa fa-user text-xs"></i>
+                    ' . $rep2 . '
+                </span>
+            ';
+        }
+
+        $html .= '</div>';
+
+    } else {
+        $html = '<span class="text-gray-400 italic text-xs">No dept representative assigned</span>';
+    }
+
+    return $html;
 })
 
 ->addColumn('posted_by', function ($row) {
