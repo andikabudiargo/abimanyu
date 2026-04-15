@@ -407,7 +407,13 @@ $(document).ready(function () {
         allowClear: true
     });
 
-    $('#representative').select2({
+    $('#representative_1').select2({
+        width: '100%',
+        placeholder: '-- Select Dept. Representative --',
+        allowClear: true
+    });
+
+     $('#representative_2').select2({
         width: '100%',
         placeholder: '-- Select Dept. Representative --',
         allowClear: true
