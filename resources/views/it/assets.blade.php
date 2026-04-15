@@ -360,6 +360,50 @@ let today = new Date().toISOString().slice(0, 10); // Hasil: "2025-07-21"
         });
     });
 });
+
+let openDropdown = null;
+
+function toggleDropdown(id, event) {
+  const trigger = event.currentTarget;
+  const existingDropdown = document.getElementById('global-dropdown');
+
+  // Hapus dropdown lama jika ada
+  if (existingDropdown) {
+    existingDropdown.remove();
+    if (openDropdown === id) {
+      openDropdown = null;
+      return;
+    }
+  }
+
+  // Ambil isi dropdown dari elemen tersembunyi
+  const dropdownTemplate = document.getElementById(id);
+  if (!dropdownTemplate) return;
+
+  // Buat dropdown baru
+  const newDropdown = document.createElement('div');
+  newDropdown.id = 'global-dropdown';
+  newDropdown.className = 'absolute z-[9999] w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 text-sm text-gray-700';
+  newDropdown.innerHTML = dropdownTemplate.innerHTML;
+  document.body.appendChild(newDropdown);
+
+  // Hitung posisi tombol
+  const rect = trigger.getBoundingClientRect();
+  newDropdown.style.position = 'fixed';
+  newDropdown.style.top = `${rect.bottom + 4}px`;
+  newDropdown.style.left = `${rect.left}px`;
+
+  openDropdown = id;
+}
+
+// Tutup saat klik di luar
+document.addEventListener('click', function (e) {
+  const dropdown = document.getElementById('global-dropdown');
+  if (dropdown && !dropdown.contains(e.target) && !e.target.closest('button[data-dropdown-id]')) {
+    dropdown.remove();
+    openDropdown = null;
+  }
+});
   
   </script>
 @endpush
