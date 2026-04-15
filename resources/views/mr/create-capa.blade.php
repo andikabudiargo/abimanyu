@@ -268,7 +268,7 @@
         </label>
 
             <!-- PIC 1 -->
-            <select name="dept_representative" id="representative" required
+            <select name="dept_representative" id="representative"
                 class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
                 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
               
