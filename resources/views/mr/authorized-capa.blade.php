@@ -74,6 +74,11 @@
             <span class="font-medium text-gray-800">Dept. Representative:</span>
             <span class="text-gray-700">{{ $capa->representative->name ?? '-' }}</span>
         </div>
+        <div class="flex items-center gap-2">
+            <i class="fa fa-user-tie text-indigo-500 text-sm"></i>
+            <span class="font-medium text-gray-800">Dept. Representative 2:</span>
+            <span class="text-gray-700">{{ $capa->representative2->name ?? '-' }}</span>
+        </div>
     </div>
 @else
     <span class="text-gray-400 italic text-sm">No department assigned</span>
@@ -794,7 +799,7 @@ bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-md">
 
                 <div>
                     <h3 class="text-xl font-semibold text-gray-900 tracking-wide">
-                        Management Review Verification
+                        Management Representative Verification
                     </h3>
 
                     <p class="text-xs text-gray-500 mt-1">
@@ -896,7 +901,7 @@ bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-md">
 
                     <i class="fa-solid fa-file-signature text-emerald-600"></i>
 
-                    <span>Management Review Statement</span>
+                    <span>Management Representative Statement</span>
 
                 </div>
 

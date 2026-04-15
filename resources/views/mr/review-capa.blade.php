@@ -74,6 +74,11 @@
             <span class="font-medium text-gray-800">Dept. Representative:</span>
             <span class="text-gray-700">{{ $capa->representative->name ?? '-' }}</span>
         </div>
+        <div class="flex items-center gap-2">
+            <i class="fa fa-user-tie text-indigo-500 text-sm"></i>
+            <span class="font-medium text-gray-800">Dept. Representative 2:</span>
+            <span class="text-gray-700">{{ $capa->representative2->name ?? '-' }}</span>
+        </div>
     </div>
 @else
     <span class="text-gray-400 italic text-sm">No department assigned</span>

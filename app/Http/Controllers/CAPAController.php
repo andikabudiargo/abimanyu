@@ -836,48 +836,46 @@ public function updateVerified(Request $request, $id)
         'automaticPadding' => true
     ]);
 
-  $deptGroupIds = $this->resolveDepartmentGroup($capa->dept_id);
+// Ambil hanya 2 user (rep1 & rep2)
+$targetUserIds = array_filter([
+    $capa->dept_representative,
+    $capa->dept_representative_2
+]);
 
-
-$targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
-        $q->whereIn('departments.id', $deptGroupIds);
-    })
+$targetUsers = User::whereIn('id', $targetUserIds)
     ->where('status', 1)
-    ->distinct()
     ->get();
 
+foreach ($targetUsers as $user) {
 
-    foreach ($targetUsers as $user) {
+    // =========================
+    // 🔥 PUSH NOTIFICATION
+    // =========================
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', $user->id)
+        ->get();
 
-        // Ambil subscription per user
-        $subscriptions = DB::table('subscriptions')
-            ->where('user_id', $user->id)
-            ->get();
+    foreach ($subscriptions as $subRow) {
 
-        if ($subscriptions->isEmpty()) {
-            continue; // skip kalau tidak ada subscription
-        }
+        $subData = json_decode($subRow->subscription, true);
+        if (!$subData) continue;
 
-        foreach ($subscriptions as $subRow) {
+        $sub = Subscription::create($subData);
 
-            $subData = json_decode($subRow->subscription, true);
-            if (!$subData) continue;
-
-            $sub = Subscription::create($subData);
-
-            $webPush->sendOneNotification(
-                $sub,
-                json_encode([
-                    'title' => "⚙️ CAPA Baru butuh Diproses | Abimanyu Live",
-                    'body'  => "CAPA baru butuh dilengkapi actionnya. Klik Disini!",
-                    'url'   => url("/mr/capa/{$capa->id}/process")
-                ])
-            );
-        }
+        $webPush->sendOneNotification(
+            $sub,
+            json_encode([
+                'title' => "⚙️ CAPA Baru butuh Diproses | Abimanyu Live",
+                'body'  => "CAPA baru butuh dilengkapi actionnya. Klik disini!",
+                'url'   => url("/mr/capa/{$capa->id}/process")
+            ])
+        );
     }
 
-    // Flush push
-    $webPush->flush();
+}
+
+// Flush push
+$webPush->flush();
 
         // Response JSON sukses
         return response()->json([
@@ -956,37 +954,31 @@ public function updateReview(Request $request, $id)
         'automaticPadding' => true
     ]);
 
-  $deptGroupIds = $this->resolveDepartmentGroup($capa->dept_id);
+ // Ambil hanya 2 user (rep1 & rep2)
+$targetUserIds = array_filter([
+    $capa->dept_representative,
+    $capa->dept_representative_2
+]);
 
-
-$targetUsers = User::whereHas('departments', function ($q) use ($deptGroupIds) {
-        $q->whereIn('departments.id', $deptGroupIds);
-    })
+$targetUsers = User::whereIn('id', $targetUserIds)
     ->where('status', 1)
-    ->distinct()
     ->get();
 
+foreach ($targetUsers as $user) {
 
+    // =========================
+    // 🔥 PUSH NOTIFICATION
+    // =========================
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', $user->id)
+        ->get();
 
+    foreach ($subscriptions as $subRow) {
 
-    // Loop user MR
-    foreach ($targetUsers as $user) {
+        $subData = json_decode($subRow->subscription, true);
+        if (!$subData) continue;
 
-        // Ambil subscription per user
-        $subscriptions = DB::table('subscriptions')
-            ->where('user_id', $user->id)
-            ->get();
-
-        if ($subscriptions->isEmpty()) {
-            continue; // skip kalau tidak ada subscription
-        }
-
-        foreach ($subscriptions as $subRow) {
-
-            $subData = json_decode($subRow->subscription, true);
-            if (!$subData) continue;
-
-            $sub = Subscription::create($subData);
+        $sub = Subscription::create($subData);
 
             $webPush->sendOneNotification(
                 $sub,
