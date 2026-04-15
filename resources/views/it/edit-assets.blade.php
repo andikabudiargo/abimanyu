@@ -355,7 +355,7 @@
         {{-- ── FOOTER ACTIONS ── --}}
         <div class="px-8 py-5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <a href="{{ route('it.assets.show', $asset->id) }}"
+                <a href="{{ route('it.assets.index', $asset->id) }}"
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 transition shadow-sm">
                     <i data-feather="arrow-left" class="w-4 h-4"></i> Cancel
                 </a>
