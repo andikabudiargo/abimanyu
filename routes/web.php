@@ -450,6 +450,7 @@ Route::prefix('it')->name('it.')->group(function () {
     Route::get('/assets/data', [ITAssetsController::class, 'data'])->name('assets.data');
     Route::get('/assets/create', [ITAssetsController::class, 'create'])->name('assets.create');
     Route::get('/assets/edit/{id}', [ITAssetsController::class, 'edit'])->name('assets.edit');
+    Route::put('/assets/update/{id}', [ITAssetsController::class, 'update'])->name('assets.update');
     Route::post('/assets/store', [ITAssetsController::class, 'store'])->name('assets.store');
     Route::get('/backup/index', [ITBackupController::class, 'index'])->name('backup.index');
      Route::get('/backup/data', [ITBackupController::class, 'data'])->name('backup.data');
