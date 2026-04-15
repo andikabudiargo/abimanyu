@@ -33,6 +33,13 @@ class ITAssetsController extends Controller
         return view('it.create-assets');
     }
 
+     public function edit($id)
+    {
+
+        $assets = ITAsset::FindorFail($id);
+        return view('it.create-assets', compact('assets'));
+    }
+
     
   public function data(Request $request)
 {
@@ -69,7 +76,7 @@ class ITAssetsController extends Controller
     $userDepartments = $user->departments->pluck('name');
     $isOwner = $row->request_by === Auth::id();
     $detail_url = route('it.ticket.show', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
-    $edit_url = route('it.ticket.edit', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
+    $edit_url = route('it.assets.edit', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $ticketNumber = $row->ticket_number ?? 'Unknown';
 
 
