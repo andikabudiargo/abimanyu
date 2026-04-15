@@ -462,16 +462,15 @@ $('#department').on('change', function () {
     let $rep2 = $('#representative_2');
     let $auditeeList = $('#auditee-list');
 
-    // reset (JANGAN destroy select2)
+    // reset
     $rep1.empty().append('<option></option>');
     $rep2.empty().append('<option></option>');
     $auditeeList.html('<p class="text-gray-400">Loading...</p>');
 
     if (!deptId) {
         $auditeeList.html('<p class="text-gray-400">Choose department first...</p>');
-        
-        $rep1.trigger('change');
-        $rep2.trigger('change');
+        $rep1.val(null).trigger('change');
+        $rep2.val(null).trigger('change');
         return;
     }
 
@@ -491,20 +490,33 @@ $('#department').on('change', function () {
                 $rep2.append('<option disabled>No staff found</option>');
                 $auditeeList.html('<p class="text-red-500">No users found in this department.</p>');
 
-                $rep1.trigger('change');
-                $rep2.trigger('change');
+                $rep1.val(null).trigger('change');
+                $rep2.val(null).trigger('change');
                 return;
             }
 
+            // 🔥 SIMPAN VALUE SEBELUM UPDATE (kalau ada)
+            let selected1 = $rep1.val();
+            let selected2 = $rep2.val();
+
             // isi dropdown
             $.each(users, function (i, user) {
-                $rep1.append(`<option value="${user.id}">${user.name}</option>`);
-                $rep2.append(`<option value="${user.id}">${user.name}</option>`);
+                $rep1.append(new Option(user.name, String(user.id), false, false));
+                $rep2.append(new Option(user.name, String(user.id), false, false));
             });
 
-            // 🔥 INI PENTING: refresh select2 TANPA destroy
-            $rep1.trigger('change');
-            $rep2.trigger('change');
+            // 🔥 FORCE REFRESH SELECT2 (INI KUNCI)
+            $rep1.trigger('change.select2');
+            $rep2.trigger('change.select2');
+
+            // 🔥 RE-SET VALUE BIAR TEXT MUNCUL
+            if (selected1) {
+                $rep1.val(String(selected1)).trigger('change');
+            }
+
+            if (selected2) {
+                $rep2.val(String(selected2)).trigger('change');
+            }
 
             // debug
             $rep1.off('change').on('change', function () {
