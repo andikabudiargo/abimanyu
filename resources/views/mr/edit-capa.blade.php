@@ -284,21 +284,35 @@
 
             </select>
         </div>
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+        Dept. Representative <span class="text-red-600">*</span>
+    </label>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-                Dept. Representative <span class="text-red-600">*</span>
-            </label>
-            <select id="representative" name="dept_representative" required
-                class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
-                focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-  <option value="{{ $user->id }}"
+    <select name="dept_representative" id="representative_1"
+        class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
+        focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+         <option value="{{ $user->id }}"
 {{ $capa->dept_representative == $user->id ? 'selected' : '' }}>
     {{ $user->name }}
 </option>
+    </select>
+</div>
 
-            </select>
-        </div>
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+        Dept. Representative 2
+    </label>
+
+    <select name="dept_representative_2" id="representative_2"
+        class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
+        focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+         <option value="{{ $user->id }}"
+{{ $capa->dept_representative_2 == $user->id ? 'selected' : '' }}>
+    {{ $user->name }}
+</option>
+    </select>
+</div>
     </div>
 
     <!-- Finding -->
@@ -476,20 +490,24 @@ function showToast(icon, title) {
     });
 }
 
- const selectedRepresentative = "{{ $capa->dept_representative }}";
+ const selectedRep1 = "{{ $capa->dept_representative ?? '' }}";
+const selectedRep2 = "{{ $capa->dept_representative_2 ?? '' }}";
 
 $('#department').on('change', function () {
     let deptId = $(this).val();
 
-    let $repSelect = $('#representative');
+    let $repSelect1 = $('#representative');
+    let $repSelect2 = $('#representative2');
     let $auditeeList = $('#auditee-list');
 
     // Reset
-    $repSelect.html('<option value="">Loading...</option>');
+    $repSelect1.html('<option value="">Loading...</option>');
+      $repSelect2.html('<option value="">Loading...</option>');
     $auditeeList.html('<p class="text-gray-400">Loading...</p>');
 
     if (!deptId) {
-        $repSelect.html('<option value="">-- Choose Dept. Representative --</option>');
+        $repSelect1.html('<option value="">-- Choose Dept. Representative --</option>');
+         $repSelect2.html('<option value="">-- Choose Dept. Representative --</option>');
         $auditeeList.html('<p class="text-gray-400">Choose department first...</p>');
         return;
     }
@@ -501,22 +519,58 @@ $('#department').on('change', function () {
         success: function (users) {
 
             // Isi representative
-            $repSelect.html('<option value="">-- Choose Dept. Representative --</option>');
+            $repSelect1.html('<option value="">-- Choose Dept. Representative --</option>');
+             $repSelect2.html('<option value="">-- Choose Dept. Representative --</option>');
 
             if (users.length === 0) {
-                $repSelect.html('<option value="">No staff found</option>');
+                $repSelect1.html('<option value="">No staff found</option>');
+                 $repSelect2.html('<option value="">No staff found</option>');
                 $auditeeList.html('<p class="text-red-500">No users found in this department.</p>');
                 return;
             }
 
             $.each(users, function (i, user) {
-    $repSelect.append(`<option value="${user.id}">${user.name}</option>`);
+    $repSelect1.append(`<option value="${user.id}">${user.name}</option>`);
+     $repSelect2.append(`<option value="${user.id}">${user.name}</option>`);
 });
 
-// SET SELECTED (EDIT MODE)
-if (selectedRepresentative) {
-    $repSelect.val(selectedRepresentative).trigger('change');
-}
+
+    // =========================
+    // 🔥 SET SELECTED REP 1
+    // =========================
+    if (selectedRep1) {
+        let user1 = users.find(u => String(u.id) === String(selectedRep1));
+
+        if (user1) {
+            let option1 = new Option(user1.name, user1.id, true, true);
+            $repSelect1.append(option1).trigger('change');
+        }
+    }
+
+    // =========================
+    // 🔥 SET SELECTED REP 2
+    // =========================
+    if (selectedRep2) {
+        let user2 = users.find(u => String(u.id) === String(selectedRep2));
+
+        if (user2) {
+            let option2 = new Option(user2.name, user2.id, true, true);
+            $repSelect2.append(option2).trigger('change');
+        }
+    }
+
+    // 🔥 OPTIONAL: cegah duplicate (kalau mau aktif lagi)
+    $repSelect1.off('change').on('change', function () {
+        let val = $(this).val();
+
+        $repSelect2.find('option').prop('disabled', false);
+
+        if (val) {
+            $repSelect2.find(`option[value="${val}"]`).prop('disabled', true);
+        }
+
+        $repSelect2.trigger('change.select2');
+    });
 
 
             // Isi list auditee
@@ -543,7 +597,8 @@ if (selectedRepresentative) {
             $auditeeList.html(html);
         },
         error: function () {
-            $repSelect.html('<option value="">Error loading data</option>');
+            $repSelect1.html('<option value="">Error loading data</option>');
+            $repSelect2.html('<option value="">Error loading data</option>');
             $auditeeList.html('<p class="text-red-500">Failed to load auditee list.</p>');
         }
     });
