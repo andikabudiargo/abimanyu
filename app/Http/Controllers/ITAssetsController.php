@@ -36,8 +36,8 @@ class ITAssetsController extends Controller
      public function edit($id)
     {
 
-        $assets = ITAsset::FindorFail($id);
-        return view('it.create-assets', compact('assets'));
+        $asset = ITAsset::FindorFail($id);
+        return view('it.edit-assets', compact('asset'));
     }
 
     
