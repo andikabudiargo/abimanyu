@@ -268,7 +268,7 @@
         </label>
 
             <!-- PIC 1 -->
-            <select name="dept_representative" id="representative"
+            <select name="dept_representative" id="representative" required
                 class="w-full px-3 py-2.5 border rounded-lg text-sm shadow-sm
                 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
               
@@ -464,21 +464,18 @@ $('#department').on('change', function () {
     let $rep2 = $('#representative2');
     let $auditeeList = $('#auditee-list');
 
-    // 🔥 DESTROY select2 dulu biar bersih
+    // 🔥 destroy select2
     $rep1.select2('destroy');
     $rep2.select2('destroy');
 
-    // Reset (PAKAI OPTION KOSONG TANPA TEXT)
+    // reset
     $rep1.empty().append('<option></option>');
     $rep2.empty().append('<option></option>');
     $auditeeList.html('<p class="text-gray-400">Loading...</p>');
 
     if (!deptId) {
         console.log('No department selected');
-
         $auditeeList.html('<p class="text-gray-400">Choose department first...</p>');
-
-        // init ulang select2
         initSelect2();
         return;
     }
@@ -491,7 +488,6 @@ $('#department').on('change', function () {
 
             console.log('USERS RESPONSE:', users);
 
-            // reset lagi (biar clean)
             $rep1.empty().append('<option></option>');
             $rep2.empty().append('<option></option>');
 
@@ -514,25 +510,14 @@ $('#department').on('change', function () {
                 $rep2.append(`<option value="${user.id}">${user.name}</option>`);
             });
 
-            // 🔥 INIT ULANG SELECT2 (INI KUNCI)
+            // 🔥 init ulang select2
             initSelect2();
 
-            // disable duplikat (INI AMAN, BUKAN PENYEBAB)
+            // debug (optional)
             $rep1.off('change').on('change', function () {
-                let val = $(this).val();
-                console.log('REP1 SELECTED:', val);
-
-                $rep2.find('option').prop('disabled', false);
-
-                if (val) {
-                    console.log('DISABLE DI REP2:', val);
-                    $rep2.find(`option[value="${val}"]`).prop('disabled', true);
-                }
-
-                $rep2.trigger('change.select2');
+                console.log('REP1 SELECTED:', $(this).val());
             });
 
-            // debug final
             setTimeout(() => {
                 console.log('FINAL REP1 VALUE:', $rep1.val());
             }, 500);
@@ -572,7 +557,7 @@ $('#department').on('change', function () {
 });
 
 
-// 🔥 FUNCTION INIT SELECT2 (BIAR RAPI)
+// init select2
 function initSelect2() {
     $('#representative').select2({
         width: '100%',
