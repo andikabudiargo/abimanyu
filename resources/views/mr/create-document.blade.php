@@ -1060,6 +1060,7 @@ $(document).ready(function () {
 
     // 4M toggle
     $("input[name='need_4m']").on('change', function () {
+        console.log('changed:', $(this).val());
         $('#file_4m_group').toggleClass('hidden', $(this).val() !== 1);
     });
 
