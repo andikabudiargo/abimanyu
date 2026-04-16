@@ -206,7 +206,7 @@
     \Carbon\Carbon::setLocale('id');
 @endphp
 
-@if($activeBookings->count() || $ticketsToApprove->count() || $documentsToReview->count())
+@if($activeBookings->count() || $ticketsToApprove->count() )
     <div class="bg-white rounded-xl shadow p-6 mt-6">
         <!-- Main Header -->
   <div class="mb-6">
