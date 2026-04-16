@@ -1313,7 +1313,7 @@ function buildReview() {
                        ? $('#doc_number_input').val() : $('#doc_number_select').val();
     const title    = $('input[name="document_title"]').val() || '—';
     const reason   = $('textarea[name="reason"]').val() || 'Not provided';
-    const need4m   = $('input[name="need_4m"]:checked').val() === 1 ? 'Yes' : 'No';
+    const need4m   = $('input[name="need_4m"]:checked').val() === "1" ? 'Yes' : 'No';
     const file     = document.getElementById('file').files[0];
     const filename = file ? file.name : '— No file selected —';
 
