@@ -119,42 +119,6 @@ elseif (
     $userRoleLabelRequest  = 'review';
 }
 
-// ✅ Logika Dokumen
-    $documentsToReview = collect();
-    $documentSectionTitle = null;
-
-    // 1. Jika user Supervisor → tampilkan dokumen dari requestor departemennya yg statusnya "Under Review"
-    if ($userRoles->contains('Supervisor Special Access') || $userRoles->contains('Manager Special Access')) {
-        $documentsToReview = Document::where('status', 'Draft')
-            ->whereHas('revisions.requestor.departments', function ($q) use ($userDepartments) {
-                $q->whereIn('name', $userDepartments); // hanya dokumen dari departemen dia
-            })
-             ->orderByDesc(
-        DocumentRevision::select('created_at')
-            ->whereColumn('document_id', 'documents.id')
-            ->latest()
-            ->limit(1)
-    )
-            ->take(10)
-            ->get();
-
-        $documentSectionTitle = 'Documents Submission Need Your Approval';
-    }
-
-    // 2. Jika user dari departemen "Management Representative" → tampilkan dokumen yg sudah Approved
-    if ($userDepartments->contains('Management Representative')) {
-        $documentsToReview = Document::where('status', 'Approved')
-            ->orderByDesc(
-        DocumentRevision::select('created_at')
-            ->whereColumn('document_id', 'documents.id')
-            ->latest()
-            ->limit(1)
-    )
-            ->take(10)
-            ->get();
-
-        $documentSectionTitle = 'Documents Need Your Review';
-    }
 
 
    $todos = Todo::where('user_id', auth()->id()) // user pembuat
@@ -214,8 +178,6 @@ $cancelledBookings = BookingRoom::with('room')
     'ticketCloseSectionTitle',
     'userRoleLabel',
     'userRoleLabelRequest',
-     'documentsToReview',      // ⬅️ tambahkan ke view
-        'documentSectionTitle',   // ⬅️ tambahkan ke view
          'issueToReview',      // ⬅️ tambahkan ke view
         'issueSectionTitle',   // ⬅️ tambahkan ke view
     'todos',
