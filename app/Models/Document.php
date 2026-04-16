@@ -6,50 +6,63 @@ use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
-    protected $fillable = ['document_number', 'document_type', 'title', 'reason', 'current_version', 'remark'];
+    protected $table = 'documents';
 
-     public $timestamps = false; // 🚀 ini wajib kalau tidak ada created_at / updated_at
+    protected $fillable = [
+        'registration_id',
+        'document_number',
+        'document_type',
+        'document_title',
+        'remark',
+        'current_version',
+        'file_path',
+        'file_4m_path',
+        'is_active',
+        'dept_from',
+        'dept_to',
+        'submitted_by',
+        'submitted_at',
+        'published_by',
+        'published_at',
+    ];
 
-    public function copies()
+    // ✅ karena ada updated_at di tabel
+    public $timestamps = true;
+
+    const CREATED_AT = null; // ❌ tidak ada created_at
+    const UPDATED_AT = 'updated_at';
+
+    // =========================
+    // RELATIONS
+    // =========================
+
+    public function registration()
     {
-        return $this->hasMany(DocumentCopy::class);
+        return $this->belongsTo(DocumentRegistration::class, 'registration_id');
     }
 
-    public function requestor()
+    public function submitter()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'submitted_by');
     }
 
-    public function reject()
+    public function publisher()
     {
-        return $this->belongsTo(User::class, 'rejected_by');
+        return $this->belongsTo(User::class, 'published_by');
     }
 
-     public function approval()
+    // =========================
+    // SCOPES (BIAR ENAK DIPAKAI)
+    // =========================
+
+    public function scopeActive($query)
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $query->where('is_active', 1);
     }
 
-     public function authorized()
+    public function scopeByNumber($query, $number)
     {
-        return $this->belongsTo(User::class, 'authorized_by');
-    }
-
-    public function notes()
-{
-    return $this->hasMany(DocumentNote::class);
-}
-
- // Relasi ke revisions
-    public function revisions()
-    {
-        return $this->hasMany(DocumentRevision::class);
-    }
-
-      // Ambil revisi terakhir
-    public function latestRevision()
-    {
-        return $this->hasOne(DocumentRevision::class)->latestOfMany();
+        return $query->where('document_number', $number);
     }
 
 }

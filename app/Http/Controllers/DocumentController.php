@@ -6,6 +6,8 @@ use App\Models\Document;
 use App\Models\DocumentCopy;
 use App\Models\Department;
 use App\Models\DocumentRevision;
+use App\Models\DocumentRegistration;
+use App\Models\DocumentNote;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -30,10 +32,31 @@ class DocumentController extends Controller
 
     public function create()
     {
-       
-        $departments = Department::all(); // <- ini penting
+        $departments = Department::whereNotIn('id', [2,3,5,11,15,18,20,21])
+    ->orderBy('name')
+    ->get();
         return view('mr.create-document', compact('departments'));
     }
+
+    public function getDocumentNumber(Request $request)
+{
+    $user = auth()->user();
+
+    // Ambil department user (pivot)
+    $departmentIds = $user->departments->pluck('id');
+
+    $docs = Document::select('id','document_number', 'document_title', 'current_version', 'dept_to')
+        ->where('document_type', $request->document_type)
+        ->whereIn('submitted_by', function ($query) use ($departmentIds) {
+            $query->select('user_id')
+                ->from('department_user')
+                ->whereIn('department_id', $departmentIds);
+        })
+        ->orderBy('document_number', 'desc')
+        ->get();
+
+    return response()->json($docs);
+}
 
     public function getLastDocumentNumber(Request $request)
 {
@@ -80,507 +103,540 @@ return response()->json(['last' => $result]);
 
 }
 
-
-     public function data(Request $request)
+ public function data(Request $request)
 {
-     $user = auth()->user();
-     // Ambil semua nama departemen user dari relasi pivot
+
+    $user = auth()->user();
     $userDepartments = $user->departments->pluck('name')->toArray();
-    $userRoles = $user->roles->pluck('name')->toArray(); // asumsi relasi `roles` tersedia
+    $userRoles = $user->roles->pluck('name');
 
+    $query = DocumentRegistration::query();
 
-$query = Document::with([
-    'copies.department',
-    'revisions.requestor.departments',
-    'revisions.approval',
-    'revisions.reject',
-    'revisions.authorized',
-    'revisions'
-])
-->orderByRaw("FIELD(status, 'Draft', 'Revision', 'Approved', 'Under Review',  'Resubmitted', 'Published', 'Partially Socialized', 'Closed', 'Obsolete', 'Rejected')")
-->orderByDesc(
-    DocumentRevision::select('created_at')
-        ->whereColumn('document_id', 'documents.id')
-        ->latest() // order by created_at desc
-        ->limit(1)
-);
-
-// Jika user bukan Management Representative → filter berdasarkan departemen
-    if (!in_array('Management Representative', $userDepartments)) {
-        $query->whereHas('revisions.requestor.departments', function ($q) use ($userDepartments) {
-            $q->whereIn('name', $userDepartments);
-        });
-    }
-
-// Filter document_number
-if ($request->document_number) {
-    $query->where('document_number', 'like', '%' . $request->document_number . '%');
-}
-
-// Filter status di master documents
-if ($request->filled('status')) {
-    $query->where('status', $request->status);
-}
-
-// Filter department melalui requestor di revisi terbaru
-if ($request->department) {
-    $query->whereHas('revisions', function ($q) use ($request) {
-        $q->whereHas('requestor.departments', function ($qq) use ($request) {
-            $qq->where('name', 'like','%' . $request->department . '%');
-        })
-        ->whereRaw('id IN (SELECT MAX(id) FROM document_revisions GROUP BY document_id)');
-    });
-}
-
-// Filter remark di revisi terbaru
-if ($request->filled('remark')) {
-    $query->whereHas('revisions', function ($q) use ($request) {
-        $q->where('remark', 'like', '%' . $request->remark . '%')
-          ->whereRaw('id IN (SELECT MAX(id) FROM document_revisions GROUP BY document_id)');
-    });
-}
-
-// Filter created_at di revisi terbaru
-if ($request->date) {
-    $dates = explode(' to ', $request->date);
-    $start = Carbon::parse($dates[0])->startOfDay();
-    $end   = count($dates) === 2 ? Carbon::parse($dates[1])->endOfDay() : Carbon::parse($dates[0])->endOfDay();
-
-    $query->whereHas('revisions', function ($q) use ($start, $end) {
-        $q->whereBetween('created_at', [$start, $end])
-          ->whereRaw('id IN (SELECT MAX(id) FROM document_revisions GROUP BY document_id)');
-    });
-}
-
-
-// Filter document_type di master documents
-if ($request->filled('document_type')) {
-    $query->where('document_type', $request->document_type);
-}
-
-
+    
 
     return DataTables::of($query)
-   ->addColumn('action', function ($row) {
+  ->addColumn('action', function ($row) {
     $id = $row->id;
-    $dropdownId = 'dropdown-' . $row->id;
-    
     $user = Auth::user();
-$userRoles = $user->roles->pluck('name');
-$userDepartments = $user->departments->pluck('name');
-// Ambil requestor dari revisions terbaru
-$latestRevision = $row->revisions->sortByDesc('created_at')->first(); // ambil revisi terbaru
-$requestor = $latestRevision?->requestor;
+    $dropdownId = 'dropdown-' . $id;
+    $detail_url = route('mr.doc.detail', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
+    $edit_url = route('mr.doc.edit', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
+    $approve_url = route('mr.doc.approve', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
+    $isOwner = $row->created_by == Auth::id();
+  $isSPVTarget =
+    $user->departments->pluck('id')->contains($row->department_id)
+    && $user->roles->pluck('name')->intersect([
+        'Supervisor Special Access',
+        'Manager Special Access'
+    ])->isNotEmpty();
+     $isMR = $user->departments()
+    ->where('name', 'Management Representative & HSE')
+    ->exists();
 
-// Ambil departemen owner dari requestor revisi
-$ownerDepartments = optional($requestor?->departments)->pluck('name') ?? collect();
+    $actionButtons = '
+    <div class="relative inline-block text-left">
+      <button type="button"
+        data-dropdown-id="' . $dropdownId . '"
+        onclick="toggleDropdown(\'' . $dropdownId . '\', event)"
+        class="inline-flex justify-center w-full rounded-md shadow-sm px-2 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+        <i data-feather="align-justify"></i>
+      </button>
+      <div id="' . $dropdownId . '" class="dropdown-menu hidden absolute right-0 mt-2 z-50 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 text-sm text-gray-700">';
 
-// Cek intersect dengan departemen user saat ini
-$hasSameDepartment = $userDepartments->intersect($ownerDepartments)->isNotEmpty();
-
-// Cek apakah user login adalah requestor revisi
-$isOwner = $requestor && $requestor->id === Auth::id();
-
-
-$docNumber = $row->document_number ?? 'Unknown';
-$detail_url = route('mr.doc.show', ['id' => $row->id]);
-$revision_url = route('mr.doc.rev', ['id' => $row->id]);
-
-
-
-$actionButtons = '
-<div class="relative inline-block text-left">
-  <button type="button"
-    data-dropdown-id="' . $dropdownId . '"
-    onclick="toggleDropdown(\'' . $dropdownId . '\', event)"
-    class="inline-flex justify-center w-full rounded-md shadow-sm px-2 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
-    <i data-feather=\'align-justify\'></i>
-  </button>
-  <div id="' . $dropdownId . '" class="dropdown-menu hidden absolute right-0 mt-2 z-50 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 text-sm text-gray-700">';
-
-
- $actionButtons .= '
-            <a href="' . $detail_url . '" class="block px-4 py-2 hover:bg-gray-100">
+$actionButtons .= '
+            <a href="'. $detail_url .'" class="block px-4 py-2 hover:bg-gray-100">
                 <i data-feather="eye" class="w-4 h-4 inline mr-2"></i>Detail
             </a>';
 
-            if ($isOwner && $row->status === 'Draft') {
-    $actionButtons .= '
-       
-        <button onclick="confirmDelete(' . $row->id . ',  \'' . $docNumber . '\')" 
-            class="w-full text-left text-red-600 px-4 py-2 hover:bg-red-500 hover:text-white">
-        <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
-    </button>';
+if ($isOwner && $row->status == 'Submitted') {
+        $actionButtons .= '
+            <a href="'. $edit_url .'" class="block px-4 py-2 hover:bg-gray-100">
+                <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
+            </a>
+            <button onclick="confirmDelete(' . $row->id . ')" 
+                class="w-full text-left text-red-600 px-4 py-2 hover:bg-red-500 hover:text-white">
+                <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
+            </button>
+            ';
 }
 
- if ($isOwner && $row->status === 'Closed') {
+if ($isOwner && in_array($row->status, ['Returned by SPV', 'Returned by MR'])) {
     $actionButtons .= '
-       <a href="' . $revision_url . '" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
-            <i data-feather="repeat" class="w-4 h-4 inline mr-2"></i>Revision
+        <a href="'. $detail_url .'" class="block px-4 py-2 hover:bg-gray-100">
+            <i data-feather="rotate-ccw" class="w-4 h-4 inline mr-2"></i>Resubmit
         </a>
-        <button onclick="obsoleteDOC(' . $id . ', \'' . $docNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
-            <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Obsolete
-        </button>';
+    ';
 }
 
- if ($isOwner && $row->status === 'Under Review') {
-    $actionButtons .= '
-        <button onclick="resubmitDOC(' . $id . ', \'' . $docNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
-            <i data-feather="repeat" class="w-4 h-4 inline mr-2"></i>Resubmit
-        </button>';
-}
-
-   // Tampilkan tombol Approve/Reject jika status masih Pending dan role & dept cocok
-if (
-    $row->status === 'Draft' && 
-    $hasSameDepartment &&
-    $userRoles->contains(function ($role) {
-        return in_array($role, [
-            'Supervisor Special Access',
-            'Manager Special Access'
-        ]);
-    })
-) {
-
+if ($isSPVTarget && $row->status == 'Submitted') {
         $actionButtons .= '
-        <button onclick="approveDOC(' . $id . ', \'' . $docNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-green-100 text-green-700">
-            <i data-feather="check" class="w-4 h-4 inline mr-2"></i>Approve
-        </button>
-        <button onclick="rejectDOC(' . $id . ', \'' . $docNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-700">
-            <i data-feather="x" class="w-4 h-4 inline mr-2"></i>Reject
-        </button>';
-    }
+            <button onclick="approveDOC(' . $id . ')" class="w-full text-left px-4 py-2 text-green-600 hover:bg-green-600 hover:text-white">
+                <i data-feather="check-circle" class="w-4 h-4 inline mr-2"></i>Approve
+            </button>
+            <button onclick="openReturnModal(' . $row->id . ')" 
+                class="w-full text-left text-amber-600 px-4 py-2 hover:bg-amber-500 hover:text-white">
+                <i data-feather="rotate-ccw" class="w-4 h-4 inline mr-2"></i>Return
+            </button>
+            ';
+}
 
-    if (
-    $row->status === 'Revision' && 
-    $hasSameDepartment &&
-    $userRoles->contains(function ($role) {
-        return in_array($role, [
-            'Supervisor Special Access',
-            'Manager Special Access'
-        ]);
-    })
-) {
-
+if ($isMR && $row->status == 'Approved') {
         $actionButtons .= '
-        <button onclick="approveDOC(' . $id . ', \'' . $docNumber . '\')" class="block w-full text-left px-4 py-2 hover:bg-green-100 text-green-700">
-            <i data-feather="check" class="w-4 h-4 inline mr-2"></i>Approve
-        </button>';
-    }
-
-    if (
-    ($row->status === 'Approved' || $row->status === 'Resubmitted') && // ✅ cek dua status
-    $userDepartments->contains('Management Representative')
-) {
-    $actionButtons .= '
-        <button onclick="reviewDOC(' . $id . ', \'' . $docNumber . '\')" 
-            class="block w-full text-left px-4 py-2 text hover:bg-green-100 text-green-700">
-            <i data-feather="zoom-in" class="w-4 h-4 inline mr-2"></i>Review
-        </button>';
+           <a href="'. $detail_url .'" class="w-full block text-left px-4 py-2 text-green-600 hover:bg-green-600 hover:text-white">
+                <i data-feather="check-circle" class="w-4 h-4 inline mr-2"></i>Authorized
+            </a>
+            <a href="' . $detail_url . '" 
+                class="w-full block text-left text-amber-600 px-4 py-2 hover:bg-amber-500 hover:text-white">
+                <i data-feather="rotate-ccw" class="w-4 h-4 inline mr-2"></i>Return
+            </a>
+            <button onclick="rejectDOC(' . $row->id . ')" 
+                class="w-full text-left text-red-600 px-4 py-2 hover:bg-red-500 hover:text-white">
+                <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Reject
+            </button>
+            ';
 }
 
-if (
-    ($row->status === 'Under Review') && // ✅ cek dua status
-    $userDepartments->contains('Management Representative')
-) {
-    $actionButtons .= '
-        <button onclick="authorizedDOC(' . $id . ', \'' . $docNumber . '\')" 
-            class="block w-full text-left px-4 py-2 text hover:bg-green-100 text-green-700">
-            <i data-feather="edit-3" class="w-4 h-4 inline mr-2"></i>Authorized
-        </button>';
-}
-
-
-if (
-    $isOwner && ($row->status == 'Published' || $row->status == 'Partially Socialized')
-) {
-
-        $actionButtons .= '
-          <button onclick="updateDOC(' . $id . ', \'' . $docNumber . '\')" class="block w-full text-left px-4 py-2 text hover:bg-purple-100 text-purple-700">
-            <i data-feather="calendar" class="w-4 h-4 inline mr-2"></i>Socialize
-        </button>';
-}
-
-    $actionButtons .= '</div></div></div>';
+$actionButtons .= '</div></div></div>';
 
     return $actionButtons;
 })
 
-->addColumn('created_by', function ($row) {
-    $revision = $row->revisions->last(); // ambil revisi terakhir
-    return $revision && $revision->requestor
-        ? $revision->requestor->name
-        : '-';
+->addColumn('department_id', function ($row) {
+    return $row->department->name
+        ?? '-';
 })
 
 ->addColumn('department', function ($row) {
-    $revision = $row->revisions->last();
-    return $revision && $revision->requestor && $revision->requestor->departments->first()
-        ? $revision->requestor->departments->first()->name
-        : '-';
+    return $row->createdBy->departments->first()?->name
+        ?? '-';
 })
 
-
-->addColumn('approved_by', function ($row) {
-    $revision = $row->revisions->last(); 
-    // Approved by tetap dari master documents
-   return $revision && $revision->approval
-        ? $revision->approval->name
-        : '-';
+->addColumn('created_by', function ($row) {
+    return $row->createdBy->name
+        ?? '-';
 })
 
-->addColumn('authorized_by', function ($row) {
-    $revision = $row->revisions->last(); 
-    // Approved by tetap dari master documents
-   return $revision && $revision->authorized
-        ? $revision->authorized->name
-        : '-';
+->editColumn('approved_by', function ($row) {
+    return $row->approvedBy->name
+        ?? '-';
 })
 
+->editColumn('authorized_by', function ($row) {
+    return $row->authorizedBy->name
+        ?? '-';
+})
 
+->editColumn('created_at', function ($row) {
+    return $row->created_at
+        ?? '-';
+})
 
+->editColumn('approved_at', function ($row) {
+    return $row->approved_at
+        ?? '-';
+})
 
-->editColumn('document_type', function ($row) {
-    $commonClasses = 'inline-block w-28 text-center text-xs font-medium p-1 rounded-xl';
+->editColumn('authorized_at', function ($row) {
+    return $row->authorized_at
+        ?? '-';
+})
 
-    if ($row->document_type === 'Standard') {
-        return '<span class="text-indigo-600 ' . $commonClasses . '">Standard</span>';
-    } elseif ($row->document_type === 'SOP') {
-        return '<span class="text-orange-600 ' . $commonClasses . '">SOP</span>';
-    } elseif ($row->document_type === 'Work Instructions') {
-        return '<span class="text-lime-500 ' . $commonClasses . '">Work Instructions</span>';
-    } elseif ($row->document_type === 'Form') {
-        return '<span class="text-rose-600 ' . $commonClasses . '">Form</span>';
-    } else {
-        // Untuk Other atau tipe custom
-        return '<span class="text-gray-600 ' . $commonClasses . '">' . e($row->document_type) . '</span>';
+->addColumn('document', function ($row) {
+
+    if (!$row->file_path) {
+        return '-';
     }
+
+    $extension = strtolower(pathinfo($row->file_path, PATHINFO_EXTENSION));
+    $fileUrl = asset('storage/' . $row->file_path);
+    $downloadName = $row->document_number . '.' . $extension;
+
+    $icon = match ($extension) {
+        'pdf' => '<i class="fas fa-file-pdf text-red-500 text-xl"></i>',
+        'doc', 'docx' => '<i class="fas fa-file-word text-blue-500 text-xl"></i>',
+        'xls', 'xlsx' => '<i class="fas fa-file-excel text-green-500 text-xl"></i>',
+        default => '<i class="fas fa-file text-gray-400 text-xl"></i>',
+    };
+
+    $type = strtoupper($row->document_type);
+
+    $badgeColor = match ($type) {
+        'SOP' => 'bg-purple-100 text-purple-700',
+        'STANDARD' => 'bg-blue-100 text-blue-700',
+        'WORK INSTRUCTIONS' => 'bg-amber-100 text-amber-700',
+        'FORM' => 'bg-emerald-100 text-emerald-700',
+        default => 'bg-gray-100 text-gray-600',
+    };
+
+    return '
+        <a href="' . $fileUrl . '" download="' . $downloadName . '" 
+           class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 transition group">
+
+            <!-- ICON WRAPPER (FIX ALIGN) -->
+            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white shadow-sm flex-shrink-0">
+                ' . $icon . '
+            </div>
+
+            <!-- TEXT -->
+            <div class="flex flex-col justify-center min-w-0">
+
+                <!-- TYPE -->
+                <span class="inline-block w-fit px-2 py-0.5 text-[10px] font-semibold rounded ' . $badgeColor . '">
+                    ' . e($type) . '
+                </span>
+
+                <!-- DOC NUMBER -->
+                <span class="text-sm font-semibold text-gray-800 truncate">
+                    ' . e($row->document_number) . '
+                </span>
+
+                <!-- TITLE -->
+                <span class="text-xs text-gray-500 truncate">
+                    ' . e($row->document_title) . '
+                </span>
+
+            </div>
+        </a>
+    ';
 })
 
-
-->editColumn('remark', function ($row) {
+->editColumn('submission_type', function ($row) {
     $commonClasses = 'inline-block text-center text-xs font-semibold p-1 rounded-lg';
 
-    // Ambil remark dari revisi terbaru
-    $latestRemark = $row->revisions->sortByDesc('created_at')->first()?->remark;
-
-    if ($latestRemark === 'New Release') {
+    if ($row->submission_type === 'New Release') {
         return '<span class="text-green-600 ' . $commonClasses . '">New Release</span>';
-    } elseif ($latestRemark === 'Revision') {
-        return '<span class="text-blue-600 ' . $commonClasses . '">Revision</span>';
-    } elseif ($latestRemark === 'Obsolete') {
+    } elseif ($row->submission_type === 'Revision') {
+        return '<span class="text-yellow-600 ' . $commonClasses . '">Revision</span>';
+    } elseif ($row->submission_type === 'Obsolete') {
         return '<span class="text-red-600 ' . $commonClasses . '">Obsolete</span>';
     } else {
-        return '<span class="text-gray-600 ' . $commonClasses . '">' . ($latestRemark ?? '-') . '</span>';
+        return '<span class="text-gray-600 ' . $commonClasses . '">' . ($row->submission_type ?? '-') . '</span>';
     }
 })
 
-->editColumn('title', function ($row) {
-
-    return '<span>' . strtoupper(e($row->title)) . '</span>';
-})
-
-
-
 ->editColumn('status', function ($row) {
-    $status = $row->status ?? 'Draft'; // fallback Draft kalau null
+    $status = $row->status ?? 'Submitted'; // fallback Draft kalau null
 
     $commonClasses = 'inline-block w-28 text-center text-gray-100 text-xs font-medium p-1 rounded-xl';
 
     return match ($status) {
-        'Draft'                => '<span class="bg-gray-500 '   . $commonClasses . '">Draft</span>',
+        'Submitted'            => '<span class="bg-gray-500 '   . $commonClasses . '">Submitted</span>',
         'Approved'             => '<span class="bg-yellow-500 ' . $commonClasses . '">Approved</span>',
-        'Under Review'         => '<span class="bg-indigo-500 ' . $commonClasses . '">Under Review</span>',
+        'Returned by SPV'      => '<span class="bg-orange-500 ' . $commonClasses . '">Returned by SPV</span>',
+        'Under Review'         => '<span class="bg-teal-500 ' . $commonClasses . '">Under Review</span>',
         'Published'            => '<span class="bg-green-500 '  . $commonClasses . '">Published</span>',
         'Resubmitted'          => '<span class="bg-blue-500 '   . $commonClasses . '">Resubmitted</span>',
         'Partially Socialized' => '<span class="bg-purple-500 ' . $commonClasses . '">Partially Socialized</span>',
-        'Closed'               => '<span class="bg-teal-500 '   . $commonClasses . '">Closed</span>',
         'Rejected'             => '<span class="bg-red-500 '    . $commonClasses . '">Rejected</span>',
-        'Revision'             => '<span class="bg-lime-500 '   . $commonClasses . '">Revision</span>',
-        'Obsolete'             => '<span class="bg-orange-500 ' . $commonClasses . '">Obsolete</span>',
         default                => '<span class="bg-gray-400 '   . $commonClasses . '">Unknown</span>',
     };
 })
 
-->addColumn('file', function ($row) {
-    $revision = $row->revisions->last(); // ambil revisi terbaru
-    if ($revision && $revision->file) {
-        // File URL sesuai folder baru
-        $fileUrl = asset('document/' . $revision->file);
-        $extension = strtolower(pathinfo($revision->file, PATHINFO_EXTENSION));
-
-        // Tambahkan current_version ke nama file download
-        $downloadName = $row->document_number . '-' . $revision->version . '.' . $extension;
-
-        // Pilih icon sesuai extension
-        $icon = match($extension) {
-            'pdf' => '<i class="fas fa-file-pdf text-red-600 text-2xl"></i>',
-            'doc', 'docx' => '<i class="fas fa-file-word text-blue-600 text-2xl"></i>',
-            'xls', 'xlsx' => '<i class="fas fa-file-excel text-green-600 text-2xl"></i>',
-            default => '<i class="fas fa-file text-gray-600 text-2xl"></i>',
-        };
-
-        return '
-            <a href="' . $fileUrl . '" download="' . $downloadName . '" 
-               class="flex items-center space-x-3 hover:underline">
-                ' . $icon . '
-                <div class="flex flex-col text-left">
-                    <span class="text-sm font-semibold text-gray-800">'
-                        . $row->document_number . '-' . $revision->version . '</span> 
-                    <span class="text-xs text-gray-500">' . strtoupper($row->document_type) . '</span>
-                </div>
-            </a>
-        ';
-    }
-    return '-';
-})
-
-
-
-->editColumn('created_at', function ($row) {
-    $latestRevision = $row->revisions()->latest()->first();
-    return $latestRevision && $latestRevision->created_at
-        ? $latestRevision->created_at->format('d-m-Y H:i')
-        : '-';
-})
-
-->editColumn('approved_at', function ($row) {
-    $latestRevision = $row->revisions()->latest()->first();
-    return $latestRevision && $latestRevision->approved_at
-        ? \Carbon\Carbon::parse($latestRevision->approved_at)->format('d-m-Y H:i')
-        : '-';
-})
-
-->editColumn('authorized_at', function ($row) {
-    $latestRevision = $row->revisions()->latest()->first();
-    return $latestRevision && $latestRevision->authorized_at
-        ? \Carbon\Carbon::parse($latestRevision->authorized_at)->format('d-m-Y H:i')
-        : '-';
-})
-
-
-        ->rawColumns(['action', 'status','file', 'title', 'remark', 'document_type'])
+        ->rawColumns(['action','document','submission_type', 'status', 'department'])
         ->make(true);
 }
 
-public function store(Request $request)
+    public function store(Request $request)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            // =========================
+            // 1. NORMALIZE BOOLEAN
+            // =========================
+        $need4m = $request->boolean('need_4m');
+
+            // =========================
+            // 2. VALIDATION
+            // =========================
+            $validator = \Validator::make($request->all(), [
+                'department_id'   => 'required',
+                'document_type'   => 'required',
+                'submission_type' => 'required',
+                'document_title'  => 'required',
+                'file_path'       => 'required|file|max:5120',
+                'need_4m'         => 'required|boolean',
+                'file_4m_path'    => $need4m
+                    ? 'required|file|max:5120'
+                    : 'nullable|file|max:5120',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Validation error',
+                    'errors'  => $validator->errors()
+                ], 422);
+            }
+
+            // =========================
+            // 3. MAPPING TYPE
+            // =========================
+            $typeMap = [
+                'Form' => 'FM',
+                'Work Instructions' => 'IK',
+                'Standard' => 'STD',
+                'SOP' => 'SOP',
+            ];
+
+            $code = $typeMap[$request->document_type] ?? 'OTH';
+
+            // =========================
+            // 4. GENERATE REG NUMBER
+            // =========================
+            $year = date('Y');
+
+            $last = DocumentRegistration::whereYear('created_at', $year)
+                ->orderByDesc('id')
+                ->lockForUpdate()
+                ->first();
+
+            $next = 1;
+
+            if ($last) {
+                preg_match('/REG'.$year.'(\d{5})/', $last->registration_number, $match);
+                $next = isset($match[1]) ? ((int)$match[1] + 1) : 1;
+            }
+
+            $running = str_pad($next, 5, '0', STR_PAD_LEFT);
+            $registrationNumber = "REG{$year}{$running}{$code}";
+
+            // =========================
+            // 5. UPLOAD FUNCTION (LOCAL)
+            // =========================
+            $storeFile = function ($file, $folder) {
+
+                $destinationPath = public_path($folder);
+
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0777, true);
+                }
+
+                $originalName = $file->getClientOriginalName();
+                $nameOnly     = pathinfo($originalName, PATHINFO_FILENAME);
+                $extension    = $file->getClientOriginalExtension();
+
+                // sanitize
+                $nameOnly = preg_replace('/[^A-Za-z0-9_\-]/', '_', $nameOnly);
+
+                $filename = $nameOnly . '.' . $extension;
+                $i = 1;
+
+                while (file_exists($destinationPath . '/' . $filename)) {
+                    $i++;
+                    $filename = $nameOnly . '(' . $i . ').' . $extension;
+                }
+
+                $file->move($destinationPath, $filename);
+
+                return $folder . '/' . $filename;
+            };
+
+            // =========================
+            // 6. UPLOAD FILE
+            // =========================
+            $filePath = null;
+            if ($request->hasFile('file_path')) {
+                $filePath = $storeFile($request->file('file_path'), 'uploads/documents');
+            }
+
+            $file4mPath = null;
+            if ($need4m && $request->hasFile('file_4m_path')) {
+                $file4mPath = $storeFile($request->file('file_4m_path'), 'uploads/documents/4m');
+            }
+
+            // =========================
+            // 7. INSERT
+            // =========================
+            $registration = DocumentRegistration::create([
+                'registration_number' => $registrationNumber,
+                'department_id'       => $request->department_id,
+                'document_number'     => $request->document_number,
+                'document_type'       => $request->document_type,
+                'submission_type'     => $request->submission_type,
+                'document_title'      => $request->document_title,
+                'reason'              => $request->reason,
+                'need_4m'             => $need4m,
+                'file_path'           => $filePath,
+                'file_4m_path'        => $file4mPath,
+                'created_by'          => auth()->id(),
+                'status'              => 'Submitted',
+            ]);
+
+            // =========================
+            // 8. REVISION
+            // =========================
+            if (in_array($request->submission_type, ['Revision', 'Obsolete'])) {
+                DocumentRevision::create([
+                    'registration_id' => $registration->id,
+                    'revision_number' => $request->revision_number,
+                    'file_path'       => $filePath,
+                    'file_4m_path'    => $file4mPath,
+                    'before_change'   => $request->before_change,
+                    'after_change'    => $request->after_change,
+                ]);
+            }
+
+            // =========================
+            // 9. SHARE DEPT
+            // =========================
+            if ($request->has('share_dept')) {
+                foreach ($request->share_dept as $i => $deptId) {
+
+                    $qty = $request->share_qty[$i] ?? 0;
+
+                    if (!empty($deptId) && $qty > 0) {
+                        DocumentCopy::create([
+                            'registration_id' => $registration->id,
+                            'department_id'   => $deptId,
+                            'qty'             => $qty,
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document successfully registered!',
+                'data' => [
+                    'id' => $registration->id,
+                    'registration_number' => $registrationNumber
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Server error',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+public function update(Request $request, $id)
 {
-
-    $request->validate([
-        'document_number' => 'required|string|max:100',
-        'document_type'   => 'required|string',
-        'otherInput'      => 'nullable|string|max:255',
-        'remark'          => 'required|string',
-        'title'           => 'required|string|max:255',
-        'file'            => 'required|file|mimes:pdf,doc,docx,xlsx|max:5120',
-        '4m'              => 'nullable|file|mimes:pdf,doc,docx,xlsx|max:5120',
-        'current_version' => 'nullable|string|max:2',
-        'reason'          => 'nullable|string',
-        'copies'          => 'nullable|array',
-        'copies.*.department_name' => 'nullable|string',
-        'copies.*.qty'    => 'nullable|integer|min:0'
-    ]);
-
     DB::beginTransaction();
 
     try {
-        // ===== Handle document_type "Other" =====
-        $documentType = $request->document_type === 'other' 
-            ? $request->otherInput 
-            : $request->document_type;
 
-            // Ambil document_number dari request
-$documentNumber = trim($request->document_number);
+        $doc = DocumentRegistration::findOrFail($id);
 
-// Jika N/A atau kosong → buat versi unik otomatis
-if ($documentNumber == '' || strcasecmp($documentNumber, 'N/A') == 0) {
-    // Cari document_number terakhir yang diawali N/A-
-    $lastNA = Document::where('document_number', 'like', 'N/A-%')
-                      ->orderBy('document_number', 'desc')
-                      ->first();
+        // =========================
+        // 1. NORMALIZE
+        // =========================
+       $need4m     = $request->boolean('need_4m');
+$isResubmit = $request->is_resubmit == 1;
 
-    if ($lastNA) {
-        $parts = explode('-', $lastNA->document_number);
-        $lastNum = (int) end($parts);
-        $newNum  = str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
-    } else {
-        $newNum = '0001';
-    }
-
-    $documentNumber = 'N/A-' . $newNum;
-}
-
-
-        // ===== Path tujuan upload =====
-        $destinationPath = '/home/abimany3/public_html/document';
-        $destination4M   = $destinationPath . '/4m';
-
-        if (!file_exists($destinationPath)) {
-            mkdir($destinationPath, 0775, true);
-        }
-        if (!file_exists($destination4M)) {
-            mkdir($destination4M, 0775, true);
-        }
-
-        // ===== Upload file utama =====
-        $fileName = null;
-       if ($request->hasFile('file')) {
-    $extension = $request->file('file')->getClientOriginalExtension(); 
-    $version   = str_pad($request->current_version ?? '00', 2, '0', STR_PAD_LEFT);
-
-    // ✅ Sanitize document number agar tidak mengandung karakter ilegal seperti /
-    $safeDocNumber = preg_replace('/[\/\\\\:*?"<>|]/', '-', $documentNumber);
-
-    $fileName  = $safeDocNumber . '-' . $version . '.' . $extension; 
-    $request->file('file')->move($destinationPath, $fileName);
-}
-
-
-        // ===== Upload file 4M (opsional) =====
-        $fileName4m = null;
-        if ($request->hasFile('4m')) {
-    $extension4m = $request->file('4m')->getClientOriginalExtension();
-
-    $safeDocNumber = preg_replace('/[\/\\\\:*?"<>|]/', '-', $documentNumber);
-
-    $fileName4m  = $safeDocNumber . '_4M_Attachment.' . $extension4m;
-    $request->file('4m')->move($destination4M, $fileName4m);
-}
-
-
-        $initialVersion = str_pad($request->current_version ?? '00', 2, '0', STR_PAD_LEFT);
-
-        // ===== Simpan ke tabel documents =====
-        $document = Document::create([
-            'document_number'  => $documentNumber,
-            'document_type'    => $documentType,
-            'remark'           => $request->remark,
-            'title'            => $request->title,
-            'reason'           => $request->reason,
-            'current_version'  => $initialVersion,
+        // =========================
+        // 2. VALIDATION
+        // =========================
+        $validator = \Validator::make($request->all(), [
+            'department_id'   => 'required',
+            'document_type'   => 'required',
+            'submission_type' => 'required',
+            'document_title'  => 'required',
+            'file_path'       => 'nullable|file|max:5120',
+            'need_4m'         => 'required|in:0,1',
+            'file_4m_path'    => $need4m
+                ? 'nullable|file|max:5120'
+                : 'nullable|file|max:5120',
+            'is_resubmit'     => 'nullable|in:0,1',
         ]);
 
-        // ===== Simpan ke tabel document_revisions =====
-        $revision = $document->revisions()->create([
-            'version'          => $initialVersion,
-            'file'             => $fileName,      // ✅ hanya nama file
-            'file_4m'          => $fileName4m,    // ✅ hanya nama file
-            'remark'           => $request->remark,
-            'reason_before'    => $request->reason_before,
-            'reason_after'     => $request->reason_after,
-            'created_by'       => Auth::id(),
-            'created_at'       => now()
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // =========================
+        // 3. UPLOAD FUNCTION
+        // =========================
+        $storeFile = function ($file, $folder) {
+
+            $path = public_path($folder);
+
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $original = $file->getClientOriginalName();
+            $name     = pathinfo($original, PATHINFO_FILENAME);
+            $ext      = $file->getClientOriginalExtension();
+
+            $name = preg_replace('/[^A-Za-z0-9_\-]/', '_', $name);
+
+            $filename = $name . '.' . $ext;
+            $i = 1;
+
+            while (file_exists($path.'/'.$filename)) {
+                $i++;
+                $filename = $name."($i).".$ext;
+            }
+
+            $file->move($path, $filename);
+
+            return $folder.'/'.$filename;
+        };
+
+        // =========================
+        // 4. FILE UPDATE
+        // =========================
+        if ($request->hasFile('file_path')) {
+            $doc->file_path = $storeFile($request->file('file_path'), 'uploads/documents');
+        }
+
+        if ($need4m && $request->hasFile('file_4m_path')) {
+            $doc->file_4m_path = $storeFile($request->file('file_4m_path'), 'uploads/documents/4m');
+        }
+
+        if (!$need4m) {
+            $doc->file_4m_path = null;
+        }
+
+        // =========================
+        // 5. UPDATE DATA
+        // =========================
+        $doc->update([
+            'department_id'   => $request->department_id,
+            'document_number' => $request->document_number,
+            'document_type'   => $request->document_type,
+            'submission_type' => $request->submission_type,
+            'document_title'  => $request->document_title,
+            'reason'          => $request->reason,
+            'need_4m'         => $need4m,
+            // ❌ status TIDAK DIUBAH
         ]);
 
-        // ===== Simpan copies =====
-        if ($request->has('copies')) {
-            foreach ($request->copies as $copy) {
-                if (!empty($copy['department_name']) && $copy['qty'] > 0) {
+        if ($isResubmit && in_array($doc->status, ['Returned by SPV', 'Returned by MR'])) {
+
+        $doc->status = 'Resubmitted';
+
+        $doc->save();
+        }
+
+        // =========================
+        // 6. REFRESH COPY
+        // =========================
+        DocumentCopy::where('registration_id', $doc->id)->delete();
+
+        if ($request->has('share_dept')) {
+            foreach ($request->share_dept as $i => $deptId) {
+
+                $qty = $request->share_qty[$i] ?? 0;
+
+                if ($deptId && $qty > 0) {
                     DocumentCopy::create([
-                        'document_id'          => $document->id,
-                        'department_name'      => $copy['department_name'],
-                        'qty'                  => $copy['qty'],
-                        'document_revision_id' => $revision->id,
+                        'registration_id' => $doc->id,
+                        'department_id'   => $deptId,
+                        'qty'             => $qty,
                     ]);
                 }
             }
@@ -588,69 +644,58 @@ if ($documentNumber == '' || strcasecmp($documentNumber, 'N/A') == 0) {
 
         DB::commit();
 
-      // Ambil objek user pembuat
-$requestor = $document->requestor;
+        return response()->json([
+            'success' => true,
+            'message' => 'Document updated successfully'
+        ]);
 
-// Ambil ID departemen user pembuat
-$ownerDepartmentIds = optional($requestor?->departments)->pluck('id') ?? collect();
+    } catch (\Exception $e) {
 
-// Ambil user yang punya departemen sama dengan pembuat dan role tertentu
-$targetUsers = User::whereHas('departments', function($q) use ($ownerDepartmentIds) {
-        $q->whereIn('departments.id', $ownerDepartmentIds);
-    })
-    ->whereHas('roles', function($q) {
-        $q->whereIn('roles.name', ['Supervisor Special Access', 'Manager Special Access']);
-    })
-    ->get();
+        DB::rollBack();
 
-// Setup WebPush
-$webPush = new WebPush([
-    'VAPID' => [
-        'subject' => 'mailto:it2@asnusantara.co.id',
-        'publicKey' => env('VAPID_PUBLIC_KEY'),
-        'privateKey' => env('VAPID_PRIVATE_KEY'),
-    ],
-    'automaticPadding' => true
-]);
-
-// Kirim notifikasi ke tiap user
-foreach ($targetUsers as $user) {
-    $subscriptions = DB::table('subscriptions')
-        ->where('user_id', $user->id)
-        ->get();
-
-    foreach ($subscriptions as $subRow) {
-        $subData = json_decode($subRow->subscription, true);
-        if (!$subData) continue;
-
-        $sub = Subscription::create($subData);
-
-        $webPush->sendOneNotification($sub, json_encode([
-            'title' => "📃 Pengajuan Dokumen Baru | Abimanyu Live",
-            'body'  => "{$requestor->name} membuat dokumen baru: {$documentNumber}",
-            'url'   => url("/mr/document/{$document->id}/detail")
-        ]));
+        return response()->json([
+            'success' => false,
+            'message' => 'Update failed',
+            'error'   => $e->getMessage()
+        ], 500);
     }
 }
 
-// Flush push
-$webPush->flush();
+public function resubmit(Request $request, $id)
+{
+    DB::beginTransaction();
 
+    try {
+
+        $doc = DocumentRegistration::findOrFail($id);
+
+        // panggil logic update (biar tidak duplikat)
+        $this->update($request, $id);
+
+        // reload fresh data
+        $doc->refresh();
+
+        // =========================
+        // UPDATE STATUS
+        // =========================
+        $doc->status = 'Resubmitted';
+        $doc->save();
+
+        DB::commit();
 
         return response()->json([
             'success' => true,
-            'message' => 'Document created successfully.',
-            'data'    => [
-                'document_id'     => $document->id,
-                'document_number' => $document->document_number,
-            ]
-        ], 201);
+            'message' => 'Document resubmitted successfully'
+        ]);
 
     } catch (\Exception $e) {
+
         DB::rollBack();
+
         return response()->json([
             'success' => false,
-            'message' => $e->getMessage()
+            'message' => 'Resubmit failed',
+            'error'   => $e->getMessage()
         ], 500);
     }
 }
@@ -815,65 +860,17 @@ public function saveSocialize(Request $request)
 
 public function approve($id)
 {
-    $doc = Document::findOrFail($id);
+    $doc = DocumentRegistration::findOrFail($id);
 
     // 1️⃣ Update status di tabel documents
     $doc->status = 'Approved';
+    $doc->approved_by = auth()->id();
+    $doc->approved_at = now();
     $doc->save();
-      $latestRevision = $doc->revisions()->latest('created_at')->first();
-
-    if ($latestRevision) {
-        $latestRevision->approved_by = auth()->id();
-        $latestRevision->approved_at = now();
-        $latestRevision->save();
-    } else {
-        // Jika belum ada revisi sama sekali
-        $doc->revisions()->create([
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-        ]);
-    }
-
-    // ID user yang ingin dikirimi notifikasi
-$targetUserIds = [2, 49, 72];
-
-// Ambil semua subscription dari user yang ditargetkan
-$subscriptions = DB::table('subscriptions')
-    ->whereIn('user_id', $targetUserIds)
-    ->get();
-
-$webPush = new WebPush([
-    'VAPID' => [
-        'subject' => 'mailto:it2@asnusantara.co.id',
-        'publicKey' => env('VAPID_PUBLIC_KEY'),
-        'privateKey' => env('VAPID_PRIVATE_KEY'),
-    ],
-    'automaticPadding' => true
-]);
-
-foreach ($subscriptions as $subRow) {
-    $subData = json_decode($subRow->subscription, true);
-
-    if (!$subData) continue; // skip jika subscription tidak valid
-
-    $sub = Subscription::create($subData);
-
-    $requestorName = $doc->requestor->name ?? 'User'; // fallback jika null
-
-    $webPush->sendOneNotification($sub, json_encode([
-        'title' => '📃 Pengajuan Dokumen Baru | Abimanyu Live',
-        'body'  => "{$requestorName} Mengajukan Dokumen Baru dan telah disetujui kepala departemennya: {$doc->document_number}",
-        'url'   => url("/mr/document/{$doc->id}/detail")
-    ]));
-}
-
-// Kirim semua notifikasi
-$webPush->flush();
 
     return response()->json([
         'success' => true,
-        'message' => 'Document Approved.',
-        'document_number' => $doc->document_number
+        'message' => 'Document Registration sucesfully Approved.',
     ]);
 }
 
@@ -884,51 +881,65 @@ public function reject(Request $request, $id)
         'rejected_reason' => 'required|string|max:1000'
     ]);
 
-    $doc = Document::findOrFail($id);
+    $doc = DocumentRegistration::findOrFail($id);
     $doc->status = 'Rejected';
     $doc->rejected_reason = $request->input('rejected_reason', 'No reason provided.');
     $doc->rejected_by = auth()->id();
     $doc->rejected_at = now();
     $doc->save();
 
-    // Ambil semua subscription dari user yang ditargetkan
-$subscriptions = DB::table('subscriptions')
-    ->where('user_id', $doc->created_by)
-    ->get();
-
-$webPush = new WebPush([
-    'VAPID' => [
-        'subject' => 'mailto:it2@asnusantara.co.id',
-        'publicKey' => env('VAPID_PUBLIC_KEY'),
-        'privateKey' => env('VAPID_PRIVATE_KEY'),
-    ],
-    'automaticPadding' => true
-]);
-
-foreach ($subscriptions as $subRow) {
-    $subData = json_decode($subRow->subscription, true);
-
-    if (!$subData) continue; // skip jika subscription tidak valid
-
-    $sub = Subscription::create($subData);
-
-    $rejectName = $doc->reject->name ?? 'User'; // fallback jika null
-
-    $webPush->sendOneNotification($sub, json_encode([
-        'title' => '❌ Pengajuan Dokumen Ditolak | Abimanyu Live',
-        'body'  => "Pengajuan Dokumen Anda Ditolak Oleh {$rejectName} Dengan Alasan {$doc->rejected_reason}",
-        'url'   => url("/mr/document/{$doc->id}/detail")
-    ]));
-}
-
-// Kirim semua notifikasi
-$webPush->flush();
-
      return response()->json([
         'success' => true,
         'message' => 'Document rejected successfully.',
         'document_number' => $doc->document_number
     ]);
+}
+
+public function returnDocument(Request $request, $id)
+{
+    $request->validate([
+        'note' => 'required|string',
+        'role' => 'required|in:spv,mr'
+    ]);
+
+    $doc = DocumentRegistration::findOrFail($id);
+
+    DB::beginTransaction();
+
+    try {
+
+        // simpan log
+        DocumentNote::create([
+            'user_id'         => auth()->id(),
+            'registration_id' => $doc->id,
+            'note'            => $request->note,
+            'role'            => $request->role,
+        ]);
+
+        // update status dinamis
+        $doc->status = $request->role === 'spv'
+            ? 'Returned by SPV'
+            : 'Returned by MR';
+
+        $doc->save();
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Document berhasil di-return',
+            
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal return document',
+             'error'   => $e->getMessage() // 🔥 INI PENTING
+        ], 500);
+    }
 }
 
 public function obsolete(Request $request, $id)
@@ -1026,72 +1037,134 @@ $webPush->flush();
 
 public function authorized($id)
 {
-    $doc = Document::findOrFail($id);
-    // Update latest revision
-    $doc->status = 'Published';
-     $doc->save();
-    $latestRevision = $doc->revisions()->latest('created_at')->first();
+    DB::beginTransaction();
 
-    if ($latestRevision) {
-        $latestRevision->authorized_by = auth()->id();
-        $latestRevision->authorized_at = now();
-        $latestRevision->save();
-    } else {
-        // Jika belum ada revisi sama sekali
-        $doc->revisions()->create([
+    try {
+
+        $doc = DocumentRegistration::findOrFail($id);
+
+        // =========================
+        // 1. UPDATE REGISTRATION
+        // =========================
+        $doc->update([
+            'status'        => 'Published',
             'authorized_by' => auth()->id(),
             'authorized_at' => now(),
         ]);
+
+        // =========================
+        // 2. AMBIL REVISION NUMBER
+        // =========================
+        $revision = DocumentRevision::where('registration_id', $doc->id)
+            ->latest()
+            ->first();
+
+        $revisionNumber = $revision->revision_number ?? 0;
+
+        $submissionType = $doc->submission_type;
+
+        // =========================
+        // 3. REMARK
+        // =========================
+        $remark = match ($submissionType) {
+            'New Release' => 'New Release',
+            'Revision'    => 'Revision',
+            'Obsolete'    => 'Obsolete',
+            default       => '-',
+        };
+
+        // =========================
+        // 4. AMBIL DEPARTMENT USER
+        // =========================
+        $user = User::with('departments')->find($doc->created_by);
+        $deptFrom = optional($user->departments->first())->id;
+
+        // =========================
+        // 5. CHECK DOCUMENT EXIST
+        // =========================
+        $document = Document::where('document_number', $doc->document_number)
+            ->lockForUpdate()
+            ->first();
+
+        if ($document) {
+
+            // =========================
+            // UPDATE DOCUMENT
+            // =========================
+            $document->update([
+                'registration_id' => $doc->id,
+                'document_type'   => $doc->document_type,
+                'remark'          => $remark,
+                'document_title'  => $doc->document_title,
+                'current_version' => $revisionNumber,
+                'file_path'       => $doc->file_path,
+                'file_4m_path'    => $doc->file_4m_path,
+                'is_active'       => $submissionType === 'Obsolete' ? 0 : 1,
+                'dept_from'       => $deptFrom,
+                'dept_to'         => $doc->department_id,
+                'submitted_by'    => $doc->created_by,
+                'submitted_at'    => $doc->created_at,
+                'published_by'    => auth()->id(),
+                'published_at'    => now(),
+            ]);
+
+        } else {
+
+            // =========================
+            // CREATE (FIRST TIME)
+            // =========================
+            Document::create([
+                'registration_id' => $doc->id,
+                'document_number' => $doc->document_number,
+                'document_type'   => $doc->document_type,
+                'remark'          => $remark,
+                'document_title'  => $doc->document_title,
+                'current_version' => $revisionNumber,
+                'file_path'       => $doc->file_path,
+                'file_4m_path'    => $doc->file_4m_path,
+                'is_active'       => $submissionType === 'Obsolete' ? 0 : 1,
+                'dept_from'       => $deptFrom,
+                'dept_to'         => $doc->department_id,
+                'submitted_by'    => $doc->created_by,
+                'submitted_at'    => $doc->created_at,
+                'published_by'    => auth()->id(),
+                'published_at'    => now(),
+            ]);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Document updated (no versioning)'
+        ]);
+
+    } catch (\Exception $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to authorize document',
+            'error'   => $e->getMessage()
+        ], 500);
     }
+}
 
-      // Ambil semua subscription dari user yang ditargetkan
-$subscriptions = DB::table('subscriptions')
-    ->where('user_id', $doc->created_by)
+public function edit($id)
+    {
+         $document = DocumentRegistration::findOrFail($id);
+        $departments = Department::whereNotIn('id', [2,3,5,11,15,18,20,21])
+    ->orderBy('name')
     ->get();
-
-$webPush = new WebPush([
-    'VAPID' => [
-        'subject' => 'mailto:it2@asnusantara.co.id',
-        'publicKey' => env('VAPID_PUBLIC_KEY'),
-        'privateKey' => env('VAPID_PRIVATE_KEY'),
-    ],
-    'automaticPadding' => true
-]);
-
-foreach ($subscriptions as $subRow) {
-    $subData = json_decode($subRow->subscription, true);
-
-    if (!$subData) continue; // skip jika subscription tidak valid
-
-    $sub = Subscription::create($subData);
-
-    $authName = $doc->authorized->name ?? 'User'; // fallback jika null
-
-    $webPush->sendOneNotification($sub, json_encode([
-        'title' => '📝 Dokumen Sedang Direview | Abimanyu Live',
-        'body'  => "Selamat Dokumen Anda Dengan Nomor {$doc->document_number} telah diterbitkan oleh {$authName}, silahkan secepatnya disosialisasikan.",
-        'url'   => url("/mr/document/{$doc->id}/detail")
-    ]));
-}
-
-// Kirim semua notifikasi
-$webPush->flush();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Document sucesfully Authorized and set to be Published.',
-        'document_number' => $doc->document_number
-    ]);
-}
+        return view('mr.edit-document', compact('departments','document'));
+    }
 
 public function show($id)
 {
     
-    $document = Document::with(['revisions.requestor', 'revisions.review', 'revisions.authorized', 'revisions'])->findOrFail($id);
-    $userDepartments = Auth::user()->departments->pluck('name')->toArray();
-    $userRoles = auth()->user()->roles->pluck('name')->toArray();
-    $hasSameDepartment = $document->department_id == auth()->user()->department_id; // contoh logika
-    return view('mr.detail-document', compact('document','hasSameDepartment','userRoles','userDepartments'));
+    $document = DocumentRegistration::findOrFail($id);
+    return view('mr.detail-document', compact('document'));
 }
 
 public function addNote(Request $request, $id)
@@ -1126,90 +1199,7 @@ public function addNote(Request $request, $id)
     ]);
 }
 
-public function resubmit(Request $request, $id)
-{
-    $document = Document::findOrFail($id);
 
-    $request->validate([
-        'file' => 'required|mimes:pdf,xlsx,xls|max:5120',
-    ]);
-
-    // ambil revisi terakhir
-    $lastRevision = $document->revisions()->orderByDesc('id')->first();
-
-    if (!$lastRevision) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Tidak ada revisi sebelumnya untuk dokumen ini',
-        ], 400);
-    }
-
-    // versi tetap sama
-    $version = str_pad($lastRevision->version, 2, '0', STR_PAD_LEFT);
-
-    // ambil ekstensi asli
-    $extension = $request->file('file')->getClientOriginalExtension();
-
-    // bikin nama file sesuai nomor dokumen dan versi
-    $fileName = $document->document_number . '-' . $version . '.' . $extension;
-
-    // simpan file
-    $filePath = $request->file('file')->storeAs('documents', $fileName, 'public');
-
-    // update revisi terakhir (replace file lama dengan yang baru)
-    $lastRevision->update([
-        'file'       => $filePath,
-        'created_by' => Auth::id(),
-        'review_by'  => null,   // reset reviewer
-        'review_at'  => null,   // reset tanggal review
-    ]);
-
-    // update status dokumen utama
-    $document->status = 'Resubmitted';
-    $document->save();
-
-       // ID user yang ingin dikirimi notifikasi
-$targetUserIds = [2, 49, 72];
-
-// Ambil semua subscription dari user yang ditargetkan
-$subscriptions = DB::table('subscriptions')
-    ->whereIn('user_id', $targetUserIds)
-    ->get();
-
-$webPush = new WebPush([
-    'VAPID' => [
-        'subject' => 'mailto:it2@asnusantara.co.id',
-        'publicKey' => env('VAPID_PUBLIC_KEY'),
-        'privateKey' => env('VAPID_PRIVATE_KEY'),
-    ],
-    'automaticPadding' => true
-]);
-
-foreach ($subscriptions as $subRow) {
-    $subData = json_decode($subRow->subscription, true);
-
-    if (!$subData) continue; // skip jika subscription tidak valid
-
-    $sub = Subscription::create($subData);
-
-    $requestorName = $document->requestor->name ?? 'User'; // fallback jika null
-
-    $webPush->sendOneNotification($sub, json_encode([
-        'title' => '📃 Submit Ulang Dokumen | Abimanyu Live',
-        'body'  => "{$requestorName} Telah submit ulang Dokumen, silahkan review kembali: {$document->document_number}",
-        'url'   => url("/mr/document/{$document->id}/detail")
-    ]));
-}
-
-// Kirim semua notifikasi
-$webPush->flush();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Document resubmitted successfully',
-         'document_number' => $document->document_number, // ✅ tambahkan ini
-    ]);
-}
 
 
 public function destroy($id)

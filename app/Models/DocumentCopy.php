@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class DocumentCopy extends Model
 {
-    protected $fillable = ['document_id', 'department_name', 'qty', 'photo', 'document_revision_id'];
+    protected $fillable = ['registration_id', 'document_id', 'department_id', 'qty', 'evidence_path', 'socialization_date','socialized_by' ];
 
     public function document()
     {
-        return $this->belongsTo(Document::class);
+        return $this->belongsTo(DocumentRegistration::class, 'registration_id');
     }
 
     public function department()

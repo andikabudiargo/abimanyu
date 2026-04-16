@@ -11,16 +11,12 @@ class DocumentRevision extends Model
 
     protected $fillable = [
         'document_id',
-        'version',
-        'reason_revision',
-        'file',
-        'file_4m',
-        'remark',
-        'reason_before',
-        'reason_after',
-        'created_by',
-        'review_by',
-        'review_at'
+        'registration_id',
+        'revision_number',
+        'file_path',
+        'file_4m_path',
+        'before_change',
+        'after_change',
     ];
 
     // Relasi ke document induk
@@ -28,38 +24,9 @@ class DocumentRevision extends Model
     {
         return $this->belongsTo(Document::class);
     }
- public function copies()
+ public function registration()
     {
-        return $this->hasMany(DocumentCopy::class);
+        return $this->belongsTo(Document::class);
     }
 
-    public function requestor()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function reject()
-    {
-        return $this->belongsTo(User::class, 'rejected_by');
-    }
-
-     public function approval()
-    {
-        return $this->belongsTo(User::class, 'approved_by');
-    }
-
-      public function review()
-    {
-        return $this->belongsTo(User::class, 'review_by');
-    }
-
-     public function authorized()
-    {
-        return $this->belongsTo(User::class, 'authorized_by');
-    }
-
-    public function notes()
-{
-    return $this->hasMany(DocumentNote::class);
-}
 }

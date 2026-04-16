@@ -242,8 +242,11 @@ Route::prefix('mr')->name('mr.')->group(function () {
     Route::get('/document/create', [DocumentController::class, 'create'])->name('doc.create');
     Route::get('/get-document-number', [DocumentController::class, 'getDocumentNumber']);
     Route::get('/document/data', [DocumentController::class, 'data'])->name('doc.data');
-    Route::get('/document/{id}/detail', [DocumentController::class, 'show'])->name('doc.show');
+    Route::get('/document/{id}/edit', [DocumentController::class, 'edit'])->name('doc.edit');
+    Route::get('/document/{id}/detail', [DocumentController::class, 'show'])->name('doc.detail');
     Route::post('/document/store', [DocumentController::class, 'store'])->name('doc.store');
+    Route::put('/document/{id}/update', [DocumentController::class, 'update'])->name('doc.update');
+    Route::post('/document/{id}/resubmit', [DocumentController::class, 'resubmit'])->name('doc.resubmit');
     Route::post('/document/{id}/approve', [DocumentController::class, 'approve'])->name('doc.approve');
     Route::post('/document/{id}/review', [DocumentController::class, 'review'])->name('doc.review');
     Route::get('/document/copies/{id}', [DocumentController::class, 'getCopies']);

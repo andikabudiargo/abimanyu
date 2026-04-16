@@ -10,15 +10,15 @@ class DocumentNote extends Model
     use HasFactory;
 
     protected $fillable = [
-        'document_id',
+        'registration_id',
         'user_id',
         'note',
-        'image'
+        'role'
     ];
 
     public function document()
     {
-        return $this->belongsTo(Document::class);
+        return $this->belongsTo(DocumentRegistration::class, 'registration_id');
     }
 
     public function user()
