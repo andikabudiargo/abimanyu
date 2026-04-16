@@ -24,20 +24,29 @@
         <option value="Work Instructions">Work Instructions</option>
         <option value="SOP">SOP</option>
         <option value="Form">Form</option>
+          <option value="Other">Other</option>
+        <!-- tambahkan sesuai kebutuhan -->
+    </select>
+            </div>
+              <div>
+                <label class="block text-sm mb-1 font-medium text-gray-700">Submission Type</label>
+                 <select id="filter-submission" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        <option value="">-- All Submission Type --</option>
+        <option value="New Release">New Release</option>
+        <option value="Revision">Revision</option>
+        <option value="Obsolete">Obsolete</option>
         <!-- tambahkan sesuai kebutuhan -->
     </select>
             </div>
              <div>
-                <label for="filter-order-date" class="block text-sm mb-1 font-medium text-gray-700">Submision Date</label>
+                <label for="filter-order-date" class="block text-sm mb-1 font-medium text-gray-700">Registration Date</label>
                  <input type="text" name="date" id="filter-date"
     class="w-full border border-gray-300 rounded-lg text-l px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
     placeholder="YYYY-MM-DD to YYYY-MM-DD" autocomplete="off" />
             </div>
-        </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                  <div>
-                <label class="block text-sm mb-1 font-medium text-gray-700">Department</label>
-                  <select id="filter-department" class=" w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <label class="block text-sm mb-1 font-medium text-gray-700">From</label>
+                  <select id="filter-from" class=" w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
          <option value="">-- All --</option>
         @foreach($departments as $dept)
             <option value="{{ $dept->name }}">{{ $dept->name }}</option>
@@ -45,13 +54,13 @@
         <!-- tambahkan sesuai kebutuhan -->
     </select>
             </div>
-            <div>
-                <label class="block text-sm mb-1 font-medium text-gray-700">Remark</label>
-                 <select id="filter-remark" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-        <option value="">-- All Remark --</option>
-        <option value="New Release">New Release</option>
-        <option value="Revision">Revision</option>
-        <option value="Obsolete">Obsolete</option>
+                 <div>
+                <label class="block text-sm mb-1 font-medium text-gray-700">To</label>
+                  <select id="filter-to" class=" w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+         <option value="">-- All --</option>
+        @foreach($departments as $dept)
+            <option value="{{ $dept->name }}">{{ $dept->name }}</option>
+        @endforeach
         <!-- tambahkan sesuai kebutuhan -->
     </select>
             </div>
@@ -60,15 +69,13 @@
                 <label class="block text-sm mb-1 font-medium text-gray-700">Status</label>
                  <select id="filter-status" class="status w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
         <option value="">-- All Status --</option>
-        <option value="Draft">Draft</option>
+        <option value="Submitted">Submitted</option>
         <option value="Approved">Approved</option>
         <option value="Under Review">Under Review</option>
+        <option value="Returned from SPV">Returned from SPV</option>
+        <option value="Returned from DCC">Returned from DCC</option>
         <option value="Resubmitted">Resubmitted</option>
         <option value="Published">Published</option>
-        <option value="Partially Socialized">Partially Socialized</option>
-        <option value="Revision">Revision</option>
-        <option value="Closed">Closed</option>
-        <option value="Obsolete">Obsolete</option>
         <option value="Rejected">Rejected</option>
         <!-- tambahkan sesuai kebutuhan -->
     </select>
@@ -84,20 +91,17 @@
 
    {{-- 📄 TABEL --}}
 <div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
-    <h2 class="text-lg font-semibold mb-2">Document Archive</h2>
+    <h2 class="text-lg font-semibold mb-2">Document Registration List</h2>
     <div class="w-full overflow-x-auto" id="doc-scroll-wrapper">
     <table id="doc-table" class="min-w-full text-sm text-left whitespace-nowrap">
             <thead class="bg-blue-500 text-white uppercase text-xs font-bold tracking-wider">
                 <tr>
                     <th class="px-4 py-2">Action</th>
-                    <th class="px-4 py-2">Document Number</th>
-                    <th class="px-4 py-2">Version No.</th>
-                    <th class="px-4 py-2">Document Type</th>
-                    <th class="px-4 py-2">Department</th>
-                    <th class="px-4 py-2 !text-center">Remark</th>
-                    <th class="px-4 py-2 ">Document Title</th>
+                    <th class="px-4 py-2">Document</th>
+                    <th class="px-4 py-2">Submission Type</th>
+                    <th class="px-4 py-2">From</th>
+                    <th class="px-4 py-2">To</th>
                     <th class="px-4 py-2 !text-center !w-28">Status</th>
-                    <th class="px-4 py-2">Unduh File</th>
                     <th class="px-4 py-2 ">Created by</th>
                     <th class="px-4 py-2 ">Created at</th>
                     <th class="px-4 py-2 ">Approved by</th>
@@ -280,6 +284,36 @@
   </div>
 </div>
 
+<!-- RETURN MODAL -->
+<div id="returnModal" class="fixed inset-0 hidden items-center justify-center z-50">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+
+    <div class="relative bg-white w-full max-w-lg rounded-2xl shadow-xl p-6">
+        
+        <h2 class="text-lg font-semibold mb-3">Return Document</h2>
+
+        <p class="text-sm text-gray-500 mb-3">
+            Berikan catatan perbaikan (gunakan enter untuk poin baru)
+        </p>
+
+        <textarea id="returnNote"
+            class="w-full border rounded-lg p-3 h-32 resize-none"
+            placeholder="• Revisi nama dokumen&#10;• Lengkapi tanda tangan&#10;• Perbaiki format tanggal"></textarea>
+
+        <div class="flex justify-end gap-2 mt-4">
+            <button id="cancelReturn"
+                class="px-4 py-2 bg-gray-200 rounded-lg">
+                Batal
+            </button>
+
+            <button id="submitReturn"
+                class="px-4 py-2 bg-amber-600 text-white rounded-lg">
+                Return Now!
+            </button>
+        </div>
+    </div>
+</div>
+
 
 {{-- SCRIPT --}}
 @push('scripts')
@@ -435,13 +469,19 @@ div.dt-button-collection .dt-button:hover {
       width: '100%'
     });
 
-     $('#filter-remark').select2({
-      placeholder: "-- All Remark --",
+     $('#filter-submission').select2({
+      placeholder: "-- All Submission Type --",
       allowClear: true,
       width: '100%'
     });
 
-    $('#filter-department').select2({
+    $('#filter-from').select2({
+      placeholder: "-- All Department --",
+      allowClear: true,
+      width: '100%'
+    });
+
+     $('#filter-to').select2({
       placeholder: "-- All Department --",
       allowClear: true,
       width: '100%'
@@ -525,14 +565,12 @@ div.dt-button-collection .dt-button:hover {
 ],
     columns: [
   { data: 'action', name: 'action', orderable: false, searchable: false },
-  { data: 'document_number', name: 'document_number', orderable: false },
-  { data: 'current_version', name: 'current_version', className: 'text-center', orderable: false, searchable: false },
-  { data: 'document_type', name: 'document_type', orderable: false, searchable: false },
+  //{ data: 'registration_number', name: 'registration_number', orderable: false },
+  { data: 'document', name: 'document', orderable: false, searchable: false },
+  { data: 'submission_type', name: 'submission_type', orderable: false, searchable: false },
   { data: 'department', name: 'department', orderable: false, searchable: false },
-  { data: 'remark', name: 'remark',  className: 'text-center', orderable: false, searchable: false },
-  { data: 'title', name: 'title', orderable: false },
+  { data: 'department_id', name: 'department_id', orderable: false, searchable: false },
   { data: 'status', name: 'status', className: '!text-center !w-28', orderable: false, searchable: false },
-  { data: 'file', name: 'file', orderable: false,searchable: false },
   { data: 'created_by', name: 'created_by', orderable: false, searchable: false },
   { data: 'created_at', name: 'created_at', orderable: false, searchable: false },
   { data: 'approved_by', name: 'approved_by', orderable: false, searchable: false },
@@ -665,11 +703,12 @@ $('#obsoleteForm').on('submit', function (e) {
     });
 });
 
-function approveDOC(id, docNumber) {
+
+function approveDOC(id) {
 
     Swal.fire({
-        title: 'Approve Document?',
-        html: `Approve this Document: <strong>${docNumber} </strong>?`,
+        title: 'Approve this Document?',
+        html: `Make sure you have agreed to all the contents of the document`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Yes, Approve it!',
@@ -680,7 +719,7 @@ function approveDOC(id, docNumber) {
                 _token: '{{ csrf_token() }}'
             }, function(res) {
                 // ✅ res tersedia di sini
-                showToast('success', 'Document has been Approved: ' + res.document_number);
+                showToast('success', 'Document has been Approved!');
                  $('#doc-table').DataTable().ajax.reload(null, false);
             }).fail(function() {
                 showToast('error', 'Terjadi kesalahan saat menyetujui document.');
@@ -713,11 +752,11 @@ function reviewDOC(id, docNumber) {
     });
 }
 
-function authorizedDOC(id, docNumber) {
+function authorizedDOC(id) {
 
     Swal.fire({
         title: 'Authorize Document',
-        html: `Authorize this Document: <strong>${docNumber} </strong>?`,
+        html: `Make sure you have agreed to all the contents of the document`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Yes, Authorized it!',
@@ -728,7 +767,7 @@ function authorizedDOC(id, docNumber) {
                 _token: '{{ csrf_token() }}'
             }, function(res) {
                 // ✅ res tersedia di sini
-                showToast('success', 'Document has been Authorized and the status is Published: ' + res.document_number);
+                showToast('success', 'Document has been Authorized and the status is Published');
                  $('#doc-table').DataTable().ajax.reload(null, false);
             }).fail(function() {
                 showToast('error', 'Terjadi kesalahan saat mengesahkan Document.');
@@ -911,6 +950,71 @@ $("#resubmitForm").on("submit", function (e) {
         }
     });
 }
+
+let selectedReturnId = null;
+
+// buka modal
+function openReturnModal(id) {
+    selectedReturnId = id;
+    $('#returnNote').val('');
+    $('#returnModal').removeClass('hidden').addClass('flex');
+}
+
+// cancel
+$('#cancelReturn').on('click', function () {
+    $('#returnModal').addClass('hidden').removeClass('flex');
+});
+
+// submit
+$('#submitReturn').on('click', function () {
+
+    const note = $('#returnNote').val().trim();
+
+    if (!note) {
+        showToast('error', 'Catatan wajib diisi!');
+        return;
+    }
+
+    // optional: auto bullet format
+    const formattedNote = note
+        .split('\n')
+        .map(line => line.trim() ? '• ' + line.trim() : '')
+        .join('\n');
+
+    $.ajax({
+        url: `/mr/document/return/${selectedReturnId}`,
+        method: 'POST',
+        data: {
+            note: formattedNote,
+            _token: '{{ csrf_token() }}'
+        },
+        success: function (res) {
+            showToast('success', 'Document berhasil di-return');
+
+            $('#returnModal').addClass('hidden').removeClass('flex');
+
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        },
+        error: function () {
+            showToast('error', 'Gagal melakukan return');
+        }
+    });
+});
+
+$('#returnNote').on('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        const cursorPos = this.selectionStart;
+        const value = $(this).val();
+
+        const newText = value.substring(0, cursorPos) + '\n• ' + value.substring(cursorPos);
+        $(this).val(newText);
+
+        this.selectionStart = this.selectionEnd = cursorPos + 3;
+    }
+});
   </script>
 
 @endpush
