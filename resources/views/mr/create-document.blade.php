@@ -1059,10 +1059,15 @@ $(document).ready(function () {
     });
 
     // 4M toggle
-    $("input[name='need_4m']").on('change', function () {
-        console.log('changed:', $(this).val());
-        $('#file_4m_group').toggleClass('hidden', $(this).val() !== 1);
-    });
+    $(document).on('change', "input[name='need_4m']", function () {
+    const val = $("input[name='need_4m']:checked").val();
+
+    if (val === '1') {
+        $('#file_4m_group').removeClass('hidden').show();
+    } else {
+        $('#file_4m_group').addClass('hidden').hide();
+    }
+});
 
     // Title char count
     $('#titleInput').on('input', function () {
