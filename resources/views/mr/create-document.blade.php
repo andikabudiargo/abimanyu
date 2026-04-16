@@ -687,10 +687,10 @@ textarea.f-input { resize: vertical; }
                         </div>
                         <div style="display: flex; gap: 16px;">
                             <label style="display: flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer;">
-                                <input type="radio" name="need_4m" value=0 checked> No
+                                <input type="radio" name="need_4m" value="0" checked> No
                             </label>
                             <label style="display: flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer;">
-                                <input type="radio" name="need_4m" value=1> Yes
+                                <input type="radio" name="need_4m" value="1"> Yes
                             </label>
                         </div>
                     </div>
@@ -992,7 +992,7 @@ function validateStep3() {
         showToast('warning', 'Please upload the document file.'); return false;
     }
     const need4m = $('input[name="need_4m"]:checked').val();
-    if (need4m === 'yes' && !document.getElementById('file_4m').files[0]) {
+    if (need4m === '1' && !document.getElementById('file_4m').files[0]) {
         showToast('warning', '4M attachment is required.'); return false;
     }
     return true;
@@ -1314,7 +1314,7 @@ function buildReview() {
                        ? $('#doc_number_input').val() : $('#doc_number_select').val();
     const title    = $('input[name="document_title"]').val() || '—';
     const reason   = $('textarea[name="reason"]').val() || 'Not provided';
-    const need4m   = $('input[name="need_4m"]:checked').val() === 'yes' ? 'Yes' : 'No';
+    const need4m   = $('input[name="need_4m"]:checked').val() === "1" ? 'Yes' : 'No';
     const file     = document.getElementById('file').files[0];
     const filename = file ? file.name : '— No file selected —';
 
