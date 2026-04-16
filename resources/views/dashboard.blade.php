@@ -429,6 +429,8 @@
     </div>
 @endif
 
+ 
+@endif
 
 <div class="bg-white shadow-md mt-4 overflow-hidden">
   <!-- NAVIGATION TABS ala Dribbble -->
