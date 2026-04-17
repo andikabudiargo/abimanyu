@@ -366,21 +366,28 @@ textarea.f-input { resize: vertical; }
                         <span>Select the document type to look up existing published documents in the next step.</span>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="typeTiles">
-                        @foreach([
-                            ['Form',             'FM'],
-                            ['Work Instructions','WI'],
-                            ['Standard',         'STD'],
-                            ['SOP',              'SOP'],
-                            ['other',            '...'],
-                        ] as [$val, $abbr])
-                        <label class="type-tile {{ $loop->first ? 'is-selected' : '' }}" id="tile_{{ $loop->index }}">
-                            <input type="radio" name="document_type" value="{{ $val }}" class="docType" {{ $loop->first ? 'checked' : '' }}>
-                            <span class="type-tile-dot"></span>
-                            <span class="type-tile-label">{{ $val === 'other' ? 'Other' : $val }}</span>
-                        </label>
-                        @endforeach
-                    </div>
+                   @php
+$types = [
+    ['Form', 'FM', 'green'],
+    ['Work Instructions', 'WI', 'amber'],
+    ['Standard', 'STD', 'blue'],
+    ['SOP', 'SOP', 'purple'],
+    ['other', '...', 'gray'],
+];
+@endphp
+
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="typeTiles">
+    @foreach($types as [$val, $abbr, $color])
+    <label 
+        class="type-tile type-{{ $color }} {{ $loop->first ? 'is-selected' : '' }}" 
+        id="tile_{{ $loop->index }}"
+    >
+        <input type="radio" name="document_type" value="{{ $val }}" class="docType" {{ $loop->first ? 'checked' : '' }}>
+        <span class="type-tile-dot"></span>
+        <span class="type-tile-label">{{ $val === 'other' ? 'Other' : $val }}</span>
+    </label>
+    @endforeach
+</div>
 
                     {{-- Only shown for New Release + "Other" --}}
                     <div id="otherTypeWrap" class="hidden mt-3">
@@ -504,6 +511,11 @@ textarea.f-input { resize: vertical; }
                 </div>
                 <div class="c-card-body" style="padding-bottom: 4px;">
                     <label class="f-label">Department <sup>*</sup></label>
+                    {{-- Notice for Revision/Obsolete --}}
+                    <div class="info-banner warn mb-3 hidden">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Select the department to which the process in the document will be executed. </span>
+                    </div>
                     <select id="department" name="department_id" required class="f-input" style="padding:7px 10px;">
                         <option value="">— Select Department —</option>
                          <option value="2">HRGAIT</option>
@@ -1124,10 +1136,42 @@ function setupDrop(zoneId, inputId, prefix) {
     const zone  = document.getElementById(zoneId);
     const input = document.getElementById(inputId);
     if (!zone || !input) return;
-    ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('is-over'); }));
-    ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('is-over'); }));
-    zone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) showFilePreview(f, prefix); });
-    input.addEventListener('change', function () { if (this.files[0]) showFilePreview(this.files[0], prefix); });
+
+    ['dragenter','dragover'].forEach(ev => 
+        zone.addEventListener(ev, e => {
+            e.preventDefault();
+            zone.classList.add('is-over');
+        })
+    );
+
+    ['dragleave','drop'].forEach(ev => 
+        zone.addEventListener(ev, e => {
+            e.preventDefault();
+            zone.classList.remove('is-over');
+        })
+    );
+
+    // 🔥 FIX DI SINI
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+
+        const files = e.dataTransfer.files;
+
+        if (files.length) {
+
+            // 🔥 MASUKKAN KE INPUT
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            input.files = dt.files;
+
+            // preview
+            showFilePreview(files[0], prefix);
+        }
+    });
+
+    input.addEventListener('change', function () {
+        if (this.files[0]) showFilePreview(this.files[0], prefix);
+    });
 }
 
 function showFilePreview(file, prefix) {
