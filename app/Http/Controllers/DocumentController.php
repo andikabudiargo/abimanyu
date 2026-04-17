@@ -1440,10 +1440,33 @@ public function destroy($id)
         $docNumber = $document->document_number;
 
         // =========================
+        // AMBIL DEPT DARI USER PEMBUAT
+        // =========================
+        $deptFrom = optional($document->createdBy?->departments->first())->id;
+
+        // fallback kalau null
+        if (!$deptFrom) {
+            $deptFrom = 'unknown';
+        }
+
+        // =========================
+        // NORMALIZE DOC TYPE (WAJIB SAMA DENGAN STORE)
+        // =========================
+        $docType = strtolower(str_replace(' ', '_', $document->document_type));
+
+        // =========================
+        // BASE PATH (PRODUCTION / LOCAL)
+        // =========================
+        $basePath = is_dir(base_path('../public_html'))
+            ? base_path('../public_html')
+            : public_path();
+
+        // =========================
         // HAPUS FILE UTAMA
         // =========================
         if ($document->file_path) {
-            $filePath = public_path($document->file_path);
+
+            $filePath = $basePath . "/documents/{$docType}/{$deptFrom}/{$document->file_path}";
 
             if (file_exists($filePath)) {
                 unlink($filePath);
@@ -1454,7 +1477,8 @@ public function destroy($id)
         // HAPUS FILE 4M
         // =========================
         if ($document->file_4m_path) {
-            $file4mPath = public_path($document->file_4m_path);
+
+            $file4mPath = $basePath . "/documents/{$docType}/{$deptFrom}/4m/{$document->file_4m_path}";
 
             if (file_exists($file4mPath)) {
                 unlink($file4mPath);
@@ -1465,7 +1489,7 @@ public function destroy($id)
         // HAPUS RELASI
         // =========================
         $document->copies()->delete();
-        $document->revision()->delete(); // kalau ada relasi revision
+        $document->revision()->delete();
 
         // =========================
         // HAPUS DATA
