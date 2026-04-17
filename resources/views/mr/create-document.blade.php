@@ -488,7 +488,7 @@ textarea.f-input { resize: vertical; }
                                    placeholder="e.g. FM-HRD-001" class="f-input">
                             {{-- Revision / Obsolete: dropdown of published docs --}}
                             <select id="doc_number_select" name="document_number_select"
-                                    class="publishable f-input hidden" style="padding:7px 10px;">
+                                    class="f-input hidden" style="padding:7px 10px;">
                                 <option value="">— Select Published Document —</option>
                             </select>
                             <p id="last_doc_info" class="hidden text-xs text-gray-400 mt-1.5">
