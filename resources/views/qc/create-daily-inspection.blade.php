@@ -217,6 +217,7 @@
     <thead class="bg-gray-100 border-b border-gray-200">
       <tr>
         <th class="px-3 py-2 text-center font-medium min-w-[20px]">No</th>
+        <th class="px-3 py-2 text-center font-medium min-w-[80px]">Type</th> <!-- NEW -->
         <th class="px-3 py-2 font-medium min-w-[160px]">Defect</th>
         <th class="px-3 py-2 text-center font-medium min-w-[60px]">Qty</th>
         <th class="px-3 py-2 text-center font-medium min-w-[60px] ok-repair-wrapper">
@@ -264,6 +265,13 @@
 
     <div class="divide-y divide-gray-100 text-sm">
 
+ <div class="flex justify-between px-4 py-2 hidden">
+  <span class="text-gray-600">Total Receiving</span>
+  <span class="font-medium text-gray-900">
+    <span id="totalReceiving">0</span>
+  </span>
+</div>
+
       <div class="flex justify-between px-4 py-2 hidden">
   <span class="text-gray-600">Total Defect Qty</span>
   <span class="font-medium text-gray-900">
@@ -278,7 +286,6 @@
     <span id="totalCheckDisplay">0</span>
   </span>
 </div>
-
 
 <div class="flex justify-between px-4 py-2">
   <span class="text-sm text-gray-600">Total OK</span>
@@ -561,26 +568,23 @@ $(document).ready(function () {
     const totalCheck = parseInt($totalCheck.val()) || 0;
 
     $('#defectTableBody tr').each(function () {
-      const defectText = $(this)
-        .find('.defect-select option:selected')
-        .text()
-        .trim();
 
-      const qty = parseInt($(this).find('.qty-defect').val()) || 0;
+        const type = $(this).find('.defect-type').val(); // 🔥 ambil dari dropdown
+        const qty  = parseInt($(this).find('.qty-defect').val()) || 0;
 
-      if (defectText.startsWith('NG')) {
-        totalNG += qty;
-      }
+        if (type === 'NG') {
+            totalNG += qty;
+        }
     });
 
     $totalNGDisplay.text(totalNG);
 
     const percent = totalCheck > 0
-      ? ((totalNG / totalCheck) * 100).toFixed(0)
-      : 0;
+        ? ((totalNG / totalCheck) * 100).toFixed(0)
+        : 0;
 
     $totalNGPercent.text(percent);
-  }
+}
 
 
   /* =====================================================
@@ -610,37 +614,36 @@ $(document).ready(function () {
     let totalValue = 0;
 
     if (post === 'Incoming') {
-      $totalNCLabel.text('Total OK Repair');
+        // 🔵 Mode OK Repair
+        $totalNCLabel.text('Total OK Repair');
 
-      $('input[name="ok_repair[]"]').each(function () {
-        totalValue += parseInt($(this).val()) || 0;
-      });
+        $('input[name="ok_repair[]"]').each(function () {
+            totalValue += parseInt($(this).val()) || 0;
+        });
 
     } else {
-      $totalNCLabel.text('Total NC');
+        // 🔴 Mode NC
+        $totalNCLabel.text('Total NC');
 
-      $('#defectTableBody tr').each(function () {
-        const defectText = $(this)
-          .find('.defect-select option:selected')
-          .text()
-          .trim();
+        $('#defectTableBody tr').each(function () {
 
-        const qty = parseInt($(this).find('.qty-defect').val()) || 0;
+            const type = $(this).find('.defect-type').val(); // 🔥 pakai ini
+            const qty  = parseInt($(this).find('.qty-defect').val()) || 0;
 
-        if (defectText.startsWith('NC')) {
-          totalValue += qty;
-        }
-      });
+            if (type === 'NC') {
+                totalValue += qty;
+            }
+        });
     }
 
     $totalNCDisplay.text(totalValue);
 
     const percent = totalCheck > 0
-      ? ((totalValue / totalCheck) * 100).toFixed(0)
-      : 0;
+        ? ((totalValue / totalCheck) * 100).toFixed(0)
+        : 0;
 
     $totalNCPercent.text(percent);
-  }
+}
 
 
   /* =====================================================
@@ -838,14 +841,22 @@ defects.forEach(defect => {
     defectOptions += `
       <option 
         value="${defect.id}" 
-        data-defect="${defect.defect}">
-        ${defect.category} - ${defect.defect}
+        data-defect="${defect.defect}"> ${defect.defect}
+      
       </option>`;
 });
 
 
     $row.html(`
         <td class="border p-2 text-center w-[20px]">${index}</td>
+         <!-- NEW DROPDOWN NC / NG -->
+    <td class="border p-2 w-[120px]">
+        <select name="defect_type[]" class="w-full border p-2 rounded defect-type" required>
+            <option value="">--</option>
+            <option value="NC">NC</option>
+            <option value="NG">NG</option>
+        </select>
+    </td>
         <td class="border p-2 min-w-[140px]">
             <select name="defect_id[]" class="w-full border rounded defect-select">
                 ${defectOptions}
@@ -932,6 +943,40 @@ defects.forEach(defect => {
             <button type="button" class="removeBtn text-red-600 hover:text-red-800">X</button>
         </td>
     `);
+
+    $row.data('allDefects', defects);
+
+    function filterDefectOptions($row, type) {
+    const defects = $row.data('allDefects') || [];
+    const $defectSelect = $row.find('.defect-select');
+
+    let options = '<option value="">-- Choose Defect --</option>';
+
+    defects.forEach(defect => {
+        if (!type || defect.category === type) {
+            options += `
+                <option 
+                    value="${defect.id}" 
+                    data-defect="${defect.defect}">
+                   ${defect.defect}
+                </option>`;
+        }
+    });
+
+    // destroy & re-init select2
+    $defectSelect.html(options).val(null).trigger('change');
+
+    $defectSelect.select2({
+        placeholder: '-- Choose Defect --',
+        allowClear: true,
+        width: '100%'
+    });
+}
+
+$row.find('.defect-type').on('change', function () {
+    const type = $(this).val(); // NC / NG
+    filterDefectOptions($row, type);
+});
 
     // Init Select2
 const $defectSelect = $row.find('.defect-select');
