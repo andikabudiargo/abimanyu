@@ -946,7 +946,7 @@ function applySubmissionTypeLogic(subType) {
 
         // Select doc number
         $('#doc_number_input').addClass('hidden');
-        $('#doc_number_select').removeClass('hidden');
+        $('#doc_number_select').next('.select2').removeClass('hidden');
 
         // Revision field
         if (subType === 'Revision') {
@@ -968,7 +968,7 @@ function applySubmissionTypeLogic(subType) {
         $('#typeRevNotice').addClass('hidden');
 
         $('#doc_number_input').removeClass('hidden');
-        $('#doc_number_select').addClass('hidden');
+        $('#doc_number_select').next('.select2').addClass('hidden');
 
         $('#revision_group, #changes_group').addClass('hidden');
         $('#last_doc_info').addClass('hidden');
