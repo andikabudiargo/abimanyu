@@ -39,7 +39,7 @@
     </select>
             </div>
              <div>
-                <label for="filter-reg-date" class="block text-sm mb-1 font-medium text-gray-700">Registration Date</label>
+                <label for="filter-date" class="block text-sm mb-1 font-medium text-gray-700">Registration Date</label>
                  <input type="text" name="registration_date" id="filter-date"
     class="w-full border border-gray-300 rounded-lg text-l px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
     placeholder="YYYY-MM-DD to YYYY-MM-DD" autocomplete="off" />
@@ -61,7 +61,7 @@
          <option value="">-- All --</option>
          <option value="2">HRGAIT</option>
         @foreach($departments as $dept)
-            <option value="{{ $dept->name }}">{{ $dept->name }}</option>
+            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
         @endforeach
         <!-- tambahkan sesuai kebutuhan -->
     </select>
@@ -508,7 +508,7 @@ div.dt-button-collection .dt-button:hover {
                 d.status = $('#filter-status').val();
                 d.dept_from = $('#filter-from').val();
                 d.dept_to = $('#filter-to').val();
-                d.registration_date = $('#filter-reg-date').val();
+                d.registration_date = $('#filter-date').val();
             }
         },
         lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
