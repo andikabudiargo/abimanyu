@@ -428,20 +428,21 @@ $actionButtons .= '</div></div></div>';
     }
 
     // =========================
-    // BUILD FILE URL
-    // =========================
-    $docType = strtolower(str_replace(' ', '_', $row->document_type));
-    $deptFrom = $row->dept_from;
+// NORMALIZE PATH (SAMA DENGAN STORE)
+// =========================
+$docType  = strtolower(str_replace(' ', '_', $row->document_type));
+$deptFrom = $row->dept_from;
 
-    $relativePath = "documents/{$docType}/{$deptFrom}/{$row->file_path}";
-    $fileUrl = asset($relativePath);
+// kalau di DB cuma simpan nama file saja
+$relativePath = "documents/{$docType}/{$deptFrom}/{$row->file_path}";
 
-    // =========================
-    // FILE INFO
-    // =========================
-    $extension = strtolower(pathinfo($row->file_path, PATHINFO_EXTENSION));
-    $downloadName = $row->file_path;
+$fileUrl = asset($relativePath);
 
+// =========================
+// FILE INFO
+// =========================
+$extension = strtolower(pathinfo($row->file_path, PATHINFO_EXTENSION));
+$downloadName = $row->file_path;
     $icon = match ($extension) {
         'pdf'        => '<i class="fas fa-file-pdf text-red-500 text-xl"></i>',
         'doc', 'docx'=> '<i class="fas fa-file-word text-blue-500 text-xl"></i>',
