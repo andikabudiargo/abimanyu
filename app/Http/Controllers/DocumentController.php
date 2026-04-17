@@ -42,18 +42,41 @@ class DocumentController extends Controller
 {
     $user = auth()->user();
 
-    // Ambil department user (pivot)
+    // Ambil department user
     $departmentIds = $user->departments->pluck('id');
 
-    $docs = Document::select('id','document_number', 'document_title', 'current_version', 'dept_to')
-        ->where('document_type', $request->document_type)
-        ->whereIn('submitted_by', function ($query) use ($departmentIds) {
-            $query->select('user_id')
-                ->from('department_user')
-                ->whereIn('department_id', $departmentIds);
-        })
-        ->orderBy('document_number', 'desc')
-        ->get();
+    $query = Document::select('id','document_number', 'document_title', 'current_version', 'dept_to');
+
+    // =========================
+    // FILTER DOCUMENT TYPE
+    // =========================
+    if ($request->document_type === 'other') {
+
+        $query->whereNotIn('document_type', [
+            'SOP',
+            'Form',
+            'Standard',
+            'Work Instructions'
+        ]);
+
+    } else {
+
+        $query->where('document_type', $request->document_type);
+    }
+
+    // =========================
+    // FILTER BY DEPARTMENT
+    // =========================
+    $query->whereIn('submitted_by', function ($q) use ($departmentIds) {
+        $q->select('user_id')
+          ->from('department_user')
+          ->whereIn('department_id', $departmentIds);
+    });
+
+    // =========================
+    // ORDER
+    // =========================
+    $docs = $query->orderBy('document_number', 'desc')->get();
 
     return response()->json($docs);
 }
