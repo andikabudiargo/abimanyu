@@ -427,50 +427,56 @@ $actionButtons .= '</div></div></div>';
         return '-';
     }
 
+    // =========================
+    // BUILD FILE URL
+    // =========================
+    $docType = strtolower(str_replace(' ', '_', $row->document_type));
+    $deptFrom = $row->dept_from;
+
+    $relativePath = "documents/{$docType}/{$deptFrom}/{$row->file_path}";
+    $fileUrl = asset($relativePath);
+
+    // =========================
+    // FILE INFO
+    // =========================
     $extension = strtolower(pathinfo($row->file_path, PATHINFO_EXTENSION));
-   $fileUrl = asset($row->file_path);
-   $downloadName = basename($row->file_path);
+    $downloadName = $row->file_path;
 
     $icon = match ($extension) {
-        'pdf' => '<i class="fas fa-file-pdf text-red-500 text-xl"></i>',
-        'doc', 'docx' => '<i class="fas fa-file-word text-blue-500 text-xl"></i>',
-        'xls', 'xlsx' => '<i class="fas fa-file-excel text-green-500 text-xl"></i>',
-        default => '<i class="fas fa-file text-gray-400 text-xl"></i>',
+        'pdf'        => '<i class="fas fa-file-pdf text-red-500 text-xl"></i>',
+        'doc', 'docx'=> '<i class="fas fa-file-word text-blue-500 text-xl"></i>',
+        'xls', 'xlsx'=> '<i class="fas fa-file-excel text-green-500 text-xl"></i>',
+        default      => '<i class="fas fa-file text-gray-400 text-xl"></i>',
     };
 
     $type = strtoupper($row->document_type);
 
     $badgeColor = match ($type) {
-        'SOP' => 'bg-purple-100 text-purple-700',
-        'STANDARD' => 'bg-blue-100 text-blue-700',
+        'SOP'               => 'bg-purple-100 text-purple-700',
+        'STANDARD'          => 'bg-blue-100 text-blue-700',
         'WORK INSTRUCTIONS' => 'bg-amber-100 text-amber-700',
-        'FORM' => 'bg-emerald-100 text-emerald-700',
-        default => 'bg-gray-100 text-gray-600',
+        'FORM'              => 'bg-emerald-100 text-emerald-700',
+        default             => 'bg-gray-100 text-gray-600',
     };
 
     return '
-        <a href="' . $fileUrl . '" download="' . $downloadName . '" 
+        <a href="' . $fileUrl . '" download="' . e($downloadName) . '" 
            class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 transition group">
 
-            <!-- ICON WRAPPER (FIX ALIGN) -->
             <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white shadow-sm flex-shrink-0">
                 ' . $icon . '
             </div>
 
-            <!-- TEXT -->
             <div class="flex flex-col justify-center min-w-0">
 
-                <!-- TYPE -->
                 <span class="inline-block w-fit px-2 py-0.5 text-[10px] font-semibold rounded ' . $badgeColor . '">
                     ' . e($type) . '
                 </span>
 
-                <!-- DOC NUMBER -->
                 <span class="text-sm font-semibold text-gray-800 truncate">
                     ' . e($row->document_number) . '
                 </span>
 
-                <!-- TITLE -->
                 <span class="text-xs text-gray-500 truncate">
                     ' . e($row->document_title) . '
                 </span>
