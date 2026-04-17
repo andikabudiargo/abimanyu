@@ -245,7 +245,7 @@ $mainPath = $document->file_path
     : null;
 
 $file4mPath = $document->file_4m_path 
-    ? "documents/{$docType}/{$deptFrom}/4m/{$document->file_4m_path}" 
+    ? "documents/{$docType}/{$deptFrom}/{$document->file_4m_path}" 
     : null;
 @endphp
 

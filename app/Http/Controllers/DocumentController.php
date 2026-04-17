@@ -423,26 +423,37 @@ $actionButtons .= '</div></div></div>';
 
 ->addColumn('document', function ($row) {
 
-    if (!$row->file_path) {
-        return '-';
-    }
+   if (!$row->file_path) {
+    return '-';
+}
 
-    // =========================
-// NORMALIZE PATH (SAMA DENGAN STORE)
 // =========================
-$docType  = strtolower(str_replace(' ', '_', $row->document_type));
-$deptFrom = $row->dept_from;
+// NORMALIZE DOC TYPE
+// =========================
+$docType = strtolower(str_replace(' ', '_', trim($row->document_type)));
 
-// kalau di DB cuma simpan nama file saja
+// =========================
+// AMBIL DEPT DARI USER PEMBUAT
+// =========================
+$deptFrom = optional($row->createdBy->departments->first())->id;
+
+// fallback biar gak error
+if (!$deptFrom) {
+    return '-';
+}
+
+// =========================
+// BUILD FILE URL
+// =========================
 $relativePath = "documents/{$docType}/{$deptFrom}/{$row->file_path}";
-
-$fileUrl = asset($relativePath);
+$fileUrl = url($relativePath); // 🔥 pakai url(), bukan asset()
 
 // =========================
 // FILE INFO
 // =========================
 $extension = strtolower(pathinfo($row->file_path, PATHINFO_EXTENSION));
 $downloadName = $row->file_path;
+
     $icon = match ($extension) {
         'pdf'        => '<i class="fas fa-file-pdf text-red-500 text-xl"></i>',
         'doc', 'docx'=> '<i class="fas fa-file-word text-blue-500 text-xl"></i>',
