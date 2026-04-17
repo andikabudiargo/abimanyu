@@ -504,7 +504,7 @@ div.dt-button-collection .dt-button:hover {
             data: function (d) {
                 d.document_number = $('#filter-document-number').val();
                 d.document_type = $('#filter-type').val();
-                d.document_submission = $('#filter-submission').val();
+                d.submission_type = $('#filter-submission').val();
                 d.status = $('#filter-status').val();
                 d.dept_from = $('#filter-from').val();
                 d.dept_to = $('#filter-to').val();
