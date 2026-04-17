@@ -273,10 +273,18 @@ if ($request->filled('submission_type')) {
     $query->where('submission_type', $request->submission_type);
 }
 
-if ($request->registration_date) {
-        [$start, $end] = explode(' to ', $request->registration_date);
-        $query->whereBetween('created_at', [$start, $end]);
+if ($request->filled('registration_date')) {
+
+    $dates = explode(' to ', $request->registration_date);
+
+    if (count($dates) === 2) {
+        $start = trim($dates[0]);
+        $end   = trim($dates[1]);
+
+        $query->whereDate('created_at', '>=', $start)
+              ->whereDate('created_at', '<=', $end);
     }
+}
 
     
 
