@@ -396,6 +396,11 @@ $actionButtons .= '</div></div></div>';
         ?? '-';
 })
 
+->addColumn('version', function ($row) {
+    return $row->revision->revision_number
+        ?? '-';
+})
+
 ->editColumn('approved_by', function ($row) {
     return $row->approvedBy->name
         ?? '-';
@@ -481,10 +486,6 @@ $downloadName = $row->file_path;
 
             <div class="flex flex-col justify-center min-w-0">
 
-                <span class="inline-block w-fit px-2 py-0.5 text-[10px] font-semibold rounded ' . $badgeColor . '">
-                    ' . e($type) . '
-                </span>
-
                 <span class="text-sm font-semibold text-gray-800 truncate">
                     ' . e($row->document_number) . '
                 </span>
@@ -497,6 +498,27 @@ $downloadName = $row->file_path;
         </a>
     ';
 })
+
+->editColumn('document_type', function ($row) {
+
+    $document_type = $row->document_type ?? 'Unknown';
+
+    $commonClasses = 'inline-block w-28 text-center text-xs border font-medium p-1 rounded-xl';
+
+    return match ($document_type) {
+
+        'SOP' => '<span class="bg-blue-50 border-blue-200 text-blue-700 ' . $commonClasses . '">SOP</span>',
+
+        'Standard' => '<span class="bg-purple-50 border-purple-200 text-purple-700 ' . $commonClasses . '">Standard</span>',
+
+        'Work Instructions' => '<span class="bg-yellow-50 border-yellow-200 text-yellow-700 ' . $commonClasses . '">Work Instructions</span>',
+
+        'Form' => '<span class="bg-green-50 border-green-200 text-green-700 ' . $commonClasses . '">Form</span>',
+
+        default => '<span class="bg-gray-100 border-gray-200 text-gray-600 ' . $commonClasses . '">' . e($document_type) . '</span>',
+    };
+})
+
 
 ->editColumn('submission_type', function ($row) {
     $commonClasses = 'inline-block text-center text-xs font-semibold p-1 rounded-lg';
@@ -530,7 +552,7 @@ $downloadName = $row->file_path;
     };
 })
 
-        ->rawColumns(['action','document','submission_type', 'status', 'department'])
+        ->rawColumns(['action','document','submission_type', 'status', 'department', 'version'])
         ->make(true);
 }
 

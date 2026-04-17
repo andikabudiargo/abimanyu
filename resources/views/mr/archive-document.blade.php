@@ -99,7 +99,9 @@
                 <tr>
                     <th class="px-4 py-2">Action</th>
                     <th class="px-4 py-2">Document</th>
+                    <th class="px-4 py-2">Document Type</th>
                     <th class="px-4 py-2">Submission Type</th>
+                    <th class="px-4 py-2">Version</th>
                     <th class="px-4 py-2">From</th>
                     <th class="px-4 py-2">To</th>
                     <th class="px-4 py-2 !text-center !w-28">Status</th>
@@ -569,7 +571,9 @@ div.dt-button-collection .dt-button:hover {
   { data: 'action', name: 'action', orderable: false, searchable: false },
   //{ data: 'registration_number', name: 'registration_number', orderable: false },
   { data: 'document', name: 'document', orderable: false, searchable: false },
+  { data: 'document_type', name: 'document_type', orderable: false, searchable: false },
   { data: 'submission_type', name: 'submission_type', orderable: false, searchable: false },
+  { data: 'version', name: 'version', orderable: false, searchable: false },
   { data: 'department', name: 'department', orderable: false, searchable: false },
   { data: 'department_id', name: 'department_id', orderable: false, searchable: false },
   { data: 'status', name: 'status', className: '!text-center !w-28', orderable: false, searchable: false },
