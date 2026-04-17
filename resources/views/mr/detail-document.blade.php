@@ -223,20 +223,30 @@
                 Document Files
             </h2>
 
-         @php
-    // =========================
-    // NORMALIZE PATH (WAJIB SAMA DENGAN STORE)
-    // =========================
-    $docType  = strtolower(str_replace(' ', '_', $document->document_type));
-    $deptFrom = $document->dept_from;
+       @php
+// =========================
+// NORMALIZE DOC TYPE
+// =========================
+$docType = strtolower(str_replace(' ', '_', trim($document->document_type)));
 
-    $mainPath = $document->file_path 
-        ? "documents/{$docType}/{$deptFrom}/{$document->file_path}" 
-        : null;
+// =========================
+// AMBIL DEPT DARI CREATED_BY
+// =========================
+$deptFrom = optional($document->createdBy->departments->first())->id;
 
-    $file4mPath = $document->file_4m_path 
-        ? "documents/{$docType}/{$deptFrom}/4m/{$document->file_4m_path}" 
-        : null;
+// fallback biar gak null
+$deptFrom = $deptFrom ?? 0;
+
+// =========================
+// BUILD PATH
+// =========================
+$mainPath = $document->file_path 
+    ? "documents/{$docType}/{$deptFrom}/{$document->file_path}" 
+    : null;
+
+$file4mPath = $document->file_4m_path 
+    ? "documents/{$docType}/{$deptFrom}/4m/{$document->file_4m_path}" 
+    : null;
 @endphp
 
 
