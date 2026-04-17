@@ -238,12 +238,10 @@ if ($request->filled('dept_from')) {
 if ($request->filled('dept_to')) {
 
     $deptIds = collect($this->resolveDepartmentGroup($request->dept_to))
-        ->filter()   // buang null
+        ->map(fn($id) => (int) $id)
         ->unique();
 
-    if ($deptIds->isNotEmpty()) {
-        $query->whereIn('department_id', $deptIds);
-    }
+    $query->whereIn('department_id', $deptIds);
 }
 
 if ($request->filled('document_type')) {
