@@ -310,6 +310,7 @@ $file4mPath = $document->file_4m_path
     </a>
 </div>
 @endif
+        </div>
 
         {{-- Copy Distribution --}}
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
