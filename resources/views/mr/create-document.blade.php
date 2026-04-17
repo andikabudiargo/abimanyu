@@ -66,12 +66,6 @@ textarea.f-input { resize: vertical; }
 .type-tile-label { font-size: 12px; font-weight: 500; color: #374151; }
 .type-tile.is-selected .type-tile-label { color: #1e3a5f; }
 
-/* Disabled tile (Other when Revision/Obsolete) */
-.type-tile.is-disabled {
-    opacity: .45; cursor: not-allowed; background: #f9fafb;
-    border-color: #e5e7eb !important;
-}
-.type-tile.is-disabled input { pointer-events: none; }
 
 .sub-pill {
     display: flex; align-items: center; gap: 6px; padding: 7px 14px;
@@ -821,42 +815,38 @@ function validateStep3() {
 // DOCUMENT TYPE TILE LOGIC (driven by submission type)
 // ═══════════════════════════════════════════════
 function applySubmissionTypeLogic(subType) {
-    const isRev = (subType === 'Revision' || subType === 'Obsolete');
 
-    // Other tile
-    const $otherTile = $('#tile_4'); // 0-indexed, "other" is index 4
+    const isRev = (subType === 'Revision' || subType === 'Obsolete');
+    const $otherTile = $('#tile_4');
+
+    const currentType = $('input[name="document_type"]:checked').val();
 
     if (isRev) {
-        // Disable "Other" tile — it's meaningless for rev/obsolete since we need a published doc number
-        $otherTile.addClass('is-disabled');
-        $otherTile.find('input').prop('disabled', true);
 
-        // If "other" was selected, switch to Form
-        if ($('input[name="document_type"]:checked').val() === 'other') {
-            $otherTile.removeClass('is-selected');
-            $('#tile_0').addClass('is-selected');
-            $('#tile_0 input').prop('checked', true).trigger('change');
-        }
+        // ❌ Tidak disable lagi
+        $otherTile.removeClass('is-disabled');
+        $otherTile.find('input').prop('disabled', false);
 
-        // Hide the free-text input
+        // ❗ Hide input "Other"
         $('#otherTypeWrap').addClass('hidden');
 
-        // Show doc number as select, show revision group
+        // Select doc number
         $('#doc_number_input').addClass('hidden');
         $('#doc_number_select').removeClass('hidden');
+
+        // Revision field
         if (subType === 'Revision') {
             $('#revision_group, #changes_group').removeClass('hidden');
         } else {
             $('#revision_group, #changes_group').addClass('hidden');
         }
 
-        // Show notice
         $('#typeRevNotice').removeClass('hidden');
 
-        // Load doc numbers for current selected type
-        loadDocNumbers($('input[name="document_type"]:checked').val());
+        loadDocNumbers(currentType);
 
     } else {
+
         // New Release
         $otherTile.removeClass('is-disabled');
         $otherTile.find('input').prop('disabled', false);
@@ -865,13 +855,19 @@ function applySubmissionTypeLogic(subType) {
 
         $('#doc_number_input').removeClass('hidden');
         $('#doc_number_select').addClass('hidden');
+
         $('#revision_group, #changes_group').addClass('hidden');
         $('#last_doc_info').addClass('hidden');
 
-        // Show "other" input only if currently selected
-        const currentType = $('input[name="document_type"]:checked').val();
+        // ✅ Show "Other" hanya kalau dipilih
         $('#otherTypeWrap').toggleClass('hidden', currentType !== 'other');
     }
+
+    // ✅ GLOBAL CONTROL (biar konsisten)
+    $('#otherTypeWrap').toggleClass(
+        'hidden',
+        isRev || currentType !== 'other'
+    );
 }
 
 // ═══════════════════════════════════════════════
