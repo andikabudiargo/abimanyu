@@ -398,7 +398,7 @@ $actionButtons .= '</div></div></div>';
 
 ->addColumn('version', function ($row) {
     return $row->revision->revision_number
-        ?? '-';
+        ?? '0';
 })
 
 ->editColumn('approved_by', function ($row) {
