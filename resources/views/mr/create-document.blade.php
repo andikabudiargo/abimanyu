@@ -242,7 +242,7 @@ textarea.f-input { resize: vertical; }
                         <code id="sumDocNum" class="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">—</code>
                     </div>
                     <div class="flex justify-between items-center" id="sumDeptRow" style="display:none!important;">
-                        <span class="text-gray-400">Dept.</span>
+                        <span class="text-gray-400">To</span>
                         <span id="sumDept" class="font-medium text-gray-700 text-right" style="max-width:120px; word-break:break-word;">—</span>
                     </div>
                 </div>

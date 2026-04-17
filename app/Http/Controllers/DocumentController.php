@@ -429,7 +429,7 @@ $actionButtons .= '</div></div></div>';
 
     $extension = strtolower(pathinfo($row->file_path, PATHINFO_EXTENSION));
    $fileUrl = asset($row->file_path);
-    $downloadName = $row->document_number . '.' . $extension;
+   $downloadName = basename($row->file_path);
 
     $icon = match ($extension) {
         'pdf' => '<i class="fas fa-file-pdf text-red-500 text-xl"></i>',
