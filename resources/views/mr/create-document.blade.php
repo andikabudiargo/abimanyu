@@ -215,7 +215,7 @@ textarea.f-input { resize: vertical; }
 .file-ext-badge.docx { background: #dbeafe; color: #1e3a8a; }
 
 .dist-table { width: 100%; border-collapse: collapse; }
-.dist-table th { text-align: left; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #6b7280; padding: 8px 10px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+.dist-table th { text-align: left; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #c2e4f8; padding: 8px 10px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
 .dist-table td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; font-size: 12px; vertical-align: middle; }
 .dist-table tr:last-child td { border-bottom: none; }
 .dist-table tr:hover td { background: #f9fafb; }
