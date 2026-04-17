@@ -45,29 +45,50 @@ class DocumentController extends Controller
     // Ambil department user
     $departmentIds = $user->departments->pluck('id');
 
-    $query = Document::select('id','document_number', 'document_title', 'current_version', 'dept_to');
+    $query = Document::select(
+        'id',
+        'document_number',
+        'document_title',
+        'current_version',
+        'dept_to'
+    );
+
+    // =========================
+    // NORMALIZE TYPE
+    // =========================
+    $type = strtolower(trim($request->document_type));
 
     // =========================
     // FILTER DOCUMENT TYPE
     // =========================
-    if ($request->document_type === 'other') {
+    if ($type === 'other') {
 
-        $query->whereNotIn('document_type', [
-            'SOP',
-            'Form',
-            'Standard',
-            'Work Instructions'
-        ]);
+        $query->whereRaw("
+            TRIM(LOWER(document_type)) NOT IN (
+                'sop',
+                'form',
+                'standard',
+                'work instructions'
+            )
+        ");
 
     } else {
 
-        $query->where('document_type', $request->document_type);
+        $query->whereRaw(
+            "TRIM(LOWER(document_type)) = ?",
+            [$type]
+        );
     }
 
     // =========================
     // FILTER BY DEPARTMENT
     // =========================
-   $query->whereIn('dept_from', $departmentIds);
+    $query->whereIn('dept_from', $departmentIds);
+
+    // =========================
+    // OPTIONAL (BIAR LEBIH VALID)
+    // =========================
+    $query->where('is_active', 1);
 
     // =========================
     // ORDER
