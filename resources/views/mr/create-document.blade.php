@@ -488,7 +488,7 @@ textarea.f-input { resize: vertical; }
                                    placeholder="e.g. FM-HRD-001" class="f-input">
                             {{-- Revision / Obsolete: dropdown of published docs --}}
                             <select id="doc_number_select" name="document_number_select"
-                                    class="f-input hidden" style="padding:7px 10px;">
+                                    class="publishable f-input hidden" style="padding:7px 10px;">
                                 <option value="">— Select Published Document —</option>
                             </select>
                             <p id="last_doc_info" class="hidden text-xs text-gray-400 mt-1.5">
@@ -990,6 +990,7 @@ function applySubmissionTypeLogic(subType) {
 $(document).ready(function () {
 
     // Select2 — Department (step 3)
+    $('#doc_number_select').select2({ width: '100%', placeholder: '— Select Publishable Document —', allowClear: true });
     $('#department').select2({ width: '100%', placeholder: '— Select Department —', allowClear: true });
     $('#department').on('change', function () {
         const txt = $(this).find('option:selected').text().trim();
