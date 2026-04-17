@@ -585,31 +585,32 @@ $actionButtons .= '</div></div></div>';
             // =========================
             // 5. UPLOAD FUNCTION (LOCAL)
             // =========================
-          $storeFile = function ($file, $folder, $docNumber, $docTitle) {
+        $storeFile = function ($file, $docType, $deptFrom, $docNumber, $docTitle) {
 
-    $destinationPath = public_path($folder);
+    // =========================
+    // FORMAT FOLDER
+    // =========================
+    $docType  = strtolower(str_replace(' ', '_', $docType));
+   $destinationPath = is_dir(base_path('../public_html'))
+    ? base_path('../public_html/documents/' . $docType . '/' . $deptFrom)
+    : public_path('documents/' . $docType . '/' . $deptFrom);
 
     if (!file_exists($destinationPath)) {
         mkdir($destinationPath, 0777, true);
     }
 
     // =========================
-    // AMBIL EXTENSION
+    // EXTENSION
     // =========================
-    $extension = $file->getClientOriginalExtension();
+    $extension = strtolower($file->getClientOriginalExtension());
 
     // =========================
     // FORMAT NAMA FILE
     // =========================
     $baseName = $docNumber . '_' . $docTitle;
 
-    // sanitize (anti spasi & karakter aneh)
     $baseName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $baseName);
-
-    // rapihin underscore dobel
     $baseName = preg_replace('/_+/', '_', $baseName);
-
-    // trim underscore depan belakang
     $baseName = trim($baseName, '_');
 
     $filename = $baseName . '.' . $extension;
@@ -628,27 +629,33 @@ $actionButtons .= '</div></div></div>';
     // =========================
     $file->move($destinationPath, $filename);
 
-    return $folder . '/' . $filename;
+    // ❗ RETURN HANYA NAMA FILE
+    return $filename;
 };
 
             // =========================
             // 6. UPLOAD FILE
             // =========================
-           $filePath = null;
+        $user = auth()->user();
+$deptFrom = $user->departments->first()->id ?? 0;
+
+$fileName = null;
 if ($request->hasFile('file_path')) {
-    $filePath = $storeFile(
+    $fileName = $storeFile(
         $request->file('file_path'),
-        'uploads/documents',
+        $request->document_type,
+        $deptFrom,
         $request->document_number,
         $request->document_title
     );
 }
 
-$file4mPath = null;
+$file4mName = null;
 if ($need4m && $request->hasFile('file_4m_path')) {
-    $file4mPath = $storeFile(
+    $file4mName = $storeFile(
         $request->file('file_4m_path'),
-        'uploads/documents/4m',
+        $request->document_type,
+        $deptFrom,
         $request->document_number,
         $request->document_title . '_4M'
     );
@@ -666,8 +673,8 @@ if ($need4m && $request->hasFile('file_4m_path')) {
                 'document_title'      => $request->document_title,
                 'reason'              => $request->reason,
                 'need_4m'             => $need4m,
-                'file_path'           => $filePath,
-                'file_4m_path'        => $file4mPath,
+                'file_path'           => $fileName,
+                'file_4m_path'        => $file4mName,
                 'created_by'          => auth()->id(),
                 'status'              => 'Submitted',
             ]);
@@ -679,8 +686,8 @@ if ($need4m && $request->hasFile('file_4m_path')) {
                 DocumentRevision::create([
                     'registration_id' => $registration->id,
                     'revision_number' => $request->revision_number,
-                    'file_path'       => $filePath,
-                    'file_4m_path'    => $file4mPath,
+                    'file_path'       => $fileName,
+                    'file_4m_path'    => $file4mName,
                     'before_change'   => $request->before_change,
                     'after_change'    => $request->after_change,
                 ]);
