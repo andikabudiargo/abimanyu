@@ -506,6 +506,7 @@ textarea.f-input { resize: vertical; }
                     <label class="f-label">Department <sup>*</sup></label>
                     <select id="department" name="department_id" required class="f-input" style="padding:7px 10px;">
                         <option value="">— Select Department —</option>
+                         <option value="2">HRGAIT</option>
                         @foreach ($departments as $dept)
                             <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                         @endforeach
@@ -626,7 +627,8 @@ textarea.f-input { resize: vertical; }
                                 <td>
                                     <select name="share_dept[]" class="f-input" style="padding:6px 10px;">
                                         <option value="">— Select Department —</option>
-                                        @foreach($departments as $d)
+                                         <option value="2">HRGAIT</option>
+                                        @foreach($departments as $d) 
                                             <option value="{{ $d->id }}">{{ $d->name }}</option>
                                         @endforeach
                                     </select>

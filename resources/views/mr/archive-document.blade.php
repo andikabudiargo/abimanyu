@@ -14,11 +14,11 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
                 <label class="block text-sm mb-1 font-medium text-gray-700">Document Number</label>
-                <input type="text" id="filter-document-number" class="w-full px-3 py-1 text-lg border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
+                <input type="text" name="document_number" id="filter-document-number" class="w-full px-3 py-1 text-lg border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
             </div>
             <div>
                 <label class="block text-sm mb-1 font-medium text-gray-700">Document Type</label>
-                   <select id="filter-type" class="status w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                   <select id="filter-type" name="document_type" class="status w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
         <option value="">-- All Document Type --</option>
         <option value="Standard">Standard</option>
         <option value="Work Instructions">Work Instructions</option>
@@ -30,7 +30,7 @@
             </div>
               <div>
                 <label class="block text-sm mb-1 font-medium text-gray-700">Submission Type</label>
-                 <select id="filter-submission" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                 <select id="filter-submission" name="document_submission" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
         <option value="">-- All Submission Type --</option>
         <option value="New Release">New Release</option>
         <option value="Revision">Revision</option>
@@ -39,15 +39,16 @@
     </select>
             </div>
              <div>
-                <label for="filter-order-date" class="block text-sm mb-1 font-medium text-gray-700">Registration Date</label>
-                 <input type="text" name="date" id="filter-date"
+                <label for="filter-reg-date" class="block text-sm mb-1 font-medium text-gray-700">Registration Date</label>
+                 <input type="text" name="registration_date" id="filter-date"
     class="w-full border border-gray-300 rounded-lg text-l px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
     placeholder="YYYY-MM-DD to YYYY-MM-DD" autocomplete="off" />
             </div>
                  <div>
                 <label class="block text-sm mb-1 font-medium text-gray-700">From</label>
-                  <select id="filter-from" class=" w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                  <select id="filter-from" name="dept_from" class=" w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
          <option value="">-- All --</option>
+          <option value="2">HRGAIT</option>
         @foreach($departments as $dept)
             <option value="{{ $dept->name }}">{{ $dept->name }}</option>
         @endforeach
@@ -56,8 +57,9 @@
             </div>
                  <div>
                 <label class="block text-sm mb-1 font-medium text-gray-700">To</label>
-                  <select id="filter-to" class=" w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                  <select id="filter-to" name="dept_to" class=" w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
          <option value="">-- All --</option>
+         <option value="2">HRGAIT</option>
         @foreach($departments as $dept)
             <option value="{{ $dept->name }}">{{ $dept->name }}</option>
         @endforeach
@@ -67,13 +69,12 @@
 
             <div>
                 <label class="block text-sm mb-1 font-medium text-gray-700">Status</label>
-                 <select id="filter-status" class="status w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                 <select id="filter-status" name="status" class="status w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
         <option value="">-- All Status --</option>
         <option value="Submitted">Submitted</option>
         <option value="Approved">Approved</option>
-        <option value="Under Review">Under Review</option>
         <option value="Returned from SPV">Returned from SPV</option>
-        <option value="Returned from DCC">Returned from DCC</option>
+        <option value="Returned from MR">Returned from MR</option>
         <option value="Resubmitted">Resubmitted</option>
         <option value="Published">Published</option>
         <option value="Rejected">Rejected</option>
@@ -503,10 +504,11 @@ div.dt-button-collection .dt-button:hover {
             data: function (d) {
                 d.document_number = $('#filter-document-number').val();
                 d.document_type = $('#filter-type').val();
+                d.document_submission = $('#filter-submission').val();
                 d.status = $('#filter-status').val();
-                d.remark = $('#filter-remark').val();
-                d.department = $('#filter-department').val();
-                d.date = $('#filter-date').val();
+                d.dept_from = $('#filter-from').val();
+                d.dept_to = $('#filter-to').val();
+                d.registration_date = $('#filter-reg-date').val();
             }
         },
         lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],

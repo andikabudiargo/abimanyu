@@ -24,6 +24,28 @@ use Minishlink\WebPush\Subscription;
 
 class DocumentController extends Controller
 {
+
+private function resolveDepartmentGroup($deptId)
+{
+    $groups = [
+        'HRGAIT' => [2,3,5],
+    ];
+
+    // Kalau string HRGAIT
+    if (array_key_exists($deptId, $groups)) {
+        return $groups[$deptId];
+    }
+
+    // Kalau numeric dan termasuk dalam group
+    foreach ($groups as $group) {
+        if (in_array($deptId, $group)) {
+            return $group;
+        }
+    }
+
+    return [$deptId];
+}
+
     public function index()
     {
          $departments = Department::orderBy('name')->get(); // ambil semua department
@@ -42,8 +64,17 @@ class DocumentController extends Controller
 {
     $user = auth()->user();
 
-    // Ambil department user
-    $departmentIds = $user->departments->pluck('id');
+    // =========================
+    // AMBIL & EXPAND DEPT GROUP
+    // =========================
+    $rawDeptIds = $user->departments->pluck('id')->toArray();
+
+    $departmentIds = collect($rawDeptIds)
+        ->flatMap(function ($deptId) {
+            return $this->resolveDepartmentGroup($deptId);
+        })
+        ->unique()
+        ->values();
 
     $query = Document::select(
         'id',
@@ -81,12 +112,12 @@ class DocumentController extends Controller
     }
 
     // =========================
-    // FILTER BY DEPARTMENT
+    // FILTER BY DEPARTMENT (SUDAH GROUPED)
     // =========================
     $query->whereIn('dept_from', $departmentIds);
 
     // =========================
-    // OPTIONAL (BIAR LEBIH VALID)
+    // ONLY ACTIVE
     // =========================
     $query->where('is_active', 1);
 
@@ -150,7 +181,104 @@ return response()->json(['last' => $result]);
     $userDepartments = $user->departments->pluck('name')->toArray();
     $userRoles = $user->roles->pluck('name');
 
-    $query = DocumentRegistration::query();
+   $query = DocumentRegistration::query();
+
+// =========================
+// CEK ROLE MR
+// =========================
+$isMR = $user->departments()
+    ->where('name', 'Management Representative')
+    ->exists();
+
+// =========================
+// FILTER (NON-MR SAJA)
+// =========================
+if (!$isMR) {
+
+    $rawDeptIds = $user->departments->pluck('id');
+
+    $departmentIds = collect($rawDeptIds)
+        ->flatMap(fn($deptId) => $this->resolveDepartmentGroup($deptId))
+        ->unique();
+
+    $query->where(function ($q) use ($user, $departmentIds) {
+
+        $q->where('created_by', $user->id)
+          ->orWhereIn('department_id', $departmentIds);
+
+    });
+}
+
+// =========================
+// ORDER TERBARU
+// =========================
+$query->orderByDesc('created_at');
+
+  // Filter document_number
+if ($request->document_number) {
+    $query->where('document_number', 'like', '%' . $request->document_number . '%');
+}
+
+// Filter status di master documents
+if ($request->filled('status')) {
+    $query->where('status', $request->status);
+}
+
+if ($request->filled('dept_from')) {
+
+    $deptIds = collect($this->resolveDepartmentGroup($request->dept_from));
+
+    $query->whereIn('created_by', function ($q) use ($deptIds) {
+        $q->select('user_id')
+          ->from('department_user')
+          ->whereIn('department_id', $deptIds);
+    });
+}
+
+if ($request->filled('dept_to')) {
+
+    $deptIds = collect($this->resolveDepartmentGroup($request->dept_to))
+        ->filter()   // buang null
+        ->unique();
+
+    if ($deptIds->isNotEmpty()) {
+        $query->whereIn('department_id', $deptIds);
+    }
+}
+
+if ($request->filled('document_type')) {
+
+    $type = strtolower(trim($request->document_type));
+
+    if ($type === 'other') {
+
+        $query->whereRaw("
+            TRIM(LOWER(document_type)) NOT IN (
+                'sop',
+                'form',
+                'standard',
+                'work instructions'
+            )
+        ");
+
+    } else {
+
+        $query->whereRaw(
+            "TRIM(LOWER(document_type)) = ?",
+            [$type]
+        );
+    }
+}
+
+// Filter status di master documents
+if ($request->filled('submission_type')) {
+    $query->where('submission_type', $request->submission_type);
+}
+
+if ($request->registration_date) {
+        [$start, $end] = explode(' to ', $request->registration_date);
+        $query->whereBetween('created_at', [$start, $end]);
+    }
 
     
 
@@ -163,8 +291,14 @@ return response()->json(['last' => $result]);
     $edit_url = route('mr.doc.edit', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $approve_url = route('mr.doc.approve', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $isOwner = $row->created_by == Auth::id();
-  $isSPVTarget =
-    $user->departments->pluck('id')->contains($row->department_id)
+  $rawDeptIds = $user->departments->pluck('id')->toArray();
+
+$departmentIds = collect($rawDeptIds)
+    ->flatMap(fn($deptId) => $this->resolveDepartmentGroup($deptId))
+    ->unique();
+
+$isSPVTarget =
+    $departmentIds->contains($row->department_id)
     && $user->roles->pluck('name')->intersect([
         'Supervisor Special Access',
         'Manager Special Access'
@@ -288,7 +422,7 @@ $actionButtons .= '</div></div></div>';
     }
 
     $extension = strtolower(pathinfo($row->file_path, PATHINFO_EXTENSION));
-    $fileUrl = asset('storage/' . $row->file_path);
+   $fileUrl = asset($row->file_path);
     $downloadName = $row->document_number . '.' . $extension;
 
     $icon = match ($extension) {
@@ -445,46 +579,74 @@ $actionButtons .= '</div></div></div>';
             // =========================
             // 5. UPLOAD FUNCTION (LOCAL)
             // =========================
-            $storeFile = function ($file, $folder) {
+          $storeFile = function ($file, $folder, $docNumber, $docTitle) {
 
-                $destinationPath = public_path($folder);
+    $destinationPath = public_path($folder);
 
-                if (!file_exists($destinationPath)) {
-                    mkdir($destinationPath, 0777, true);
-                }
+    if (!file_exists($destinationPath)) {
+        mkdir($destinationPath, 0777, true);
+    }
 
-                $originalName = $file->getClientOriginalName();
-                $nameOnly     = pathinfo($originalName, PATHINFO_FILENAME);
-                $extension    = $file->getClientOriginalExtension();
+    // =========================
+    // AMBIL EXTENSION
+    // =========================
+    $extension = $file->getClientOriginalExtension();
 
-                // sanitize
-                $nameOnly = preg_replace('/[^A-Za-z0-9_\-]/', '_', $nameOnly);
+    // =========================
+    // FORMAT NAMA FILE
+    // =========================
+    $baseName = $docNumber . '_' . $docTitle;
 
-                $filename = $nameOnly . '.' . $extension;
-                $i = 1;
+    // sanitize (anti spasi & karakter aneh)
+    $baseName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $baseName);
 
-                while (file_exists($destinationPath . '/' . $filename)) {
-                    $i++;
-                    $filename = $nameOnly . '(' . $i . ').' . $extension;
-                }
+    // rapihin underscore dobel
+    $baseName = preg_replace('/_+/', '_', $baseName);
 
-                $file->move($destinationPath, $filename);
+    // trim underscore depan belakang
+    $baseName = trim($baseName, '_');
 
-                return $folder . '/' . $filename;
-            };
+    $filename = $baseName . '.' . $extension;
+
+    // =========================
+    // HANDLE DUPLICATE
+    // =========================
+    $i = 1;
+    while (file_exists($destinationPath . '/' . $filename)) {
+        $filename = $baseName . '(' . $i . ').' . $extension;
+        $i++;
+    }
+
+    // =========================
+    // MOVE FILE
+    // =========================
+    $file->move($destinationPath, $filename);
+
+    return $folder . '/' . $filename;
+};
 
             // =========================
             // 6. UPLOAD FILE
             // =========================
-            $filePath = null;
-            if ($request->hasFile('file_path')) {
-                $filePath = $storeFile($request->file('file_path'), 'uploads/documents');
-            }
+           $filePath = null;
+if ($request->hasFile('file_path')) {
+    $filePath = $storeFile(
+        $request->file('file_path'),
+        'uploads/documents',
+        $request->document_number,
+        $request->document_title
+    );
+}
 
-            $file4mPath = null;
-            if ($need4m && $request->hasFile('file_4m_path')) {
-                $file4mPath = $storeFile($request->file('file_4m_path'), 'uploads/documents/4m');
-            }
+$file4mPath = null;
+if ($need4m && $request->hasFile('file_4m_path')) {
+    $file4mPath = $storeFile(
+        $request->file('file_4m_path'),
+        'uploads/documents/4m',
+        $request->document_number,
+        $request->document_title . '_4M'
+    );
+}
 
             // =========================
             // 7. INSERT
@@ -1245,23 +1407,40 @@ public function addNote(Request $request, $id)
 public function destroy($id)
 {
     try {
-        $document = Document::findOrFail($id);
+        $document = DocumentRegistration::findOrFail($id);
         $docNumber = $document->document_number;
 
-        // hapus file utama
-        if ($document->file && Storage::disk('public')->exists($document->file)) {
-            Storage::disk('public')->delete($document->file);
+        // =========================
+        // HAPUS FILE UTAMA
+        // =========================
+        if ($document->file_path) {
+            $filePath = public_path($document->file_path);
+
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
         }
 
-        // hapus file 4M
-        if ($document->file_4m && Storage::disk('public')->exists($document->file_4m)) {
-            Storage::disk('public')->delete($document->file_4m);
+        // =========================
+        // HAPUS FILE 4M
+        // =========================
+        if ($document->file_4m_path) {
+            $file4mPath = public_path($document->file_4m_path);
+
+            if (file_exists($file4mPath)) {
+                unlink($file4mPath);
+            }
         }
 
-        // hapus relasi copies
+        // =========================
+        // HAPUS RELASI
+        // =========================
         $document->copies()->delete();
+        $document->revision()->delete(); // kalau ada relasi revision
 
-        // hapus dokumen
+        // =========================
+        // HAPUS DATA
+        // =========================
         $document->delete();
 
         return response()->json([
@@ -1271,6 +1450,7 @@ public function destroy($id)
         ]);
 
     } catch (\Exception $e) {
+
         return response()->json([
             'success' => false,
             'message' => $e->getMessage()
