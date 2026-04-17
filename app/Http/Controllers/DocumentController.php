@@ -546,13 +546,13 @@ $downloadName = $row->file_path;
         'Under Review'         => '<span class="bg-teal-500 ' . $commonClasses . '">Under Review</span>',
         'Published'            => '<span class="bg-green-500 '  . $commonClasses . '">Published</span>',
         'Resubmitted'          => '<span class="bg-blue-500 '   . $commonClasses . '">Resubmitted</span>',
-        'Partially Socialized' => '<span class="bg-purple-500 ' . $commonClasses . '">Partially Socialized</span>',
+        'Returned by MR' => '<span class="bg-purple-500 ' . $commonClasses . '">Returned by MR</span>',
         'Rejected'             => '<span class="bg-red-500 '    . $commonClasses . '">Rejected</span>',
         default                => '<span class="bg-gray-400 '   . $commonClasses . '">Unknown</span>',
     };
 })
 
-        ->rawColumns(['action','document','submission_type', 'status', 'department', 'version'])
+        ->rawColumns(['action','document','submission_type', 'status', 'department', 'version','document_type'])
         ->make(true);
 }
 
