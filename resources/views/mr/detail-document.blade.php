@@ -223,46 +223,83 @@
                 Document Files
             </h2>
 
-            {{-- Main file --}}
-            @if($document->file_path)
-            <p class="text-xs text-gray-400 mb-2">Main Document File</p>
-            <div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 text-[10px] font-bold">
-                        {{ strtoupper(pathinfo($document->file_path, PATHINFO_EXTENSION)) }}
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-800">{{ basename($document->file_path) }}</p>
-                        <p class="text-xs text-gray-400">Format: .{{ pathinfo($document->file_path, PATHINFO_EXTENSION) }}</p>
-                    </div>
-                </div>
-                <a href="{{ asset('document/' . $document->file_path) }}" download
-                   class="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
-                    <i data-feather="download" class="w-4 h-4"></i> Download
-                </a>
-            </div>
-            @endif
+         @php
+    // =========================
+    // NORMALIZE PATH (WAJIB SAMA DENGAN STORE)
+    // =========================
+    $docType  = strtolower(str_replace(' ', '_', $document->document_type));
+    $deptFrom = $document->dept_from;
 
-            {{-- 4M file --}}
-            @if($document->need_4m && $document->file_4m_path)
-            <p class="text-xs text-gray-400 mb-2">4M Attachment</p>
-            <div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center text-green-700 text-[10px] font-bold">
-                        {{ strtoupper(pathinfo($document->file_4m_path, PATHINFO_EXTENSION)) }}
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-800">{{ basename($document->file_4m_path) }}</p>
-                        <p class="text-xs text-gray-400">Format: .{{ pathinfo($document->file_4m_path, PATHINFO_EXTENSION) }}</p>
-                    </div>
-                </div>
-                <a href="{{ asset('document/4m/' . $document->file_4m_path) }}" download
-                   class="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
-                    <i data-feather="download" class="w-4 h-4"></i> Download
-                </a>
-            </div>
-            @endif
+    $mainPath = $document->file_path 
+        ? "documents/{$docType}/{$deptFrom}/{$document->file_path}" 
+        : null;
+
+    $file4mPath = $document->file_4m_path 
+        ? "documents/{$docType}/{$deptFrom}/4m/{$document->file_4m_path}" 
+        : null;
+@endphp
+
+
+{{-- ========================= --}}
+{{-- Main file --}}
+{{-- ========================= --}}
+@if($document->file_path)
+<p class="text-xs text-gray-400 mb-2">Main Document File</p>
+
+<div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-4">
+    
+    <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 text-[10px] font-bold">
+            {{ strtoupper(pathinfo($document->file_path, PATHINFO_EXTENSION)) }}
         </div>
+
+        <div>
+            <p class="text-sm font-medium text-gray-800">
+                {{ $document->file_path }}
+            </p>
+            <p class="text-xs text-gray-400">
+                Format: .{{ pathinfo($document->file_path, PATHINFO_EXTENSION) }}
+            </p>
+        </div>
+    </div>
+
+    <a href="{{ asset($mainPath) }}" download="{{ $document->file_path }}"
+       class="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+        <i data-feather="download" class="w-4 h-4"></i> Download
+    </a>
+</div>
+@endif
+
+
+{{-- ========================= --}}
+{{-- 4M file --}}
+{{-- ========================= --}}
+@if($document->need_4m && $document->file_4m_path)
+<p class="text-xs text-gray-400 mb-2">4M Attachment</p>
+
+<div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+    
+    <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center text-green-700 text-[10px] font-bold">
+            {{ strtoupper(pathinfo($document->file_4m_path, PATHINFO_EXTENSION)) }}
+        </div>
+
+        <div>
+            <p class="text-sm font-medium text-gray-800">
+                {{ $document->file_4m_path }}
+            </p>
+            <p class="text-xs text-gray-400">
+                Format: .{{ pathinfo($document->file_4m_path, PATHINFO_EXTENSION) }}
+            </p>
+        </div>
+    </div>
+
+    <a href="{{ asset($file4mPath) }}" download="{{ $document->file_4m_path }}"
+       class="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+        <i data-feather="download" class="w-4 h-4"></i> Download
+    </a>
+</div>
+@endif
 
         {{-- Copy Distribution --}}
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
