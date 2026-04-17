@@ -597,9 +597,7 @@ $actionButtons .= '</div></div></div>';
     // FORMAT FOLDER
     // =========================
     $docType  = strtolower(str_replace(' ', '_', $docType));
-   $destinationPath = is_dir(base_path('../public_html'))
-    ? base_path('../public_html/documents/' . $docType . '/' . $deptFrom)
-    : public_path('documents/' . $docType . '/' . $deptFrom);
+   $destinationPath = "/home/abimany3/public_html/documents/{$docType}/{$deptFrom}";
 
     if (!file_exists($destinationPath)) {
         mkdir($destinationPath, 0777, true);
