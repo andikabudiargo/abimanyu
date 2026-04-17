@@ -33,7 +33,7 @@
    $isSPVTarget = auth()->user()
     ->departments->contains('id', $document->department_id)
     && auth()->user()->roles->contains('name', 'Supervisor Special Access');
-    $isMR         = auth()->user()->departments->contains('name', 'Management Representative & HSE');
+    $isMR         = auth()->user()->departments->contains('name', 'Management Representative');
 
     // Flow steps & active index
     $flowSteps = ['Submitted', 'Approved', 'Published'];
