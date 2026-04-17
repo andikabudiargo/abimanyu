@@ -65,7 +65,74 @@ textarea.f-input { resize: vertical; }
 .type-tile.is-selected .type-tile-dot { background: #1e3a5f; border-color: #1e3a5f; }
 .type-tile-label { font-size: 12px; font-weight: 500; color: #374151; }
 .type-tile.is-selected .type-tile-label { color: #1e3a5f; }
+/* =========================
+   COLOR VARIANTS
+========================= */
 
+/* FORM → GREEN */
+.type-green.is-selected {
+    border-color: #16a34a;
+    background: #ecfdf5;
+}
+.type-green.is-selected .type-tile-dot {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+.type-green.is-selected .type-tile-label {
+    color: #166534;
+}
+
+/* WORK INSTRUCTION → AMBER */
+.type-amber.is-selected {
+    border-color: #f59e0b;
+    background: #fffbeb;
+}
+.type-amber.is-selected .type-tile-dot {
+    background: #f59e0b;
+    border-color: #f59e0b;
+}
+.type-amber.is-selected .type-tile-label {
+    color: #92400e;
+}
+
+/* STANDARD → BLUE */
+.type-blue.is-selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+.type-blue.is-selected .type-tile-dot {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+.type-blue.is-selected .type-tile-label {
+    color: #1e40af;
+}
+
+/* SOP → PURPLE */
+.type-purple.is-selected {
+    border-color: #9333ea;
+    background: #faf5ff;
+}
+.type-purple.is-selected .type-tile-dot {
+    background: #9333ea;
+    border-color: #9333ea;
+}
+.type-purple.is-selected .type-tile-label {
+    color: #6b21a8;
+}
+
+/* OTHER → GRAY */
+.type-gray.is-selected {
+    border-color: #6b7280;
+    background: #f9fafb;
+}
+.type-gray.is-selected .type-tile-dot {
+    background: #6b7280;
+    border-color: #6b7280;
+}
+.type-gray.is-selected .type-tile-label {
+    color: #374151;
+}
 
 .sub-pill {
     display: flex; align-items: center; gap: 6px; padding: 7px 14px;
@@ -366,28 +433,22 @@ textarea.f-input { resize: vertical; }
                         <span>Select the document type to look up existing published documents in the next step.</span>
                     </div>
 
-                   @php
-$types = [
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="typeTiles">
+                       @foreach([
     ['Form', 'FM', 'green'],
-    ['Work Instructions', 'WI', 'amber'],
-    ['Standard', 'STD', 'blue'],
-    ['SOP', 'SOP', 'purple'],
-    ['other', '...', 'gray'],
-];
-@endphp
+    ['Work Instructions','WI', 'amber'],
+    ['Standard','STD', 'blue'],
+    ['SOP','SOP', 'purple'],
+    ['other','...', 'gray'],
+] as [$val, $abbr, $color])
 
-<div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="typeTiles">
-    @foreach($types as [$val, $abbr, $color])
-    <label 
-        class="type-tile type-{{ $color }} {{ $loop->first ? 'is-selected' : '' }}" 
-        id="tile_{{ $loop->index }}"
-    >
-        <input type="radio" name="document_type" value="{{ $val }}" class="docType" {{ $loop->first ? 'checked' : '' }}>
-        <span class="type-tile-dot"></span>
-        <span class="type-tile-label">{{ $val === 'other' ? 'Other' : $val }}</span>
-    </label>
-    @endforeach
-</div>
+<label class="type-tile type-{{ $color }} {{ $loop->first ? 'is-selected' : '' }}">
+                            <input type="radio" name="document_type" value="{{ $val }}" class="docType" {{ $loop->first ? 'checked' : '' }}>
+                            <span class="type-tile-dot"></span>
+                            <span class="type-tile-label">{{ $val === 'other' ? 'Other' : $val }}</span>
+                        </label>
+                        @endforeach
+                    </div>
 
                     {{-- Only shown for New Release + "Other" --}}
                     <div id="otherTypeWrap" class="hidden mt-3">
