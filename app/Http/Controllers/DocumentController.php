@@ -130,7 +130,7 @@ return response()->json(['last' => $result]);
         'Manager Special Access'
     ])->isNotEmpty();
      $isMR = $user->departments()
-    ->where('name', 'Management Representative & HSE')
+    ->where('name', 'Management Representative')
     ->exists();
 
     $actionButtons = '
