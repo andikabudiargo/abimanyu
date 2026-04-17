@@ -67,11 +67,7 @@ class DocumentController extends Controller
     // =========================
     // FILTER BY DEPARTMENT
     // =========================
-    $query->whereIn('submitted_by', function ($q) use ($departmentIds) {
-        $q->select('user_id')
-          ->from('department_user')
-          ->whereIn('department_id', $departmentIds);
-    });
+   $query->whereIn('dept_from', $departmentIds);
 
     // =========================
     // ORDER
