@@ -811,6 +811,45 @@ function validateStep3() {
     return true;
 }
 
+ // ── Load document numbers from server ──
+    function loadDocNumbers(type) {
+
+    if (!type) return;
+
+    $.ajax({
+        url: '/mr/get-document-number',
+        type: 'GET',
+        data: { document_type: type },
+
+        success: function (data) {
+
+            const $sel = $('#doc_number_select');
+
+            $sel.html('<option value="">— Select Published Document —</option>');
+
+            if (data.length > 0) {
+
+                $.each(data, (i, doc) => {
+                    $sel.append(`
+                        <option value="${doc.document_number}"
+                            data-title="${doc.document_title}"
+                            data-dept="${doc.dept_to || ''}"
+                            data-version="${doc.current_version || 0}">
+                            ${doc.document_number}
+                        </option>
+                    `);
+                });
+
+                $('#last_doc_info').removeClass('hidden');
+                $('#last_doc_value').text(data[0].document_number);
+
+            } else {
+                $('#last_doc_info').addClass('hidden');
+            }
+        }
+    });
+}
+
 // ═══════════════════════════════════════════════
 // DOCUMENT TYPE TILE LOGIC (driven by submission type)
 // ═══════════════════════════════════════════════
@@ -973,44 +1012,7 @@ $(document).ready(function () {
         }
     });
 
-    // ── Load document numbers from server ──
-    function loadDocNumbers(type) {
-
-    if (!type) return;
-
-    $.ajax({
-        url: '/mr/get-document-number',
-        type: 'GET',
-        data: { document_type: type },
-
-        success: function (data) {
-
-            const $sel = $('#doc_number_select');
-
-            $sel.html('<option value="">— Select Published Document —</option>');
-
-            if (data.length > 0) {
-
-                $.each(data, (i, doc) => {
-                    $sel.append(`
-                        <option value="${doc.document_number}"
-                            data-title="${doc.document_title}"
-                            data-dept="${doc.dept_to || ''}"
-                            data-version="${doc.current_version || 0}">
-                            ${doc.document_number}
-                        </option>
-                    `);
-                });
-
-                $('#last_doc_info').removeClass('hidden');
-                $('#last_doc_value').text(data[0].document_number);
-
-            } else {
-                $('#last_doc_info').addClass('hidden');
-            }
-        }
-    });
-}
+   
 
     // Initial state for default (New Release)
     applySubmissionTypeLogic('New Release');
