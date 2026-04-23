@@ -547,6 +547,33 @@ textarea.f-input { resize: vertical; }
                         </div>
                     </div>
 
+                    {{-- 4M file — shown only when need_4m = 1 --}}
+                    <div id="file_4m_group" class="hidden">
+                        <label class="f-label">4M Attachment File <sup>*</sup></label>
+                        <div class="drop-zone" id="fm4Zone" onclick="document.getElementById('file_4m').click()">
+                            <input type="file" name="file_4m_path" id="file_4m" accept=".xlsx,.pdf,.docx">
+                            <div id="fm4Placeholder">
+                                <div class="drop-zone-icon">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                    </svg>
+                                </div>
+                                <p class="text-xs font-medium text-gray-600">Click to select 4M attachment</p>
+                                <p class="text-xs text-gray-400 mt-1">PDF, XLSX, DOCX — maximum 10 MB</p>
+                            </div>
+                            <div id="fm4Preview" class="hidden file-preview-row" style="text-align:left;" onclick="event.stopPropagation()">
+                                <span class="file-ext-badge" id="fm4Ext"></span>
+                                <div style="flex:1; min-width:0;">
+                                    <p class="text-xs font-medium text-gray-800 truncate" id="fm4Name"></p>
+                                    <p class="text-xs text-gray-400" id="fm4Size"></p>
+                                </div>
+                                <button type="button" onclick="clearFile('fm4')"
+                                        class="text-xs text-gray-400 hover:text-red-600 transition border-0 bg-transparent cursor-pointer">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+
+
                 </div>
                 <div class="c-card-footer">
                     <button type="button" class="btn btn-secondary" onclick="goStep(1)">
@@ -568,7 +595,7 @@ textarea.f-input { resize: vertical; }
                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
-                    <span class="c-section-label">Department Destination</span>
+                    <span class="c-section-label">Department Approval</span>
                 </div>
                 <div class="c-card-body" style="padding-bottom: 4px;">
                     <label class="f-label">Department <sup>*</sup></label>
@@ -611,7 +638,7 @@ textarea.f-input { resize: vertical; }
                                     </svg>
                                 </div>
                                 <p class="text-xs font-medium text-gray-600">Click to select file or drag and drop</p>
-                                <p class="text-xs text-gray-400 mt-1">PDF, XLSX, DOCX — maximum 5 MB</p>
+                                <p class="text-xs text-gray-400 mt-1">PDF, XLSX, DOCX — maximum 10 MB</p>
                             </div>
                             <div id="mainPreview" class="hidden file-preview-row" style="text-align:left;" onclick="event.stopPropagation()">
                                 <span class="file-ext-badge" id="mainExt"></span>
@@ -625,32 +652,7 @@ textarea.f-input { resize: vertical; }
                         </div>
                     </div>
 
-                    {{-- 4M file — shown only when need_4m = 1 --}}
-                    <div id="file_4m_group" class="hidden">
-                        <label class="f-label">4M Attachment File <sup>*</sup></label>
-                        <div class="drop-zone" id="fm4Zone" onclick="document.getElementById('file_4m').click()">
-                            <input type="file" name="file_4m_path" id="file_4m" accept=".xlsx,.pdf,.docx">
-                            <div id="fm4Placeholder">
-                                <div class="drop-zone-icon">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                                    </svg>
-                                </div>
-                                <p class="text-xs font-medium text-gray-600">Click to select 4M attachment</p>
-                                <p class="text-xs text-gray-400 mt-1">PDF, XLSX, DOCX — maximum 5 MB</p>
-                            </div>
-                            <div id="fm4Preview" class="hidden file-preview-row" style="text-align:left;" onclick="event.stopPropagation()">
-                                <span class="file-ext-badge" id="fm4Ext"></span>
-                                <div style="flex:1; min-width:0;">
-                                    <p class="text-xs font-medium text-gray-800 truncate" id="fm4Name"></p>
-                                    <p class="text-xs text-gray-400" id="fm4Size"></p>
-                                </div>
-                                <button type="button" onclick="clearFile('fm4')"
-                                        class="text-xs text-gray-400 hover:text-red-600 transition border-0 bg-transparent cursor-pointer">Remove</button>
-                            </div>
-                        </div>
-                    </div>
-
+                    
                     <div class="info-banner info">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span>Ensure the file follows the correct template structure. Download templates from the sidebar before uploading.</span>
@@ -864,6 +866,7 @@ function validateStep2() {
     if (!$('input[name="document_title"]').val().trim()) {
         showToast('warning', 'Document title is required.'); return false;
     }
+    
     return true;
 }
 
@@ -871,7 +874,7 @@ function validateStep3() {
     // Department is required in step 3
     if (!$('#department').val()) {
         $('#department').addClass('dept-required');
-        showToast('warning', 'Please select a department destination.');
+        showToast('warning', 'Please select a department approval.');
         $('#department').one('change', function () { $(this).removeClass('dept-required'); });
         return false;
     }

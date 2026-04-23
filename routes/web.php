@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\SuggestionAuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SuggestionController;
 use App\Http\Controllers\BookingRoomController;
 use App\Http\Controllers\MaterialMovementController;
 use App\Http\Controllers\RoomController;
@@ -42,7 +44,6 @@ use App\Http\Controllers\ReceivingController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\BackupMonitorController;
 use App\Http\Controllers\IssueTrackerController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\WorkstationController;
@@ -57,6 +58,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BarcodePartController;
 use App\Http\Controllers\CAPAController;
 use App\Http\Controllers\ConversionController;
+use App\Http\Controllers\ImprovementController;
 use App\Http\Controllers\ProductKnowledgeController;
 use App\Http\Controllers\RekapBupotController;
 use App\Http\Controllers\RemoteAccessController;
@@ -72,6 +74,42 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth');
 Route::get('/login-magang', function () {
     return view('auth.login-magang'); })->name('login.magang');
+
+Route::get('/suggestion/login', [SuggestionAuthController::class, 'showLogin'])->name('suggestion.login');
+Route::post('/suggestion/otp/send', [SuggestionAuthController::class, 'sendOtp'])->name('suggestion.otp.send');
+Route::post('/suggestion/otp/verify', [SuggestionAuthController::class, 'verifyOtp'])->name('suggestion.otp.verify');
+
+Route::middleware(['suggestion.auth'])->prefix('suggestion')->name('suggestion.')->group(function () {
+
+    Route::get('/dashboard',  [SuggestionController::class, 'index'])->name('dashboard');
+    Route::post('/logout', [SuggestionAuthController::class, 'logout'])
+            ->name('logout');
+    Route::get('/create',     [SuggestionController::class, 'create'])->name('create');
+    Route::post('/store',     [SuggestionController::class, 'store'])->name('store');
+    Route::get('/my',         [SuggestionController::class, 'mySuggestions'])->name('my');
+    Route::post('/formula',            [SuggestionController::class, 'storeFormula'])->name('formula.store');
+
+    // Photo — harus sebelum /{suggestion}
+    Route::delete('/photo/{photo}', [SuggestionController::class, 'deletePhoto'])->name('photo.delete');
+
+    // Improvement — harus sebelum /{suggestion}
+    Route::prefix('improvement')->name('improvement.')->group(function () {
+        Route::get('/dashboard',           [ImprovementController::class, 'dashboard'])->name('dashboard');
+        Route::post('/period',             [ImprovementController::class, 'storePeriod'])->name('period.store');
+        Route::patch('/period/{period}',   [ImprovementController::class, 'updatePeriod'])->name('period.update');
+        Route::delete('/period/{period}',  [ImprovementController::class, 'deletePeriod'])->name('period.delete');
+        Route::patch('/formula/{formula}', [ImprovementController::class, 'updateFormula'])->name('formula.update');
+    });
+
+    // SPV & Manager actions — harus sebelum /{suggestion}
+    Route::post('/{suggestion}/spv-action', [SuggestionController::class, 'spvAction'])->name('spv.action');
+    Route::post('/{suggestion}/score',      [SuggestionController::class, 'score'])->name('score');
+    Route::patch('/{suggestion}/close',     [SuggestionController::class, 'close'])->name('close');
+
+    // /{suggestion} PALING BAWAH + constraint angka saja
+    Route::get('/{suggestion}',   [SuggestionController::class, 'show'])->name('show')->whereNumber('suggestion');
+    Route::patch('/{suggestion}', [SuggestionController::class, 'update'])->name('update')->whereNumber('suggestion');
+});
 
  Route::get('/product-knowledge/index', [ProductKnowledgeController::class, 'index'])->name('product-knowledge.index');
 Route::get('/product-knowledge/data', [ProductKnowledgeController::class, 'search'])->name('product-knowledge.data');
@@ -260,6 +298,10 @@ Route::prefix('mr')->name('mr.')->group(function () {
     Route::get('/document/data', [DocumentController::class, 'data'])->name('doc.data');
     Route::post('/document/{id}/note', [DocumentController::class, 'addNote'])->name('add.note');
     Route::put('/document/{id}/resubmit', [DocumentController::class, 'resubmit']);
+    Route::post(
+        '/document-copy/{id}/confirm-receive',
+        [DocumentController::class, 'confirmReceive']
+    )->name('document.confirm.receive');
     Route::get('/documents/last-number', [DocumentController::class, 'getLastDocumentNumber'])
      ->name('doc.lastNumber');
     Route::delete('/document/{id}/destroy', [DocumentController::class, 'destroy'])->name('doc.destroy');
@@ -483,11 +525,7 @@ Route::prefix('it')->name('it.')->group(function () {
     Route::put('/issue-tracker/{id}/update', [IssueTrackerController::class, 'update'])->name('issue.update');
     Route::delete('/issue-tracker/{id}/destroy', [IssueTrackerController::class, 'destroy'])->name('issue.destroy');
      Route::get('/issue-tracker/monthly_report', [IssueTrackerController::class, 'monthlyReport'])->name('issue.monthly');
-     Route::get('/backup-monitor', [BackupMonitorController::class, 'index'])->name('backup.monitor');
-     Route::get('/backup-data', [BackupMonitorController::class, 'getBackupData']);
-    Route::post('/backup-monitor/check', [BackupMonitorController::class, 'checkNow'])->name('backup.check');
-    Route::get('agent/backup-plan', [BackupAgentController::class, 'getPlan']);
-Route::post('agent/backup-log', [BackupAgentController::class, 'storeLog']);
+    
      Route::get('/remote-access/index', [RemoteAccessController::class, 'index'])->name('remote.index');
     });
 

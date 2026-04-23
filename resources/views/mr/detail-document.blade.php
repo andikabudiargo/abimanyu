@@ -324,6 +324,9 @@ $file4mPath = $document->file_4m_path
                         <tr class="bg-gray-50 text-gray-500 text-xs uppercase">
                             <th class="px-3 py-2 text-left border border-gray-200">Department</th>
                             <th class="px-3 py-2 text-center border border-gray-200">Qty</th>
+                            <th class="px-3 py-2 text-center border border-gray-200">Receipent</th>
+                            <th class="px-3 py-2 text-center border border-gray-200">Receive at</th>
+                            <th class="px-3 py-2 text-center border border-gray-200">Evidence</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100" id="copiesTableBody">
@@ -331,6 +334,47 @@ $file4mPath = $document->file_4m_path
                         <tr class="hover:bg-gray-50">
                             <td class="px-3 py-2 border border-gray-200">{{ $copy->department->name ?? '-' }}</td>
                             <td class="px-3 py-2 border border-gray-200 text-center">{{ $copy->qty }} sheet</td>
+                            <td class="px-3 py-2 border border-gray-200 text-center">{{ $copy->socialized->name ?? '-' }}</td>
+                          <td class="px-3 py-2 border border-gray-200 text-center">
+    {{ $copy->socialization_date ? \Carbon\Carbon::parse($copy->socialization_date)->format('d-m-Y') : '-' }}
+</td>
+                            <td class="px-3 py-2 border border-gray-200 text-center">
+          @if($copy->evidence_path)
+    @php
+        $docType  = strtolower(str_replace(' ', '_', $copy->registration->document_type ?? 'other'));
+        $deptFrom = $copy->registration->department_id ?? 0;
+
+        // folder sama seperti saat upload di controller
+        $fileUrl = url("/documents/{$docType}/{$deptFrom}/" . $copy->evidence_path);
+    @endphp
+
+    <div class="flex items-center justify-center gap-2">
+
+        {{-- Watch --}}
+        <a
+            href="{{ $fileUrl }}"
+            target="_blank"
+            class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+        >
+            Watch
+        </a>
+
+        {{-- Download --}}
+        <a
+            href="{{ $fileUrl }}"
+            download="{{ $copy->evidence_path }}"
+            class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition"
+        >
+            Download
+        </a>
+
+    </div>
+@else
+    <span class="text-gray-400 text-sm">
+        -
+    </span>
+@endif
+        </td>
                         </tr>
                         @empty
                         <tr>

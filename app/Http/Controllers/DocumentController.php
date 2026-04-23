@@ -48,8 +48,16 @@ private function resolveDepartmentGroup($deptId)
 
     public function index()
     {
+        $pendingCopies = DocumentCopy::with('registration')
+    ->whereIn('department_id', auth()->user()->departments->pluck('id'))
+    ->whereNull('socialization_date')
+    ->whereHas('registration', function ($q) {
+        $q->where('status', 'Published');
+    })
+    ->latest()
+    ->get();
          $departments = Department::orderBy('name')->get(); // ambil semua department
-        return view('mr.archive-document', compact('departments'));
+        return view('mr.archive-document', compact('departments','pendingCopies'));
     }
 
     public function create()
@@ -128,6 +136,134 @@ private function resolveDepartmentGroup($deptId)
 
     return response()->json($docs);
 }
+
+public function confirmReceive(Request $request, $id)
+{
+    DB::beginTransaction();
+
+    try {
+        $request->validate([
+            'evidence' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+
+        $copy = DocumentCopy::with('registration')->findOrFail($id);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validasi department user
+        |--------------------------------------------------------------------------
+        */
+        $user = auth()->user();
+
+        $userDeptIds = $user->departments()
+            ->pluck('departments.id')
+            ->toArray();
+
+        if (!in_array($copy->department_id, $userDeptIds)) {
+            abort(403);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Upload evidence ke folder document yang sama
+        |--------------------------------------------------------------------------
+        */
+
+        $registration = $copy->registration;
+
+        $docType  = strtolower(str_replace(' ', '_', $registration->document_type));
+        $deptFrom = $registration->department_id ?? 0;
+
+        $destinationPath = "/home/abimany3/public_html/documents/{$docType}/{$deptFrom}";
+
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0777, true);
+        }
+
+        $file = $request->file('evidence');
+
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        /*
+        |--------------------------------------------------------------------------
+        | Simpan nama asli + extension
+        |--------------------------------------------------------------------------
+        */
+
+        $originalName = pathinfo(
+            $file->getClientOriginalName(),
+            PATHINFO_FILENAME
+        );
+
+        $originalName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $originalName);
+        $originalName = preg_replace('/_+/', '_', $originalName);
+        $originalName = trim($originalName, '_');
+
+        $baseName = $registration->document_number . '_evidence_' . $originalName;
+
+        $filename = $baseName . '.' . $extension;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Handle duplicate
+        |--------------------------------------------------------------------------
+        */
+
+        $i = 1;
+        while (file_exists($destinationPath . '/' . $filename)) {
+            $filename = $baseName . '(' . $i . ').' . $extension;
+            $i++;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Move file
+        |--------------------------------------------------------------------------
+        */
+
+        $file->move($destinationPath, $filename);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Atomic update anti race condition
+        |--------------------------------------------------------------------------
+        */
+
+        $updated = DocumentCopy::where('id', $id)
+            ->whereNull('socialization_date')
+            ->update([
+                'socialization_date' => now(),
+                'socialized_by'      => $user->id,
+                'evidence_path'      => $filename, // hanya nama file
+            ]);
+
+        if (!$updated) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Dokumen sudah dikonfirmasi oleh user lain.',
+            ], 400);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Konfirmasi penerimaan dokumen berhasil.',
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Server error',
+            'error'   => $e->getMessage(),
+        ], 500);
+    }
+}
+
 
     public function getLastDocumentNumber(Request $request)
 {
@@ -575,11 +711,11 @@ $downloadName = $row->file_path;
                 'document_type'   => 'required',
                 'submission_type' => 'required',
                 'document_title'  => 'required',
-                'file_path'       => 'required|file|max:5120',
-                'need_4m'         => 'required|boolean',
-                'file_4m_path'    => $need4m
-                    ? 'required|file|max:5120'
-                    : 'nullable|file|max:5120',
+               'file_path'       => 'required|file|max:10240',
+'need_4m'         => 'required|boolean',
+'file_4m_path'    => $need4m
+    ? 'required|file|max:10240'
+    : 'nullable|file|max:10240',
             ]);
 
             if ($validator->fails()) {
@@ -750,6 +886,70 @@ if ($need4m && $request->hasFile('file_4m_path')) {
             }
 
             DB::commit();
+
+         /*
+|--------------------------------------------------------------------------
+| Notification to SPV / Manager of Approval Department
+|--------------------------------------------------------------------------
+*/
+
+$webPush = new WebPush([
+    'VAPID' => [
+        'subject' => 'mailto:it2@asnusantara.co.id',
+        'publicKey' => env('VAPID_PUBLIC_KEY'),
+        'privateKey' => env('VAPID_PRIVATE_KEY'),
+    ],
+    'automaticPadding' => true
+]);
+
+$targetUsers = User::with(['roles', 'departments'])
+    ->get()
+    ->filter(function ($user) use ($registration) {
+
+        $departmentIds = $user->departments->pluck('id');
+
+        $isSPVTarget =
+            $departmentIds->contains($registration->department_id)
+            && $user->roles->pluck('name')->intersect([
+                'Supervisor Special Access',
+                'Manager Special Access'
+            ])->isNotEmpty();
+
+        return $isSPVTarget;
+    });
+
+foreach ($targetUsers as $targetUser) {
+
+    $subscriptions = DB::table('subscriptions')
+        ->where('user_id', $targetUser->id)
+        ->get();
+
+    if ($subscriptions->isEmpty()) {
+        continue;
+    }
+
+    foreach ($subscriptions as $subRow) {
+
+        $subData = json_decode($subRow->subscription, true);
+
+        if (!$subData) {
+            continue;
+        }
+
+        $sub = Subscription::create($subData);
+
+        $webPush->sendOneNotification(
+            $sub,
+            json_encode([
+                'title' => '📄 Document Approval Required | Abimanyu Live',
+                'body'  => "Dokumen {$registration->document_number} membutuhkan approval Anda.",
+                'url'   => url("/mr/doc/{$registration->id}/detail")
+            ])
+        );
+    }
+}
+
+$webPush->flush();
 
             return response()->json([
                 'success' => true,

@@ -8,7 +8,7 @@ class DocumentCopy extends Model
 {
     protected $fillable = ['registration_id', 'document_id', 'department_id', 'qty', 'evidence_path', 'socialization_date','socialized_by' ];
 
-    public function document()
+    public function registration()
     {
         return $this->belongsTo(DocumentRegistration::class, 'registration_id');
     }
