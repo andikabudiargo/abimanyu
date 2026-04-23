@@ -547,7 +547,7 @@
           <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="hard-drive"></i> </span><span
               class="pc-mtext">IT Backup Management</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span></a>
           <ul class="pc-submenu">
-            <li class="pc-item"><a class="pc-link" href="{{ route('it.backup.monitor') }}">Backup Monitoring</a></li>
+            <li class="pc-item"><a class="pc-link" href="">Backup Monitoring</a></li>
             <li class="pc-item"><a class="pc-link" href="{{ route('it.backup.index') }}">Backup Log</a></li>
             <li class="pc-item"><a class="pc-link" href="{{ route('it.backup-schedule.index') }}">Backup Schedule Plan</a></li>
              <li class="pc-item"><a class="pc-link" href="{{ route('it.storage.index') }}">Storage Management</a></li>
