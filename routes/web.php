@@ -302,6 +302,8 @@ Route::prefix('mr')->name('mr.')->group(function () {
         '/document-copy/{id}/confirm-receive',
         [DocumentController::class, 'confirmReceive']
     )->name('document.confirm.receive');
+    Route::get('/mr/document/{id}/pdf', [DocumentController::class, 'generatePdf'])
+    ->name('doc.pdf');
     Route::get('/documents/last-number', [DocumentController::class, 'getLastDocumentNumber'])
      ->name('doc.lastNumber');
     Route::delete('/document/{id}/destroy', [DocumentController::class, 'destroy'])->name('doc.destroy');

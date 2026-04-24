@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
+use Mpdf\Mpdf;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -432,6 +433,7 @@ if ($request->filled('registration_date')) {
     $detail_url = route('mr.doc.detail', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $edit_url = route('mr.doc.edit', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
     $approve_url = route('mr.doc.approve', ['id' => $row->id]); // ✅ Diganti $ticket jadi $row
+     $pdf_url = route('mr.doc.pdf', ['id' => $row->id]); 
     $isOwner = $row->created_by == Auth::id();
   $rawDeptIds = $user->departments->pluck('id')->toArray();
 
@@ -509,6 +511,14 @@ if ($isMR && $row->status == 'Approved') {
                 class="w-full text-left text-red-600 px-4 py-2 hover:bg-red-500 hover:text-white">
                 <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Reject
             </button>
+            ';
+}
+
+if ($row->status == 'Published') {
+      $actionButtons .='
+             <a href="'. $pdf_url .'" class="block px-4 py-2 hover:bg-gray-100">
+                <i data-feather="file-text" class="w-4 h-4 inline mr-2"></i>Generate PDF
+            </a>
             ';
 }
 
@@ -1740,5 +1750,107 @@ public function revision($id)
 
         return view('mr.revision-document', compact('doc', 'departments'));
     }
+
+    public function generatePdf($id)
+{
+    $document = DocumentRegistration::with([
+        'revision',
+        'department',
+        'copies.department',
+        'copies.registration',
+        'createdBy',
+        'approvedBy',
+        'authorizedBy'
+    ])->findOrFail($id);
+
+    /* =====================
+       LOGO BASE64
+    ===================== */
+    $logoPath = public_path('img/logo-2.jpg');
+
+    $logo = null;
+
+    if (file_exists($logoPath)) {
+        $logo = 'data:image/jpeg;base64,' . base64_encode(
+            file_get_contents($logoPath)
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PAGE 1
+    | Form Pengajuan Pembuatan dan Perubahan Dokumen
+    |--------------------------------------------------------------------------
+    */
+    $page1 = view('mr.document-pdf', compact('document', 'logo'))->render();
+
+    /*
+    |--------------------------------------------------------------------------
+    | PAGE 2
+    | Lembar Distribusi Dokumen
+    |--------------------------------------------------------------------------
+    */
+    $page2 = view('mr.doc-distribution-pdf', compact('document', 'logo'))->render();
+
+    /*
+    |--------------------------------------------------------------------------
+    | PAGE 3+
+    | Evidence Attachment Per Copy
+    |--------------------------------------------------------------------------
+    */
+    $page3 = view('mr.document-evidence', compact('document'))->render();
+
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'margin_top' => 8,
+        'margin_bottom' => 8,
+        'margin_left' => 8,
+        'margin_right' => 8,
+        'default_font' => 'dejavusans',
+    ]);
+
+    $mpdf->SetTitle('Document Registration Form');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Write Page 1
+    |--------------------------------------------------------------------------
+    */
+    $mpdf->WriteHTML($page1);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Page 2
+    |--------------------------------------------------------------------------
+    */
+    $mpdf->AddPage();
+    $mpdf->WriteHTML($page2);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Page 3+
+    | Evidence Attachment
+    |--------------------------------------------------------------------------
+    */
+    if ($document->copies->count() > 0) {
+        $mpdf->AddPage();
+        $mpdf->WriteHTML($page3);
+    }
+
+    $filename = ($document->document_number ?? 'document') . '.pdf';
+
+    return response(
+        $mpdf->Output(
+            $filename,
+            \Mpdf\Output\Destination::STRING_RETURN
+        ),
+        200,
+        [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]
+    );
+}
 
 }

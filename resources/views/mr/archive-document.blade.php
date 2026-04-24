@@ -13,8 +13,8 @@
     {{-- Header --}}
     <div class="border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 flex items-center justify-between flex-wrap gap-3">
         <div>
-            <h2 class="text-lg font-semibold text-gray-800">Pending Document Confirmation</h2>
-            <p class="text-sm text-gray-500 mt-0.5">Konfirmasi penerimaan dokumen yang telah didistribusikan ke departemen Anda.</p>
+            <h2 class="text-lg font-semibold text-gray-800">Pending Document Socialization</h2>
+            <p class="text-sm text-gray-500 mt-0.5">Konfirmasi dokumen yang telah disosialisasikan.</p>
         </div>
         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
             {{ $pendingCopies->count() }} Pending
@@ -39,8 +39,8 @@
             
             <div class="p-5 bg-slate-50/50 rounded-b-xl">
                 <div class="mb-4">
-                    <p class="text-sm font-medium text-gray-800">Apakah Anda sudah menerima dokumen ini?</p>
-                    <p class="text-xs text-gray-500 mt-1">Jika sudah, silakan unggah bukti penerimaan untuk menyelesaikan konfirmasi.</p>
+                    <p class="text-sm font-medium text-gray-800">Apakah Anda sudah mensosialisasikan dokumen ini?</p>
+                    <p class="text-xs text-gray-500 mt-1">Jika sudah, silakan unggah bukti sosialisasi untuk menyelesaikan konfirmasi.</p>
                 </div>
                 
                 {{-- Inline Form --}}

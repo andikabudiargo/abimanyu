@@ -27,7 +27,50 @@ public function index()
     return view('facility.sto');
 }
 
+public function indexv2()
+{
+    return view('facility.sto-v2');
+}
+
   public function create()
+{
+     $agent = new Agent();
+
+    $warehouse = $this->userWarehouse();
+
+    $canChooseWarehouse = is_null($warehouse); // 🔥 INI BARU
+
+    $allowedTypes = $this->allowedArticleTypes($warehouse);
+
+   
+    // 🔹 Bangun query dulu
+    $query = Article::whereIn('article_type', $allowedTypes);
+
+    // ✅ Filter khusus Werate → supplier_code WJI
+    if ($warehouse === 'Werate') {
+        $query->where('supplier_code', 'LIKE', '%WJI%');
+    }
+
+    $articles = $query->select('id', 'article_code', 'description', 'unit', 'article_type', 'min_package')
+        ->orderBy('description')
+        ->get();
+
+    $usedStoNumbers = \DB::table('stos')
+        ->pluck('sto_number')
+        ->toArray();
+
+        $allowedWarehouses = $this->allowedWarehouses();
+
+    return view('facility.create-sto', compact(
+        'warehouse',
+        'canChooseWarehouse',
+         'allowedWarehouses', // 🔥 KIRIM KE VIEW
+        'articles',
+        'usedStoNumbers'
+    ));
+}
+
+public function createv2()
 {
      $agent = new Agent();
 
