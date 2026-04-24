@@ -532,12 +532,12 @@ Route::prefix('it')->name('it.')->group(function () {
     });
 
     Route::prefix('qc')->name('qc.')->group(function () {  
-    Route::get('/qc/master-defect/dashboard', [DefectController::class, 'index'])->name('defect.index');
-    Route::get('/qc/master-defect/data', [DefectController::class, 'data'])->name('defect.data');
+    Route::get('/qc/master-defect/dashboard', [DefectController::class, 'indexv2'])->name('defect.index');
+    Route::get('/qc/master-defect/data', [DefectController::class, 'datav2'])->name('defect.data');
     Route::get('/get-articles', [ArticleController::class, 'getByInspectionPost']);
     Route::get('/get-article-by-code', [ArticleController::class, 'getArticleByCode']);
     Route::get('/get-defects/{post}', [DefectController::class, 'getByInspectionPost']);
-    Route::post('/qc/master-defect/store', [DefectController::class, 'store'])->name('defect.store');
+    Route::post('/qc/master-defect/store', [DefectController::class, 'storev2'])->name('defect.store');
     Route::get('/qc/unloading/dashboard', [InspectionController::class, 'unloading'])->name('unloading.index');
     Route::get('/inspections/dashboard', [InspectionController::class, 'index'])->name('inspections.index');
     Route::get('/inspections/data', [InspectionController::class, 'data'])->name('inspections.data');
