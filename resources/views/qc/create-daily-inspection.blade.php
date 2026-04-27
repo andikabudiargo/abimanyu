@@ -946,7 +946,7 @@ defects.forEach(defect => {
 
     $row.data('allDefects', defects);
 
-    function filterDefectOptions($row, type) {
+    function filterDefectOptions($row) {
     const defects = $row.data('allDefects') || [];
     const $defectSelect = $row.find('.defect-select');
 
