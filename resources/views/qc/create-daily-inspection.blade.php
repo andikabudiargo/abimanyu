@@ -1072,6 +1072,7 @@ $.getJSON(`/qc/get-defects/${post}`, function (defects) {
 });
 } else {
     $('#defectTableBody').append(createRow(rowIndex, []));
+      initRowSelect2($row);       
     toggleOkRepair();                  // 🔥 WAJIB
     feather.replace();
 }
