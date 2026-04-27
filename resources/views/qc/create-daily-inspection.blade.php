@@ -462,41 +462,68 @@ $(document).ready(function () {
   /* =====================================================
    * DOM REFERENCES
    * ===================================================== */
-  const $checkMethod        = $('#check_method');
-  const $qtyReceiving       = $('#qty_received');
-  const $totalCheck         = $('#total_check');
-  const $totalCheckDisplay  = $('#totalCheckDisplay');
-
-  const $postSelect         = $('#inspection_post');
-
-  const $totalNGDisplay     = $('#totalNGDisplay');
-  const $totalNGPercent     = $('#totalNGPercent');
-
-  const $totalOkDisplay     = $('#totalOkDisplay');
-  const $totalOkPercent     = $('#totalOkPercent');
-
-  const $totalNCLabel       = $('#totalNCLabel');
-  const $totalNCDisplay     = $('#totalNCDisplay');
-  const $totalNCPercent     = $('#totalNCPercent');
-
-  const $totalPTWrapper     = $('#totalPTWrapper');
-  const $totalPTDisplay     = $('#totalPTDisplay');
-
-  const $passRate = $('#passRate');
-
-  const $passTroughLabel = $('#passTroughLabel');
+  const $checkMethod       = $('#check_method');
+  const $qtyReceiving      = $('#qty_received');
+  const $totalCheck        = $('#total_check');
+  const $totalCheckDisplay = $('#totalCheckDisplay');
+  const $postSelect        = $('#inspection_post');
+  const $totalNGDisplay    = $('#totalNGDisplay');
+  const $totalNGPercent    = $('#totalNGPercent');
+  const $totalOkDisplay    = $('#totalOkDisplay');
+  const $totalOkPercent    = $('#totalOkPercent');
+  const $totalNCLabel      = $('#totalNCLabel');
+  const $totalNCDisplay    = $('#totalNCDisplay');
+  const $totalNCPercent    = $('#totalNCPercent');
+  const $totalPTWrapper    = $('#totalPTWrapper');
+  const $totalPTDisplay    = $('#totalPTDisplay');
+  const $passRate          = $('#passRate');
+  const $passTroughLabel   = $('#passTroughLabel');
   const $passTroughDisplay = $('#passTroughDisplay');
 
+  let rowIndex = 1;
 
   /* =====================================================
-   * HELPER
+   * INIT SELECT2 (static fields)
+   * ===================================================== */
+  $('#inspection_post').select2({ placeholder: "-- Pilih Inspection Post --", allowClear: true, width: '100%' });
+  $('#supplier').select2({ placeholder: "-- Pilih Supplier --", allowClear: true, width: '100%' });
+  $('#customer').select2({ placeholder: "-- Pilih Customer --", allowClear: true, width: '100%' });
+  $('#check_method').select2({ placeholder: "-- Pilih Metode Inspection --", allowClear: true, width: '100%' });
+  $('#spraybooth').select2({ placeholder: "-- Pilih Booth --", allowClear: true, width: '100%' });
+  $('#part_name').select2({
+    placeholder: "-- Select Part --",
+    allowClear: true,
+    width: '100%',
+    ajax: {
+      url: '/qc/get-articles',
+      dataType: 'json',
+      data: params => ({
+        term: params.term,
+        post: $('#inspection_post').val(),
+        supplier: $('#inspection_post').val() === 'Incoming'
+          ? $('#supplier').val()
+          : $('#customer').val()
+      }),
+      processResults: data => {
+        articleMap = {};
+        data.forEach(item => { articleMap[item.article_code] = item; });
+        return { results: data.map(item => ({ id: item.article_code, text: item.description })) };
+      },
+      cache: true
+    }
+  });
+
+  feather.replace();
+
+  /* =====================================================
+   * HELPER — SAMPLING TABLE
    * ===================================================== */
   function getSamplingCheck(qty) {
-    if (qty >= 2 && qty <= 8) return 2;
-    if (qty <= 15) return 3;
-    if (qty <= 25) return 5;
-    if (qty <= 50) return 8;
-    if (qty <= 90) return 13;
+    if (qty >= 2  && qty <= 8)     return 2;
+    if (qty <= 15)  return 3;
+    if (qty <= 25)  return 5;
+    if (qty <= 50)  return 8;
+    if (qty <= 90)  return 13;
     if (qty <= 150) return 20;
     if (qty <= 280) return 32;
     if (qty <= 500) return 50;
@@ -507,18 +534,15 @@ $(document).ready(function () {
     return 0;
   }
 
-
   /* =====================================================
    * TOTAL CHECK
    * ===================================================== */
   function updateTotalCheck() {
     const method = $checkMethod.val();
     const qty    = parseInt($qtyReceiving.val()) || 0;
-
     let val = '';
-    if (method === '100%') val = qty;
+    if (method === '100%')    val = qty;
     if (method === 'Sampling') val = getSamplingCheck(qty) || '';
-
     $totalCheck.val(val).trigger('input');
   }
 
@@ -526,229 +550,93 @@ $(document).ready(function () {
     $totalCheckDisplay.text(parseInt($totalCheck.val()) || 0);
   }
 
-
   /* =====================================================
-   * TOTAL DEFECT (VALIDASI)
-   * ===================================================== */
-  function updateTotalDefectSummary() {
-    let totalDefect = 0;
-
-    $('input[name="qty[]"]').each(function () {
-      totalDefect += parseInt($(this).val()) || 0;
-    });
-
-    const totalCheck = parseInt($totalCheck.val()) || 0;
-
-    if (totalCheck > 0 && totalDefect > totalCheck) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Validasi Gagal',
-        text: 'Total Defect Qty melebihi Total Check. Nilai akan direset.'
-      });
-
-      $('input[name="qty[]"]').val(0);
-      totalDefect = 0;
-    }
-
-    $('#totalDefectQty').text(totalDefect);
-
-    const percent = totalCheck > 0
-      ? ((totalDefect / totalCheck) * 100).toFixed(0)
-      : 0;
-
-    $('#totalDefectPercent').text(percent);
-  }
-
-
-  /* =====================================================
-   * TOTAL NG
+   * SUMMARY CALCULATIONS
    * ===================================================== */
   function updateTotalNG() {
     let totalNG = 0;
     const totalCheck = parseInt($totalCheck.val()) || 0;
-
     $('#defectTableBody tr').each(function () {
-
-        const type = $(this).find('.defect-type').val(); // 🔥 ambil dari dropdown
-        const qty  = parseInt($(this).find('.qty-defect').val()) || 0;
-
-        if (type === 'NG') {
-            totalNG += qty;
-        }
+      if ($(this).find('.defect-type').val() === 'NG') {
+        totalNG += parseInt($(this).find('.qty-defect').val()) || 0;
+      }
     });
-
     $totalNGDisplay.text(totalNG);
+    $totalNGPercent.text(totalCheck > 0 ? ((totalNG / totalCheck) * 100).toFixed(0) : 0);
+  }
 
-    const percent = totalCheck > 0
-        ? ((totalNG / totalCheck) * 100).toFixed(0)
-        : 0;
-
-    $totalNGPercent.text(percent);
-}
-
-
-  /* =====================================================
-   * TOTAL OK
-   * ===================================================== */
   function updateTotalOK() {
     const totalCheck = parseInt($totalCheck.val()) || 0;
     const totalNG    = parseInt($totalNGDisplay.text()) || 0;
-
-    const totalOK = Math.max(totalCheck - totalNG, 0);
+    const totalOK    = Math.max(totalCheck - totalNG, 0);
     $totalOkDisplay.text(totalOK);
-
-    const percent = totalCheck > 0
-      ? ((totalOK / totalCheck) * 100).toFixed(0)
-      : 0;
-
-    $totalOkPercent.text(percent);
+    $totalOkPercent.text(totalCheck > 0 ? ((totalOK / totalCheck) * 100).toFixed(0) : 0);
   }
 
-
-  /* =====================================================
-   * NC / OK REPAIR
-   * ===================================================== */
   function updateNcOrOkRepair() {
-    const post = $postSelect.val();
+    const post       = $postSelect.val();
     const totalCheck = parseInt($totalCheck.val()) || 0;
-    let totalValue = 0;
+    let totalValue   = 0;
 
     if (post === 'Incoming') {
-        // 🔵 Mode OK Repair
-        $totalNCLabel.text('Total OK Repair');
-
-        $('input[name="ok_repair[]"]').each(function () {
-            totalValue += parseInt($(this).val()) || 0;
-        });
-
+      $totalNCLabel.text('Total OK Repair');
+      $('input[name="ok_repair[]"]').each(function () {
+        totalValue += parseInt($(this).val()) || 0;
+      });
     } else {
-        // 🔴 Mode NC
-        $totalNCLabel.text('Total NC');
-
-        $('#defectTableBody tr').each(function () {
-
-            const type = $(this).find('.defect-type').val(); // 🔥 pakai ini
-            const qty  = parseInt($(this).find('.qty-defect').val()) || 0;
-
-            if (type === 'NC') {
-                totalValue += qty;
-            }
-        });
+      $totalNCLabel.text('Total NC');
+      $('#defectTableBody tr').each(function () {
+        if ($(this).find('.defect-type').val() === 'NC') {
+          totalValue += parseInt($(this).find('.qty-defect').val()) || 0;
+        }
+      });
     }
 
     $totalNCDisplay.text(totalValue);
+    $totalNCPercent.text(totalCheck > 0 ? ((totalValue / totalCheck) * 100).toFixed(0) : 0);
+  }
 
-    const percent = totalCheck > 0
-        ? ((totalValue / totalCheck) * 100).toFixed(0)
-        : 0;
-
-    $totalNCPercent.text(percent);
-}
-
-
-  /* =====================================================
-   * TOTAL PASS THROUGH
-   * ===================================================== */
   function updateTotalPassThrough() {
     const post = $postSelect.val();
-
-    if (post === 'Incoming') {
-      $totalPTWrapper.addClass('hidden');
-      return;
-    }
-
+    if (post === 'Incoming') { $totalPTWrapper.addClass('hidden'); return; }
     $totalPTWrapper.removeClass('hidden');
-
     const totalCheck = parseInt($totalCheck.val()) || 0;
     const totalNG    = parseInt($totalNGDisplay.text()) || 0;
     const totalNC    = parseInt($totalNCDisplay.text()) || 0;
-
-    const passThrough = Math.max(
-      totalCheck - totalNG - totalNC,
-      0
-    );
-
-    $totalPTDisplay.text(passThrough);
+    $totalPTDisplay.text(Math.max(totalCheck - totalNG - totalNC, 0));
   }
 
-  /*======================================================
-   * PASS RATE
-   * ===================================================== */
   function updatePassRate() {
     const totalCheck = parseInt($totalCheck.val()) || 0;
-  const totalOK    = parseInt($totalOkDisplay.text()) || 0;
-
-  let passRate = 0;
-
-  if (totalCheck > 0) {
-    passRate = ((totalOK / totalCheck) * 100).toFixed(0);
+    const totalOK    = parseInt($totalOkDisplay.text()) || 0;
+    $passRate.text(totalCheck > 0 ? `${((totalOK / totalCheck) * 100).toFixed(0)}%` : '0%');
   }
 
-  $passRate.text(`${passRate}%`);
-  }
-
-   /* =====================================================
-   * PASS THROUGH
-   * ===================================================== */
-
-    function updatePassTrough() {
+  function updatePassTrough() {
     const post       = $postSelect.val();
     const totalCheck = parseInt($totalCheck.val()) || 0;
+    if (totalCheck <= 0) { $passTroughDisplay.text('0%'); return; }
 
     let numerator = 0;
-    let percent   = 0;
+    if (post === 'Incoming') {
+      $passTroughLabel.text('Performa');
+      numerator = (parseInt($totalOkDisplay.text()) || 0) - (parseInt($totalNCDisplay.text()) || 0);
+    } else {
+      $passTroughLabel.text('Pass Through');
+      numerator = parseInt($totalPTDisplay.text()) || 0;
+    }
 
-  if (totalCheck <= 0) {
-    $passTroughDisplay.text('0%');
-    return;
+    if (numerator < 0) numerator = 0;
+    $passTroughDisplay.text(`${((numerator / totalCheck) * 100).toFixed(0)}%`);
   }
 
-  if (post === 'Incoming') {
-    // ================= PERFORMANCE =================
-    $passTroughLabel.text('Performa');
-
-    const totalOK       = parseInt($totalOkDisplay.text()) || 0;
-    const totalOkRepair = parseInt($totalNCDisplay.text()) || 0;
-
-    numerator = totalOK - totalOkRepair;
-
-  } else {
-    // ================= PASS THROUGH =================
-    $passTroughLabel.text('Pass Through');
-
-    const totalPassThrough =
-      parseInt($totalPTDisplay.text()) || 0;
-
-    numerator = totalPassThrough;
+  function resetSummary() {
+    $totalNGDisplay.text(0);   $totalNGPercent.text(0);
+    $totalOkDisplay.text(0);   $totalOkPercent.text(0);
+    $totalNCDisplay.text(0);   $totalNCPercent.text(0);
+    $totalPTDisplay.text(0);   $passTroughDisplay.text('0%');
   }
 
-  if (numerator < 0) numerator = 0;
-
-  percent = ((numerator / totalCheck) * 100).toFixed(0);
-  $passTroughDisplay.text(`${percent}%`);
-}
-
-/* =====================================================
-   * RESET SUMMARY
-   * ===================================================== */
-function resetSummary() {
-  $totalNGDisplay.text(0);
-  $totalNGPercent.text(0);
-
-  $totalOkDisplay.text(0);
-  $totalOkPercent.text(0);
-
-  $totalNCDisplay.text(0);
-  $totalNCPercent.text(0);
-
-  $totalPTDisplay.text(0);
-  $passTroughDisplay.text('0%');
-}
-
-
-  /* =====================================================
-   * MASTER UPDATE
-   * ===================================================== */
   function updateAllSummary() {
     updateTotalNG();
     updateTotalOK();
@@ -758,564 +646,321 @@ function resetSummary() {
     updatePassTrough();
   }
 
-
-
- /* =====================================================
- * EVENTS
- * ===================================================== */
-$checkMethod.on('change', updateTotalCheck);
-$qtyReceiving.on('input', updateTotalCheck);
-
-$totalCheck.on('input', function () {
-  syncTotalCheckDisplay();
-  updateAllSummary();
-});
-
-$(document).on(
-  'input change',
-  '.qty-defect, .defect-select, .qty-ok-repair',
-  updateAllSummary
-);
-
-$(document).on('click', '.removeBtn', function () {
-  $(this).closest('tr').remove();
-  updateAllSummary();
-});
-
-/* ===== POST CHANGE (FIXED) ===== */
-$postSelect.on('change', function () {
-  resetSummary();       // ⬅️ WAJIB
-  updateAllSummary();   // ⬅️ HITUNG ULANG SESUAI POST BARU
-});
-
-
-   /* =====================================================
-   * INIT SELECT 2
+  /* =====================================================
+   * TOTAL QTY VALIDATION
    * ===================================================== */
+  function validateTotalQty(changedInput = null) {
+    const totalCheck = parseInt($totalCheck.val()) || 0;
+    if (totalCheck === 0) return;
 
-$('#inspection_post').select2({
-  placeholder: "-- Pilih Inspection Post --",
-  allowClear: true,
-  width: '100%'
-});
+    let totalQty = 0;
+    $('.qty-defect').each(function () { totalQty += parseInt($(this).val()) || 0; });
 
-$('#supplier').select2({
-  placeholder: "-- Pilih Supplier --",
-  allowClear: true,
-  width: '100%'
-});
+    if (totalQty > totalCheck) {
+      if (changedInput) {
+        const currentVal = parseInt($(changedInput).val()) || 0;
+        const corrected  = currentVal - (totalQty - totalCheck);
+        $(changedInput).val(corrected > 0 ? corrected : 0);
+      }
+      Swal.fire({ icon: 'error', title: 'Qty Melebihi Total Check',
+        text: 'Akumulasi Qty Defect tidak boleh lebih dari Total Check.',
+        confirmButtonColor: '#2563eb' });
+    }
+  }
 
-$('#customer').select2({
-  placeholder: "-- Pilih Customer --",
-  allowClear: true,
-  width: '100%'
-});
-
-
- $('#check_method').select2({
-  placeholder: "-- Pilih Metode Inspection --",
-  allowClear: true,
-  width: '100%'
-});
-
-$('#spraybooth').select2({
-  placeholder: "-- Pilih Booth --",
-  allowClear: true,
-  width: '100%'
-});
-
- feather.replace();
-
-
-
- /* =====================================================
-   * DEFECT TABLE HANDLE
+  /* =====================================================
+   * DEFECT TABLE — createRow & initRowSelect2
    * ===================================================== */
- let rowIndex = 1;
-// Function buat row
-function createRow(index, defects = []) {
+  function createRow(index, defects = []) {
     const $row = $('<tr>');
 
     let defectOptions = '<option value="">-- Choose Defect --</option>';
-    defects.forEach(defect => {
-        defectOptions += `
-          <option value="${defect.id}" data-defect="${defect.defect}">${defect.defect}</option>`;
+    defects.forEach(d => {
+      defectOptions += `<option value="${d.id}" data-defect="${d.defect}">${d.defect}</option>`;
     });
 
     $row.html(`
-        <td class="border p-2 text-center w-[20px]">${index}</td>
-        <td class="border p-2 w-[120px]">
-            <select name="category[]" class="w-full border p-2 rounded defect-type" required>
-                <option value="">--</option>
-                <option value="NC">NC</option>
-                <option value="NG">NG</option>
-            </select>
-        </td>
-        <td class="border p-2 min-w-[140px]">
-            <select name="defect_id[]" class="w-full border rounded defect-select">
-                ${defectOptions}
-            </select>
-        </td>
-        <td class="border p-2 w-[60px]">
-            <div class="flex items-stretch">
-                <input type="number" name="qty[]" min="1"
-                    class="flex-1 border border-gray-300 border-r-0 rounded-l-md px-3 py-2 text-sm
-                           focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300
-                           qty-defect text-right" required>
-                <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100
-                             border border-gray-300 border-l-0 rounded-r-md">PCS</span>
-            </div>
-        </td>
-        <td class="border p-2 w-[60px] ok-repair-wrapper">
-            <div class="flex items-stretch">
-                <input type="number" name="ok_repair[]"
-                    class="flex-1 border border-gray-300 border-r-0 rounded-l-md px-3 py-2 text-sm
-                           focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300
-                           qty-ok-repair text-right">
-                <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100
-                             border border-gray-300 border-l-0 rounded-r-md">PCS</span>
-            </div>
-        </td>
-        <td class="border p-2 min-w-[120px]">
-            <input type="text" name="note_defect[]"
-                class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm
-                       focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
-        </td>
-        <td class="border p-2 text-center min-w-[60px]">
-            <button type="button" class="removeBtn text-red-600 hover:text-red-800">X</button>
-        </td>
+      <td class="border p-2 text-center w-[20px]">${index}</td>
+      <td class="border p-2 w-[120px]">
+        <select name="category[]" class="w-full border p-2 rounded defect-type" required>
+          <option value="">--</option>
+          <option value="NC">NC</option>
+          <option value="NG">NG</option>
+        </select>
+      </td>
+      <td class="border p-2 min-w-[140px]">
+        <select name="defect_id[]" class="w-full border rounded defect-select">
+          ${defectOptions}
+        </select>
+      </td>
+      <td class="border p-2 w-[60px]">
+        <div class="flex items-stretch">
+          <input type="number" name="qty[]" min="1"
+            class="flex-1 border border-gray-300 border-r-0 rounded-l-md px-3 py-2 text-sm
+                   focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300
+                   qty-defect text-right" required>
+          <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100
+                       border border-gray-300 border-l-0 rounded-r-md">PCS</span>
+        </div>
+      </td>
+      <td class="border p-2 w-[60px] ok-repair-wrapper">
+        <div class="flex items-stretch">
+          <input type="number" name="ok_repair[]"
+            class="flex-1 border border-gray-300 border-r-0 rounded-l-md px-3 py-2 text-sm
+                   focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300
+                   qty-ok-repair text-right">
+          <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100
+                       border border-gray-300 border-l-0 rounded-r-md">PCS</span>
+        </div>
+      </td>
+      <td class="border p-2 min-w-[120px]">
+        <input type="text" name="note_defect[]"
+          class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
+      </td>
+      <td class="border p-2 text-center min-w-[60px]">
+        <button type="button" class="removeBtn text-red-600 hover:text-red-800">X</button>
+      </td>
     `);
 
-    $row.data('allDefects', defects);
-
-    // ✅ Validasi OK Repair (boleh tetap di sini, tidak butuh DOM)
+    // Validasi OK Repair — boleh di sini karena tidak butuh DOM global
     $row.find('.qty-ok-repair').on('input', function () {
-        const qtyDefect   = parseInt($row.find('.qty-defect').val()) || 0;
-        const qtyOkRepair = parseInt($(this).val()) || 0;
-        if (qtyOkRepair > qtyDefect) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Input tidak valid',
-                text: 'Qty OK Repair tidak boleh melebihi Qty Defect di baris ini.'
-            });
-            $(this).val(qtyDefect);
-        }
+      const qtyDefect   = parseInt($row.find('.qty-defect').val()) || 0;
+      const qtyOkRepair = parseInt($(this).val()) || 0;
+      if (qtyOkRepair > qtyDefect) {
+        Swal.fire({ icon: 'error', title: 'Input tidak valid',
+          text: 'Qty OK Repair tidak boleh melebihi Qty Defect di baris ini.' });
+        $(this).val(qtyDefect);
+      }
     });
 
-    return $row; // ⚠️ belum append, Select2 belum di-init
-}
+    return $row;
+  }
 
-function initRowSelect2($row) {
+  function initRowSelect2($row) {
     const $defectSelect = $row.find('.defect-select');
 
-    // ✅ Baru boleh init Select2 karena $row sudah ada di DOM
     $defectSelect.select2({
-        placeholder: '-- Choose Defect --',
-        allowClear: true,
-        width: '100%'
+      placeholder: '-- Choose Defect --',
+      allowClear: true,
+      width: '100%',
+      dropdownParent: $('body')
     });
 
     $defectSelect.on('select2:select', function (e) {
-        const currentDefect = e.params.data.element.dataset.defect?.trim().toLowerCase();
-        if (!currentDefect) return;
+      const currentDefect = e.params.data.element?.dataset.defect?.trim().toLowerCase();
+      if (!currentDefect) return;
 
-        let isDuplicate = false;
-        $('.defect-select').not(this).each(function () {
-            const data = $(this).select2('data');
-            if (!data.length) return;
-            const defect = data[0].element?.dataset.defect?.trim().toLowerCase();
-            if (defect === currentDefect) isDuplicate = true;
-        });
-
-        if (isDuplicate) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Duplikasi Defect!',
-                text: 'Defect yang sama sudah dipilih di baris lain.'
-            });
-            $(this).val(null).trigger('select2:clear');
-        }
+      let isDuplicate = false;
+      $('.defect-select').not(this).each(function () {
+        const data = $(this).select2('data');
+        if (!data.length) return;
+        const defect = data[0].element?.dataset.defect?.trim().toLowerCase();
+        if (defect === currentDefect) isDuplicate = true;
+      });
     });
-}
+  }
 
-function toggleOkRepair() {
-    const post = $('#inspection_post').val();
-
-    // === OK Repair summary ===
-    const $totalOkRepairRow = $('[data-info="total-ok-repair"]').closest('div.flex');
-    const $okRepairRateRow  = $('[data-info="ok-repair-rate"]').closest('div.flex');
-
-    // === KPI label ===
-    const $passTroughLabel = $('[data-label="pass-trough-label"]');
-
+  function toggleOkRepair() {
+    const post = $postSelect.val();
     if (post === 'Incoming') {
-
-        // OK Repair aktif
-        $('.ok-repair-wrapper')
-            .removeClass('hidden')
-            .find('input')
-            .prop('required', true)
-            .prop('disabled', false);
-
-        // summary OK Repair tampil
-        $totalOkRepairRow.removeClass('hidden');
-        $okRepairRateRow.removeClass('hidden');
-
-        // KPI
-        $passTroughLabel.text('Performance');
-
+      $('.ok-repair-wrapper').removeClass('hidden')
+        .find('input').prop('required', true).prop('disabled', false);
     } else {
-
-        // OK Repair mati
-        $('.ok-repair-wrapper')
-            .addClass('hidden')
-            .find('input')
-            .prop('required', false)
-            .prop('disabled', true)
-            .val('');
-
-        // summary OK Repair sembunyi
-        $totalOkRepairRow.addClass('hidden');
-        $okRepairRateRow.addClass('hidden');
-
-        // KPI
-        if (post === 'Unloading') {
-            $passTroughLabel.text('Pass Through');
-        } else {
-            $passTroughLabel.text('Performance');
-        }
+      $('.ok-repair-wrapper').addClass('hidden')
+        .find('input').prop('required', false).prop('disabled', true).val('');
     }
-}
+  }
 
+  function loadDefectTable(post) {
+    $.getJSON(`/qc/get-defects/${post}`, function (defects) {
+      console.log('✅ Defects loaded:', defects.length, defects);
+      $('#defectTableBody').empty();
+      rowIndex = 1;
+      const $row = createRow(rowIndex, defects);
+      $('#defectTableBody').append($row);
+      initRowSelect2($row);
+      toggleOkRepair();
+      feather.replace();
+    });
+  }
 
+  /* =====================================================
+   * EVENTS — semua listener di satu tempat
+   * ===================================================== */
 
+  // Total Check
+  $checkMethod.on('change', updateTotalCheck);
+  $qtyReceiving.on('input', updateTotalCheck);
+  $totalCheck.on('input', function () {
+    syncTotalCheckDisplay();
+    updateAllSummary();
+  });
 
-    $('#inspection_post').on('change', function () {
+  // Summary otomatis
+  $(document).on('input change', '.qty-defect, .defect-select, .qty-ok-repair', updateAllSummary);
 
-  const post = $(this).val();
+  // Qty validation
+  $(document).on('input', '.qty-defect', function () { validateTotalQty(this); });
 
-  // === Element cache ===
-  const supplierWrap = $('#supplier-wrapper');
-  const customerWrap = $('#customer-wrapper');
-  const qtyWrap      = $('#qty-received-wrapper');
-  const checkMethod  = $('#check_method_container');
-  const sprayboothWrap = $('#spraybooth-wrapper');
+  // Remove row
+  $(document).on('click', '.removeBtn', function () {
+    $(this).closest('tr').remove();
+    $('#defectTableBody tr').each(function (i) {
+      $(this).find('td:first').text(i + 1);
+    });
+    rowIndex = $('#defectTableBody tr').length;
+    toggleOkRepair();
+    updateAllSummary();
+  });
 
-  // ================= RESET SEMUA =================
-  supplierWrap.addClass('hidden');
-  customerWrap.addClass('hidden');
-  qtyWrap.addClass('hidden');
-  checkMethod.addClass('hidden');
-  sprayboothWrap.addClass('hidden');
+  // Part name change
+  $('#part_name').on('change', function () {
+    const data = articleMap[$(this).val()];
+    if (!data) return;
+    $('[data-info="part-name"]').text(data.description || '-');
+    $('[data-info="supplier"]').text(data.partner_name || '-');
+    $('#supplier_code').val(data.partner_code || '');
+  });
 
-  $('#supplier, #customer').prop('required', false);
-  $('#qty_received').prop('required', false).val('');
-  $('#check_method').prop('required', false).val('');
-  $('#spraybooth').prop('required', false).val('');
+  // =====================================================
+  // INSPECTION POST — satu listener untuk semua logic
+  // =====================================================
+  $postSelect.on('change', function () {
+    const post = $(this).val();
 
-  // ================= LOGIC =================
-  if (post === 'Incoming') {
-
-    // Supplier ON
-    supplierWrap.removeClass('hidden');
-    $('#supplier').prop('required', true);
-
-    // Qty Received ON
-    qtyWrap.removeClass('hidden');
-    $('#qty_received').prop('required', true);
-
-    // Check Method ON
-    checkMethod.removeClass('hidden');
-    $('#check_method').prop('required', true);
-
-    sprayboothWrap.addClass('hidden');
-    $('#spraybooth').val(null).trigger('change');
-
-    // Customer OFF
-    customerWrap.addClass('hidden');
+    // Reset field visibility
+    $('#supplier-wrapper, #customer-wrapper, #qty-received-wrapper, #check_method_container, #spraybooth-wrapper')
+      .addClass('hidden');
+    $('#supplier, #customer').prop('required', false);
+    $('#qty_received').prop('required', false).val('');
+    $('#check_method').prop('required', false).val('').trigger('change');
+    $('#spraybooth').prop('required', false).val(null).trigger('change');
+    $('#part_name').val(null).trigger('change');
+    $('#supplier').val(null).trigger('change');
     $('#customer').val(null).trigger('change');
 
-    
+    resetSummary();
 
-  } else if (post) {
+    if (!post) {
+      // Kosongkan tabel jika post di-clear
+      $('#defectTableBody').empty();
+      rowIndex = 1;
+      const $row = createRow(rowIndex, []);
+      $('#defectTableBody').append($row);
+      initRowSelect2($row);
+      toggleOkRepair();
+      feather.replace();
+      return;
+    }
 
-    // Customer ON
-    customerWrap.removeClass('hidden');
-    $('#customer').prop('required', true);
+    if (post === 'Incoming') {
+      $('#supplier-wrapper').removeClass('hidden');
+      $('#supplier').prop('required', true);
+      $('#qty-received-wrapper').removeClass('hidden');
+      $('#qty_received').prop('required', true);
+      $('#check_method_container').removeClass('hidden');
+      $('#check_method').prop('required', true);
+    } else {
+      $('#customer-wrapper').removeClass('hidden');
+      $('#customer').prop('required', true);
+      $('#spraybooth-wrapper').removeClass('hidden');
+      $('#spraybooth').prop('required', true);
+    }
 
-    // Supplier OFF
-    supplierWrap.addClass('hidden');
-    $('#supplier').val(null).trigger('change');
+    // Load defect table sesuai post
+    loadDefectTable(post);
+  });
 
-     sprayboothWrap.removeClass('hidden');
-    $('spraybooth').prop('required', true);
+  /* =====================================================
+   * ADD ROW
+   * ===================================================== */
+  $('#addRowBtn').on('click', function () {
+    const post = $postSelect.val();
+    if (!post) { alert('Pilih Inspection Post terlebih dahulu!'); return; }
 
-  }
-
-  // Reset Part setiap ganti post
-  $('#part_name').val(null).trigger('change');
-
-});
-
-
-   // ===== DEFAULT ROW SAAT PAGE LOAD =====
-const post = $('#inspection_post').val();
-
-if (post) {
-    // ===== DEFAULT ROW =====
-$.getJSON(`/qc/get-defects/${post}`, function (defects) {
-    const $row = createRow(rowIndex, defects);
-    $('#defectTableBody').append($row);        // ← append DULU
-    initRowSelect2($row);                      // ← baru init Select2
-    toggleOkRepair();
-    feather.replace();
-});
-} else {
-    $('#defectTableBody').append(createRow(rowIndex, []));
-      initRowSelect2($row);       
-    toggleOkRepair();                  // 🔥 WAJIB
-    feather.replace();
-}
-
-// ===== UPDATE ROW SAAT INSPECTION POST BERUBAH =====
-$('#inspection_post').on('change', function () {
-    const post = $(this).val();
-    if (!post) return;
-
-   $.getJSON(`/qc/get-defects/${post}`, function (defects) {
-    $('#defectTableBody').empty();
-    rowIndex = 1;
-    const $row = createRow(rowIndex, defects);
-    $('#defectTableBody').append($row);  // ✅ append dulu
-    initRowSelect2($row);                // ✅ baru init Select2
-    toggleOkRepair();
-    totalOkRepair();
-    feather.replace();
-});
-});
-
-// ===== ADD ROW =====
-$('#addRowBtn').on('click', function () {
-    const post = $('#inspection_post').val();
-    if (!post) return alert('Select inspection post first!');
-
-   $.getJSON(`/qc/get-defects/${post}`, function (defects) {
-    rowIndex++;
-    const $row = createRow(rowIndex, defects);
-    $('#defectTableBody').append($row);  // ✅ append dulu
-    initRowSelect2($row);                // ✅ baru init Select2
-    toggleOkRepair();
-    totalOkRepair();
-    feather.replace();
-});
-});
-
-// ===== REMOVE ROW =====
-$('#defectTableBody').on('click', '.removeBtn', function () {
-    $(this).closest('tr').remove();
-
-    $('#defectTableBody tr').each(function (i) {
-        $(this).find('td:first').text(i + 1);
+    $.getJSON(`/qc/get-defects/${post}`, function (defects) {
+      rowIndex++;
+      const $row = createRow(rowIndex, defects);
+      $('#defectTableBody').append($row);
+      initRowSelect2($row);
+      toggleOkRepair();
+      feather.replace();
     });
+  });
 
-    rowIndex = $('#defectTableBody tr').length;
-    toggleOkRepair();                  // 🔥 WAJIB
-});
-
-
-
-let articleMap = {};
-
-// ================== PART SELECT2 ==================
-
-$('#part_name').select2({
-  placeholder: "-- Select Part --",
-  allowClear: true,
-  width: '100%',
-  ajax: {
-    url: '/qc/get-articles',
-    dataType: 'json',
-    data: params => {
-      const post = $('#inspection_post').val();
-
-      return {
-        term: params.term,
-        post: post,
-        supplier: post === 'Incoming'
-          ? $('#supplier').val()
-          : $('#customer').val()
-      };
-    },
-    processResults: data => {
-      articleMap = {};
-
-      data.forEach(item => {
-        articleMap[item.article_code] = item;
-      });
-
-      return {
-        results: data.map(item => ({
-          id: item.article_code,
-          text: item.description
-        }))
-      };
-    },
-    cache: true
-  }
-});
-
-// ================== RESET PART ==================
-$('#inspection_post, #supplier, #customer').on('change', function () {
-  $('#part_name').val(null).trigger('change');
-});
-
-// ================== PART CHANGE ==================
-$('#part_name').on('change', function () {
-  const data = articleMap[$(this).val()];
-  if (!data) return;
-
-  $('[data-info="part-name"]').text(data.description || '-');
-
-  // supplier / customer disatukan
-  $('[data-info="supplier"]').text(data.partner_name || '-');
-  $('#supplier_code').val(data.partner_code || '');
-});
-
-
-$('#inspectionForm').off('submit').on('submit', function (e) {
+  /* =====================================================
+   * SUBMIT
+   * ===================================================== */
+  $('#inspectionForm').on('submit', function (e) {
     e.preventDefault();
-
-    const $form = $(this);
     const $btn = $('#submitBtn');
-
-    // ===== Disable Button + Spinner =====
     const originalHtml = $btn.html();
-    $btn.prop('disabled', true)
-        .addClass('opacity-50 cursor-not-allowed')
+
+    $btn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed')
         .html('<i class="fa fa-spinner fa-spin mr-1"></i> Saving...');
 
     const formData = new FormData(this);
+    const post = $postSelect.val();
 
-    // ===== Incoming vs Non Incoming =====
-    const post = $('#inspection_post').val();
-    const supplierCode = (post === 'Incoming')
-        ? $('#supplier').val()
-        : $('#customer').val();
-    formData.set('supplier_code', supplierCode);
+    formData.set('supplier_code', post === 'Incoming' ? $('#supplier').val() : $('#customer').val());
+    formData.set('total_check',    $totalCheckDisplay.text() || 0);
+    formData.set('total_ok',       $totalOkDisplay.text() || 0);
+    formData.set('total_ng',       $totalNGDisplay.text() || 0);
+    formData.set('total_ok_repair',$totalNCDisplay.text() || 0);
 
-    // ===== Summary (text → backend) =====
-    formData.set('total_check', $('#totalCheckDisplay').text() || 0);
-    formData.set('total_ok', $('#totalOkDisplay').text() || 0);
-    formData.set('total_ng', $('#totalNGDisplay').text() || 0);
-    formData.set('total_ok_repair', $('#totalNCDisplay').text() || 0);
-
-    // ===== Bersihkan dulu FormData defect =====
     formData.delete('defect_id[]');
+    formData.delete('category[]');   // ✅ tambah ini
     formData.delete('qty[]');
     formData.delete('ok_repair[]');
     formData.delete('note_defect[]');
 
-    // ===== Loop semua row defect =====
-    $('#defectTableBody tr').each(function(i, tr) {
-        const defectId = $(tr).find('.defect-select').val();
-        const qty      = $(tr).find('.qty-defect').val() || 0;
-        const okRepair = $(tr).find('.qty-ok-repair').val() || 0;
-        const note     = $(tr).find('input[name="note_defect[]"]').val() || null;
-
-        // Safety check: skip row jika defectId kosong
-        if (!defectId) return;
-
-        formData.append('defect_id[]', defectId);
-        formData.append('qty[]', qty);
-        formData.append('ok_repair[]', okRepair);
-        formData.append('note_defect[]', note);
+    $('#defectTableBody tr').each(function (i, tr) {
+      const defectId = $(tr).find('.defect-select').val();
+      if (!defectId) return;
+      formData.append('defect_id[]',   defectId);
+      formData.append('category[]',    $(tr).find('.defect-type').val() || ''); // ✅ tambah ini
+      formData.append('qty[]',         $(tr).find('.qty-defect').val() || 0);
+      formData.append('ok_repair[]',   $(tr).find('.qty-ok-repair').val() || 0);
+      formData.append('note_defect[]', $(tr).find('input[name="note_defect[]"]').val() || '');
     });
 
-    // ===== Kirim ke backend =====
     $.ajax({
-        url: '/qc/inspections/store',
-        method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-
-        success: function (res) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Saved',
-                text: res.message,
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => location.reload());
-        },
-
-        error: function (xhr) {
-            let msg = 'Something went wrong';
-
-            if (xhr.status === 422 && xhr.responseJSON.errors) {
-                msg = Object.values(xhr.responseJSON.errors)
-                    .map(e => e.join(', '))
-                    .join('<br>');
-            }
-
-            Swal.fire('Error', msg, 'error');
-
-            // re-enable button
-            $btn.prop('disabled', false)
-                .removeClass('opacity-50 cursor-not-allowed')
-                .html(originalHtml);
+      url: '/qc/inspections/store',
+      method: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function (res) {
+        Swal.fire({ icon: 'success', title: 'Saved', text: res.message,
+          timer: 1500, showConfirmButton: false }).then(() => location.reload());
+      },
+      error: function (xhr) {
+        let msg = 'Something went wrong';
+        if (xhr.status === 422 && xhr.responseJSON?.errors) {
+          msg = Object.values(xhr.responseJSON.errors).map(e => e.join(', ')).join('<br>');
         }
+        Swal.fire('Error', msg, 'error');
+        $btn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed').html(originalHtml);
+      }
     });
-});
+  });
 
-// ===============================
-// VALIDASI TOTAL QTY DEFECT
-// ===============================
+  /* =====================================================
+   * PAGE LOAD — default row
+   * ===================================================== */
+  let articleMap = {};
 
-function calculateTotalQty() {
-    let total = 0;
-    $('.qty-defect').each(function () {
-        const val = parseInt($(this).val()) || 0;
-        total += val;
-    });
-    return total;
-}
-
-function validateTotalQty(changedInput = null) {
-    const totalCheck = parseInt($('#total_check').val()) || 0;
-    const totalQty   = calculateTotalQty();
-
-    if (totalCheck === 0) return; // kalau belum isi total_check, skip dulu
-
-    if (totalQty > totalCheck) {
-
-        if (changedInput) {
-            const currentVal = parseInt($(changedInput).val()) || 0;
-            const selisih = totalQty - totalCheck;
-            const corrected = currentVal - selisih;
-
-            $(changedInput).val(corrected > 0 ? corrected : 0);
-        }
-
-        Swal.fire({
-            icon: 'error',
-            title: 'Qty Melebihi Total Check',
-            text: 'Akumulasi Qty Defect tidak boleh lebih dari Total Check.',
-            confirmButtonColor: '#2563eb'
-        });
-    }
-}
-
-// Trigger saat qty berubah
-$(document).on('input', '.qty-defect', function () {
-    validateTotalQty(this);
-});
-
-// Trigger juga kalau total_check berubah
-$('#total_check').on('input', function () {
-    validateTotalQty();
-});
-
+  const initialPost = $postSelect.val();
+  if (initialPost) {
+    loadDefectTable(initialPost);
+  } else {
+    const $row = createRow(rowIndex, []);
+    $('#defectTableBody').append($row);
+    initRowSelect2($row);
+    toggleOkRepair();
+    feather.replace();
+  }
 
 });
 

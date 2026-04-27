@@ -232,7 +232,7 @@ public function getByInspectionPost($post)
             'LOWER(inspection_post) = ?',
             [strtolower($post)]
         )
-      
+        ->whereNull('category')
         ->select('id', 'defect', 'category')
         ->orderBy('defect', 'ASC')
         ->get();
