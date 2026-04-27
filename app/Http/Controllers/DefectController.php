@@ -229,14 +229,8 @@ public function datav2(Request $request)
 public function getByInspectionPost($post)
 {
     $defects = \App\Models\Defect::where('inspection_post', $post)
+        ->whereNull('category') // hanya ambil yang category kosong / null
         ->select('id', 'defect', 'category')
-        ->orderByRaw("
-            CASE category
-                WHEN 'NG' THEN 1
-                WHEN 'NC' THEN 2
-                ELSE 3
-            END
-        ")
         ->orderBy('defect', 'ASC')
         ->get();
 

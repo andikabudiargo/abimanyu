@@ -851,7 +851,7 @@ defects.forEach(defect => {
         <td class="border p-2 text-center w-[20px]">${index}</td>
          <!-- NEW DROPDOWN NC / NG -->
     <td class="border p-2 w-[120px]">
-        <select name="defect_type[]" class="w-full border p-2 rounded defect-type" required>
+        <select name="category[]" class="w-full border p-2 rounded defect-type" required>
             <option value="">--</option>
             <option value="NC">NC</option>
             <option value="NG">NG</option>
@@ -952,16 +952,15 @@ defects.forEach(defect => {
 
     let options = '<option value="">-- Choose Defect --</option>';
 
-    defects.forEach(defect => {
-        if (!type || defect.category === type) {
-            options += `
-                <option 
-                    value="${defect.id}" 
-                    data-defect="${defect.defect}">
-                   ${defect.defect}
-                </option>`;
-        }
-    });
+   defects.forEach(defect => {
+    options += `
+        <option 
+            value="${defect.id}" 
+            data-defect="${defect.defect}">
+            ${defect.defect}
+        </option>
+    `;
+});
 
     // destroy & re-init select2
     $defectSelect.html(options).val(null).trigger('change');
@@ -973,10 +972,10 @@ defects.forEach(defect => {
     });
 }
 
-$row.find('.defect-type').on('change', function () {
-    const type = $(this).val(); // NC / NG
-    filterDefectOptions($row, type);
-});
+//$row.find('.defect-type').on('change', function () {
+    //const type = $(this).val(); // NC / NG
+    //filterDefectOptions($row, type);
+//});
 
     // Init Select2
 const $defectSelect = $row.find('.defect-select');

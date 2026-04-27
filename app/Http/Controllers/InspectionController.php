@@ -951,6 +951,9 @@ public function monthlyTrend(Request $request)
         'defect_id'        => 'nullable|array',
         'defect_id.*'      => 'required|integer|exists:defects,id',
 
+        'category'         => 'nullable|array',
+        'category.*'       => 'required|string',
+
         'qty'              => 'nullable|array',
         'qty.*'            => 'required|integer|min:1',
 
@@ -1000,6 +1003,7 @@ public function monthlyTrend(Request $request)
                 InspectionDefect::create([
                     'inspection_id' => $inspection->id,
                     'defect_id'     => $defectId,
+                    'category'      => $request->category[$i],
                     'qty'           => $request->qty[$i],
                     'ok_repair'     => $request->ok_repair[$i] ?? 0,
                     'note_defect'   => $request->note_defect[$i] ?? null,
@@ -1119,6 +1123,9 @@ public function getInspectionNumbers(Request $request)
             'defect_id'        => 'nullable|array',
             'defect_id.*'      => 'required|integer|exists:defects,id',
 
+            'category'         => 'nullable|array',
+            'category.*'       => 'required|string',
+
             'qty'              => 'nullable|array',
             'qty.*'            => 'required|integer|min:1',
 
@@ -1163,6 +1170,7 @@ public function getInspectionNumbers(Request $request)
                     InspectionDefect::create([
                         'inspection_id' => $inspection->id,
                         'defect_id'     => $defectId,
+                        'category'      => $request->category[$i],
                         'qty'           => $request->qty[$i],
                         'ok_repair'     => $request->ok_repair[$i] ?? 0,
                         'note_defect'   => $request->note_defect[$i] ?? null,
