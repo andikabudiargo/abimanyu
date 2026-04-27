@@ -228,8 +228,11 @@ public function datav2(Request $request)
 
 public function getByInspectionPost($post)
 {
-    $defects = \App\Models\Defect::where('inspection_post', $post)
-        ->whereNull('category') // hanya ambil yang category kosong / null
+    $defects = \App\Models\Defect::whereRaw(
+            'LOWER(inspection_post) = ?',
+            [strtolower($post)]
+        )
+        ->whereNull('category')
         ->select('id', 'defect', 'category')
         ->orderBy('defect', 'ASC')
         ->get();
