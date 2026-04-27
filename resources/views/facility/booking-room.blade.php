@@ -156,7 +156,8 @@
       <select id="modalPurpose" class="w-full border rounded px-3 py-2">
         <option value="">-- Select Purpose --</option>
         <option value="Internal Meeting">Internal Meeting</option>
-        <option value="Customer/Vendor Meeting">Customer/Vendor Meeting</option>
+        <option value="Supplier/Vendor Meeting">Supplier/Vendor Meeting</option>
+        <option value="Customer Meeting">Customer Meeting</option>
         <option value="Presentation">Presentation</option>
         <option value="Training">Training</option>
         <option value="Recruitment">Recruitment</option>
