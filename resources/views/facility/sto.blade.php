@@ -50,7 +50,7 @@
   </select>
 </div>
 
- @if(in_array(auth()->id(), [53, 71]))
+ @if(in_array(auth()->id(), [53, 2]))
 <div>
   <label class="block text-sm mb-1 font-medium text-gray-700">
     Periode STO
@@ -59,7 +59,8 @@
   <select id="filter-sto-periode"
           class="w-full px-3 py-2 border border-gray-300 rounded-md">
     <option value="">-- All STO Periode --</option>
-     <option value="2026/03">2026 Maret</option>
+    <option value="2026/04">2026 April</option>
+    <option value="2026/03">2026 Maret (Closed)</option>
     <option value="2026/02">2026 Februari (Closed)</option>
     <option value="2026/01">2026 Januari (Closed)</option>
     <option value="2025/12">2025 Desember (Closed)</option>

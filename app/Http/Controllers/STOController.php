@@ -113,16 +113,16 @@ public function createv2()
     $userId = Auth::id();
 
     return match ($userId) {
-        118        => 'Raw Material',
-        120        => 'Werate',
-        45    	  => 'WIP Buffing',
-        119        => 'WIP Touch Up',
-        122        => 'WIP Sanding',
-        121       => 'Consumable',
-        54        => 'Chemical',
-        85        => 'Finish Goods',
-        92        => 'OT',
-        53,2, 71 => null, // 🔥 BOLEH PILIH SENDIRI
+        69        => 'Raw Material',
+        71        => 'Werate',
+        43,86     => 'WIP Buffing',
+        44,45     => 'WIP Touch Up',
+        108,85    => 'WIP Sanding',
+        63        => 'Consumable',
+        67        => 'Chemical',
+        68        => 'Finish Goods',
+        //92        => 'OT',
+        53,2, 92  => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -132,7 +132,7 @@ private function allowedWarehouses(): array
     $userId = Auth::id();
 
     $mapping = [
-        2  => ['Dead Stock CM1', 'OT'],
+        92  => ['Dead Stock CM1', 'OT'],
     ];
 
     if (isset($mapping[$userId])) {
@@ -471,7 +471,7 @@ public function datatables(Request $request)
        // =====================
 // 📅 FILTER STO MONTH (TAMBAH DI SINI)
 // =====================
-$defaultMonth = '2026/03';
+$defaultMonth = '2026/04';
 
 $selectedMonth = $request->filled('sto_month')
     ? $request->sto_month

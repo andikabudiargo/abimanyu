@@ -63,21 +63,21 @@
 
   @php
   $year  = 2026;
-  $month = '03'; // langsung string saja
+  $month = '04'; // langsung string saja
 
   $month = str_pad($month, 2, '0', STR_PAD_LEFT);
 
-  $stoRange = [
-    'Dead Stock CM1' => [1, 50],
-    'Chemical'       => [1000, 1999],
-    'Consumable'     => [2000, 2999],
-    'Raw Material'   => [3000, 3999],
-    'WIP Buffing'    => [5000, 5999],
-    'WIP Sanding'    => [6000, 6999],
-    'WIP Touch Up'   => [7000, 7999],
-    'Finish Goods'   => [4000, 4999],
-    'OT'             => [51, 999],
-    'Werate'         => [8000, 8999],
+   $stoRange = [
+    'Dead Stock CM1' => [1, 48],
+    'Chemical'       => [1000, 1143],
+    'Consumable'     => [2000, 2095],
+    'Raw Material'   => [3000, 3145],
+    'WIP Buffing'    => [5000, 5134],
+    'WIP Sanding'    => [6000, 6146],
+    'WIP Touch Up'   => [7000, 7147],
+    'Finish Goods'   => [4000, 4145],
+    'OT'             => [51, 100],
+    'Werate'         => [8000, 8136],
   ];
 
   $ranges = [];
@@ -127,7 +127,7 @@
                    <th class="px-4 py-3 text-center font-medium w-32">UOM</th>
                   <th class="px-4 py-3 text-center font-medium w-48">LOCATION
 
-  @if(in_array(auth()->id(), [2, 53]))
+  @if(in_array(auth()->id(), [2, 53, 92]))
     
     @if($warehouse === null)
       <select name="warehouse"
