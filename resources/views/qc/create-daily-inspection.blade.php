@@ -946,36 +946,6 @@ defects.forEach(defect => {
 
     $row.data('allDefects', defects);
 
-    function filterDefectOptions($row) {
-    const defects = $row.data('allDefects') || [];
-    const $defectSelect = $row.find('.defect-select');
-
-    let options = '<option value="">-- Choose Defect --</option>';
-
-   defects.forEach(defect => {
-    options += `
-        <option 
-            value="${defect.id}" 
-            data-defect="${defect.defect}">
-            ${defect.defect}
-        </option>
-    `;
-});
-
-    // destroy & re-init select2
-    $defectSelect.html(options).val(null).trigger('change');
-
-    $defectSelect.select2({
-        placeholder: '-- Choose Defect --',
-        allowClear: true,
-        width: '100%'
-    });
-}
-
-//$row.find('.defect-type').on('change', function () {
-    //const type = $(this).val(); // NC / NG
-    //filterDefectOptions($row, type);
-//});
 
     // Init Select2
 const $defectSelect = $row.find('.defect-select');
