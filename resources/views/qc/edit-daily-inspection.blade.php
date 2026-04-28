@@ -619,7 +619,7 @@ $(document).ready(function () {
         <option value="${defect.id}"
           data-defect="${defect.defect}"
           ${selected}>
-          ${defect.category} - ${defect.defect}
+          ${defect.defect}
         </option>`;
     });
 
@@ -629,7 +629,7 @@ $(document).ready(function () {
       defectOptions += `
         <option value="${prefill.defect_id}" selected
           data-defect="${prefill.defect_name ?? ''}">
-          ${prefill.defect_category ?? ''} - ${prefill.defect_name ?? ''}
+         ${prefill.defect_name ?? ''}
         </option>`;
     }
 
