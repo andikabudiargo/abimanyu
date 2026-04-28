@@ -178,6 +178,7 @@
           <thead class="bg-gray-100 border-b border-gray-200">
             <tr>
               <th class="px-3 py-2 text-center font-medium min-w-[20px]">No</th>
+              <th class="px-3 py-2 text-center font-medium min-w-[80px]">Type</th> <!-- NEW -->
               <th class="px-3 py-2 font-medium min-w-[160px]">Defect</th>
               <th class="px-3 py-2 text-center font-medium min-w-[60px]">Qty</th>
               <th class="px-3 py-2 text-center font-medium min-w-[60px] ok-repair-wrapper">OK Repair</th>
@@ -634,6 +635,13 @@ $(document).ready(function () {
 
     $row.html(`
       <td class="border p-2 text-center w-[20px]">${index}</td>
+       <td class="border p-2 w-[120px]">
+    <select name="category[]" class="w-full border p-2 rounded defect-type" required>
+      <option value="">--</option>
+      <option value="NC" ${prefill.category === 'NC' ? 'selected' : ''}>NC</option>
+      <option value="NG" ${prefill.category === 'NG' ? 'selected' : ''}>NG</option>
+    </select>
+  </td>
       <td class="border p-2 min-w-[140px]">
         <select name="defect_id[]" class="w-full border rounded defect-select">
           ${defectOptions}
@@ -805,14 +813,14 @@ $(document).ready(function () {
       if (existingDefects && existingDefects.length > 0) {
         existingDefects.forEach(function (detail) {
           rowIndex++;
-          const prefill = {
-            defect_id:       detail.defect_id,
-            defect_name:     detail.defect_name   ?? detail.defect?.defect   ?? '',
-            defect_category: detail.defect_category ?? detail.defect?.category ?? '',
-            qty:             detail.qty,
-            ok_repair:       detail.ok_repair,
-            note_defect:     detail.note_defect
-          };
+         const prefill = {
+  defect_id:   detail.defect_id,
+  defect_name: detail.defect_name ?? detail.defect?.defect ?? '',
+  category:    detail.category ?? '',
+  qty:         detail.qty,
+  ok_repair:   detail.ok_repair,
+  note_defect: detail.note_defect
+};
           $('#defectTableBody').append(createRow(rowIndex, defects, prefill));
         });
       } else {
@@ -984,17 +992,20 @@ $(document).ready(function () {
     formData.set('_method', 'PUT');
 
     formData.delete('defect_id[]');
+    formData.delete('category[]');
     formData.delete('qty[]');
     formData.delete('ok_repair[]');
     formData.delete('note_defect[]');
 
     $('#defectTableBody tr').each(function (i, tr) {
       const defectId = $(tr).find('.defect-select').val();
+      const category = $(tr).find('.defect-type').val();
       const qty      = $(tr).find('.qty-defect').val() || 0;
       const okRepair = $(tr).find('.qty-ok-repair').val() || 0;
       const note     = $(tr).find('input[name="note_defect[]"]').val() || null;
       if (!defectId) return;
       formData.append('defect_id[]', defectId);
+      formData.append('category[]', category);
       formData.append('qty[]', qty);
       formData.append('ok_repair[]', okRepair);
       formData.append('note_defect[]', note);
