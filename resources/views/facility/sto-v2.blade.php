@@ -685,15 +685,6 @@ function buildAndPrint(masters, whLabel) {
               <td colspan="5" style="border:0.5px solid #999;padding:5px 6px;text-align:right;font-size:10px">TOTAL</td>
               <td style="border:0.5px solid #999;padding:5px 4px"></td>
               <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
             </tr>
           </tfoot>
         </table>
