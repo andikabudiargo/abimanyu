@@ -626,16 +626,8 @@ function buildAndPrint(masters, whLabel) {
           <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px">${item.third_party ?? '-'}</td>
           <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px;font-family:monospace">${item.article_code ?? '-'}</td>
           <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px">${name}</td>
+            <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px">${uom}</td>
           <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9px">${item.part_address ?? ''}</td>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
           <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
         </tr>
       `;
@@ -677,26 +669,13 @@ function buildAndPrint(masters, whLabel) {
         <table style="width:100%;border-collapse:collapse;font-size:10px">
           <thead>
             <tr style="background:#1e3a5f;color:#fff">
-              <th rowspan="2" style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:28px">NO</th>
-              <th rowspan="2" style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:50px">CUST/<br>SUPP</th>
-              <th rowspan="2" style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:80px">CODE</th>
-              <th rowspan="2" style="border:0.5px solid #aaa;padding:5px 4px;text-align:center">NAME</th>
-              <th rowspan="2" style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:55px">PART<br>ADDRESS</th>
-              <th colspan="5" style="border:0.5px solid #aaa;padding:5px 4px;text-align:center">PLANT-1</th>
-              <th colspan="5" style="border:0.5px solid #aaa;padding:5px 4px;text-align:center">PLANT-2</th>
-              <th rowspan="2" style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:36px">TOTAL</th>
-            </tr>
-            <tr style="background:#2a4d7a;color:#fff">
-              <th style="border:0.5px solid #aaa;padding:4px;text-align:center;font-size:9px">TRANSIT/<br>RECV LT</th>
-              <th style="border:0.5px solid #aaa;padding:4px;text-align:center;font-size:9px">STORAGE<br>ERML-1</th>
-              <th style="border:0.5px solid #aaa;padding:4px;text-align:center;font-size:9px">STORAGE<br>ERML-2</th>
-              <th style="border:0.5px solid #aaa;padding:4px;text-align:center;font-size:9px">QUALITY<br>AREA</th>
-              <th style="border:0.5px solid #aaa;padding:4px;text-align:center;font-size:9px">LAIN-2</th>
-              <th style="border:0.5px solid #aaa;padding:4px;text-align:center;font-size:9px">STORAGE<br>ERML-1</th>
-              <th style="border:0.5px solid #aaa;padding:4px;text-align:center;font-size:9px">AIR<br>BLOW</th>
-              <th style="border:0.5px solid #aaa;padding:4px;text-align:center;font-size:9px">TROLLEY<br>WIP/<br>BOOTH LT</th>
-              <th style="border:0.5px solid #aaa;padding:4px;text-align:center;font-size:9px">QUALITY<br>AREA</th>
-              <th style="border:0.5px solid #aaa;padding:4px;text-align:center;font-size:9px">LAIN-2</th>
+              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:28px">NO</th>
+              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:50px">CUST/<br>SUPP</th>
+              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:80px">CODE</th>
+              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center">NAME</th>
+               <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center">UOM</th>
+              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:55px">PART<br>ADDRESS</th>
+              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:36px">QTY</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -730,8 +709,8 @@ function buildAndPrint(masters, whLabel) {
       <title>Form STO — ${whLabel}</title>
       <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; font-size: 11px; color: #000; padding: 20px; }
-        @page { size: A3 landscape; margin: 15mm; }
+        body { font-family: Arial, sans-serif; font-size: 13px; color: #000; padding: 20px; }
+        @page { size: A3; margin: 15mm; }
         @media print { body { padding: 0; } }
       </style>
     </head>
