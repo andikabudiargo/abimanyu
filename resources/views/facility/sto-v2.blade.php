@@ -718,21 +718,6 @@ function buildAndPrint(masters, whLabel) {
           </tfoot>
         </table>
 
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px;font-size:10px">
-          <div style="border:0.5px solid #bbb;border-radius:4px;padding:10px;text-align:center">
-            <div style="font-weight:bold;margin-bottom:36px">Counter</div>
-            <div style="border-top:0.5px solid #bbb;padding-top:5px">${master.counter ?? '-'}</div>
-          </div>
-          <div style="border:0.5px solid #bbb;border-radius:4px;padding:10px;text-align:center">
-            <div style="font-weight:bold;margin-bottom:36px">Verf Lapangan</div>
-            <div style="border-top:0.5px solid #bbb;padding-top:5px">${master.verifikator_lapangan ?? '-'}</div>
-          </div>
-          <div style="border:0.5px solid #bbb;border-radius:4px;padding:10px;text-align:center">
-            <div style="font-weight:bold;margin-bottom:36px">Verf Accounting</div>
-            <div style="border-top:0.5px solid #bbb;padding-top:5px">${master.verifikator_accounting ?? '-'}</div>
-          </div>
-        </div>
-
       </div>
       ${pageBreak}
     `;
