@@ -613,36 +613,59 @@ function buildAndPrint(masters, whLabel) {
     return;
   }
 
-  // Hitung total item semua master untuk index global
   let globalIndex = 1;
 
-  const sheets = masters.map((master, sheetIdx) => {
+  const tableHeader = `
+    <thead>
+      <tr style="background:#1e3a5f;color:#fff">
+        <th style="border:1.5px solid #555;padding:5px 4px;text-align:center;width:28px" rowspan="2">NO</th>
+        <th style="border:1.5px solid #555;padding:5px 4px;text-align:center;width:50px" rowspan="2">CUST/<br>SUPP</th>
+        <th style="border:1.5px solid #555;padding:5px 4px;text-align:center;width:80px" rowspan="2">CODE</th>
+        <th style="border:1.5px solid #555;padding:5px 4px;text-align:center" rowspan="2">NAME</th>
+        <th style="border:1.5px solid #555;padding:5px 4px;text-align:center" rowspan="2">UOM</th>
+        <th style="border:1.5px solid #555;padding:5px 4px;text-align:center;width:55px" rowspan="2">PART<br>ADDRESS</th>
+        <th style="border:1.5px solid #555;padding:5px 4px;text-align:center" colspan="3">QTY</th>
+      </tr>
+      <tr style="background:#1e3a5f;color:#fff">
+        <th style="border:1.5px solid #555;padding:5px 4px;text-align:center;width:42px">UTUH</th>
+        <th style="border:1.5px solid #555;padding:5px 4px;text-align:center;width:42px">TIDAK<br>UTUH</th>
+        <th style="border:1.5px solid #555;padding:5px 4px;text-align:center;width:42px">TOTAL</th>
+      </tr>
+    </thead>
+  `;
+
+  const tableFoot = `
+    <tfoot>
+      <tr style="background:#e8edf2;font-weight:bold">
+        <td colspan="6" style="border:1.5px solid #555;padding:5px 6px;text-align:right;font-size:10px">TOTAL</td>
+        <td style="border:1.5px solid #555;padding:5px 4px"></td>
+        <td style="border:1.5px solid #555;padding:5px 4px"></td>
+        <td style="border:1.5px solid #555;padding:5px 4px"></td>
+      </tr>
+    </tfoot>
+  `;
+
+  const sheets = masters.map((master) => {
 
     const rows = master.items.map(item => {
       const name = item.article ? item.article.description : '-';
-      const uom = item.uom ?? '';
-      const row = `
+      return `
         <tr>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px">${globalIndex++}</td>
-          <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px">${item.third_party ?? '-'}</td>
-          <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px;font-family:monospace">${item.article_code ?? '-'}</td>
-          <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px">${name}</td>
-            <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px">${item.uom ?? '-'}</td>
-          <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9px">${item.part_address ?? ''}</td>
-          <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
+          <td style="text-align:center;border:1.5px solid #555;padding:4px 5px">${globalIndex++}</td>
+          <td style="border:1.5px solid #555;padding:4px 5px;font-size:9.5px">${item.third_party ?? '-'}</td>
+          <td style="border:1.5px solid #555;padding:4px 5px;font-size:9.5px;font-family:monospace">${item.article_code ?? '-'}</td>
+          <td style="border:1.5px solid #555;padding:4px 5px;font-size:9.5px">${name}</td>
+          <td style="border:1.5px solid #555;padding:4px 5px;font-size:9.5px">${item.uom ?? '-'}</td>
+          <td style="border:1.5px solid #555;padding:4px 5px;font-size:9px">${item.part_address ?? ''}</td>
+          <td style="text-align:center;border:1.5px solid #555;padding:4px 5px"></td>
+          <td style="text-align:center;border:1.5px solid #555;padding:4px 5px"></td>
+          <td style="text-align:center;border:1.5px solid #555;padding:4px 5px"></td>
         </tr>
       `;
-      return row;
     }).join('');
-
-    const pageBreak = sheetIdx < masters.length - 1
-      ? '<div style="page-break-after:always"></div>'
-      : '';
 
     return `
       <div style="margin-bottom:0">
-
-        {{-- Meta atas: STO Number + Page --}}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div style="font-size:10px;color:#555">
             STO Number : <b style="color:#1e3a5f">${master.sto_number}</b>
@@ -651,8 +674,6 @@ function buildAndPrint(masters, whLabel) {
             Page : <b>${master.page}</b>
           </div>
         </div>
-
-        {{-- Header utama --}}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
           <div>
             <div style="font-size:13px;font-weight:bold">FORM STOCK OPNAME 30-APRIL-2026</div>
@@ -664,44 +685,62 @@ function buildAndPrint(masters, whLabel) {
             <tr><td style="padding:1px 8px 1px 0;color:#555">Verf Accounting</td><td>: <b>${master.verifikator_accounting ?? '-'}</b></td></tr>
           </table>
         </div>
-
         <div style="border-top:2px solid #1e3a5f;margin-bottom:10px"></div>
-
         <table style="width:100%;border-collapse:collapse;font-size:10px">
-          <thead>
-            <tr style="background:#1e3a5f;color:#fff">
-              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:28px">NO</th>
-              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:50px">CUST/<br>SUPP</th>
-              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:80px">CODE</th>
-              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center">NAME</th>
-               <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center">UOM</th>
-              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:55px">PART<br>ADDRESS</th>
-              <th style="border:0.5px solid #aaa;padding:5px 4px;text-align:center;width:36px">QTY</th>
-            </tr>
-          </thead>
+          ${tableHeader}
           <tbody>${rows}</tbody>
-          <tfoot>
-            <tr style="background:#e8edf2;font-weight:bold">
-              <td colspan="5" style="border:0.5px solid #999;padding:5px 6px;text-align:right;font-size:10px">TOTAL</td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-              <td style="border:0.5px solid #999;padding:5px 4px"></td>
-            </tr>
-          </tfoot>
+          ${tableFoot}
         </table>
-
       </div>
-      ${pageBreak}
+      <div style="page-break-after:always"></div>
     `;
   }).join('');
+
+  // Halaman kosong terakhir
+  const lastMaster = masters[masters.length - 1];
+  const lastPage = lastMaster.page ?? masters.length;
+
+  const emptyRows = Array.from({ length: 30 }, () => `
+    <tr>
+      <td style="text-align:center;border:1.5px solid #555;padding:4px 5px">${globalIndex++}</td>
+      <td style="border:1.5px solid #555;padding:4px 5px"></td>
+      <td style="border:1.5px solid #555;padding:4px 5px"></td>
+      <td style="border:1.5px solid #555;padding:4px 5px"></td>
+      <td style="border:1.5px solid #555;padding:4px 5px"></td>
+      <td style="border:1.5px solid #555;padding:4px 5px"></td>
+      <td style="border:1.5px solid #555;padding:4px 5px"></td>
+      <td style="border:1.5px solid #555;padding:4px 5px"></td>
+      <td style="border:1.5px solid #555;padding:4px 5px"></td>
+    </tr>
+  `).join('');
+
+  const extraSheet = `
+    <div style="margin-bottom:0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:10px;color:#555">&nbsp;</div>
+        <div style="font-size:10px;color:#555">
+          Page : <b>${lastPage + 1}</b>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="font-size:13px;font-weight:bold">FORM STOCK OPNAME 30-APRIL-2026</div>
+          <div style="font-size:11px;font-weight:bold;color:#1e3a5f;margin-top:2px">${whLabel.toUpperCase()}</div>
+        </div>
+        <table style="font-size:10px;border-collapse:collapse">
+          <tr><td style="padding:1px 8px 1px 0;color:#555">Counter</td><td>: <b>${lastMaster.counter ?? '-'}</b></td></tr>
+          <tr><td style="padding:1px 8px 1px 0;color:#555">Verf Lapangan</td><td>: <b>${lastMaster.verifikator_lapangan ?? '-'}</b></td></tr>
+          <tr><td style="padding:1px 8px 1px 0;color:#555">Verf Accounting</td><td>: <b>${lastMaster.verifikator_accounting ?? '-'}</b></td></tr>
+        </table>
+      </div>
+      <div style="border-top:2px solid #1e3a5f;margin-bottom:10px"></div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        ${tableHeader}
+        <tbody>${emptyRows}</tbody>
+        ${tableFoot}
+      </table>
+    </div>
+  `;
 
   const html = `
     <!DOCTYPE html>
@@ -717,6 +756,7 @@ function buildAndPrint(masters, whLabel) {
     </head>
     <body onload="window.print(); window.close();">
       ${sheets}
+      ${extraSheet}
     </body>
     </html>
   `;
@@ -725,7 +765,6 @@ function buildAndPrint(masters, whLabel) {
   w.document.write(html);
   w.document.close();
 }
-
 // ─────────────────────────────────────────────────────────────
 // DUMMY DATA — ganti dengan fetch ke server nanti
 // ─────────────────────────────────────────────────────────────
