@@ -620,13 +620,14 @@ function buildAndPrint(masters, whLabel) {
 
     const rows = master.items.map(item => {
       const name = item.article ? item.article.description : '-';
+      const uom = item.uom ?? '';
       const row = `
         <tr>
           <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px">${globalIndex++}</td>
           <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px">${item.third_party ?? '-'}</td>
           <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px;font-family:monospace">${item.article_code ?? '-'}</td>
           <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px">${name}</td>
-            <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px">${uom}</td>
+            <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9.5px">${item.uom ?? '-'}</td>
           <td style="border:0.5px solid #ccc;padding:4px 5px;font-size:9px">${item.part_address ?? ''}</td>
           <td style="text-align:center;border:0.5px solid #ccc;padding:4px 5px"></td>
         </tr>
