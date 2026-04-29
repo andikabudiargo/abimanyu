@@ -32,6 +32,19 @@ public function indexv2()
     return view('facility.sto-v2');
 }
 
+public function referencePrint(Request $request)
+{
+    $warehouse = $request->query('warehouse');
+
+    $masters = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
+        ->where('is_active', 1)
+        ->orderBy('page')
+        ->with(['items.article'])
+        ->get();
+
+    return response()->json($masters);
+}
+
   public function create()
 {
      $agent = new Agent();

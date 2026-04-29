@@ -253,6 +253,8 @@ Route::get('/apd/{id}/globalMovement', [APDController::class, 'globalMovement'])
      Route::get('/apd/reminder-email', [APDController::class, 'sendAPDReminderEmail']);
 Route::get('/apd/transactions/data', [APDController::class, 'data'])->name('apd.transactions.data');
 Route::get('/facility/sto/index', [STOController::class, 'index'])->name('sto.index');
+Route::get('/facility/sto/indexv2', [STOController::class, 'indexv2'])->name('sto.indexv2');
+Route::get('/sto/reference-print', [STOController::class, 'referencePrint']);
 Route::get('/facility/sto/create', [STOController::class, 'create'])->name('sto.create');
 Route::post('/sto/save', [STOController::class, 'store'])->name('sto.store');
 Route::get('/sto/data', [STOController::class, 'datatables'])->name('sto.data');
