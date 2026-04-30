@@ -311,7 +311,7 @@ $ticketsToApprove = $canApprove
     'WIP Sanding'    => [6000, 6146],
     'WIP Touch Up'   => [7000, 7147],
     'Finish Goods'   => [4000, 4145],
-    'OT'             => [51, 100],
+    'OT'             => [51, 200],
     'Werate'         => [8000, 8136],
   ];
 
