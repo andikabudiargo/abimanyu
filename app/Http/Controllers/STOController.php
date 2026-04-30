@@ -183,7 +183,7 @@ private function allowedArticleTypes(?string $warehouse): array
         'Raw Material'     => ['RMP','RMNP'],
         'Finish Goods'     => ['FG'],
         'WIP Buffing'      => ['FG'],
-        'Werate'           => ['FG'],
+        'Werate'           => ['RMP', 'RMNP', 'FG'],
         'WIP Touch Up'     => ['FG'],
         'WIP Sanding'      => ['FG'],
         'OT'               => ['FG'],
