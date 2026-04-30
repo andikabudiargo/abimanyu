@@ -277,7 +277,7 @@ $ticketsToApprove = $canApprove
     </h1>
 
    <p class="text-sm mt-2 text-white/90 leading-relaxed">
-  @if(in_array(auth()->id(), [53, 2, 92]))
+  @if(in_array(auth()->id(), [53, 2]))
       Silahkan pilih nomor STO dan Lokasi untuk memulai proses stock opname.
   @else
       Silahkan pilih nomor STO untuk memulai proses stock opname.
