@@ -127,10 +127,10 @@ public function createv2()
 
     return match ($userId) {
         69        => 'Raw Material',
-        71        => 'Werate',
+        85        => 'Werate',
         43,86     => 'WIP Buffing',
-        44,45     => 'WIP Touch Up',
-        108,85    => 'WIP Sanding',
+        44,45,88     => 'WIP Touch Up',
+        108,126    => 'WIP Sanding',
         63        => 'Consumable',
         67        => 'Chemical',
         68        => 'Finish Goods',
