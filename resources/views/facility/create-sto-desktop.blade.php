@@ -152,7 +152,7 @@
               </thead>
 
               <tbody id="article-table" class="divide-y divide-gray-100">
-                @for ($i = 0; $i < 7; $i++)
+                @for ($i = 0; $i < 8; $i++)
                   <tr class="sto-row">
                     <input type="hidden" name="articles[{{ $i }}][other_name]" class="other-name-input">
 

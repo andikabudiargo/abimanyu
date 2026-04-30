@@ -7,7 +7,7 @@
     <!-- MOBILE MODE (CARD STYLE) -->
   <div class="col-span-2 space-y-4">
   
-    @for ($i = 0; $i < 7; $i++)
+    @for ($i = 0; $i < 8; $i++)
     <div class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 overflow-hidden sto-row" data-row="{{ $i }}">
 
       <!-- HEADER CARD -->
