@@ -19,6 +19,18 @@
   
 
 <style>
+  /* Chrome, Safari, Edge */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
   .note-lines {
   background-image: repeating-linear-gradient(
     to bottom,
@@ -78,6 +90,15 @@
 </style>
 @push('scripts')
 <script>
+
+$(document).on('wheel', 'input[type=number]', function (e) {
+    $(this).blur();
+});
+
+$(document).on('wheel', 'input[type=number]', function (e) {
+    e.preventDefault();
+});
+
 $(document).ready(function () {
 
   // =====================
