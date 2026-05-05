@@ -9,7 +9,7 @@ class InspectionDefect extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['inspection_id', 'defect_id', 'qty', 'ok_repair', 'note'];
+    protected $fillable = ['inspection_id', 'category', 'defect_id', 'qty', 'ok_repair', 'note'];
 
     public function inspection()
     {

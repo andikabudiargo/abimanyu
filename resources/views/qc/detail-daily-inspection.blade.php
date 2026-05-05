@@ -202,7 +202,7 @@
                 </td>
 
                 <td class="p-2 border font-medium">
-                    {{ $defect->defect->category ?? '-' }} - {{ $defect->defect->defect ?? '-' }}
+                    {{ $defect->category ?? '-' }} - {{ $defect->defect->defect ?? '-' }}
                 </td>
 
                 <td class="p-2 border text-center font-semibold">
