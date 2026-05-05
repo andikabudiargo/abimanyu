@@ -105,8 +105,23 @@
 </style>
 @push('scripts')
 <script>
+let savingInterval;
+
 $('#ticket-form').off('submit').on('submit', function (e) {
     e.preventDefault();
+
+    const $submitBtn = $('#submitBtn');
+
+    // 🔒 Disable tombol
+    $submitBtn.prop('disabled', true);
+
+    // 🔄 Animasi titik
+    let dots = 0;
+    savingInterval = setInterval(() => {
+        dots = (dots % 3) + 1;
+        $submitBtn.text('Saving' + '.'.repeat(dots));
+    }, 500);
+
     const formData = new FormData(this);
 
     $.ajax({
@@ -115,23 +130,37 @@ $('#ticket-form').off('submit').on('submit', function (e) {
         data: formData,
         processData: false,
         contentType: false,
+
         success: function (res) {
+            clearInterval(savingInterval);
+
             if (res.success) {
-                showToast('success', res.message || 'Ticket succesfully saved!');
+                $submitBtn.text('Saved!');
+                showToast('success', res.message || 'Ticket successfully saved!');
+
                 setTimeout(() => {
-                    // ✅ Redirect ke halaman index
                     window.location.href = '{{ route("it.ticket.index") }}';
-                }, 2000);
+                }, 1500);
+
             } else {
+                resetBtn();
                 showToast('error', res.message || 'Gagal menyimpan ticket.');
             }
         },
+
         error: function (err) {
+            clearInterval(savingInterval);
+            resetBtn();
+
             console.error(err.responseText);
             const msg = err.responseJSON?.message || 'Terjadi kesalahan saat menyimpan.';
             showToast('error', msg);
         }
     });
+
+    function resetBtn() {
+        $submitBtn.prop('disabled', false).text('Save');
+    }
 });
 
 
