@@ -65,10 +65,20 @@ private function isManager(User $user): bool
 
     if ($this->isSpv($user) || $this->isManager($user)) {
 
-        $deptNames = $user->departments->pluck('name');
+        $deptNames = $user->departments()
+            ->pluck('name')
+            ->filter()
+            ->values();
+
+        if ($deptNames->isEmpty()) {
+            return $query->whereRaw('1 = 0');
+        }
 
         return $query->whereIn('department', $deptNames);
     }
+
+    return $query->where('user_id', $user->id);
+}
 
     return $query->where('user_id', $user->id);
 }
