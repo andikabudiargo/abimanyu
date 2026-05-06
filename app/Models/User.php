@@ -72,7 +72,7 @@ public function todos()
     public function isMR()
 {
     return $this->departments()
-        ->where('name', 'Management Representative & HSE')
+        ->where('name', 'Management Representative')
         ->exists();
 }
 

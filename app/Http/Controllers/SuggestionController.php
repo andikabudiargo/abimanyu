@@ -59,27 +59,27 @@ private function isManager(User $user): bool
 {
     $query = Suggestion::query();
 
+    // Improvement → semua
     if ($this->isImprovement($user)) {
         return $query;
     }
 
+    // SPV / Manager
     if ($this->isSpv($user) || $this->isManager($user)) {
 
         $deptNames = $user->departments()
             ->pluck('name')
             ->filter()
-            ->values();
+            ->toArray();
 
-        if ($deptNames->isEmpty()) {
+        if (empty($deptNames)) {
             return $query->whereRaw('1 = 0');
         }
 
         return $query->whereIn('department', $deptNames);
     }
 
-    return $query->where('user_id', $user->id);
-}
-
+    // Karyawan biasa
     return $query->where('user_id', $user->id);
 }
     // ================================================================
