@@ -58,6 +58,7 @@ private function isManager(User $user): bool
     private function buildQuery(User $user)
 {
     $query = Suggestion::query();
+    
 
     // Improvement → semua
     if ($this->isImprovement($user)) {
@@ -689,14 +690,16 @@ foreach ($rows as $index => $row) {
     */
 
     $deptSummary = null;
+    $deptQuery = null;
 
-    if ($this->isImprovement($user) || $this->isManager($user)) {
-        $deptQuery = $this->isImprovement($user)
-            ? Suggestion::query()
-            : Suggestion::where(
-                'department',
-                $user->departments->first()?->name ?? ''
-            );
+   if ($this->isImprovement($user) || $this->isManager($user)) {
+    $deptQuery = $this->isImprovement($user)
+        ? Suggestion::query()
+        : Suggestion::where(
+            'department',
+            $user->departments()->first()?->name ?? ''
+        );
+}
 
         $deptSummary = $deptQuery
             ->selectRaw('
