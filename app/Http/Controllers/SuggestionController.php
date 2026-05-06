@@ -1337,7 +1337,7 @@ public function score(Request $request, Suggestion $suggestion): RedirectRespons
     });
 
     return redirect()
-        ->route('suggestion.show', $suggestion->id)
+        ->route('suggestion.dashboard')
         ->with(
             'success',
             "Penilaian SS #{$suggestion->ss_number} berhasil disimpan"
