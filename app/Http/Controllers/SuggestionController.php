@@ -1074,7 +1074,7 @@ private function saveSuggestion(Request $request, $user, $data, $status)
         'period' => $s->period?->name,
         'discovery_date' => optional($s->discovery_date)->format('d M Y'),
         'location' => $s->location,
-        'evaluation' => $s->evaluation_result,
+        'evaluation_result' => $s->evaluation_result,
         'standardization' => $s->standardization,
         'background'   => $s->background,
         'root_cause'      => $s->root_cause,
