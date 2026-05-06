@@ -1003,7 +1003,7 @@ public function monthlyTrend(Request $request)
                 InspectionDefect::create([
                     'inspection_id' => $inspection->id,
                     'defect_id'     => $defectId,
-                    'category'      => $request->category[$i],
+                    'category'      => $request->category[$i] ?? null,
                     'qty'           => $request->qty[$i],
                     'ok_repair'     => $request->ok_repair[$i] ?? 0,
                     'note_defect'   => $request->note_defect[$i] ?? null,

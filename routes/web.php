@@ -85,7 +85,8 @@ Route::middleware(['suggestion.auth'])->prefix('suggestion')->name('suggestion.'
     Route::post('/logout', [SuggestionAuthController::class, 'logout'])
             ->name('logout');
     Route::get('/create',     [SuggestionController::class, 'create'])->name('create');
-    Route::post('/store',     [SuggestionController::class, 'store'])->name('store');
+    Route::post('/draft', [SuggestionController::class, 'storeDraft'])->name('draft');
+Route::post('/submit', [SuggestionController::class, 'submit'])->name('submit');
     Route::get('/my',         [SuggestionController::class, 'mySuggestions'])->name('my');
     Route::post('/formula',            [SuggestionController::class, 'storeFormula'])->name('formula.store');
 
@@ -107,7 +108,7 @@ Route::middleware(['suggestion.auth'])->prefix('suggestion')->name('suggestion.'
     Route::patch('/{suggestion}/close',     [SuggestionController::class, 'close'])->name('close');
 
     // /{suggestion} PALING BAWAH + constraint angka saja
-    Route::get('/{suggestion}',   [SuggestionController::class, 'show'])->name('show')->whereNumber('suggestion');
+    Route::get('/{id}/detail', [SuggestionController::class, 'detail']);
     Route::patch('/{suggestion}', [SuggestionController::class, 'update'])->name('update')->whereNumber('suggestion');
 });
 
