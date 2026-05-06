@@ -58,29 +58,18 @@ private function isManager(User $user): bool
     private function buildQuery(User $user)
 {
     $query = Suggestion::query();
-    
 
-    // Improvement → semua
     if ($this->isImprovement($user)) {
         return $query;
     }
 
-    // SPV / Manager
     if ($this->isSpv($user) || $this->isManager($user)) {
 
-        $deptNames = $user->departments()
-            ->pluck('name')
-            ->filter()
-            ->toArray();
-
-        if (empty($deptNames)) {
-            return $query->whereRaw('1 = 0');
-        }
+        $deptNames = $user->departments()->pluck('name')->toArray();
 
         return $query->whereIn('department', $deptNames);
     }
 
-    // Karyawan biasa
     return $query->where('user_id', $user->id);
 }
     // ================================================================
@@ -684,35 +673,50 @@ foreach ($rows as $index => $row) {
         ->first();
 
     /*
-    |--------------------------------------------------------------------------
-    | DEPARTMENT SUMMARY
-    |--------------------------------------------------------------------------
-    */
+|--------------------------------------------------------------------------
+| DEPARTMENT SUMMARY
+|--------------------------------------------------------------------------
+*/
 
-    $deptSummary = null;
-    $deptQuery = null;
+$deptSummary = null;
+$deptSSStats = null;
+$deptQuery   = null;
 
-   if ($this->isImprovement($user) || $this->isManager($user)) {
+if ($this->isImprovement($user) || $this->isManager($user)) {
+
     $deptQuery = $this->isImprovement($user)
         ? Suggestion::query()
-        : Suggestion::where(
+        : Suggestion::whereIn(
             'department',
-            $user->departments()->first()?->name ?? ''
+            $user->departments()->pluck('name')->toArray()
         );
-}
 
-        $deptSummary = $deptQuery
-            ->selectRaw('
-                department,
-                COUNT(*) as total,
-                SUM(CASE WHEN status = "closed" THEN 1 ELSE 0 END) as closed,
-                COALESCE(SUM(reward_amount), 0) as total_reward,
-                AVG(score_total) as avg_score
-            ')
-            ->groupBy('department')
-            ->orderByDesc('total')
-            ->get();
-    }
+    // SUMMARY
+    $deptSummary = (clone $deptQuery)
+        ->selectRaw('
+            department,
+            COUNT(*) as total,
+            SUM(CASE WHEN status = "closed" THEN 1 ELSE 0 END) as closed,
+            COALESCE(SUM(reward_amount), 0) as total_reward,
+            AVG(score_total) as avg_score
+        ')
+        ->groupBy('department')
+        ->orderByDesc('total')
+        ->get();
+
+    // STATS
+    $deptSSStats = (clone $deptQuery)
+        ->selectRaw('
+            count(*) as total,
+            sum(status="submitted") as submitted,
+            sum(status in ("approved_spv","approved_manager")) as approved,
+            sum(status="rejected_spv") as rejected,
+            sum(status="returned_spv") as returned,
+            sum(status="scored") as scored,
+            sum(status="closed") as closed
+        ')
+        ->first();
+}
 
     /*
     |--------------------------------------------------------------------------
