@@ -440,7 +440,7 @@ input[type=number] {
     </div>
 
     {{-- ── 3. STATISTIK DEPT / SEMUA ── --}}
-    @if($isImprovement || $isManager || $isSupervisor)
+    @if($isImprovement || $isManager || $isSpv)
     <div class="bg-white overflow-hidden">
       <div class="px-4 py-2.5 border-b border-slate-100">
         <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">
