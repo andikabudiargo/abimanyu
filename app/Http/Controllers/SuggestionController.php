@@ -55,25 +55,23 @@ private function isManager(User $user): bool
         ->exists();
 }
 
-    // ── Query SS berdasarkan role ──
     private function buildQuery(User $user)
-    {
-        $query = Suggestion::with(['user', 'period']);
+{
+    $query = Suggestion::query();
 
-        if ($this->isImprovement($user)) {
-            // Improvement: lihat semua SS
-            return $query;
-        }
-
-        if ($this->isSpv($user) || $this->isManager($user)) {
-            // SPV/Manager: lihat SS di departemennya
-            return $query->where('department', $user->department);
-        }
-
-        // Karyawan biasa: hanya milik sendiri
-        return $query->where('user_id', $user->id);
+    if ($this->isImprovement($user)) {
+        return $query;
     }
 
+    if ($this->isSpv($user) || $this->isManager($user)) {
+
+        $deptNames = $user->departments->pluck('name');
+
+        return $query->whereIn('department', $deptNames);
+    }
+
+    return $query->where('user_id', $user->id);
+}
     // ================================================================
     // DASHBOARD
     // ================================================================
