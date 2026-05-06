@@ -60,17 +60,32 @@ private function isManager(User $user): bool
 {
     $query = Suggestion::query();
 
+    // 1. Improvement = lihat semua
     if ($this->isImprovement($user)) {
         return $query;
     }
 
-    if ($this->isSpv($user) || $this->isManager($user)) {
+    // 2. Manager (PRIORITAS LEBIH TINGGI)
+    if ($this->isManager($user)) {
 
-       $deptIds = $user->departments()->pluck('id')->toArray();
+        $deptIds = $user->departments()
+            ->pluck('id')
+            ->toArray();
 
-return $query->whereIn('department', $deptIds);
+        return $query->whereIn('department', $deptIds);
     }
 
+    // 3. Supervisor (hanya kalau bukan manager)
+    if ($this->isSpv($user)) {
+
+        $deptIds = $user->departments()
+            ->pluck('id')
+            ->toArray();
+
+        return $query->whereIn('department', $deptIds);
+    }
+
+    // 4. User biasa
     return $query->where('user_id', $user->id);
 }
     // ================================================================
