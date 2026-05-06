@@ -24,6 +24,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SuggestionController extends Controller
 {
+
     // ── Helper: ambil user yang sedang login (session-based) ──
     private function currentUser(): User
 {
@@ -65,9 +66,9 @@ private function isManager(User $user): bool
 
     if ($this->isSpv($user) || $this->isManager($user)) {
 
-        $deptNames = $user->departments()->pluck('name')->toArray();
+       $deptIds = $user->departments()->pluck('id')->toArray();
 
-        return $query->whereIn('department', $deptNames);
+return $query->whereIn('department', $deptIds);
     }
 
     return $query->where('user_id', $user->id);
