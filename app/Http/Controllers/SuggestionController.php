@@ -738,7 +738,7 @@ $mySSStats = \App\Models\Suggestion::where('user_id', $user->id)
     ')->first();
 
 
-$deptSSStats = $deptQuery->selectRaw('
+$deptSSStats = (clone $deptQuery)->selectRaw('
     count(*) as total,
     sum(status="submitted") as submitted,
     sum(status in ("approved_spv","approved_manager")) as approved,
