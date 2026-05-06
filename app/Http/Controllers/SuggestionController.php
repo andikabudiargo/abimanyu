@@ -755,16 +755,6 @@ $mySSStats = \App\Models\Suggestion::where('user_id', $user->id)
     ')->first();
 
 
-$deptSSStats = (clone $deptQuery)->selectRaw('
-    count(*) as total,
-    sum(status="submitted") as submitted,
-    sum(status in ("approved_spv","approved_manager")) as approved,
-    sum(status="rejected_spv") as rejected,
-    sum(status="returned_spv") as returned,
-    sum(status="scored") as scored,
-    sum(status="closed") as closed
-')->first();
-
 // Karyawan aktif + kategori terbanyak di periode aktif
 $activeSubmittersCount = $activePeriod
     ? \App\Models\Suggestion::where('period_id', $activePeriod->id)
