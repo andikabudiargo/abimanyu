@@ -224,48 +224,85 @@ input[type=number] {
 {{-- ═══════════════ SUB NAV (Improvement & Manager) ═══════════════ --}}
 @if($isImprovement || $isManager)
 <div class="bg-white border-b border-gray-200 sticky top-14 z-40 shadow-sm">
-    <div class="max-w-screen-xl mx-auto px-4">
-        <div class="flex items-center gap-0 overflow-x-auto scrollbar-none">
+    <div class="max-w-screen-xl mx-auto px-2 sm:px-4">
+        <div class="flex items-center justify-around sm:justify-start gap-0 overflow-x-auto scrollbar-none">
 
+            {{-- DASHBOARD --}}
             <button id="subnav-overview"
-                class="subnav-btn shrink-0 flex items-center gap-1.5 px-3.5 py-3 text-xs font-medium text-gray-500 border-b-2 border-transparent -mb-px transition-all whitespace-nowrap active"
+                class="subnav-btn shrink-0 flex items-center justify-center sm:justify-start gap-0 sm:gap-1.5
+                       px-3 sm:px-3.5 py-3 text-xs font-medium text-gray-500
+                       border-b-2 border-transparent -mb-px transition-all whitespace-nowrap active"
                 onclick="switchSubnav('overview')">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="7" height="7" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" stroke-width="1.5"/>
-                    <rect x="14" y="14" width="7" height="7" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" stroke-width="1.5"/>
+
+                <svg class="w-4 h-4 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7" stroke-width="1.5"/>
+                    <rect x="14" y="3" width="7" height="7" stroke-width="1.5"/>
+                    <rect x="14" y="14" width="7" height="7" stroke-width="1.5"/>
+                    <rect x="3" y="14" width="7" height="7" stroke-width="1.5"/>
                 </svg>
-                Dashboard
+
+                <span class="hidden sm:inline">
+                    Dashboard
+                </span>
             </button>
 
+            {{-- ANALYTICS --}}
             <button id="subnav-analytics"
-                class="subnav-btn shrink-0 flex items-center gap-1.5 px-3.5 py-3 text-xs font-medium text-gray-500 border-b-2 border-transparent -mb-px transition-all whitespace-nowrap"
+                class="subnav-btn shrink-0 flex items-center justify-center sm:justify-start gap-0 sm:gap-1.5
+                       px-3 sm:px-3.5 py-3 text-xs font-medium text-gray-500
+                       border-b-2 border-transparent -mb-px transition-all whitespace-nowrap"
                 onclick="switchSubnav('analytics')">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-width="1.5"/>
+
+                <svg class="w-4 h-4 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                          stroke-width="1.5"/>
                 </svg>
-                Analytics
+
+                <span class="hidden sm:inline">
+                    Analytics
+                </span>
             </button>
 
             @if($isImprovement)
+
+            {{-- PERIODE --}}
             <button id="subnav-periods"
-                class="subnav-btn shrink-0 flex items-center gap-1.5 px-3.5 py-3 text-xs font-medium text-gray-500 border-b-2 border-transparent -mb-px transition-all whitespace-nowrap"
+                class="subnav-btn shrink-0 flex items-center justify-center sm:justify-start gap-0 sm:gap-1.5
+                       px-3 sm:px-3.5 py-3 text-xs font-medium text-gray-500
+                       border-b-2 border-transparent -mb-px transition-all whitespace-nowrap"
                 onclick="switchSubnav('periods')">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                <svg class="w-4 h-4 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="1.5"/>
-                    <line x1="16" y1="2" x2="16" y2="6" stroke-width="1.5"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="1.5"/>
+                    <line x1="16" y1="2" x2="16" y2="6" stroke-width="1.5"/>
+                    <line x1="8" y1="2" x2="8" y2="6" stroke-width="1.5"/>
                     <line x1="3" y1="10" x2="21" y2="10" stroke-width="1.5"/>
                 </svg>
-                Periode
+
+                <span class="hidden sm:inline">
+                    Periode
+                </span>
             </button>
+
+            {{-- PENILAIAN --}}
             <button id="subnav-formula"
-                class="subnav-btn shrink-0 flex items-center gap-1.5 px-3.5 py-3 text-xs font-medium text-gray-500 border-b-2 border-transparent -mb-px transition-all whitespace-nowrap"
+                class="subnav-btn shrink-0 flex items-center justify-center sm:justify-start gap-0 sm:gap-1.5
+                       px-3 sm:px-3.5 py-3 text-xs font-medium text-gray-500
+                       border-b-2 border-transparent -mb-px transition-all whitespace-nowrap"
                 onclick="switchSubnav('formula')">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3" stroke-width="1.5"/>
-                    <path d="M14 2l6 6m0 0l-6 6" stroke-width="1.5"/>
+
+                <svg class="w-4 h-4 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3"
+                          stroke-width="1.5"/>
+                    <path d="M14 2l6 6m0 0l-6 6"
+                          stroke-width="1.5"/>
                 </svg>
-                Penilaian
+
+                <span class="hidden sm:inline">
+                    Penilaian
+                </span>
             </button>
+
             @endif
         </div>
     </div>
@@ -279,124 +316,94 @@ input[type=number] {
   {{-- ══════════════ SIDEBAR ══════════════ --}}
   <div class="w-64 shrink-0 hidden lg:flex flex-col gap-3">
 
-  @if($activePeriod)
+ @if($activePeriod)
 @php
-  $end         = \Carbon\Carbon::parse($activePeriod->end_date)->endOfDay();
-  $start       = \Carbon\Carbon::parse($activePeriod->start_date)->startOfDay();
-  $isClosed    = now()->greaterThan($end);
-
-  $totalMs     = $start->diffInSeconds($end) * 1000;
-  $progressPct = $isClosed 
-      ? 100 
-      : min(100, round($start->diffInSeconds(now()) / max(1,$start->diffInSeconds($end)) * 100));
+  $end      = \Carbon\Carbon::parse($activePeriod->end_date)->endOfDay();
+  $start    = \Carbon\Carbon::parse($activePeriod->start_date)->startOfDay();
+  $isClosed = now()->greaterThan($end);
 @endphp
 
-<div class="bg-white overflow-hidden">
+<div class="bg-white rounded-xl overflow-hidden shadow-sm">
 
-  <div class="relative overflow-hidden px-5 py-5
-            bg-gradient-to-br from-[#1e3a5f] via-[#244a7a] to-[#2f5fa8]">
-
-  <!-- subtle glow -->
-  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_60%)]"></div>
-
-  <!-- dekorasi -->
-  <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-white/5 blur-2xl"></div>
-  <div class="absolute right-10 bottom-0 w-20 h-20 rounded-full bg-blue-300/10 blur-xl"></div>
-
-  <!-- CONTENT -->
-  <div class="relative z-10">
-
-    <div class="text-[9px] font-semibold uppercase tracking-widest text-white/50 mb-1">
+  {{-- HEADER --}}
+  <div class="px-5 py-4 border-b border-slate-100">
+    <div class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
       Periode Aktif
     </div>
 
-    <div class="text-base font-semibold text-white mb-3 tracking-tight">
+    <div class="mt-1 text-base font-semibold text-slate-800 tracking-tight">
       {{ $activePeriod->name }}
     </div>
+  </div>
 
-    <!-- DEADLINE -->
-    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
-                bg-white/10 backdrop-blur-sm border border-white/15
-                shadow-[0_2px_10px_rgba(0,0,0,0.15)]">
+  {{-- BODY --}}
+  <div class="px-5 py-6">
 
-      <div class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
+    
+ {{-- COUNTDOWN --}}
+<div class="flex justify-center">
+  <div class="grid grid-cols-4 gap-2 sm:gap-3 max-w-[260px] w-full">
 
-      <span class="text-[9px] font-semibold uppercase tracking-wider text-white/60">
-  {{ $isClosed ? 'Status' : 'Batas Akhir' }}
-</span>
+    @foreach(['d'=>'Hari','h'=>'Jam','m'=>'Menit','s'=>'Detik'] as $key => $lbl)
+    <div class="flex flex-col items-center">
 
-     <span class="text-[10px] font-mono font-medium text-red-500">
-  @if($isClosed)
-    Pengumpulan sudah ditutup
-  @else
-    {{ $end->format('d M Y') }}
-  @endif
-</span>
+      {{-- FLIP WRAPPER --}}
+      <div id="fw-{{ $key }}"
+           class="flip-wrap w-full aspect-square rounded-lg border border-slate-200 bg-slate-50
+                  flex items-center justify-center shadow-sm overflow-hidden">
+
+        {{-- FRONT --}}
+        <div id="fd-{{ $key }}"
+             class="flip-face font-mono text-base sm:text-lg font-semibold text-slate-800 tabular-nums">
+          00
+        </div>
+
+        {{-- BACK --}}
+        <div id="bd-{{ $key }}"
+             class="flip-face font-mono text-base sm:text-lg font-semibold text-slate-800 tabular-nums hidden">
+          00
+        </div>
+
+      </div>
+
+      {{-- LABEL --}}
+      <span class="mt-1 text-[9px] text-slate-400 uppercase tracking-wide text-center">
+        {{ $lbl }}
+      </span>
+
     </div>
+    @endforeach
 
   </div>
 </div>
 
-  {{-- COUNTDOWN --}}
-  <div class="px-4 py-4">
+    {{-- STATUS --}}
+    <div class="mt-6 flex items-center justify-between text-xs">
 
-    {{-- DIGIT ROW --}}
-    <div class="flex items-start justify-center gap-1.5 mb-4"
-         style="perspective:400px;">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full {{ $isClosed ? 'bg-slate-400' : 'bg-red-500 animate-pulse' }}"></div>
 
-      @foreach(['d'=>'Hari','h'=>'Jam','m'=>'Menit','s'=>'Detik'] as $key => $lbl)
-      <div class="flex flex-col items-center gap-1">
-        <div class="flip-wrap relative w-11 h-12" id="fw-{{ $key }}"
-             style="perspective:200px;">
-          <div class="flip-card w-full h-full" style="transform-style:preserve-3d;position:relative;">
-            <div id="fd-{{ $key }}"
-                 class="flip-face absolute inset-0 flex items-center justify-center
-                         rounded-lg font-mono text-xl font-semibold
-                         text-[#1e3a5f] bg-blue-50 border border-blue-100">00</div>
-            <div id="bd-{{ $key }}"
-                 class="flip-face absolute inset-0 flex items-center justify-center
-                         rounded-lg font-mono text-xl font-semibold
-                         text-[#1e3a5f] bg-blue-100 border border-blue-200"
-                 style="transform:rotateX(180deg);backface-visibility:hidden;">00</div>
-          </div>
-        </div>
-        <div class="text-[8px] font-bold uppercase tracking-widest text-slate-400">{{ $lbl }}</div>
+        <span class="text-slate-500 font-medium">
+          {{ $isClosed ? 'Status' : 'Batas Pengumpulan' }}
+        </span>
       </div>
-      @if(!$loop->last)
-      <div class="font-mono text-lg font-medium text-slate-300 mt-1.5">:</div>
-      @endif
-      @endforeach
+
+      <span class="font-mono font-medium {{ $isClosed ? 'text-slate-500' : 'text-red-500' }}">
+        @if($isClosed)
+          Ditutup
+        @else
+          {{ $end->format('d M Y') }}
+        @endif
+      </span>
 
     </div>
 
-    {{-- PROGRESS --}}
-   @if(!$isClosed)
-
-  <div class="flex items-center justify-between mb-1.5">
-    <span class="text-[9px] text-slate-400">{{ $start->format('d M Y') }}</span>
-    <span id="prog-pct" class="font-mono text-[10px] font-medium text-[#1e3a5f]">
-      {{ $progressPct }}%
-    </span>
-  </div>
-
-  <div class="h-1 bg-slate-100 rounded-full overflow-hidden">
-    <div id="prog-fill"
-         class="h-full rounded-full bg-gradient-to-r from-[#1e3a5f] to-blue-400 transition-all duration-1000"
-         style="width:{{ $progressPct }}%">
+    {{-- CLOSED TEXT --}}
+    @if($isClosed)
+    <div class="mt-4 text-center text-[11px] text-slate-500">
+      Periode sudah ditutup
     </div>
-  </div>
-
-  <div class="text-right mt-1">
-    <span class="text-[9px] text-slate-400">{{ $end->format('d M Y') }}</span>
-  </div>
-
-@else
-
-  <div class="mt-3 text-center text-[10px] text-red-500 font-medium">
-    Pengumpulan periode ini sudah ditutup, tunggu dibuka kembali untuk pengumpulan periode selanjutnya
-  </div>
-
-@endif
+    @endif
 
   </div>
 </div>
@@ -404,7 +411,8 @@ input[type=number] {
 
 
     {{-- ── 2. SS SAYA ── --}}
-    <div class="bg-white overflow-hidden">
+     @if(!$isImprovement || !$isManager || !$isSpv)
+    <div class="bg-white overflow-hidden rounded-md">
       <div class="px-4 py-2.5 border-b border-slate-100">
         <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Statistik Saya</span>
       </div>
@@ -438,11 +446,12 @@ input[type=number] {
         @endforeach
       </div>
     </div>
+    @endif
 
     {{-- ── 3. STATISTIK DEPT / SEMUA ── --}}
     @if($isImprovement || $isManager || $isSpv)
-    <div class="bg-white overflow-hidden">
-      <div class="px-4 py-2.5 border-b border-slate-100">
+    <div class="bg-white overflow-hidden rounded-xl">
+      <div class="px-4 py-2.5 border-b border-slate-100 rounded-xl">
         <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">
           @if($isImprovement) Semua Departemen @else Dept. {{ $user->departments->first()?->name }} @endif
         </span>
@@ -479,75 +488,14 @@ input[type=number] {
     </div>
     @endif
 
-    {{-- ── 4. INSIGHTS ── --}}
-    <div class="bg-white overflow-hidden">
-      <div class="px-4 py-2.5 border-b border-slate-100">
-        <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Insights Periode</span>
-      </div>
-
-      {{-- karyawan aktif --}}
-      <div class="flex items-center gap-2.5 px-4 py-3 border-b border-slate-50">
-        <div class="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-          <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-width="2" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-          </svg>
-        </div>
-        <div>
-          <div class="font-mono text-sm font-medium text-slate-800">
-            {{ $activeSubmittersCount ?? 0 }}
-            <span class="text-[10px] font-sans font-normal text-slate-400">karyawan</span>
-          </div>
-          <div class="text-[10px] text-slate-400">aktif submit di periode ini</div>
-        </div>
-      </div>
-
-      {{-- avg review --}}
-      <div class="flex items-center gap-2.5 px-4 py-3 border-b border-slate-50">
-        <div class="w-6 h-6 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-          <svg class="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-width="2" stroke-linecap="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-        </div>
-        <div>
-          <div class="font-mono text-sm font-medium text-slate-800">
-            {{ number_format($avgReviewDays ?? 0, 1) }}
-            <span class="text-[10px] font-sans font-normal text-slate-400">hari</span>
-          </div>
-          <div class="text-[10px] text-slate-400">rata-rata review SPV</div>
-        </div>
-      </div>
-
-      {{-- kategori --}}
-      <div class="px-4 pt-2.5 pb-3">
-        <div class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-2">
-          Kategori Terbanyak
-        </div>
-        @php $maxCat = max(1, ($topCategories ?? collect())->max('total')); @endphp
-        <div class="space-y-1.5">
-          @forelse($topCategories->take(3) ?? [] as $cat)
-          <div class="flex items-center gap-2">
-            <span class="text-[9px] text-slate-300 w-2.5 text-right">{{ $loop->index + 1 }}</span>
-            <span class="text-[10px] text-slate-500 w-14 truncate shrink-0">{{ $cat->category }}</span>
-            <div class="flex-1 h-px bg-slate-100 rounded-full overflow-hidden">
-              <div class="h-full bg-[#1e3a5f] rounded-full"
-                   style="width:{{ round($cat->total/$maxCat*100) }}%"></div>
-            </div>
-            <span class="font-mono text-[10px] text-slate-400 w-4 text-right shrink-0">{{ $cat->total }}</span>
-          </div>
-          @empty
-          <div class="text-[10px] text-slate-400 text-center py-2">Belum ada data</div>
-          @endforelse
-        </div>
-      </div>
-    </div>
-
+ 
   </div>{{-- /sidebar --}}
 
 {{-- ═══════════════ PAGE CONTENT ═══════════════ --}}
-  <div class="flex-1 min-w-0 px-3 py-4">
-<div class="pt-12 mb-6">
-  <div class="relative overflow-visible
-              bg-blue-100 border-l-4 border-blue-700
+<div class="flex-1 min-w-0 px-3 py-4 ">
+<div class="mb-3 ">
+  <div class="relative overflow-visible rounded-md
+              bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400
                px-6 py-5 md:px-8
               flex items-end justify-between gap-4">
 
@@ -555,48 +503,50 @@ input[type=number] {
     <div class="absolute -right-4 top-1/2 -translate-y-1/2
                 w-24 h-24 rounded-full bg-blue-300 opacity-35 z-0"></div>
     <div class="absolute right-12 -bottom-5
-                w-14 h-14 rounded-full bg-blue-400 opacity-20 z-0"></div>
+                w-14 h-14 rounded-full bg-blue-300 opacity-20 z-0"></div>
 
     <!-- TEXT + CTA -->
     <div class="flex-1 min-w-0 relative z-10 pr-4 pb-1">
-      <h2 class="text-sm md:text-base font-semibold text-blue-900 mb-1">
+      <h2 class="text-sm md:text-base font-semibold text-white mb-1">
         Welcome back,
-        <span class="underline text-gray-900">{{ $user->name }}</span>
+        <span class="underline text-white">{{ $user->name }}</span>
       </h2>
-      <p class="text-xs md:text-sm text-blue-700 leading-relaxed max-w-sm mb-4">
+      <p class="text-xs md:text-sm text-white leading-relaxed max-w-sm mb-4">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         Donec volutpat felis velit, vitae fermentum nulla ultrices et.
       </p>
 
-     <a href="{{ route('suggestion.create') }}"
-   class="group inline-flex items-center gap-2 px-4 py-2
-          bg-blue-500
-          text-white text-xs font-medium
-          rounded-lg
-          transition-all duration-300 ease-out
-          
-          hover:bg-blue-600
-          hover:shadow-lg hover:shadow-blue-500/30
-          hover:-translate-y-0.5 hover:scale-105
-          
-          active:scale-95 active:shadow-sm">
+ @php
+    $hasActivePeriod = \App\Models\SuggestionPeriod::where('is_active', 1)
+        ->whereDate('end_date', '>=', now())
+        ->exists();
+@endphp
 
-  <span class="inline-flex items-center justify-center
-               w-5 h-5 rounded-full bg-white/20
-               transition-all duration-300
-               group-hover:bg-white/30 group-hover:rotate-90">
-               
-    <svg class="w-3 h-3 transition-transform duration-300 group-hover:scale-110"
-         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <line x1="12" y1="5" x2="12" y2="19" stroke-width="2.5"/>
-      <line x1="5" y1="12" x2="19" y2="12" stroke-width="2.5"/>
-    </svg>
-  </span>
+@if(!$isSpv && !$isManager && $hasActivePeriod)
+    <a href="{{ route('suggestion.create') }}"
+       class="group relative inline-flex items-center gap-2 px-5 py-2.5
+              rounded-lg
+              bg-white
+              text-blue-600 text-xs font-semibold
+              border border-slate-200
+              shadow-sm
+              transition-all duration-300 ease-out
 
-  <span class="transition-all duration-300 group-hover:tracking-wide">
-    Ajukan Ide Anda Sekarang  💡
-  </span>
-</a>
+              hover:bg-slate-50
+              hover:shadow-md hover:shadow-slate-200/40
+              hover:-translate-y-0.5
+              hover:border-blue-200
+
+              active:scale-[0.98] active:shadow-sm
+              focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2">
+
+        <i class="fa-solid fa-plus text-blue-600 text-xs transition-transform duration-300 group-hover:translate-x-0.5"></i>
+
+        <span class="transition-all duration-300 group-hover:tracking-wide">
+            Buat SS Sekarang
+        </span>
+    </a>
+@endif
     </div>
 
     <!-- IMAGE -->
@@ -616,7 +566,7 @@ input[type=number] {
 <div class="tab-pane active" id="pane-overview">
 
   {{-- WRAPPER CARD --}}
-<div class="bg-white shadow-sm overflow-hidden">
+<div class="bg-white shadow-sm overflow-hidden rounded-xl">
 
   {{-- ── HEADER ACCORDION ── --}}
   <div id="accordion-header"
@@ -654,7 +604,7 @@ input[type=number] {
         {{-- FILTER --}}
         <div id="accordion-body"
        class="overflow-hidden transition-all duration-300 ease-in-out"
-       style="max-height: 2000px; opacity: 1;">
+       style="opacity: 1;">
         <div class="px-6 py-5 border-b border-slate-200 bg-white">
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-2">
 
@@ -682,6 +632,13 @@ input[type=number] {
                     <select id="filter-category"
                         class="w-full h-10 px-3 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-400">
                         <option value="">Semua Kategori</option>
+                        <option value="Safety">Safety</option>
+                        <option value="Moral">Moral</option>
+                        <option value="Quality">Quality</option>
+                        <option value="Productivity">Productivity</option>
+                        <option value="Cost">Cost</option>
+                        <option value="Environment">Environment</option>
+                        <option value="Delivery">Delivery</option>
                     </select>
                 </div>
 
@@ -692,7 +649,7 @@ input[type=number] {
                         <option value="">Semua Status</option>
                         <option value="draft">Draft</option>
                         <option value="submitted">Submitted</option>
-                        <option value="approved_spv">Approved SPV</option>
+                        <option value="approved_spv">Approved</option>
                         <option value="rejected_spv">Rejected</option>
                         <option value="returned_spv">Returned</option>
                         <option value="scored">Scored</option>
@@ -767,26 +724,94 @@ input[type=number] {
                 </div>
                 <div class="p-4"><canvas id="chartTrend" height="200"></canvas></div>
             </div>
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="px-4 py-3 border-b border-gray-100 text-xs font-semibold text-gray-800">Distribusi Kategori</div>
-                <div class="p-4"><canvas id="chartCategory" height="200"></canvas></div>
+              <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div class="px-4 py-3 border-b border-gray-100 text-xs font-semibold text-gray-800">Status Funnel</div>
+                <div class="p-4"><canvas id="chartFunnel" height="240"></canvas></div>
             </div>
         </div>
 
         {{-- 3 small charts --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="px-4 py-3 border-b border-gray-100 text-xs font-semibold text-gray-800">Avg Skor per Dept.</div>
-                <div class="p-4"><canvas id="chartDeptScore" height="240"></canvas></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-4">
+           <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+
+        <div>
+            <div class="text-sm font-semibold text-slate-800">
+                Kategori Improvement
             </div>
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="px-4 py-3 border-b border-gray-100 text-xs font-semibold text-gray-800">Status Funnel</div>
-                <div class="p-4"><canvas id="chartFunnel" height="240"></canvas></div>
+
+            <div class="mt-0.5 text-[11px] text-slate-400">
+                Kategori paling banyak dilakukan improvement
             </div>
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="px-4 py-3 border-b border-gray-100 text-xs font-semibold text-gray-800">Distribusi Skor</div>
-                <div class="p-4"><canvas id="chartScoreDist" height="240"></canvas></div>
+        </div>
+
+        <select id="category-period-filter"
+            class="h-9 px-3 rounded-lg border border-slate-200 bg-white
+                   text-xs text-slate-600
+                   focus:outline-none focus:ring-2 focus:ring-slate-100">
+
+            @foreach($periods ?? [] as $p)
+                <option value="{{ $p->id }}"
+                    {{ $selectedPeriodId == $p->id ? 'selected' : '' }}>
+                    {{ $p->name }}
+                </option>
+            @endforeach
+
+        </select>
+
+    </div>
+
+  <div class="p-5">
+    <div class="relative h-[420px]">
+        <canvas id="chartCategory"></canvas>
+    </div>
+</div>
+
+</div>
+
+          
+           <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+    {{-- HEADER --}}
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+
+        <div>
+            <div class="text-sm font-semibold text-slate-800">
+                Distribusi Skor Department
             </div>
+
+            <div class="mt-0.5 text-[11px] text-slate-400">
+                Akumulasi score per department
+            </div>
+        </div>
+
+        <select id="score-period-filter"
+            class="h-9 px-3 rounded-lg border border-slate-200 bg-white
+                   text-xs text-slate-600
+                   focus:outline-none focus:ring-2 focus:ring-indigo-100">
+
+            @foreach($periods ?? [] as $p)
+                <option value="{{ $p->id }}"
+                    {{ $selectedPeriodId == $p->id ? 'selected' : '' }}>
+                    {{ $p->name }}
+                </option>
+            @endforeach
+
+        </select>
+
+    </div>
+
+    {{-- BODY --}}
+    <div class="p-5">
+
+        <div class="h-[300px]">
+            <canvas id="chartScoreDist"></canvas>
+        </div>
+
+    </div>
+
+</div>
         </div>
 
         {{-- Top SS + Top Dept --}}
@@ -840,13 +865,66 @@ input[type=number] {
         </div>
 
         {{-- Reward dist --}}
-        <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                <div class="text-xs font-semibold text-gray-800">Total Reward per Departemen</div>
-                <span class="text-[10px] text-gray-400">Akumulasi reward</span>
+       {{-- Reward Distribution --}}
+<div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+    {{-- HEADER --}}
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        
+        <div>
+            <div class="text-sm font-semibold text-slate-800">
+                Total Reward per Departemen
             </div>
-            <div class="p-4"><canvas id="chartReward" height="120"></canvas></div>
+
+            <div class="mt-0.5 text-[11px] text-slate-400">
+                Akumulasi reward berdasarkan periode
+            </div>
         </div>
+
+        {{-- PERIOD FILTER --}}
+        <div>
+            <select id="reward-period-filter"
+                class="h-9 px-3 rounded-lg border border-slate-200 bg-white
+                       text-xs text-slate-600
+                       focus:outline-none focus:ring-2 focus:ring-amber-100">
+                
+                @foreach($periods ?? [] as $p)
+                    <option value="{{ $p->id }}"
+                        {{ $activePeriod?->id == $p->id ? 'selected' : '' }}>
+                        {{ $p->name }}
+                    </option>
+                @endforeach
+
+            </select>
+        </div>
+
+    </div>
+
+    {{-- BODY --}}
+    <div class="p-5">
+
+        {{-- TOTAL --}}
+        <div class="mb-5">
+
+            <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                Total Reward
+            </div>
+
+            <div id="reward-total"
+                 class="mt-1 text-2xl font-bold tracking-tight text-amber-600">
+                Rp {{ number_format(collect($analyticsData['dept_reward'] ?? [])->sum('total_reward'), 0, ',', '.') }}
+            </div>
+
+        </div>
+
+        {{-- CHART --}}
+        <div class="h-[320px]">
+            <canvas id="chartReward"></canvas>
+        </div>
+
+    </div>
+
+</div>
     </div>
     @endif
 
@@ -2861,11 +2939,175 @@ function initCharts() {
             { label:'Selesai',  data:trend.map(d=>d.closed),    borderColor:CC.green, backgroundColor:'rgba(34,197,94,.07)', fill:true, tension:.3, pointRadius:3, borderWidth:2 },
         ]}, options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ position:'top', labels:{ boxWidth:10, padding:12 } } }, scales:{ y:{ beginAtZero:true, grid:{color:'#f3f4f6'}, ticks:{stepSize:1} }, x:{ grid:{display:false} } } }
     });
-    const cats = analyticsData.category_counts ?? [];
-    new Chart(document.getElementById('chartCategory'), {
-        type:'doughnut', data:{ labels:cats.map(c=>c.cat), datasets:[{ data:cats.map(c=>c.total), backgroundColor:Object.values(CC), borderWidth:2, borderColor:'#fff' }] },
-        options:{ responsive:true, maintainAspectRatio:true, cutout:'62%', plugins:{ legend:{ position:'right', labels:{ boxWidth:10, padding:10, font:{size:10} } } } }
-    });
+  const cats = analyticsData.category_counts ?? [];
+
+new Chart(document.getElementById('chartCategory'), {
+
+    type: 'doughnut',
+
+    data: {
+
+        labels: cats.map(c => c.cat),
+
+        datasets: [{
+            data: cats.map(c => Number(c.total)),
+
+            backgroundColor: [
+                '#1e3a5f',
+                '#334e68',
+                '#486581',
+                '#627d98',
+                '#829ab1',
+                '#9fb3c8',
+                '#bcccdc',
+                '#d9e2ec',
+            ],
+
+            borderWidth: 0,
+            hoverOffset: 6
+        }]
+    },
+
+    options: {
+
+        responsive: true,
+        maintainAspectRatio: false,
+
+        cutout: '64%',
+
+       layout: {
+    padding: {
+        top: 40,
+        right: 60,
+        bottom: 40,
+        left: 60
+    }
+},
+
+        plugins: {
+
+            legend: {
+                display: false
+            },
+
+            tooltip: {
+                enabled: false
+            }
+        }
+    },
+
+    plugins: [
+
+        /*
+        |--------------------------------------------------------------------------
+        | CENTER TOTAL
+        |--------------------------------------------------------------------------
+        */
+        {
+            id: 'centerText',
+
+            afterDraw(chart) {
+
+                const { ctx } = chart;
+
+                const total = cats.reduce(
+                    (sum, item) => sum + Number(item.total),
+                    0
+                );
+
+                ctx.save();
+
+                ctx.textAlign = 'center';
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '500 10px Inter';
+
+                ctx.fillText(
+                    'TOTAL',
+                    chart.width / 2,
+                    chart.height / 2 - 4
+                );
+
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '700 22px Inter';
+
+                ctx.fillText(
+                    total,
+                    chart.width / 2,
+                    chart.height / 2 + 20
+                );
+
+                ctx.restore();
+            }
+        },
+
+        /*
+        |--------------------------------------------------------------------------
+        | LABEL DI LUAR DONUT
+        |--------------------------------------------------------------------------
+        */
+        {
+            id: 'outsideLabels',
+
+            afterDraw(chart) {
+
+                const {
+                    ctx
+                } = chart;
+
+                const meta = chart.getDatasetMeta(0);
+
+                ctx.save();
+
+                meta.data.forEach((arc, index) => {
+
+                    const label = cats[index]?.cat ?? '-';
+                    const value = cats[index]?.total ?? 0;
+
+                    const angle = (arc.startAngle + arc.endAngle) / 2;
+
+                   const x = arc.x + Math.cos(angle) * (arc.outerRadius + 14);
+const y = arc.y + Math.sin(angle) * (arc.outerRadius + 14);
+
+                    ctx.textAlign = x > arc.x ? 'left' : 'right';
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | LABEL CATEGORY
+                    |--------------------------------------------------------------------------
+                    */
+
+                    ctx.fillStyle = '#0f172a';
+                    ctx.font = '600 7px Inter';
+
+                    ctx.fillText(
+                        label,
+                        x,
+                        y
+                    );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | TOTAL
+                    |--------------------------------------------------------------------------
+                    */
+
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '600 10px Inter';
+
+                    ctx.fillText(
+                        value + ' SS',
+                        x,
+                        y + 14
+                    );
+
+                });
+
+                ctx.restore();
+            }
+        }
+    ]
+});
     const depts = analyticsData.dept_avg_score ?? [];
     new Chart(document.getElementById('chartDeptScore'), {
         type:'bar', data:{ labels:depts.map(d=>d.department), datasets:[{ label:'Avg Skor', data:depts.map(d=>d.avg_score), backgroundColor:CC.navy, borderRadius:3, borderSkipped:false }] },
@@ -2876,16 +3118,216 @@ function initCharts() {
         type:'bar', data:{ labels:['Diajukan','Disetujui SPV','Dinilai','Selesai'], datasets:[{ data:fl, backgroundColor:[CC.amber,CC.teal,CC.purple,CC.green], borderRadius:3, borderSkipped:false }] },
         options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{beginAtZero:true,grid:{color:'#f3f4f6'}}, y:{grid:{display:false}} } }
     });
-    const sd = analyticsData.score_distribution ?? [];
-    new Chart(document.getElementById('chartScoreDist'), {
-        type:'bar', data:{ labels:sd.map(s=>s.range), datasets:[{ label:'Jumlah SS', data:sd.map(s=>s.count), backgroundColor:CC.indigo, borderRadius:3, borderSkipped:false }] },
-        options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{stepSize:1}}, x:{grid:{display:false}} } }
-    });
-    const rd = analyticsData.dept_reward ?? [];
-    new Chart(document.getElementById('chartReward'), {
-        type:'bar', data:{ labels:rd.map(d=>d.department), datasets:[{ label:'Total Reward (Rp)', data:rd.map(d=>d.total_reward), backgroundColor:CC.amber, borderRadius:3, borderSkipped:false }] },
-        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:true, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>' Rp '+ctx.raw.toLocaleString('id-ID') } } }, scales:{ x:{grid:{color:'#f3f4f6'},ticks:{callback:v=>'Rp '+(v/1000).toFixed(0)+'k'}}, y:{grid:{display:false}} } }
-    });
+   const sd = analyticsData.score_distribution ?? [];
+
+new Chart(document.getElementById('chartScoreDist'), {
+
+    type: 'doughnut',
+
+    data: {
+
+        labels: sd.map(s => s.department),
+
+        datasets: [{
+            data: sd.map(s => Number(s.total_score)),
+
+            backgroundColor: [
+                '#1e3a5f',
+                '#334e68',
+                '#486581',
+                '#627d98',
+                '#829ab1',
+                '#9fb3c8',
+                '#bcccdc',
+            ],
+
+            borderWidth: 0,
+            hoverOffset: 6
+        }]
+    },
+
+    options: {
+
+        responsive: true,
+        maintainAspectRatio: false,
+
+        cutout: '68%',
+
+        plugins: {
+
+            legend: {
+
+                position: 'bottom',
+
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 18,
+                    boxWidth: 8,
+
+                    font: {
+                        size: 11,
+                        weight: '500'
+                    }
+                }
+            },
+
+            tooltip: {
+                enabled: false
+            }
+        }
+    },
+
+    plugins: [{
+
+        id: 'centerText',
+
+        afterDraw(chart) {
+
+            const { ctx } = chart;
+
+            const total = sd.reduce(
+                (sum, item) => sum + Number(item.total_score),
+                0
+            );
+
+            ctx.save();
+
+            ctx.textAlign = 'center';
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 11px Inter';
+
+            ctx.fillText(
+                'TOTAL SCORE',
+                chart.width / 2,
+                chart.height / 2 - 6
+            );
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '700 24px Inter';
+
+            ctx.fillText(
+                total.toFixed(1),
+                chart.width / 2,
+                chart.height / 2 + 22
+            );
+
+            ctx.restore();
+        }
+    }]
+});
+  const rd = analyticsData.dept_reward ?? [];
+
+new Chart(document.getElementById('chartReward'), {
+    type: 'bar',
+
+    data: {
+        labels: rd.map(d => d.department),
+
+        datasets: [{
+            data: rd.map(d => Number(d.total_reward)),
+
+            backgroundColor: '#1e3a5f',
+
+            borderRadius: 10,
+            borderSkipped: false,
+
+            maxBarThickness: 42,
+        }]
+    },
+
+    options: {
+
+        responsive: true,
+        maintainAspectRatio: false,
+
+        plugins: {
+
+            legend: {
+                display: false
+            },
+
+            tooltip: {
+                enabled: false
+            }
+        },
+
+        scales: {
+
+            x: {
+
+                grid: {
+                    display: false
+                },
+
+                ticks: {
+                    color: '#475569',
+                    font: {
+                        size: 11,
+                        weight: '600'
+                    }
+                }
+            },
+
+            y: {
+
+                beginAtZero: true,
+
+                grid: {
+                    color: '#f1f5f9'
+                },
+
+                ticks: {
+                    callback: function(value) {
+
+                        if (value >= 1000000) {
+                            return 'Rp ' + (value / 1000000) + 'jt';
+                        }
+
+                        if (value >= 1000) {
+                            return 'Rp ' + (value / 1000) + 'k';
+                        }
+
+                        return value;
+                    }
+                }
+            }
+        }
+    },
+
+    plugins: [{
+
+        id: 'valueLabel',
+
+        afterDatasetsDraw(chart) {
+
+            const { ctx } = chart;
+
+            ctx.save();
+
+            ctx.font = '600 11px Inter';
+            ctx.fillStyle = '#1e3a5f';
+            ctx.textAlign = 'center';
+
+            chart.getDatasetMeta(0).data.forEach((bar, index) => {
+
+                const value = rd[index].total_reward;
+
+                const label =
+                    'Rp ' + Number(value).toLocaleString('id-ID');
+
+                ctx.fillText(
+                    label,
+                    bar.x,
+                    bar.y - 8
+                );
+            });
+
+            ctx.restore();
+        }
+    }]
+});
 }
 
 function toggleAccordion() {
@@ -3130,16 +3572,29 @@ $(function () {
   }
 
   function tick() {
-    const diff = TARGET - new Date();
-    if (diff <= 0) { ['d','h','m','s'].forEach(k => flip(k,'00')); return; }
-    flip('d', pad(Math.floor(diff / 86400000)));
-    flip('h', pad(Math.floor((diff % 86400000) / 3600000)));
-    flip('m', pad(Math.floor((diff % 3600000)  / 60000)));
-    flip('s', pad(Math.floor((diff % 60000)    / 1000)));
-    const pct = Math.min(100, Math.round((new Date() - START) / TOTAL * 100));
-    document.getElementById('prog-pct').textContent  = pct + '%';
-    document.getElementById('prog-fill').style.width = pct + '%';
+  const now  = new Date();
+  const diff = TARGET - now;
+
+  if (diff <= 0) {
+    ['d','h','m','s'].forEach(k => flip(k,'00'));
+    return;
   }
+
+  flip('d', pad(Math.floor(diff / 86400000)));
+  flip('h', pad(Math.floor((diff % 86400000) / 3600000)));
+  flip('m', pad(Math.floor((diff % 3600000)  / 60000)));
+  flip('s', pad(Math.floor((diff % 60000)    / 1000)));
+
+  // ❗ OPTIONAL (biar tidak error kalau element tidak ada)
+  const pctEl  = document.getElementById('prog-pct');
+  const fillEl = document.getElementById('prog-fill');
+
+  if (pctEl && fillEl) {
+    const pct = Math.min(100, Math.round((now - START) / TOTAL * 100));
+    pctEl.textContent  = pct + '%';
+    fillEl.style.width = pct + '%';
+  }
+}
 
   tick();
   setInterval(tick, 1000);

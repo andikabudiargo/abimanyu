@@ -395,7 +395,7 @@ foreach ($rows as $index => $row) {
     */
 
   $html .= '
-<div class="px-6 py-5 hover:bg-slate-50 transition border-b border-slate-100">
+<div class="px-6 py-5 hover:bg-slate-50 transition">
 
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
@@ -453,12 +453,12 @@ foreach ($rows as $index => $row) {
 
            
             ' . (
-                !is_null($row->scored_by_manager)
+                !is_null($row->score_total)
                     ? '
                     <div class="flex items-center gap-3 min-w-[120px]">
 
                        ' . (function () use ($row) {
-    $score = (float) $row->scored_by_manager;
+    $score = (float) $row->score_total;
 
     if ($score < 3) {
         $borderClass = 'border-red-200';
@@ -482,14 +482,15 @@ foreach ($rows as $index => $row) {
         </div>
     ';
 })() . '
-                        <div class="leading-tight">
-                            <div class="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
-                                Reward
-                            </div>
-                            <div class="text-xs font-medium text-slate-600">
-                                 ' . e($row->reward_amount) . '
-                            </div>
-                        </div>
+                      <div class="leading-tight">
+    <div class="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
+        Reward
+    </div>
+
+    <div class="text-xs font-medium text-slate-600">
+        Rp ' . number_format((float) $row->reward_amount, 0, ',', '.') . '
+    </div>
+</div>
 
                     </div>
                     '
@@ -754,7 +755,7 @@ if ($this->isImprovement($user) || $this->isManager($user)) {
             ->with('user')
             ->whereNotNull('score_total')
             ->orderByDesc('score_total')
-            ->limit(8)
+            ->limit(5)
             ->get();
     }
 
@@ -791,6 +792,183 @@ $topCategories = $activePeriod
 
     $analyticsData = [];
 
+    /*
+|--------------------------------------------------------------------------
+| REWARD GRAPH DATA PER DEPARTMENT
+|--------------------------------------------------------------------------
+| Default = periode aktif / terakhir
+| Bisa difilter pakai request period_id
+*/
+
+$selectedPeriodId = $request->get(
+    'period_id',
+    $activePeriod?->id
+);
+
+/*
+|--------------------------------------------------------------------------
+| QUERY
+|--------------------------------------------------------------------------
+*/
+
+$rewardPerDepartment = Suggestion::query()
+    ->join('departments', 'departments.id', '=', 'suggestions.department')
+    ->selectRaw('
+        departments.name as department,
+        COUNT(*) as total_ss,
+        COALESCE(SUM(suggestions.reward_amount), 0) as total_reward
+    ')
+    ->whereNotNull('suggestions.department')
+    ->whereNotNull('suggestions.reward_amount');
+/*
+|--------------------------------------------------------------------------
+| FILTER PERIOD
+|--------------------------------------------------------------------------
+*/
+
+if ($selectedPeriodId) {
+    $rewardPerDepartment->where(
+        'period_id',
+        $selectedPeriodId
+    );
+}
+
+/*
+|--------------------------------------------------------------------------
+| RESULT
+|--------------------------------------------------------------------------
+*/
+
+$rewardPerDepartment = $rewardPerDepartment
+    ->groupBy('departments.name')
+    ->orderByDesc('total_reward')
+    ->get();
+
+    $analyticsData['dept_reward'] = $rewardPerDepartment;
+
+    /*
+|--------------------------------------------------------------------------
+| SCORE BY DEPARTMENT
+|--------------------------------------------------------------------------
+*/
+
+$scoreByDepartment = Suggestion::query()
+    ->join('departments', 'departments.id', '=', 'suggestions.department')
+    ->selectRaw('
+        departments.name as department,
+        COALESCE(SUM(score_total), 0) as total_score
+    ')
+    ->whereNotNull('suggestions.score_total');
+
+/*
+|--------------------------------------------------------------------------
+| FILTER PERIOD
+|--------------------------------------------------------------------------
+*/
+
+if ($selectedPeriodId) {
+
+    $scoreByDepartment->where(
+        'suggestions.period_id',
+        $selectedPeriodId
+    );
+}
+
+/*
+|--------------------------------------------------------------------------
+| RESULT
+|--------------------------------------------------------------------------
+*/
+
+$scoreByDepartment = $scoreByDepartment
+    ->groupBy('departments.name')
+    ->orderByDesc('total_score')
+    ->get();
+
+/*
+|--------------------------------------------------------------------------
+| PUSH TO ANALYTICS
+|--------------------------------------------------------------------------
+*/
+
+$analyticsData['score_distribution'] = $scoreByDepartment;
+
+/*
+|--------------------------------------------------------------------------
+| CATEGORY COUNTS
+|--------------------------------------------------------------------------
+*/
+
+$categoryQuery = Suggestion::query();
+
+/*
+|--------------------------------------------------------------------------
+| FILTER PERIOD
+|--------------------------------------------------------------------------
+*/
+
+if ($selectedPeriodId) {
+
+    $categoryQuery->where(
+        'period_id',
+        $selectedPeriodId
+    );
+}
+
+/*
+|--------------------------------------------------------------------------
+| AMBIL SEMUA CATEGORY
+|--------------------------------------------------------------------------
+*/
+
+$allCategories = $categoryQuery
+    ->pluck('categories')
+    ->filter();
+
+/*
+|--------------------------------------------------------------------------
+| FLATTEN CATEGORY JSON
+|--------------------------------------------------------------------------
+*/
+
+$categoryCounts = [];
+
+foreach ($allCategories as $cats) {
+
+    $decoded = is_array($cats)
+        ? $cats
+        : json_decode($cats, true);
+
+    foreach ((array) $decoded as $cat) {
+
+        if (!$cat) continue;
+
+        $categoryCounts[$cat] =
+            ($categoryCounts[$cat] ?? 0) + 1;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| FORMAT
+|--------------------------------------------------------------------------
+*/
+
+$categoryCounts = collect($categoryCounts)
+    ->sortDesc()
+    ->map(fn($total, $cat) => [
+        'cat'   => $cat,
+        'total' => $total,
+    ])
+    ->values();
+
+/*
+|--------------------------------------------------------------------------
+| PUSH TO ANALYTICS
+|--------------------------------------------------------------------------
+*/
+
+$analyticsData['category_counts'] = $categoryCounts;
     /*
     |--------------------------------------------------------------------------
     | PERIODS
@@ -829,6 +1007,8 @@ $topCategories = $activePeriod
         'topCategories',
         'deptSSStats',
         'analyticsData',
+        'rewardPerDepartment',
+'selectedPeriodId',
         'periods',
         'activeFormula'
     ) + [
