@@ -1288,6 +1288,7 @@ private function saveSuggestion(Request $request, $user, $data, $status)
     'score_total' => $s->score_total,
 'manager_note' => $s->manager_note,
 'user_name'          => $s->user?->name,
+'created_at'           => $s->created_at?->format('d M Y, H:i') . ' WIB',
 'draft_at'           => $s->draft_at?->format('d M Y, H:i') . ' WIB',
 'submitted_at'       => $s->submitted_at?->format('d M Y, H:i') . ' WIB',
 'reviewed_at_spv'    => $s->reviewed_at_spv?->format('d M Y, H:i') . ' WIB',

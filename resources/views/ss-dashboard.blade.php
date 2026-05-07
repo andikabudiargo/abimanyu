@@ -724,15 +724,8 @@ input[type=number] {
                 </div>
                 <div class="p-4"><canvas id="chartTrend" height="200"></canvas></div>
             </div>
-              <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="px-4 py-3 border-b border-gray-100 text-xs font-semibold text-gray-800">Status Funnel</div>
-                <div class="p-4"><canvas id="chartFunnel" height="240"></canvas></div>
-            </div>
-        </div>
 
-        {{-- 3 small charts --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-4">
-           <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+              <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
 
     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
 
@@ -769,49 +762,6 @@ input[type=number] {
 </div>
 
 </div>
-
-          
-           <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-
-    {{-- HEADER --}}
-    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-
-        <div>
-            <div class="text-sm font-semibold text-slate-800">
-                Distribusi Skor Department
-            </div>
-
-            <div class="mt-0.5 text-[11px] text-slate-400">
-                Akumulasi score per department
-            </div>
-        </div>
-
-        <select id="score-period-filter"
-            class="h-9 px-3 rounded-lg border border-slate-200 bg-white
-                   text-xs text-slate-600
-                   focus:outline-none focus:ring-2 focus:ring-indigo-100">
-
-            @foreach($periods ?? [] as $p)
-                <option value="{{ $p->id }}"
-                    {{ $selectedPeriodId == $p->id ? 'selected' : '' }}>
-                    {{ $p->name }}
-                </option>
-            @endforeach
-
-        </select>
-
-    </div>
-
-    {{-- BODY --}}
-    <div class="p-5">
-
-        <div class="h-[300px]">
-            <canvas id="chartScoreDist"></canvas>
-        </div>
-
-    </div>
-
-</div>
         </div>
 
         {{-- Top SS + Top Dept --}}
@@ -819,7 +769,7 @@ input[type=number] {
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
                 <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                     <div class="text-xs font-semibold text-gray-800">Top SS by Score</div>
-                    <span class="text-[10px] text-gray-400">Sudah dinilai</span>
+                    <span class="text-[10px] text-gray-400">SS dengan nilai tertinggi</span>
                 </div>
                 <div class="p-4 space-y-3">
                     @forelse($topSS ?? [] as $idx => $ss)
@@ -864,7 +814,6 @@ input[type=number] {
             </div>
         </div>
 
-        {{-- Reward dist --}}
        {{-- Reward Distribution --}}
 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
 
@@ -2148,22 +2097,12 @@ function ssFillRiwayat(d) {
     /* ─── Susun steps ─── */
     const steps = [];
  
-    /* 1 ── Draft (opsional) */
-    if (d.draft_at) {
-        steps.push({
-            title:  'SS Disimpan sebagai Draft',
-            by:     d.user_name || '',
-            time:   d.draft_at,
-            status: 'done',
-        });
-    }
- 
     /* 2 ── Submit */
-    if (d.submitted_at) {
+    if (d.created_at) {
         steps.push({
             title:  'SS Dibuat & Disubmit',
             by:     d.user_name || '',
-            time:   d.submitted_at,
+            time:   d.created_at,
             status: 'done',
         });
     }
@@ -2172,10 +2111,10 @@ function ssFillRiwayat(d) {
     if (d.reviewed_at_spv) {
         /* tentukan label berdasarkan status SPV */
         const spvLabel = {
-            approved_spv: 'Disetujui Supervisor',
-            rejected_spv: 'Ditolak Supervisor',
-            returned_spv: 'Dikembalikan Supervisor',
-        }[d.status] || 'Disetujui Supervisor';
+            approved_spv: 'Disetujui',
+            rejected_spv: 'Ditolak',
+            returned_spv: 'Dikembalikan',
+        }[d.status] || 'Disetujui';
  
         steps.push({
             title:  spvLabel,
@@ -2189,15 +2128,15 @@ function ssFillRiwayat(d) {
                  hanya jika belum scored) */
         if (!d.scored_at && ['approved_spv'].includes(d.status)) {
             steps.push({
-                title:  'Menunggu Review Manager',
-                by:     'Dept. Improvement',
+                title:  'Menunggu Review',
+                by:     '',
                 time:   d.reviewed_at_spv,   /* waktu mulai menunggu = waktu SPV approve */
                 status: 'active',
             });
         }
     } else {
         steps.push({
-            title:  'Review Supervisor',
+            title:  'Review',
             status: ['submitted'].includes(d.status) ? 'active' : 'pending',
         });
     }
@@ -2205,7 +2144,7 @@ function ssFillRiwayat(d) {
     /* 4 ── Scoring Manager */
     if (d.scored_at) {
         steps.push({
-            title:  'Penilaian & Scoring',
+            title:  'Penilaian',
             by:     d.scored_by_manager || '',
             time:   d.scored_at,
             note:   d.manager_note || '',
@@ -2214,7 +2153,7 @@ function ssFillRiwayat(d) {
     } else if (!['draft','submitted','rejected_spv','returned_spv'].includes(d.status)) {
         /* hanya tampil sebagai pending jika sudah melewati SPV */
         steps.push({
-            title:  'Penilaian & Scoring',
+            title:  'Penilaian',
             status: 'pending',
         });
     }
@@ -2222,7 +2161,7 @@ function ssFillRiwayat(d) {
     /* 5 ── Tutup / Acknowledge */
     if (d.closed_at) {
         steps.push({
-            title:  'SS Ditutup / Acknowledge',
+            title:  'SS Disahkan',
             by:     d.acknowledge_by || '',
             time:   d.closed_at,
             status: 'done',
