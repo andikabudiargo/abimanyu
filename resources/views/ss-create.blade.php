@@ -159,26 +159,59 @@ textarea.f-input { resize: vertical; }
 .err-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; padding: 10px 14px; font-size: 12px; color: #7f1d1d; margin-bottom: 12px; }
 .err-box ul { margin-top: 5px; padding-left: 14px; }
 </style>
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 </head>
 <body>
 
-<div class="topbar">
-    <div class="topbar-brand">
-        <img src="{{ asset('img/asn-logo-bulat.png') }}" alt="ASN">
-        <span class="topbar-brand-text">Suggestion System Portal &mdash; PT. Abimanyu Sekar Nusantara</span>
+<nav class="bg-[#1e3a5f] sticky top-0 z-50 shadow-md">
+    <div class="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+
+        {{-- Brand --}}
+        <a href="{{ route('suggestion.dashboard') }}" class="flex items-center gap-2.5 shrink-0">
+            <img src="{{ asset('img/asn-logo-bulat.png') }}" alt="ASN" class="w-7 h-7 rounded-full">
+            <div class="">
+                <div class="text-white text-xs font-semibold leading-tight">Suggestion System Portal</div>
+                <div class="text-white/40 text-[10px] leading-tight">PT. Abimanyu Sekar Nusantara</div>
+            </div>
+        </a>
+
+       <div class="flex items-center gap-2 shrink-0">
+
+            <a href="{{ route('suggestion.dashboard') }}"
+               class="
+                    inline-flex items-center justify-center gap-2
+                    h-9
+                    px-3 sm:px-4
+                    rounded-xl
+                    bg-white/10
+                    hover:bg-white/15
+                    border border-white/10
+                    text-white
+                    text-xs
+                    font-medium
+                    transition-all
+               ">
+
+                <i class="fas fa-arrow-left text-[11px]"></i>
+
+                {{-- Desktop --}}
+                <span class="hidden sm:inline">
+                    Kembali ke Dashboard
+                </span>
+
+            </a>
+
+        </div>
     </div>
-    <a href="{{ route('suggestion.dashboard') }}" class="topbar-back">
-        
-        Kembali ke Dashboard
-    </a>
-</div>
+</nav>
 
 <div class="flex flex-col lg:flex-row gap-4 px-6 py-4">
 
     {{-- ══ SIDEBAR ══ --}}
     <div class="w-full lg:w-56 xl:w-60 flex-shrink-0 flex flex-col gap-3">
 
-        <div class="c-card">
+        <div class="c-card hidden sm:block">
             <div class="c-card-header"><span class="c-section-label">ALUR PENGISIAN</span></div>
             <div class="c-card-body" style="padding:14px 16px;">
                 @php
@@ -202,7 +235,7 @@ textarea.f-input { resize: vertical; }
             </div>
         </div>
 
-       <div class="c-card" id="selSummary" style="display:none;">
+       <div class="c-card hidden sm:block" id="selSummary" style="display:none;">
     <div class="c-card-header">
         <span class="c-section-label">Ringkasan</span>
     </div>
@@ -311,7 +344,7 @@ textarea.f-input { resize: vertical; }
         </div>
 
         {{-- Wizard bar --}}
-        <div class="c-card" style="padding:12px 18px;">
+        <div class="c-card hidden sm:block" style="padding:12px 18px;">
             <div class="wiz-bar">
                 @php $wsteps=['Identification','Root Cause','Improvement','Evaluation']; @endphp
                 @foreach($wsteps as $wi=>$wl)
@@ -346,38 +379,219 @@ textarea.f-input { resize: vertical; }
                 </div>
                 <div class="c-card-body space-y">
 
-                    {{-- Category --}}
-                    <div>
-                        <label class="f-label">Kategori <sup>*</sup> <span style="font-size:10px;color:#9ca3af;font-weight:400;text-transform:none;">&mdash; pilih satu atau beberapa kategori yang sesuai dengan improvement Anda</span></label>
-                        <div class="cat-grid" style="margin-top:6px;">
-                            @php
-                            $cats=[
-                                ['Safety',       'SHE', 'Keselamatan Kerja'],
-                                ['Moral',        'MOR', 'Etika & Budaya Kerja'],
-                                ['Quality',      'QUA', 'Kualitas & Mutu Produk'],
-                                ['Productivity', 'PRD', 'Efisiensi Proses Kerja'],
-                                ['Cost',         'CST', 'Penghematan Biaya'],
-                                ['Environment',  'ENV', 'Kenyamanan Lingkungan & Relasi Karyawan'],
-                                ['Delivery',     'DLV', 'Keamanan & Ketepatan Pengiriman'],
-                            ];
-                            $oldCats=old('categories',[]);
-                            @endphp
-                            @foreach($cats as [$cat,$abbr,$desc])
-                          <label class="cat-tile {{ in_array($cat,$oldCats)?'is-checked':'' }}" data-cat="{{ $cat }}">
-                                <input type="checkbox" name="categories[]" value="{{ $cat }}" {{ in_array($cat,$oldCats)?'checked':'' }}/>
-                                <div class="cat-top">
-                                    <span class="cat-abbr">{{ $cat }}</span>
-                                    <div class="cat-chk">
-                                        <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.5"><path d="M2 6l3 3 5-5"/></svg>
-                                    </div>
-                                </div>
-                               
-                                <div class="cat-desc">{{ $desc }}</div>
-                            </label>
-                            @endforeach
+            {{-- Category --}}
+<div>
+
+    <label class="f-label">
+        Kategori <sup>*</sup>
+
+        <span class="text-[10px] text-slate-400 font-normal normal-case">
+            — pilih satu atau beberapa kategori yang sesuai dengan improvement Anda
+        </span>
+    </label>
+
+    @php
+    $cats = [
+        ['Safety',       'fa-shield-halved',   'Keselamatan Kerja'],
+        ['Moral',        'fa-scale-balanced',  'Etika & Budaya'],
+        ['Quality',      'fa-gem',             'Kualitas & Mutu Produk'],
+        ['Productivity', 'fa-bolt',            'Efisiensi & Produktivitas'],
+        ['Cost',         'fa-wallet',          'Penghematan Biaya'],
+        ['Environment',  'fa-leaf',            'Lingkungan Kerja & Relasi Karyawan'],
+        ['Delivery',     'fa-truck-fast',      'Kualitas & Ketepatan Pengiriman'],
+    ];
+
+    $oldCats = old('categories', []);
+    @endphp
+
+    <div
+        class="cat-grid grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-4 gap-2 mt-2">
+
+        @foreach($cats as [$cat,$icon,$desc])
+
+        <label
+            class="cat-tile
+                group
+                relative
+                overflow-visible
+                
+                border
+                transition-all
+                duration-200
+                cursor-pointer
+                bg-white
+
+                {{ in_array($cat,$oldCats)
+                    ? 'is-checked border-blue-500 bg-blue-50 shadow-sm'
+                    : 'border-slate-200 hover:border-blue-300'
+                }}"
+            data-cat="{{ $cat }}">
+
+            <input
+                type="checkbox"
+                name="categories[]"
+                value="{{ $cat }}"
+                class="hidden"
+                {{ in_array($cat,$oldCats)?'checked':'' }}/>
+
+            <div class="p-2">
+
+                {{-- TOP --}}
+                <div class="cat-top flex items-start justify-between gap-1">
+
+                    <div class="min-w-0 flex-1">
+
+                        {{-- MOBILE --}}
+                        <div class="flex flex-col items-center justify-center text-center sm:hidden">
+
+                            <div class="
+                                w-8 h-8
+                                rounded-lg
+                                flex items-center justify-center
+                                mb-1
+                                transition-all
+
+                                {{ in_array($cat,$oldCats)
+                                    ? 'bg-blue-500 text-white'
+                                    : 'bg-blue-50 text-blue-500'
+                                }}
+                            ">
+                                <i class="fa-solid {{ $icon }} text-[12px]"></i>
+                            </div>
+
+                            <div class="
+                                text-[9px]
+                                font-semibold
+                                text-slate-700
+                                leading-tight
+                            ">
+                                {{ $cat }}
+                            </div>
+
                         </div>
-                        @error('categories')<p class="f-hint" style="color:#dc2626;margin-top:5px;">{{ $message }}</p>@enderror
+
+                        {{-- DESKTOP --}}
+                        <div class="hidden sm:block">
+
+                            <div class="flex items-center gap-2">
+
+                                <div class="
+                                    w-8 h-8
+                                    rounded-lg
+                                    flex items-center justify-center
+                                    shrink-0
+
+                                    {{ in_array($cat,$oldCats)
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-blue-50 text-blue-500'
+                                    }}
+                                ">
+                                    <i class="fa-solid {{ $icon }} text-[12px]"></i>
+                                </div>
+
+                                <div class="min-w-0">
+
+                                    <div class="
+                                        text-[11px]
+                                        font-semibold
+                                        text-slate-700
+                                        leading-tight
+                                    ">
+                                        {{ $cat }}
+                                    </div>
+
+                                    <div class="
+                                        text-[9px]
+                                        text-slate-400
+                                        leading-tight
+                                        mt-0.5
+                                    ">
+                                        {{ $desc }}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
                     </div>
+
+                    <div class="
+                        cat-chk
+                        absolute
+                        top-2
+                        right-2
+                        w-4 h-4
+                        rounded-full
+                        flex items-center justify-center
+                        shrink-0
+                        transition-all
+
+                        {{ in_array($cat,$oldCats)
+                            ? 'bg-blue-500'
+                            : 'border border-slate-300 bg-white'
+                        }}
+                    ">
+                        <svg
+                            width="8"
+                            height="8"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            stroke="#fff"
+                            stroke-width="2.5">
+                            <path d="M2 6l3 3 5-5"/>
+                        </svg>
+                    </div>
+
+                </div>
+
+            </div>
+
+            {{-- MOBILE TOOLTIP --}}
+            <div class="
+                sm:hidden
+                pointer-events-none
+                absolute
+                left-1/2
+                -translate-x-1/2
+                bottom-full
+                mb-2
+                opacity-0
+                group-hover:opacity-100
+                group-active:opacity-100
+                transition-all
+                duration-200
+                z-30
+            ">
+
+                <div class="
+                    px-2 py-1
+                    rounded-lg
+                    bg-slate-900
+                    text-white
+                    text-[9px]
+                    whitespace-nowrap
+                    shadow-lg
+                ">
+                    {{ $desc }}
+                </div>
+
+            </div>
+
+        </label>
+
+        @endforeach
+
+    </div>
+
+    @error('categories')
+        <p class="f-hint mt-2 text-red-500">
+            {{ $message }}
+        </p>
+    @enderror
+
+</div>
 
                     <div class="g2">
                         <div>

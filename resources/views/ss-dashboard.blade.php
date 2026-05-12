@@ -190,7 +190,7 @@ input[type=number] {
         {{-- Brand --}}
         <a href="{{ route('suggestion.dashboard') }}" class="flex items-center gap-2.5 shrink-0">
             <img src="{{ asset('img/asn-logo-bulat.png') }}" alt="ASN" class="w-7 h-7 rounded-full">
-            <div class="hidden sm:block">
+            <div class="">
                 <div class="text-white text-xs font-semibold leading-tight">Suggestion System Portal</div>
                 <div class="text-white/40 text-[10px] leading-tight">PT. Abimanyu Sekar Nusantara</div>
             </div>
@@ -511,7 +511,7 @@ input[type=number] {
         Welcome back,
         <span class="underline text-white">{{ $user->name }}</span>
       </h2>
-      <p class="text-xs md:text-sm text-white leading-relaxed max-w-sm mb-4">
+      <p class="text-xs text-slate-200 leading-relaxed max-w-sm mb-4">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         Donec volutpat felis velit, vitae fermentum nulla ultrices et.
       </p>
@@ -576,22 +576,25 @@ input[type=number] {
               border-b border-slate-200
               hover:bg-slate-50 transition-colors">
 
-    {{-- LEFT --}}
-    <div class="flex items-center gap-3">
-      <div class="w-8 h-8 flex items-center justify-center
-                  rounded-full border border-blue-200 bg-blue-50 shrink-0">
-        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12c.5.5 1 1.5 1 2h6c0-.5.5-1.5 1-2a7 7 0 00-4-12z"/>
-          <path stroke-width="2" stroke-linecap="round"
-                d="M12 1v2M4.5 4.5l1.5 1.5M1 12h2M21 12h2M18 6l1.5-1.5"/>
-        </svg>
-      </div>
-      <span class="text-sm font-medium text-slate-700">
-        List Suggestion System (SS)
-      </span>
+   {{-- LEFT --}}
+<div class="flex items-center gap-3">
+
+    <div class="
+        w-8 h-8
+        flex items-center justify-center
+        rounded-full
+        border border-blue-200
+        bg-blue-50
+        shrink-0
+    ">
+        <i class="fa-regular fa-lightbulb text-sm text-blue-500"></i>
     </div>
 
+    <span class="text-sm font-medium text-slate-700">
+        List Suggestion System (SS)
+    </span>
+
+</div>
     {{-- RIGHT: chevron only --}}
     <svg id="chevron-icon"
          class="w-4 h-4 text-slate-400 transition-transform duration-300"
@@ -614,20 +617,7 @@ input[type=number] {
                         class="w-full h-10 px-3 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-400">
                 </div>
 
-                <div class="md:col-span-2">
-                    <label class="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Tema</label>
-                    <input id="filter-theme" type="text" placeholder="Cari tema"
-                        class="w-full h-10 px-3 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-400">
-                </div>
-            </div>
- <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Departemen</label>
-                    <input id="filter-department" type="text" placeholder="Cari departemen"
-                        class="w-full h-10 px-3 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-400">
-                </div>
-
-                <div>
+                 <div>
                     <label class="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Kategori</label>
                     <select id="filter-category"
                         class="w-full h-10 px-3 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-400">
@@ -656,8 +646,14 @@ input[type=number] {
                         <option value="closed">Closed</option>
                     </select>
                 </div>
-            </div>
+
+                <div class="md:col-span-3">
+                    <label class="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Tema</label>
+                    <input id="filter-theme" type="text" placeholder="Cari tema"
+                        class="w-full h-10 px-3 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-400">
+                </div>
         </div>
+</div>
 
         {{-- TOOLBAR --}}
         <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
@@ -682,7 +678,7 @@ input[type=number] {
         </div>
 
         {{-- CARD LIST (SERVER SIDE AJAX) --}}
-        <div id="table-body" class="divide-y divide-slate-200">
+        <div id="table-body" class="space-y-4 p-4 bg-slate-100/60">
             <div class="px-6 py-10 text-center text-sm text-slate-400">
                 Memuat data...
             </div>
@@ -714,16 +710,122 @@ input[type=number] {
 
         {{-- Trend + Category --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-            <div class="lg:col-span-2 bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                    <div class="flex items-center gap-1.5 text-xs font-semibold text-gray-800">
-                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke-width="1.5"/></svg>
-                        Tren 12 Bulan Terakhir
-                    </div>
-                    <span class="text-[10px] text-gray-400">Submitted vs Closed</span>
-                </div>
-                <div class="p-4"><canvas id="chartTrend" height="200"></canvas></div>
+            {{-- Department Performance --}}
+<div class="col-span-3 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+    {{-- HEADER --}}
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+
+        <div>
+            <div class="text-sm font-semibold text-slate-800">
+                Department Performance
             </div>
+
+            <div class="mt-0.5 text-[11px] text-slate-400">
+                Penilaian objektif berdasarkan rata-rata score dan total reward
+            </div>
+        </div>
+
+        {{-- PERIOD FILTER --}}
+        <div>
+            <select id="reward-period-filter"
+                class="h-9 px-3 rounded-lg border border-slate-200 bg-white
+                       text-xs text-slate-600
+                       focus:outline-none focus:ring-2 focus:ring-amber-100
+                       transition">
+
+                @foreach($periods ?? [] as $p)
+                    <option value="{{ $p->id }}"
+                        {{ $activePeriod?->id == $p->id ? 'selected' : '' }}>
+                        {{ $p->name }}
+                    </option>
+                @endforeach
+
+            </select>
+        </div>
+
+    </div>
+
+    {{-- BODY --}}
+    <div class="p-5">
+
+        @php
+            $deptStats = collect($analyticsData['dept_stats'] ?? []);
+
+            $totalReward = $deptStats->sum('total_reward');
+            $totalSS     = $deptStats->sum('total_ss');
+            $avgScore    = round($deptStats->avg('avg_score'), 1);
+        @endphp
+
+        {{-- SUMMARY --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+
+            {{-- TOTAL REWARD --}}
+            <div class="col-span-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+
+                <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                    Total Reward
+                </div>
+
+                <div id="reward-total"
+                     class="mt-1 text-lg font-bold tracking-tight text-amber-600">
+                    Rp {{ number_format($totalReward, 0, ',', '.') }}
+                </div>
+
+            </div>
+
+            {{-- TOTAL SS --}}
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+
+                <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                    Total Suggestion
+                </div>
+
+                <div class="mt-1 text-lg font-bold tracking-tight text-slate-700">
+                    {{ number_format($totalSS) }}
+                </div>
+
+            </div>
+
+            {{-- AVG SCORE --}}
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+
+                <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                    Average Score
+                </div>
+
+                <div class="mt-1 text-lg font-bold tracking-tight text-blue-700">
+                    {{ number_format($avgScore, 1) }}
+                </div>
+
+            </div>
+
+        </div>
+
+        {{-- INFO --}}
+        <div class="mb-5 flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+
+            <div class="mt-0.5 w-2 h-2 rounded-full bg-blue-500"></div>
+
+            <div class="text-[11px] leading-relaxed text-slate-600">
+                Ranking department diurutkan berdasarkan
+                <span class="font-semibold text-slate-700">
+                    average score
+                </span>
+                agar lebih objektif dan tidak bias jumlah submit.
+                Total reward tetap ditampilkan sebagai indikator apresiasi.
+            </div>
+
+        </div>
+
+        {{-- CHART --}}
+        <div class="relative h-[340px]">
+            <canvas id="chartReward"></canvas>
+        </div>
+
+    </div>
+
+</div>
 
               <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
 
@@ -762,7 +864,6 @@ input[type=number] {
 </div>
 
 </div>
-        </div>
 
         {{-- Top SS + Top Dept --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -789,91 +890,10 @@ input[type=number] {
                     @endforelse
                 </div>
             </div>
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                    <div class="text-xs font-semibold text-gray-800">Dept. Paling Aktif</div>
-                    <span class="text-[10px] text-gray-400">Jumlah SS diajukan</span>
-                </div>
-                <div class="p-4 space-y-3">
-                    @php $maxDept = ($deptSummary ?? collect())->max('total') ?: 1; @endphp
-                    @forelse($deptSummary ?? [] as $idx => $d)
-                    @if($idx < 8)
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-bold text-gray-300 w-4">{{ $idx+1 }}</span>
-                        <div class="text-xs font-medium text-gray-700 min-w-[80px] truncate">{{ $d->departments->name}}</div>
-                        <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-[#1e3a5f] rounded-full" style="width:{{ round($d->total/$maxDept*100) }}%"></div>
-                        </div>
-                        <span class="text-xs font-bold text-gray-800 w-6 text-right">{{ $d->total }}</span>
-                    </div>
-                    @endif
-                    @empty
-                    <p class="text-xs text-gray-400 py-4 text-center">Belum ada data.</p>
-                    @endforelse
-                </div>
-            </div>
+          
         </div>
 
-       {{-- Reward Distribution --}}
-<div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-
-    {{-- HEADER --}}
-    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-        
-        <div>
-            <div class="text-sm font-semibold text-slate-800">
-                Total Reward per Departemen
-            </div>
-
-            <div class="mt-0.5 text-[11px] text-slate-400">
-                Akumulasi reward berdasarkan periode
-            </div>
-        </div>
-
-        {{-- PERIOD FILTER --}}
-        <div>
-            <select id="reward-period-filter"
-                class="h-9 px-3 rounded-lg border border-slate-200 bg-white
-                       text-xs text-slate-600
-                       focus:outline-none focus:ring-2 focus:ring-amber-100">
-                
-                @foreach($periods ?? [] as $p)
-                    <option value="{{ $p->id }}"
-                        {{ $activePeriod?->id == $p->id ? 'selected' : '' }}>
-                        {{ $p->name }}
-                    </option>
-                @endforeach
-
-            </select>
-        </div>
-
-    </div>
-
-    {{-- BODY --}}
-    <div class="p-5">
-
-        {{-- TOTAL --}}
-        <div class="mb-5">
-
-            <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                Total Reward
-            </div>
-
-            <div id="reward-total"
-                 class="mt-1 text-2xl font-bold tracking-tight text-amber-600">
-                Rp {{ number_format(collect($analyticsData['dept_reward'] ?? [])->sum('total_reward'), 0, ',', '.') }}
-            </div>
-
-        </div>
-
-        {{-- CHART --}}
-        <div class="h-[320px]">
-            <canvas id="chartReward"></canvas>
-        </div>
-
-    </div>
-
-</div>
+     
     </div>
     @endif
 
@@ -1331,119 +1351,638 @@ input[type=number] {
 </div>
 
 {{-- ═══════════════ SCORE MODAL ═══════════════ --}}
-<div id="score-modal" class="hidden fixed inset-0 bg-black/50 z-[500] flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full sm:max-w-5xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-xl border border-gray-200 shadow-xl">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <div class="text-sm font-semibold text-gray-900">
-                Rubrik Penilaian — <span id="score-ss-num" class="text-[#1e3a5f] font-mono"></span>
+<div id="score-modal"
+class="
+    hidden fixed inset-0
+    bg-black/50
+    z-[500]
+    flex items-end sm:items-center justify-center
+    p-0 sm:p-6
+">
+
+    <div class="
+        bg-[#f8fafc]
+        w-full
+        sm:max-w-7xl
+        max-h-[100dvh]
+        sm:max-h-[94vh]
+        overflow-y-auto
+        
+        border border-slate-200
+        shadow-2xl
+    ">
+
+        {{-- HEADER --}}
+        <div class="
+            flex items-center justify-between
+            px-5 sm:px-6
+            py-4
+            border-b border-slate-200
+            bg-white sticky
+        ">
+
+            <div class="min-w-0">
+
+                <div class="
+                    text-[10px]
+                    font-bold
+                    uppercase
+                    tracking-[0.2em]
+                    text-slate-400
+                ">
+                    Rubrik Penilaian
+                </div>
+
+                <div class="
+                    mt-1
+                    text-sm sm:text-base
+                    font-bold
+                    text-slate-800
+                    truncate
+                ">
+                    <span id="score-ss-num"
+                        class="text-[#1e3a5f] font-mono">
+                    </span> - 
+                </div>
+
             </div>
-            <button onclick="closeModal('score-modal')" class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke-width="2"/></svg>
+
+            <button
+                onclick="closeModal('score-modal')"
+                class="
+                    w-10 h-10
+                    rounded-xl
+                    border border-slate-200
+                    bg-white
+                    flex items-center justify-center
+                    text-slate-400
+                    hover:bg-slate-100
+                    transition
+                    shrink-0
+                "
+            >
+                <i class="fa-solid fa-xmark text-sm"></i>
             </button>
+
         </div>
 
         <form id="score-form" method="POST">
             @csrf
-            <div class="p-5">
+
+            <div class="p-4 sm:p-6">
+
                 @php
                     $formula = \App\Models\SuggestionRewardFormula::with(['items','tiers'])
-                        ->where('is_active', true)->first();
+                        ->where('is_active', true)
+                        ->first();
                 @endphp
 
                 @if($formula)
-                {{-- Kriteria Penilaian --}}
-                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-4">
-                    <div class="text-[10px] font-bold uppercase tracking-wider text-[#1e3a5f] mb-3">Kriteria Penilaian — {{ $formula->name }}</div>
-                    <div class="tbl-scroll">
-                        <table class="w-full text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-white">
-                                    <th class="px-3 py-2 text-center font-semibold text-[10px] uppercase text-gray-500 border border-gray-100 w-8">No</th>
-                                    <th class="px-3 py-2 text-left font-semibold text-[10px] uppercase text-gray-500 border border-gray-100">Item</th>
-                                    <th class="px-3 py-2 text-center font-semibold text-[10px] text-gray-500 border border-gray-100 min-w-[100px]">A (1–2)</th>
-                                    <th class="px-3 py-2 text-center font-semibold text-[10px] text-gray-500 border border-gray-100 min-w-[100px]">B (3–4)</th>
-                                    <th class="px-3 py-2 text-center font-semibold text-[10px] text-gray-500 border border-gray-100 min-w-[100px]">C (5–6)</th>
-                                    <th class="px-3 py-2 text-center font-semibold text-[10px] text-gray-500 border border-gray-100 min-w-[100px]">D (7–8)</th>
-                                    <th class="px-3 py-2 text-center font-semibold text-[10px] text-gray-500 border border-gray-100 min-w-[100px]">E (9–10)</th>
-                                    <th class="px-3 py-2 text-center font-semibold text-[10px] text-gray-500 border border-gray-100 w-24">Point</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($formula->items as $index => $item)
-                                @php
-                                    $cl = \App\Models\SuggestionRewardFormulaItemCriteria::where('item_id',$item->id)->orderBy('min_point')->get();
-                                    $grA = $cl->firstWhere('grade','A'); $grB = $cl->firstWhere('grade','B');
-                                    $grC = $cl->firstWhere('grade','C'); $grD = $cl->firstWhere('grade','D');
-                                    $grE = $cl->firstWhere('grade','E');
-                                @endphp
-                                <tr class="bg-white hover:bg-blue-50 transition-colors">
-                                    <td class="px-3 py-2.5 text-center font-semibold border border-gray-100 text-gray-400">{{ $index+1 }}</td>
-                                    <td class="px-3 py-2.5 font-bold text-gray-800 border border-gray-100 uppercase text-[11px]">{{ $item->item_name }}</td>
-                                    <td class="px-3 py-2.5 text-[10px] text-gray-500 border border-gray-100 align-top">{{ $grA?->description ?? '—' }}</td>
-                                    <td class="px-3 py-2.5 text-[10px] text-gray-500 border border-gray-100 align-top">{{ $grB?->description ?? '—' }}</td>
-                                    <td class="px-3 py-2.5 text-[10px] text-gray-500 border border-gray-100 align-top">{{ $grC?->description ?? '—' }}</td>
-                                    <td class="px-3 py-2.5 text-[10px] text-gray-500 border border-gray-100 align-top">{{ $grD?->description ?? '—' }}</td>
-                                    <td class="px-3 py-2.5 text-[10px] text-gray-500 border border-gray-100 align-top">{{ $grE?->description ?? '—' }}</td>
-                                    <td class="px-3 py-2.5 border border-gray-100">
-                                       <input type="number" name="scores[{{ $item->id }}]"
-    class="score-select w-full text-center text-xs font-bold border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-[#1e3a5f] transition-colors appearance-none"
-     max="10" placeholder="1–10"
-    data-item-id="{{ $item->id }}"
-    onchange="updateScoreTotal()"/>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+
+                {{-- INFO --}}
+                <div class="
+                    mb-5
+                    rounded-2xl
+                    border border-blue-100
+                    bg-gradient-to-r from-blue-50 to-white
+                    p-4 sm:p-5
+                ">
+
+                    <div class="flex items-start gap-3">
+
+                        <div class="
+                            w-11 h-11
+                            rounded-2xl
+                            bg-blue-100
+                            text-blue-700
+                            flex items-center justify-center
+                            shrink-0
+                        ">
+                            <i class="fa-solid fa-ranking-star"></i>
+                        </div>
+
+                        <div>
+
+                            <div class="
+                                text-[10px]
+                                font-bold
+                                uppercase
+                                tracking-[0.2em]
+                                text-blue-500
+                            ">
+                                Formula Penilaian Aktif
+                            </div>
+
+                            <div class="
+                                mt-1
+                                text-sm
+                                font-bold
+                                text-slate-800
+                            ">
+                                {{ $formula->name }}
+                            </div>
+
+                        </div>
+
                     </div>
+
                 </div>
 
-                {{-- Total + Avg + Reward --}}
-                <div class="grid grid-cols-3 gap-3 mb-4">
-                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-3.5 text-center">
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Total Nilai</div>
-                        <div id="total-score" class="text-2xl font-bold text-[#1e3a5f]">0</div>
+                {{-- DESKTOP --}}
+                <div class="hidden lg:block rounded-2xl border border-slate-200 bg-white">
+
+                    <table class="w-full text-sm border-collapse">
+
+                        <thead>
+
+                            <tr class="bg-gradient-to-r from-slate-50 to-slate-100">
+
+                                <th class="
+                                    px-4 py-4
+                                    text-center
+                                    font-bold
+                                    text-[10px]
+                                    uppercase
+                                    tracking-wider
+                                    text-slate-500
+                                    border-b border-slate-200
+                                    w-14
+                                ">
+                                    No
+                                </th>
+
+                                <th class="
+                                    px-4 py-4
+                                    text-left
+                                    font-bold
+                                    text-[10px]
+                                    uppercase
+                                    tracking-wider
+                                    text-slate-500
+                                    border-b border-slate-200
+                                ">
+                                    Kriteria
+                                </th>
+
+                                <th class="px-4 py-4 text-center border-b border-slate-200 min-w-[150px]">
+                                    <div class="inline-flex flex-col items-center">
+                                        <span class="text-[10px] font-bold text-red-500">A</span>
+                                        <span class="text-[10px] text-slate-400">1–2</span>
+                                    </div>
+                                </th>
+
+                                <th class="px-4 py-4 text-center border-b border-slate-200 min-w-[150px]">
+                                    <div class="inline-flex flex-col items-center">
+                                        <span class="text-[10px] font-bold text-orange-500">B</span>
+                                        <span class="text-[10px] text-slate-400">3–4</span>
+                                    </div>
+                                </th>
+
+                                <th class="px-4 py-4 text-center border-b border-slate-200 min-w-[150px]">
+                                    <div class="inline-flex flex-col items-center">
+                                        <span class="text-[10px] font-bold text-amber-500">C</span>
+                                        <span class="text-[10px] text-slate-400">5–6</span>
+                                    </div>
+                                </th>
+
+                                <th class="px-4 py-4 text-center border-b border-slate-200 min-w-[150px]">
+                                    <div class="inline-flex flex-col items-center">
+                                        <span class="text-[10px] font-bold text-emerald-500">D</span>
+                                        <span class="text-[10px] text-slate-400">7–8</span>
+                                    </div>
+                                </th>
+
+                                <th class="px-4 py-4 text-center border-b border-slate-200 min-w-[150px]">
+                                    <div class="inline-flex flex-col items-center">
+                                        <span class="text-[10px] font-bold text-blue-500">E</span>
+                                        <span class="text-[10px] text-slate-400">9–10</span>
+                                    </div>
+                                </th>
+
+                                <th class="
+                                    px-4 py-4
+                                    text-center
+                                    font-bold
+                                    text-[10px]
+                                    uppercase
+                                    tracking-wider
+                                    text-slate-500
+                                    border-b border-slate-200
+                                    w-36
+                                ">
+                                    Point
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach($formula->items as $index => $item)
+
+                            @php
+                                $cl = \App\Models\SuggestionRewardFormulaItemCriteria::where('item_id',$item->id)
+                                    ->orderBy('min_point')
+                                    ->get();
+
+                                $grA = $cl->firstWhere('grade','A');
+                                $grB = $cl->firstWhere('grade','B');
+                                $grC = $cl->firstWhere('grade','C');
+                                $grD = $cl->firstWhere('grade','D');
+                                $grE = $cl->firstWhere('grade','E');
+                            @endphp
+
+                            <tr class="bg-white hover:bg-slate-50">
+
+                                <td class="
+                                    px-4 py-5
+                                    text-center
+                                    border-b border-slate-100
+                                ">
+
+                                    <div class="
+                                        w-8 h-8
+                                        rounded-xl
+                                        bg-slate-100
+                                        text-slate-500
+                                        font-bold
+                                        text-xs
+                                        flex items-center justify-center
+                                        mx-auto
+                                    ">
+                                        {{ $index + 1 }}
+                                    </div>
+
+                                </td>
+
+                                <td class="
+                                    px-4 py-5
+                                    border-b border-slate-100
+                                    align-top
+                                ">
+
+                                    <div class="
+                                        text-xs
+                                        font-bold
+                                        uppercase
+                                        tracking-wide
+                                        text-slate-800
+                                        leading-relaxed
+                                    ">
+                                        {{ $item->item_name }}
+                                    </div>
+
+                                </td>
+
+                                <td class="px-4 py-5 text-[11px] leading-relaxed text-slate-500 border-b border-slate-100 align-top">
+                                    {{ $grA?->description ?? '—' }}
+                                </td>
+
+                                <td class="px-4 py-5 text-[11px] leading-relaxed text-slate-500 border-b border-slate-100 align-top">
+                                    {{ $grB?->description ?? '—' }}
+                                </td>
+
+                                <td class="px-4 py-5 text-[11px] leading-relaxed text-slate-500 border-b border-slate-100 align-top">
+                                    {{ $grC?->description ?? '—' }}
+                                </td>
+
+                                <td class="px-4 py-5 text-[11px] leading-relaxed text-slate-500 border-b border-slate-100 align-top">
+                                    {{ $grD?->description ?? '—' }}
+                                </td>
+
+                                <td class="px-4 py-5 text-[11px] leading-relaxed text-slate-500 border-b border-slate-100 align-top">
+                                    {{ $grE?->description ?? '—' }}
+                                </td>
+
+                                <td class="
+                                    px-4 py-5
+                                    border-b border-slate-100
+                                ">
+
+                                    <div class="flex justify-center">
+
+                                        <input
+                                            type="number"
+                                            name="scores[{{ $item->id }}]"
+                                            class="
+                                                score-select
+                                                w-24 h-12
+                                                text-center
+                                                text-base
+                                                font-bold
+                                                rounded-2xl
+                                                border-2 border-slate-200
+                                                bg-slate-50
+                                                outline-none
+                                                focus:border-[#1e3a5f]
+                                                focus:bg-white
+                                            "
+                                            max="10"
+                                            placeholder="1–10"
+                                            data-item-id="{{ $item->id }}"
+                                            onchange="updateScoreTotal()"
+                                        />
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                {{-- MOBILE --}}
+                <div class="lg:hidden space-y-4">
+
+                    @foreach($formula->items as $index => $item)
+
+                    @php
+                        $cl = \App\Models\SuggestionRewardFormulaItemCriteria::where('item_id',$item->id)
+                            ->orderBy('min_point')
+                            ->get();
+
+                        $grA = $cl->firstWhere('grade','A');
+                        $grB = $cl->firstWhere('grade','B');
+                        $grC = $cl->firstWhere('grade','C');
+                        $grD = $cl->firstWhere('grade','D');
+                        $grE = $cl->firstWhere('grade','E');
+                    @endphp
+
+                    <div class="
+                        rounded-2xl
+                        border border-slate-200
+                        bg-white
+                        overflow-hidden
+                    ">
+
+                        <div class="
+                            px-4 py-3
+                            border-b border-slate-100
+                            bg-slate-50
+                        ">
+
+                            <div class="flex items-start justify-between gap-3">
+
+                                <div>
+
+                                    <div class="
+                                        text-[10px]
+                                        font-bold
+                                        uppercase
+                                        tracking-wider
+                                        text-slate-400
+                                    ">
+                                        Kriteria {{ $index + 1 }}
+                                    </div>
+
+                                    <div class="
+                                        mt-1
+                                        text-sm
+                                        font-bold
+                                        text-slate-800
+                                    ">
+                                        {{ $item->item_name }}
+                                    </div>
+
+                                </div>
+
+                                <div class="
+                                    w-10 h-10
+                                    rounded-xl
+                                    bg-blue-50
+                                    border border-blue-100
+                                    flex items-center justify-center
+                                    text-blue-600
+                                ">
+                                    <i class="fa-solid fa-clipboard-check"></i>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="p-4 space-y-2">
+
+                            @foreach([
+                                ['A (1–2)', $grA?->description, 'text-red-500'],
+                                ['B (3–4)', $grB?->description, 'text-orange-500'],
+                                ['C (5–6)', $grC?->description, 'text-amber-500'],
+                                ['D (7–8)', $grD?->description, 'text-emerald-500'],
+                                ['E (9–10)', $grE?->description, 'text-blue-500'],
+                            ] as $grade)
+
+                            <div class="rounded-xl border border-slate-100 p-3">
+
+                                <div class="text-[10px] font-bold {{ $grade[2] }}">
+                                    {{ $grade[0] }}
+                                </div>
+
+                                <div class="mt-1 text-[11px] text-slate-500 leading-relaxed">
+                                    {{ $grade[1] ?? '—' }}
+                                </div>
+
+                            </div>
+
+                            @endforeach
+
+                            <div class="pt-3 border-t border-dashed border-slate-200">
+
+                                <label class="
+                                    block
+                                    text-[11px]
+                                    font-bold
+                                    text-slate-500
+                                    mb-2
+                                ">
+                                    Input Nilai
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="scores[{{ $item->id }}]"
+                                    class="
+                                        score-select
+                                        w-full
+                                        h-12
+                                        text-center
+                                        text-base
+                                        font-bold
+                                        border-2 border-slate-200
+                                        rounded-xl
+                                        bg-slate-50
+                                        outline-none
+                                        focus:border-[#1e3a5f]
+                                    "
+                                    max="10"
+                                    placeholder="1–10"
+                                    data-item-id="{{ $item->id }}"
+                                    onchange="updateScoreTotal()"
+                                />
+
+                            </div>
+
+                        </div>
+
                     </div>
-                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-3.5 text-center">
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Rata-rata</div>
-                        <div id="avg-score" class="text-2xl font-bold text-teal-700">0.00</div>
+
+                    @endforeach
+
+                </div>
+
+                {{-- SUMMARY --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5 mb-5">
+
+                    <div class="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Total Nilai
+                        </div>
+                        <div id="total-score" class="mt-2 text-3xl font-black text-[#1e3a5f]">
+                            0
+                        </div>
                     </div>
-                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-3.5 text-center">
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-amber-600 mb-1">Est. Reward</div>
-                        <div id="estimated-reward" class="text-base font-bold text-amber-800">—</div>
+
+                    <div class="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Rata-rata
+                        </div>
+                        <div id="avg-score" class="mt-2 text-3xl font-black text-emerald-600">
+                            0.00
+                        </div>
                     </div>
+
+                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-amber-600">
+                            Estimasi Reward
+                        </div>
+                        <div id="estimated-reward" class="mt-2 text-lg font-black text-amber-800">
+                            —
+                        </div>
+                    </div>
+
                 </div>
 
                 <script id="tiers-data" type="application/json">
-                    @json($formula->tiers->map(fn($t) => ['min'=>$t->min_score,'max'=>$t->max_score,'reward'=>$t->reward_amount]))
+                    @json($formula->tiers->map(fn($t) => [
+                        'min'=>$t->min_score,
+                        'max'=>$t->max_score,
+                        'reward'=>$t->reward_amount
+                    ]))
                 </script>
 
                 @else
-                <div class="py-10 text-center text-sm text-gray-400">
-                    Tidak ada formula penilaian aktif.<br>Buat formula terlebih dahulu pada tab Penilaian.
+
+                <div class="
+                    py-16
+                    text-center
+                    rounded-2xl
+                    border border-dashed border-slate-200
+                    bg-white
+                ">
+
+                    <div class="text-4xl text-slate-200 mb-3">
+                        <i class="fa-solid fa-file-circle-xmark"></i>
+                    </div>
+
+                    <div class="text-sm font-medium text-slate-500">
+                        Tidak ada formula penilaian aktif
+                    </div>
+
                 </div>
+
                 @endif
 
-                <div>
-                    <label class="block text-[11px] font-medium text-gray-600 mb-1">Catatan Manager</label>
-                    <textarea name="manager_note" rows="3"
-                        class="w-full text-xs border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-[#1e3a5f] resize-none transition-colors"
-                        placeholder="Opsional..."></textarea>
+                {{-- NOTE --}}
+                <div class="mt-5">
+
+                    <label class="
+                        block
+                        text-[11px]
+                        font-bold
+                        uppercase
+                        tracking-wider
+                        text-slate-500
+                        mb-2
+                    ">
+                        Catatan Manager
+                    </label>
+
+                    <textarea
+                        name="manager_note"
+                        rows="4"
+                        class="
+                            w-full
+                            rounded-2xl
+                            border border-slate-200
+                            bg-white
+                            px-4 py-3
+                            text-sm
+                            outline-none
+                            resize-none
+                            focus:border-[#1e3a5f]
+                        "
+                        placeholder="Tambahkan catatan penilaian..."
+                    ></textarea>
+
                 </div>
+
             </div>
 
-            <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-100 bg-gray-50 rounded-b-xl">
-                <button type="button" onclick="closeModal('score-modal')"
-                    class="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            {{-- FOOTER --}}
+            <div class="
+                flex items-center justify-end gap-3
+                px-5 sm:px-6
+                py-4
+                border-t border-slate-200
+                bg-white
+            ">
+
+                <button
+                    type="button"
+                    onclick="closeModal('score-modal')"
+                    class="
+                        h-11
+                        px-5
+                        rounded-xl
+                        border border-slate-200
+                        bg-white
+                        text-sm
+                        font-semibold
+                        text-slate-600
+                        hover:bg-slate-50
+                    "
+                >
                     Batal
                 </button>
-                <button type="submit"
-                    class="px-4 py-2 text-xs font-medium text-white bg-[#1e3a5f] rounded-lg hover:bg-[#162d4a] transition-colors">
+
+                <button
+                    type="submit"
+                    class="
+                        h-11
+                        px-5
+                        rounded-xl
+                        bg-[#1e3a5f]
+                        text-sm
+                        font-semibold
+                        text-white
+                        hover:bg-[#162d4a]
+                    "
+                >
                     Simpan Penilaian
                 </button>
+
             </div>
+
         </form>
+
     </div>
+
 </div>
 
 <div id="ssSlideOver" class="fixed inset-0 z-50 hidden">
@@ -2297,29 +2836,89 @@ function ssAccordion(btn) {
    FOOTER
 ════════════════════════════════ */
 function ssRenderFooter(actions, id, ssNum, mode = 'view') {
+ 
     const info = document.getElementById('ssFooterInfo');
     const btns = document.getElementById('ssFooterBtns');
+ 
     btns.innerHTML = '';
  
-    /* tutup selalu ada */
-    btns.appendChild(ssMakeBtn('Tutup', 'slate', closeSlideOver));
+    // ── Helper: navigasi ke halaman edit ──
+    const goEdit = () => { window.location.href = `/suggestion/${id}/edit`; };
  
+    // ── Tombol Tutup selalu ada ──
+    btns.appendChild(ssMakeBtn('Tutup', 'slate', closeSlideOver, 'fa-solid fa-xmark'));
+ 
+    /*
+    |--------------------------------------------------------------------------
+    | MODE SCORE (dibuka dari card dengan onclick openSlideOver(id, 'score'))
+    |--------------------------------------------------------------------------
+    */
     if (mode === 'score') {
         btns.innerHTML = '';
-        btns.appendChild(ssMakeBtn('Submit Nilai', 'purple', () => openScoreModal(id, ssNum)));
-        btns.appendChild(ssMakeBtn('Tutup', 'slate', closeSlideOver));
+        btns.appendChild(ssMakeBtn('Submit Nilai', 'purple', () => openScoreModal(id, ssNum), 'fa-solid fa-star'));
+        btns.appendChild(ssMakeBtn('Tutup', 'slate', closeSlideOver, 'fa-solid fa-xmark'));
         return;
     }
  
+    /*
+    |--------------------------------------------------------------------------
+    | MODE REVISION (dibuka dari card dengan onclick openSlideOver(id, 'revision'))
+    | Langsung tampil tombol Revisi → arahkan ke halaman edit
+    |--------------------------------------------------------------------------
+    */
+    if (mode === 'revision') {
+        btns.innerHTML = '';
+        btns.appendChild(ssMakeBtn('Revisi', 'amber', goEdit, 'fa-solid fa-rotate-right'));
+        btns.appendChild(ssMakeBtn('Tutup', 'slate', closeSlideOver, 'fa-solid fa-xmark'));
+        return;   // ← RETURN LEBIH AWAL, tidak lanjut ke actions loop
+    }
+ 
+    /*
+    |--------------------------------------------------------------------------
+    | ACTIONS dari API (d.actions)
+    | Map setiap action string ke tombol yang sesuai
+    |--------------------------------------------------------------------------
+    */
     (actions || []).forEach(a => {
+ 
         const map = {
-            submit:      () => btns.prepend(ssMakeBtn('Submit',      'blue',   () => submit(id))),
-            approve:     () => btns.prepend(ssMakeBtn('Setujui',     'green',  () => openSpvModal(id, ssNum))),
-            reject:      () => btns.prepend(ssMakeBtn('Tolak',       'red',    () => openSpvModal(id, ssNum))),
-            return:      () => btns.prepend(ssMakeBtn('Kembalikan',  'amber',  () => openSpvModal(id, ssNum))),
-            score:       () => btns.prepend(ssMakeBtn('Beri Nilai',  'purple', () => openScoreModal(id, ssNum))),
-            close:       () => btns.prepend(ssMakeBtn('Acknowledge', 'teal',   () => confirmClose(id))),
+ 
+            // Owner: draft bisa edit & submit
+            edit: () => btns.prepend(
+                ssMakeBtn('Edit', 'orange', goEdit, 'fa-solid fa-pen')
+            ),
+ 
+            submit: () => btns.prepend(
+                ssMakeBtn('Submit', 'blue', () => submitSS(id), 'fa-solid fa-paper-plane')
+            ),
+ 
+            // Owner: returned_spv → tombol Revisi, bukan submit
+            revision: () => btns.prepend(
+                ssMakeBtn('Revisi', 'amber', goEdit, 'fa-solid fa-rotate-right')
+            ),
+ 
+            // SPV actions
+            approve: () => btns.prepend(
+                ssMakeBtn('Setujui', 'green', () => openSpvModal(id, ssNum), 'fa-solid fa-check')
+            ),
+            reject: () => btns.prepend(
+                ssMakeBtn('Tolak', 'red', () => openSpvModal(id, ssNum), 'fa-solid fa-xmark')
+            ),
+            return: () => btns.prepend(
+                ssMakeBtn('Kembalikan', 'amber', () => openSpvModal(id, ssNum), 'fa-solid fa-rotate-left')
+            ),
+ 
+            // Manager
+            score: () => btns.prepend(
+                ssMakeBtn('Beri Nilai', 'purple', () => openScoreModal(id, ssNum), 'fa-solid fa-star')
+            ),
+ 
+            // Improvement
+            close: () => btns.prepend(
+                ssMakeBtn('Acknowledge', 'teal', () => confirmClose(id), 'fa-solid fa-circle-check')
+            ),
         };
+ 
         if (map[a]) map[a]();
     });
 }
@@ -2330,6 +2929,7 @@ function ssMakeBtn(label, color, fn) {
         green:  'bg-emerald-600 hover:bg-emerald-700 text-white',
         red:    'bg-red-600 hover:bg-red-700 text-white',
         amber:  'bg-amber-500 hover:bg-amber-600 text-white',
+        orange:  'bg-orange-500 hover:bg-orange-600 text-white',
         purple: 'bg-violet-600 hover:bg-violet-700 text-white',
         navy:   'bg-[#0f172a] hover:bg-[#1e293b] text-white',
         teal:   'bg-[#0f172a] hover:bg-[#1e293b] text-white',
@@ -2871,13 +3471,7 @@ const analyticsData = @json($analyticsData ?? []);
 function initCharts() {
     if (chartsInited) return; chartsInited = true;
     Chart.defaults.font.family = 'Inter'; Chart.defaults.font.size = 11; Chart.defaults.color = '#6b7280';
-    const trend = analyticsData.monthly_trend ?? [];
-    new Chart(document.getElementById('chartTrend'), {
-        type:'line', data:{ labels:trend.map(d=>d.month), datasets:[
-            { label:'Diajukan', data:trend.map(d=>d.submitted), borderColor:CC.navy, backgroundColor:'rgba(30,58,95,.07)', fill:true, tension:.3, pointRadius:3, borderWidth:2 },
-            { label:'Selesai',  data:trend.map(d=>d.closed),    borderColor:CC.green, backgroundColor:'rgba(34,197,94,.07)', fill:true, tension:.3, pointRadius:3, borderWidth:2 },
-        ]}, options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ position:'top', labels:{ boxWidth:10, padding:12 } } }, scales:{ y:{ beginAtZero:true, grid:{color:'#f3f4f6'}, ticks:{stepSize:1} }, x:{ grid:{display:false} } } }
-    });
+
   const cats = analyticsData.category_counts ?? [];
 
 new Chart(document.getElementById('chartCategory'), {
@@ -3047,42 +3641,51 @@ const y = arc.y + Math.sin(angle) * (arc.outerRadius + 14);
         }
     ]
 });
-    const depts = analyticsData.dept_avg_score ?? [];
-    new Chart(document.getElementById('chartDeptScore'), {
-        type:'bar', data:{ labels:depts.map(d=>d.department), datasets:[{ label:'Avg Skor', data:depts.map(d=>d.avg_score), backgroundColor:CC.navy, borderRadius:3, borderSkipped:false }] },
-        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{beginAtZero:true,max:100,grid:{color:'#f3f4f6'}}, y:{grid:{display:false}} } }
-    });
-    const fl = [analyticsData.status_counts?.submitted??0, analyticsData.status_counts?.approved_spv??0, analyticsData.status_counts?.scored??0, analyticsData.status_counts?.closed??0];
-    new Chart(document.getElementById('chartFunnel'), {
-        type:'bar', data:{ labels:['Diajukan','Disetujui SPV','Dinilai','Selesai'], datasets:[{ data:fl, backgroundColor:[CC.amber,CC.teal,CC.purple,CC.green], borderRadius:3, borderSkipped:false }] },
-        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{beginAtZero:true,grid:{color:'#f3f4f6'}}, y:{grid:{display:false}} } }
-    });
-   const sd = analyticsData.score_distribution ?? [];
+   
+ const rd = analyticsData.dept_stats ?? [];
 
-new Chart(document.getElementById('chartScoreDist'), {
+new Chart(document.getElementById('chartReward'), {
 
-    type: 'doughnut',
+    type: 'bar',
 
     data: {
 
-        labels: sd.map(s => s.department),
+        labels: rd.map(d => d.department),
 
-        datasets: [{
-            data: sd.map(s => Number(s.total_score)),
+        datasets: [
 
-            backgroundColor: [
-                '#1e3a5f',
-                '#334e68',
-                '#486581',
-                '#627d98',
-                '#829ab1',
-                '#9fb3c8',
-                '#bcccdc',
-            ],
+            // AVG SCORE (utama & objektif)
+            {
+                label: 'Average Score',
 
-            borderWidth: 0,
-            hoverOffset: 6
-        }]
+                data: rd.map(d => Number(d.avg_score)),
+
+                backgroundColor: '#1e3a5f',
+
+                borderRadius: 10,
+                borderSkipped: false,
+
+                maxBarThickness: 42,
+
+                yAxisID: 'y',
+            },
+
+            // TOTAL REWARD (tetap ada)
+            {
+                label: 'Total Reward',
+
+                data: rd.map(d => Number(d.total_reward)),
+
+                backgroundColor: 'rgba(30, 58, 95, 0.18)',
+
+                borderRadius: 10,
+                borderSkipped: false,
+
+                maxBarThickness: 42,
+
+                yAxisID: 'y1',
+            }
+        ]
     },
 
     options: {
@@ -3090,105 +3693,61 @@ new Chart(document.getElementById('chartScoreDist'), {
         responsive: true,
         maintainAspectRatio: false,
 
-        cutout: '68%',
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
 
         plugins: {
 
             legend: {
-
-                position: 'bottom',
+                display: true,
+                position: 'top',
 
                 labels: {
                     usePointStyle: true,
                     pointStyle: 'circle',
                     padding: 18,
-                    boxWidth: 8,
+                    color: '#475569',
 
                     font: {
                         size: 11,
-                        weight: '500'
+                        weight: '600'
                     }
                 }
             },
 
             tooltip: {
-                enabled: false
-            }
-        }
-    },
 
-    plugins: [{
+                enabled: true,
 
-        id: 'centerText',
+                callbacks: {
 
-        afterDraw(chart) {
+                    label(context) {
 
-            const { ctx } = chart;
+                        const d = rd[context.dataIndex];
 
-            const total = sd.reduce(
-                (sum, item) => sum + Number(item.total_score),
-                0
-            );
+                        if (context.dataset.label === 'Average Score') {
+                            return `Avg Score : ${d.avg_score}`;
+                        }
 
-            ctx.save();
+                        return `Reward : Rp ${Number(d.total_reward)
+                            .toLocaleString('id-ID')}`;
+                    },
 
-            ctx.textAlign = 'center';
+                    afterBody(items) {
 
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 11px Inter';
+                        const d = rd[items[0].dataIndex];
 
-            ctx.fillText(
-                'TOTAL SCORE',
-                chart.width / 2,
-                chart.height / 2 - 6
-            );
-
-            ctx.fillStyle = '#0f172a';
-            ctx.font = '700 24px Inter';
-
-            ctx.fillText(
-                total.toFixed(1),
-                chart.width / 2,
-                chart.height / 2 + 22
-            );
-
-            ctx.restore();
-        }
-    }]
-});
-  const rd = analyticsData.dept_reward ?? [];
-
-new Chart(document.getElementById('chartReward'), {
-    type: 'bar',
-
-    data: {
-        labels: rd.map(d => d.department),
-
-        datasets: [{
-            data: rd.map(d => Number(d.total_reward)),
-
-            backgroundColor: '#1e3a5f',
-
-            borderRadius: 10,
-            borderSkipped: false,
-
-            maxBarThickness: 42,
-        }]
-    },
-
-    options: {
-
-        responsive: true,
-        maintainAspectRatio: false,
-
-        plugins: {
-
-            legend: {
-                display: false
-            },
-
-            tooltip: {
-                enabled: false
+                        return [
+                            `Total SS : ${d.total_ss}`,
+                            `Total Score : ${Number(d.total_score)
+                                .toLocaleString('id-ID')}`,
+                            `Avg Reward : Rp ${Number(d.avg_reward)
+                                .toLocaleString('id-ID')}`
+                        ];
+                    }
+                }
             }
         },
 
@@ -3202,6 +3761,7 @@ new Chart(document.getElementById('chartReward'), {
 
                 ticks: {
                     color: '#475569',
+
                     font: {
                         size: 11,
                         weight: '600'
@@ -3209,7 +3769,10 @@ new Chart(document.getElementById('chartReward'), {
                 }
             },
 
+            // SCORE
             y: {
+
+                position: 'left',
 
                 beginAtZero: true,
 
@@ -3218,7 +3781,29 @@ new Chart(document.getElementById('chartReward'), {
                 },
 
                 ticks: {
-                    callback: function(value) {
+                    color: '#475569'
+                },
+
+                title: {
+                    display: true,
+                    text: 'Average Score'
+                }
+            },
+
+            // REWARD
+            y1: {
+
+                position: 'right',
+
+                beginAtZero: true,
+
+                grid: {
+                    drawOnChartArea: false
+                },
+
+                ticks: {
+
+                    callback(value) {
 
                         if (value >= 1000000) {
                             return 'Rp ' + (value / 1000000) + 'jt';
@@ -3230,6 +3815,11 @@ new Chart(document.getElementById('chartReward'), {
 
                         return value;
                     }
+                },
+
+                title: {
+                    display: true,
+                    text: 'Total Reward'
                 }
             }
         }
@@ -3249,15 +3839,13 @@ new Chart(document.getElementById('chartReward'), {
             ctx.fillStyle = '#1e3a5f';
             ctx.textAlign = 'center';
 
+            // label hanya untuk avg score
             chart.getDatasetMeta(0).data.forEach((bar, index) => {
 
-                const value = rd[index].total_reward;
-
-                const label =
-                    'Rp ' + Number(value).toLocaleString('id-ID');
+                const value = rd[index].avg_score;
 
                 ctx.fillText(
-                    label,
+                    Number(value).toFixed(1),
                     bar.x,
                     bar.y - 8
                 );

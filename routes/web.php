@@ -87,6 +87,8 @@ Route::middleware(['suggestion.auth'])->prefix('suggestion')->name('suggestion.'
     Route::get('/create',     [SuggestionController::class, 'create'])->name('create');
     Route::post('/draft', [SuggestionController::class, 'storeDraft'])->name('draft');
 Route::post('/submit', [SuggestionController::class, 'submit'])->name('submit');
+Route::get('/{suggestion}/edit',     [SuggestionController::class, 'edit'])->name('edit');
+Route::put('/{suggestion}/update', [SuggestionController::class, 'update'])->name('updateData');
     Route::get('/my',         [SuggestionController::class, 'mySuggestions'])->name('my');
     Route::post('/formula',            [SuggestionController::class, 'storeFormula'])->name('formula.store');
 

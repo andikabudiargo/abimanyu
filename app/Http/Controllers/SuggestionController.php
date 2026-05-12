@@ -12,6 +12,7 @@ use App\Models\SuggestionRewardFormulaItem;
 use App\Models\SuggestionRewardFormulaItemCriteria;
 use App\Models\SuggestionRewardTier;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\SuggestionPhoto;
@@ -394,238 +395,427 @@ foreach ($rows as $index => $row) {
     |--------------------------------------------------------------------------
     */
 
-  $html .= '
-<div class="px-6 py-5 hover:bg-slate-50 transition">
+ $html .= '
+<div class="
+    overflow-hidden
+    rounded-2xl
+    border border-slate-200
+    bg-white
+    shadow-sm
+    hover:shadow-lg
+    hover:-translate-y-[2px]
+    transition-all duration-300
+">
 
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div class="
+        px-4 sm:px-6
+        py-4
+        bg-gradient-to-r from-slate-50 to-white
+        border-b border-slate-200
+    ">
 
-      
-        <div class="min-w-0 flex-1">
+        <div class="
+            flex items-start justify-between
+            gap-3
+        ">
 
-          
-           <div class="mt-1 flex items-center gap-2 flex-wrap">
+            <div class="min-w-0 flex-1">
 
-    <div class="text-xs font-semibold text-[#1e3a5f] font-mono tracking-wide">
-        ' . e($row->ss_number) . '
-    </div>
+                <div class="flex items-center gap-2 flex-wrap">
 
-    ' . $statusBadge . '
+                    <div class="
+                        inline-flex items-center gap-2
+                        px-3 py-1.5
+                        rounded-xl
+                        border border-[#1e3a5f]/10
+                        bg-[#1e3a5f]/5
+                        max-w-full
+                    ">
 
-</div>
+                        <i class="fa-solid fa-hashtag text-[11px] text-[#1e3a5f] shrink-0"></i>
 
-          <div class="mt-3 flex flex-wrap gap-2">
-    ' . collect($row->categories ?? [])
-        ->map(function ($cat) {
-            return '
-                <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-[10px] font-medium text-slate-500">
+                        <span class="
+                            text-xs
+                            font-bold
+                            tracking-wide
+                            text-[#1e3a5f]
+                            font-mono
+                            truncate
+                        ">
+                            ' . e($row->ss_number) . '
+                        </span>
 
-                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></span>
+                    </div>
 
-                    ' . e($cat) . '
+                    ' . $statusBadge . '
 
+                </div>
+
+            </div>
+
+            <div class="
+                flex items-center gap-1.5
+                text-[11px]
+                text-slate-400
+                shrink-0
+                pt-1
+            ">
+
+                <i class="fa-regular fa-calendar"></i>
+
+                <span class="hidden sm:inline">
+                    Submitted
                 </span>
-            ';
-        })->implode('') . '
-</div>
 
-           
-            <div class="mt-1 text-sm font-semibold text-slate-800 leading-snug">
-                ' . e($row->theme ?: '-') . '
-            </div>
+                <span>
+                    ' . e($createdAt) . '
+                </span>
 
-            
-            <div class="mt-1 text-xs text-slate-500">
-                ' . e($applicant) . ' · ' . e($departmentName) . '
-            </div>
-
-           
-            
-
-           
-            <div class="mt-3 text-xs text-slate-400">
-                Submitted ' . e($createdAt) . '
             </div>
 
         </div>
 
-       
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+    </div>
 
-           
-            ' . (
-                !is_null($row->score_total)
+    <div class="p-4 sm:px-6">
+
+        <div class="
+            flex flex-col lg:flex-row
+            lg:items-start
+            lg:justify-between
+            gap-6
+        ">
+
+            <div class="min-w-0 flex-1">
+
+                <div class="flex flex-wrap gap-2">
+
+                    ' . collect($row->categories ?? [])
+                        ->map(function ($cat) {
+                            return '
+                                <span class="
+                                    inline-flex items-center gap-1.5
+                                    px-2.5 py-1
+                                    rounded-lg
+                                    border border-slate-200
+                                    bg-slate-50
+                                    text-[10px]
+                                    font-semibold
+                                    text-slate-600
+                                ">
+
+                                    <i class="fa-solid fa-tag text-[9px] text-slate-400"></i>
+
+                                    ' . e($cat) . '
+
+                                </span>
+                            ';
+                        })->implode('') . '
+
+                </div>
+
+                <div class="mt-2">
+
+                    <div class="
+                        text-sm sm:text-[15px]
+                        font-semibold
+                        text-slate-800
+                        leading-relaxed
+                        break-words
+                    ">
+                        ' . e($row->theme ?: '-') . '
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="
+                w-full lg:w-auto
+                lg:min-w-[240px]
+            ">
+
+                ' . (
+                    !is_null($row->score_total)
                     ? '
-                    <div class="flex items-center gap-3 min-w-[120px]">
+                    <div class="
+                        flex items-center justify-between
+                        gap-4
+                        px-4 py-3
+                        rounded-2xl
+                        border border-slate-200
+                        bg-slate-50
+                    ">
 
-                       ' . (function () use ($row) {
-    $score = (float) $row->score_total;
+                        <div class="flex items-center gap-3">
 
-    if ($score < 3) {
-        $borderClass = 'border-red-200';
-        $bgClass     = 'bg-red-50';
-        $textClass   = 'text-red-700';
-    } elseif ($score <= 6) {
-        $borderClass = 'border-amber-200';
-        $bgClass     = 'bg-amber-50';
-        $textClass   = 'text-amber-700';
-    } else {
-        $borderClass = 'border-emerald-200';
-        $bgClass     = 'bg-emerald-50';
-        $textClass   = 'text-emerald-700';
-    }
+                            ' . (function () use ($row) {
 
-    return '
-        <div class="w-11 h-11 rounded-full border-2 ' . $borderClass . ' ' . $bgClass . ' flex items-center justify-center shadow-sm">
-            <span class="text-sm font-bold ' . $textClass . '">
-                ' . number_format($score, 1) . '
-            </span>
-        </div>
-    ';
-})() . '
-                      <div class="leading-tight">
-    <div class="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
-        Reward
-    </div>
+                                $score = (float) $row->score_total;
 
-    <div class="text-xs font-medium text-slate-600">
-        Rp ' . number_format((float) $row->reward_amount, 0, ',', '.') . '
-    </div>
-</div>
+                                if ($score < 3) {
+                                    $borderClass = "border-red-200";
+                                    $bgClass     = "bg-red-50";
+                                    $textClass   = "text-red-700";
+                                } elseif ($score <= 6) {
+                                    $borderClass = "border-amber-200";
+                                    $bgClass     = "bg-amber-50";
+                                    $textClass   = "text-amber-700";
+                                } else {
+                                    $borderClass = "border-emerald-200";
+                                    $bgClass     = "bg-emerald-50";
+                                    $textClass   = "text-emerald-700";
+                                }
+
+                                return '
+                                    <div class="
+                                        w-12 h-12
+                                        rounded-full
+                                        border-2 ' . $borderClass . '
+                                        ' . $bgClass . '
+                                        flex items-center justify-center
+                                        shrink-0
+                                    ">
+                                        <span class="
+                                            text-sm
+                                            font-bold
+                                            ' . $textClass . '
+                                        ">
+                                            ' . number_format($score, 1) . '
+                                        </span>
+                                    </div>
+                                ';
+                            })() . '
+
+                            <div>
+
+                                <div class="
+                                    flex items-center gap-1.5
+                                    text-[10px]
+                                    uppercase
+                                    tracking-wider
+                                    font-semibold
+                                    text-slate-400
+                                ">
+                                    <i class="fa-solid fa-wallet text-[9px]"></i>
+                                    Reward
+                                </div>
+
+                                <div class="
+                                    mt-1
+                                    text-sm
+                                    font-bold
+                                    text-slate-700
+                                ">
+                                    Rp ' . number_format((float) $row->reward_amount, 0, ',', '.') . '
+                                </div>
+
+                            </div>
+
+                        </div>
 
                     </div>
                     '
                     : '
-                    <div class="flex items-center gap-3 min-w-[120px]">
+                    <div class="
+                        flex items-center gap-3
+                        px-4 py-3
+                        rounded-2xl
+                        border border-slate-200
+                        bg-slate-50
+                    ">
 
-                        <div class="w-11 h-11 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center">
-                            <span class="text-xs font-medium text-slate-400">
-                                —
-                            </span>
+                        <div class="
+                            w-12 h-12
+                            rounded-full
+                            border border-slate-200
+                            bg-white
+                            flex items-center justify-center
+                            shrink-0
+                        ">
+                            <i class="fa-solid fa-minus text-xs text-slate-300"></i>
                         </div>
 
-                        <div class="leading-tight">
-                            <div class="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
+                        <div>
+
+                            <div class="
+                                text-[10px]
+                                uppercase
+                                tracking-wider
+                                font-semibold
+                                text-slate-400
+                            ">
                                 Reward
                             </div>
-                            <div class="text-xs font-medium text-slate-400">
-                                Not yet Scored
+
+                            <div class="
+                                mt-1
+                                text-xs
+                                font-medium
+                                text-slate-400
+                            ">
+                                Not yet scored
                             </div>
+
                         </div>
 
                     </div>
                     '
-            ) . '
+                ) . '
 
+            </div>
 
-         
-           '  . (function () use ($row, $user) {
+        </div>
 
-    $isOwner   = $row->user_id == $user->id;
-    $isSpv     = $this->isSpv($user);
-    $isManager = $this->isManager($user);
+    </div>
 
-    /*
-    |----------------------------------------------------------------------
-    | DEFAULT ACTION (SLIDE OVER)
-    |----------------------------------------------------------------------
-    */
+    <div class="
+        px-4 sm:px-6
+        py-4
+        border-t border-slate-200
+        bg-slate-50/70
+    ">
 
-    $baseButton = '
-        <button
-            type="button"
-            onclick="openSlideOver(' . $row->id . ')"
-            class="inline-flex items-center justify-center px-4 py-2 text-xs font-medium border rounded-md transition border-slate-300 hover:bg-slate-50 text-slate-700">
-            Lihat
-        </button>
-    ';
+        <div class="
+            flex items-center justify-between
+            gap-4
+        ">
 
-    /*
-    |----------------------------------------------------------------------
-    | SUBMITTED + SPV → REVIEW (MASIH SLIDE OVER, tapi mode review)
-    |----------------------------------------------------------------------
-    */
+            <div class="flex items-center gap-3 min-w-0">
 
-    if (
-        $row->status === 'submitted' &&
-        $isSpv &&
-        !$isOwner
-    ) {
-        return '
-            <button
-                type="button"
-                onclick="openSlideOver(' . $row->id . ', \'review\')"
-                class="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">
-                Review
-            </button>
-        ';
-    }
+                <div class="
+                    w-9 h-9
+                    rounded-full
+                    bg-blue-500
+                    flex items-center justify-center
+                    shrink-0
+                    shadow-sm
+                ">
+                    <i class="fa-regular fa-user text-sm text-white"></i>
+                </div>
 
-    /*
-    |----------------------------------------------------------------------
-    | APPROVED SPV + MANAGER → SCORE MODE
-    |----------------------------------------------------------------------
-    */
+                <div class="min-w-0">
 
-    if (
-        $row->status === 'approved_spv' &&
-        $isManager
-    ) {
-        return '
-            <button
-                type="button"
-                onclick="openSlideOver(' . $row->id . ', \'score\')"
-                class="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-md border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 transition">
-                Score
-            </button>
-        ';
-    }
+                    <div class="
+                        text-xs
+                        font-semibold
+                        text-slate-700
+                        truncate
+                    ">
+                        ' . e($applicant) . '
+                    </div>
 
-    /*
-    |----------------------------------------------------------------------
-    | RETURNED → OWNER (REVISI MODE)
-    |----------------------------------------------------------------------
-    */
+                    <div class="
+                        text-[11px]
+                        text-slate-400
+                        truncate
+                    ">
+                        ' . e($departmentName) . '
+                    </div>
 
-    if (
-        $row->status === 'returned_spv' &&
-        $isOwner
-    ) {
-        return '
-            <button
-                type="button"
-                onclick="openSlideOver(' . $row->id . ', \'revision\')"
-                class="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-md border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 transition">
-                Revisi
-            </button>
-        ';
-    }
+                </div>
 
-    /*
-    |----------------------------------------------------------------------
-    | REJECTED → VIEW ONLY
-    |----------------------------------------------------------------------
-    */
+            </div>
 
-    if ($row->status === 'rejected_spv') {
-        return '
-            <button
-                type="button"
-                onclick="openSlideOver(' . $row->id . ')"
-                class="inline-flex items-center justify-center px-4 py-2 text-xs font-medium border rounded-md transition border-slate-300 hover:bg-slate-50 text-slate-700">
-                Lihat
-            </button>
-        ';
-    }
+            <div class="flex items-center gap-2 shrink-0">
 
-    /*
-    |----------------------------------------------------------------------
-    | FALLBACK
-    |----------------------------------------------------------------------
-    */
+                <button
+                    type="button"
+                    onclick="printSuggestion(' . $row->id . ')"
+                    class="
+                        inline-flex items-center justify-center gap-2
+                        h-10
+                        px-3 sm:px-4
+                        rounded-xl
+                        border border-emerald-200
+                        bg-emerald-50
+                        text-emerald-700
+                        hover:bg-emerald-100
+                        transition
+                    "
+                >
+                    <i class="fa-solid fa-print text-sm"></i>
 
-    return $baseButton;
+                    <span class="hidden sm:inline text-xs font-semibold">
+                        Print
+                    </span>
+                </button>
 
-})() . '
+                ' . (function () use ($row, $user) {
+
+                    $isOwner   = $row->user_id == $user->id;
+                    $isSpv     = $this->isSpv($user);
+                    $isManager = $this->isManager($user);
+
+                    $baseClass = "
+                        inline-flex items-center justify-center gap-2
+                        h-10
+                        px-3 sm:px-4
+                        rounded-xl
+                        text-xs font-semibold
+                        transition
+                    ";
+
+                    if ($row->status === "submitted" && $isSpv && !$isOwner) {
+                        return '
+                            <button
+                                type="button"
+                                onclick="openSlideOver(' . $row->id . ', \'review\')"
+                                class="' . $baseClass . ' border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+                                <i class="fa-solid fa-check text-sm"></i>
+
+                                <span class="hidden sm:inline">
+                                    Review
+                                </span>
+                            </button>
+                        ';
+                    }
+
+                    if ($row->status === "approved_spv" && $isManager) {
+                        return '
+                            <button
+                                type="button"
+                                onclick="openSlideOver(' . $row->id . ', \'score\')"
+                                class="' . $baseClass . ' border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100">
+                                <i class="fa-solid fa-star text-sm"></i>
+
+                                <span class="hidden sm:inline">
+                                    Score
+                                </span>
+                            </button>
+                        ';
+                    }
+
+                    if ($row->status === "returned_spv" && $isOwner) {
+                        return '
+                            <button
+                                type="button"
+                                onclick="openSlideOver(' . $row->id . ', \'revision\')"
+                                class="' . $baseClass . ' border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100">
+                                <i class="fa-solid fa-rotate-right text-sm"></i>
+
+                                <span class="hidden sm:inline">
+                                    Revisi
+                                </span>
+                            </button>
+                        ';
+                    }
+
+                    return '
+                        <button
+                            type="button"
+                            onclick="openSlideOver(' . $row->id . ')"
+                            class="' . $baseClass . ' border border-slate-300 bg-white hover:bg-slate-50">
+                            <i class="fa-solid fa-eye text-sm"></i>
+
+                            <span class="hidden sm:inline">
+                                Lihat
+                            </span>
+                        </button>
+                    ';
+                })() . '
+
+            </div>
 
         </div>
 
@@ -811,15 +1001,25 @@ $selectedPeriodId = $request->get(
 |--------------------------------------------------------------------------
 */
 
-$rewardPerDepartment = Suggestion::query()
+$departmentStats = Suggestion::query()
     ->join('departments', 'departments.id', '=', 'suggestions.department')
+
     ->selectRaw('
+        departments.id,
         departments.name as department,
-        COUNT(*) as total_ss,
-        COALESCE(SUM(suggestions.reward_amount), 0) as total_reward
+
+        COUNT(suggestions.id) as total_ss,
+
+        COALESCE(SUM(suggestions.score_total), 0) as total_score,
+
+        ROUND(AVG(suggestions.score_total), 2) as avg_score,
+
+        COALESCE(SUM(suggestions.reward_amount), 0) as total_reward,
+
+        ROUND(AVG(suggestions.reward_amount), 0) as avg_reward
     ')
-    ->whereNotNull('suggestions.department')
-    ->whereNotNull('suggestions.reward_amount');
+
+    ->whereNotNull('suggestions.department');
 /*
 |--------------------------------------------------------------------------
 | FILTER PERIOD
@@ -827,8 +1027,8 @@ $rewardPerDepartment = Suggestion::query()
 */
 
 if ($selectedPeriodId) {
-    $rewardPerDepartment->where(
-        'period_id',
+    $departmentStats->where(
+        'suggestions.period_id',
         $selectedPeriodId
     );
 }
@@ -839,12 +1039,18 @@ if ($selectedPeriodId) {
 |--------------------------------------------------------------------------
 */
 
-$rewardPerDepartment = $rewardPerDepartment
-    ->groupBy('departments.name')
-    ->orderByDesc('total_reward')
+$departmentStats = $departmentStats
+    ->groupBy('departments.id', 'departments.name')
+
+    // ranking objektif
+    ->orderByDesc('avg_score')
+
+    // jika avg sama, lihat konsistensi participation
+    ->orderByDesc('total_ss')
+
     ->get();
 
-    $analyticsData['dept_reward'] = $rewardPerDepartment;
+$analyticsData['dept_stats'] = $departmentStats;
 
     /*
 |--------------------------------------------------------------------------
@@ -1007,7 +1213,7 @@ $analyticsData['category_counts'] = $categoryCounts;
         'topCategories',
         'deptSSStats',
         'analyticsData',
-        'rewardPerDepartment',
+        'departmentStats',
 'selectedPeriodId',
         'periods',
         'activeFormula'
@@ -1127,6 +1333,29 @@ private function saveSuggestion(Request $request, $user, $data, $status)
         'redirect' => route('suggestion.dashboard'),
     ]);
 }
+
+  public function edit(Suggestion $suggestion)
+    {
+ 
+        $user = $this->currentUser();
+        $activePeriod = SuggestionPeriod::where('is_active', true)->first();
+ 
+        // Pastikan categories selalu berupa array (bisa tersimpan sebagai JSON string)
+        if (is_string($suggestion->categories)) {
+            $suggestion->categories = json_decode($suggestion->categories, true) ?? [];
+        }
+ 
+        // Pastikan photos_before / photos_after selalu array
+        if (is_string($suggestion->photos_before)) {
+            $suggestion->photos_before = json_decode($suggestion->photos_before, true) ?? [];
+        }
+        if (is_string($suggestion->photos_after)) {
+            $suggestion->photos_after = json_decode($suggestion->photos_after, true) ?? [];
+        }
+ 
+        return view('ss-edit', compact('suggestion', 'user', 'activePeriod'));
+    }
+ 
 
     public function storeFormula(Request $request): JsonResponse
 {
@@ -1305,48 +1534,83 @@ private function saveSuggestion(Request $request, $user, $data, $status)
     // ================================================================
     // UPDATE — update parsial
     // ================================================================
-    public function update(Request $request, Suggestion $suggestion): RedirectResponse
-    {
-        $user = $this->currentUser();
+    public function update(Request $request, Suggestion $suggestion)
+{
+    $user = $this->currentUser();
 
-        abort_unless(
-            $suggestion->user_id === $user->id
-            && in_array($suggestion->status, ['draft', 'returned_spv']),
-            403
-        );
+    abort_unless(
+        $suggestion->user_id === $user->id
+        && in_array($suggestion->status, ['draft', 'submitted', 'returned_spv']),
+        403
+    );
 
-        $action = $request->input('action', 'save');
+    $action = $request->input('action', 'save');
 
-        $data = $request->only([
-            'categories', 'theme', 'discovery_date', 'location',
-            'background', 'root_cause',
-            'improvement_activity', 'evaluation_result', 'standardization',
-        ]);
+    $rules = [
+        'categories'     => ['required', 'array', 'min:1'],
+        'categories.*'   => ['string', 'in:Safety,Moral,Quality,Productivity,Cost,Environment,Delivery'],
+        'theme'          => ['required', 'string', 'max:255'],
+        'discovery_date' => ['required', 'date'],
+        'location'       => ['required', 'string', 'max:255'],
+        'background'     => ['required', 'string'],
+        'root_cause'     => ['required', 'string'],
+        'improvement_activity' => ['required', 'string'],
+        'evaluation_result'    => ['required', 'string'],
+        'standardization'      => ['required', 'string', 'max:500'],
+    ];
 
-        // Recalculate step
-        $step = 1;
-        if ($suggestion->background || $request->filled('background'))             $step = 1;
-        if ($suggestion->root_cause || $request->filled('root_cause'))             $step = 2;
-        if ($suggestion->improvement_activity || $request->filled('improvement_activity')) $step = 3;
-        if ($suggestion->photosBefore()->exists() || $request->hasFile('photos_before') ||
-            $suggestion->photosAfter()->exists()  || $request->hasFile('photos_after'))   $step = 4;
-        if (($suggestion->evaluation_result || $request->filled('evaluation_result')) &&
-            ($suggestion->standardization   || $request->filled('standardization')))      $step = 5;
+    try {
 
-        $data['completion_step'] = $step;
+        $validated = $request->validate($rules);
+
+        $data = collect($validated)->only([
+            'categories',
+            'theme',
+            'discovery_date',
+            'location',
+            'background',
+            'root_cause',
+            'improvement_activity',
+            'evaluation_result',
+            'standardization',
+        ])->toArray();
 
         if ($action === 'submit') {
-            abort_unless($suggestion->root_cause || $request->filled('root_cause'), 422,
-                'Analisa penyebab masalah harus diisi sebelum mengajukan.');
-            $data['status'] = 'submitted';
+            $data['status']       = 'submitted';
+            $data['submitted_at'] = now();
         }
 
         $suggestion->update($data);
+
         $this->uploadPhotos($request, $suggestion);
 
-        return redirect()->route('suggestion.show', $suggestion->id)
-            ->with('success', $action === 'submit' ? 'SS berhasil diajukan!' : 'SS berhasil diperbarui.');
+        return response()->json([
+            'success' => true,
+            'message' => $action === 'submit'
+                ? 'SS berhasil diajukan kembali!'
+                : 'SS berhasil diperbarui.',
+            'redirect' => route('suggestion.dashboard'),
+        ]);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Validasi gagal.',
+            'errors'  => $e->errors(),
+        ], 422);
+
+    } catch (\Throwable $e) {
+
+        \Log::error($e);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Terjadi kesalahan sistem.',
+            'error'   => $e->getMessage(),
+        ], 500);
     }
+}
 
     // ================================================================
     // SPV ACTIONS: Approve / Reject / Return

@@ -137,6 +137,12 @@ public function getAvailableActions(User $user): array
     */
     if ($isOwner && in_array($this->status, ['draft', 'returned_spv'])) {
         $actions[] = 'submit';
+        $actions[] = 'edit';
+    }
+
+     if ($isOwner && in_array($this->status, ['submitted', 'returned_spv'])) {
+        $actions[] = 'revisi';
+        $actions[] = 'edit';
     }
 
     /*
