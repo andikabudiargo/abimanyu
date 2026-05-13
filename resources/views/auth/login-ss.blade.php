@@ -388,7 +388,7 @@
         </div>
 
         <div class="panel-content">
-            <p class="panel-eyebrow">Suggestion System Portal</p>
+            <p class="panel-eyebrow">Portal Suggestion System</p>
             <h1 class="panel-title">Inovasi Anda<br>Membangun<br>Perusahaan</h1>
             <p class="panel-desc">Platform pengajuan Suggestion System (SS) bagi seluruh karyawan PT. Abimanyu Sekar Nusantara.</p>
 

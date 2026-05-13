@@ -158,6 +158,199 @@ textarea.f-input { resize: vertical; }
 
 .err-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; padding: 10px 14px; font-size: 12px; color: #7f1d1d; margin-bottom: 12px; }
 .err-box ul { margin-top: 5px; padding-left: 14px; }
+
+/* Label sebelum/sesudah */
+.lbl-before {
+    font-size: 11px;
+    font-weight: 700;
+    color: #b45309;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    padding: 3px 9px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 4px;
+}
+.lbl-after {
+    font-size: 11px;
+    font-weight: 700;
+    color: #065f46;
+    background: #d1fae5;
+    border: 1px solid #a7f3d0;
+    padding: 3px 9px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 4px;
+}
+
+/* Checkbox row standarisasi */
+.std-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    background: #fafafa;
+}
+.std-checkbox-row:hover {
+    border-color: #a5b4fc;
+    background: #f5f3ff;
+}
+.std-checkbox-row.is-checked {
+    border-color: #6366f1;
+    background: #eef2ff;
+}
+.std-checkbox-row input[type=checkbox] {
+    width: 15px;
+    height: 15px;
+    accent-color: #6366f1;
+    cursor: pointer;
+}
+.std-checkbox-row label {
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    font-weight: 500;
+}
+/* Grid dua kolom */
+.eval-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Eval card wrapper */
+.eval-card {
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.eval-card--before { border: 1px solid #fde68a; }
+.eval-card--after  { border: 1px solid #a7f3d0; }
+
+/* Header card */
+.eval-card-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+}
+.eval-card--before .eval-card-header { background: #fef9ec; border-bottom: 1px solid #fde68a; }
+.eval-card--after  .eval-card-header { background: #f0fdf4; border-bottom: 1px solid #a7f3d0; }
+
+.eval-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+.eval-badge--before { color: #92400e; background: #fde68a; }
+.eval-badge--after  { color: #065f46; background: #a7f3d0; }
+
+/* Textarea body */
+.eval-card textarea {
+    border: none;
+    outline: none;
+    resize: none;
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #111827;
+    background: #fff;
+    font-family: inherit;
+    line-height: 1.5;
+    min-height: 108px;
+    flex: 1;
+}
+.eval-card textarea::placeholder { color: #9ca3af; }
+
+/* Footer upload di dalam card */
+.eval-card-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 12px;
+}
+.eval-card--before .eval-card-footer { background: #fffdf5; border-top: 1px solid #fde68a; }
+.eval-card--after  .eval-card-footer { background: #f7fef9; border-top: 1px solid #a7f3d0; }
+
+.upload-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: opacity .15s;
+}
+.eval-card--before .upload-row { background: #fef3c7; border: 1px solid #fde68a; }
+.eval-card--after  .upload-row { background: #d1fae5; border: 1px solid #a7f3d0; }
+.eval-card--before .upload-row:hover { background: #fde68a; }
+.eval-card--after  .upload-row:hover { background: #a7f3d0; }
+.upload-row input[type=file] { display: none; }
+
+.upload-row-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.upload-row-icon--before { background: #fff8e1; }
+.upload-row-icon--after  { background: #e8fdf4; }
+
+.upload-row-text { display: flex; flex-direction: column; gap: 1px; }
+.upload-row-title--before { font-size: 12px; font-weight: 600; color: #92400e; }
+.upload-row-title--after  { font-size: 12px; font-weight: 600; color: #065f46; }
+.upload-row-max--before { font-size: 10px; color: #b45309; }
+.upload-row-max--after  { font-size: 10px; color: #059669; }
+
+.upload-row-btn {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+}
+.upload-row-btn--before { background: #fff; border: 1px solid #fbbf24; color: #92400e; }
+.upload-row-btn--after  { background: #fff; border: 1px solid #6ee7b7; color: #065f46; }
+
+/* Thumbnail preview */
+.photo-thumbs { display: flex; flex-wrap: wrap; gap: 5px; }
+.photo-thumbs img {
+    width: 44px; height: 44px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid #e5e7eb;
+}
+
+/* Divider */
+.f-divider { border: none; border-top: 1px solid #f3f4f6; margin: 0; }
+
+/* Standarisasi */
+.std-options { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.std-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 11px;
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    background: #fafafa;
+}
+.std-row:hover { border-color: #a5b4fc; background: #f5f3ff; }
+.std-row.is-checked { border-color: #6366f1; background: #eef2ff; }
+.std-row input[type=checkbox] { width: 14px; height: 14px; accent-color: #6366f1; cursor: pointer; }
+.std-row label { font-size: 13px; color: #374151; cursor: pointer; }
 </style>
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
@@ -607,20 +800,20 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
                     <div>
                         <label class="f-label">Tema <sup>*</sup></label>
                         <input type="text" name="theme" id="f-theme" class="f-input {{ $errors->has('theme')?'is-error':'' }}"
-                            placeholder="Brief, descriptive title for this improvement suggestion"
+                            placeholder="Deskripsikan judul/tema untuk improvement anda..."
                             value="{{ old('theme') }}" maxlength="200"/>
                         @error('theme')<p class="f-hint" style="color:#dc2626;">{{ $message }}</p>@enderror
                     </div>
 
                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                           <label class="f-label">Tanggal Penemuan <sup>*</sup></label>
+                           <label class="f-label">Tanggal Pengajuan <sup>*</sup></label>
 <input 
     type="date" 
     name="discovery_date" 
     id="f-date" 
     class="f-input" 
-    value="{{ old('discovery_date') }}"
+    value="{{ date('Y-m-d') }}"
     max="{{ date('Y-m-d') }}"
 />
 @error('discovery_date')
@@ -636,9 +829,10 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
                     </div>
 
                     <div>
-                        <label class="f-label">Latar Belakang Penetapan Tema & Target<sup>*</sup></label>
+                        <label class="f-label">Penetapan Tema & Target <span class="italic">( background )</span><sup>*</sup></label>
+                         <p class="f-hint" style="margin-bottom:6px;">Tips: Ceritakan Latar belakang atau alasan tema ini dibuat, ceritakan, pastikan area improvement diperjelas dan apa yang potential merugikan / waste yang timbul.</p>
                         <textarea name="background" id="f-background" rows="4" class="f-input"
-                            placeholder="Describe the current situation and context that led to this suggestion...">{{ old('background') }}</textarea>
+                            placeholder="">{{ old('background') }}</textarea>
                         @error('background')<p class="f-hint" style="color:#dc2626;">{{ $message }}</p>@enderror
                     </div>
 
@@ -664,14 +858,22 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
             <div class="c-card">
                 <div class="c-card-header">
                     <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-                    <span class="c-section-label">Root Cause Analysis</span>
+                    <span class="c-section-label">Analisa Penyebab Masalah</span>
                 </div>
                 <div class="c-card-body space-y">
                     <div>
-                        <label class="f-label">Analisa Penyebab Masalah <sup>*</sup></label>
-                        <p class="f-hint" style="margin-bottom:6px;">Use 5 Why, Fishbone diagram, or other structured analysis. Document each causal chain clearly.</p>
+                        <label class="f-label">2.1 Analisa Masalah <sup>*</sup></label>
+                        <p class="f-hint" style="margin-bottom:6px;">Tips: Cek ke lapangan / pastikan data, bandingkan  standar yang ada dengan aktual, risiko yang timbul dan potensi penyebabnya.</p>
+                        <textarea name="problem" id="f-rootcause" rows="9" class="f-input"
+                            placeholder="">{{ old('root_cause') }}</textarea>
+                        @error('root_cause')<p class="f-hint" style="color:#dc2626;">{{ $message }}</p>@enderror
+                    </div>
+
+                     <div>
+                        <label class="f-label">2.2 Akar Masalah <sup>*</sup></label>
+                        
                         <textarea name="root_cause" id="f-rootcause" rows="9" class="f-input"
-                            placeholder="Why 1: Reject rate increased &#10; → Because dimensions do not match spec&#10;Why 2: Dimensions off spec &#10; → Because machine calibration drifted&#10;Why 3: Calibration drifted &#10; → Because no periodic check schedule&#10;Why 4: No check schedule &#10; → Because SOP does not define interval&#10;&#10;Root Cause: SOP-PRD-003 lacks calibration frequency definition">{{ old('root_cause') }}</textarea>
+                            placeholder="">{{ old('root_cause') }}</textarea>
                         @error('root_cause')<p class="f-hint" style="color:#dc2626;">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -697,48 +899,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
                 <div class="c-card-header">
                     <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span class="c-section-label">Tindakan Perbaikan</span>
-                    <span class="opt-tag" style="margin-left:auto;">Optional</span>
+                   
                 </div>
                 <div class="c-card-body space-y">
                     <div>
                         <label class="f-label">Aktivitas Perbaikan</label>
-                        <p class="f-hint" style="margin-bottom:6px;">Detail the actions performed or planned. Include dates, responsible parties, and outcomes.</p>
+                        <p class="f-hint" style="margin-bottom:6px;">Tips: Perbaiki akar masalahnya, perjelas dengan menyertakan apa yang diperbaiki, dimana, bagaimana memperbaikinya, siapa yang melakukan perbaikan, kapan sampai kapan.</p>
                         <textarea name="improvement_activity" rows="6" class="f-input"
-                            placeholder="1. [Date] Action taken — Person responsible — Outcome&#10;2. [Date] Second action...">{{ old('improvement_activity') }}</textarea>
+                            >{{ old('improvement_activity') }}</textarea>
                     </div>
                 </div>
 
-                <div style="border-top:1px solid #f3f4f6;padding:16px 18px;">
-                    <p class="c-section-label" style="margin-bottom:12px;">Ilustrasi</p>
-                    <div class="g2">
-                        <div>
-                            <span class="lbl-before">Sebelum Perbaikan</span>
-                            <div class="drop-zone" id="zone-before"
-                                ondragover="event.preventDefault();this.classList.add('is-over')"
-                                ondragleave="this.classList.remove('is-over')"
-                                ondrop="handleDrop(event,'before')">
-                                <input type="file" name="photos_before[]" id="file-before" multiple accept="image/*" onchange="previewPhotos(this,'thumbs-before')"/>
-                                <div class="dz-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div>
-                                <p style="font-size:11px;font-weight:500;color:#374151;">Click or drag to upload</p>
-                                <p style="font-size:10px;color:#9ca3af;margin-top:3px;">JPG, PNG, WebP &mdash; max 5 MB each</p>
-                            </div>
-                            <div class="photo-thumbs" id="thumbs-before"></div>
-                        </div>
-                        <div>
-                            <span class="lbl-after">Sesudah Perbaikan</span>
-                            <div class="drop-zone" id="zone-after"
-                                ondragover="event.preventDefault();this.classList.add('is-over')"
-                                ondragleave="this.classList.remove('is-over')"
-                                ondrop="handleDrop(event,'after')">
-                                <input type="file" name="photos_after[]" id="file-after" multiple accept="image/*" onchange="previewPhotos(this,'thumbs-after')"/>
-                                <div class="dz-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div>
-                                <p style="font-size:11px;font-weight:500;color:#374151;">Click or drag to upload</p>
-                                <p style="font-size:10px;color:#9ca3af;margin-top:3px;">JPG, PNG, WebP &mdash; max 5 MB each</p>
-                            </div>
-                            <div class="photo-thumbs" id="thumbs-after"></div>
-                        </div>
-                    </div>
-                </div>
+              
 
                 <div class="c-card-footer">
                     <button type="button" onclick="goStep(2)" class="btn btn-secondary">
@@ -757,46 +929,115 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         </div>
 
         {{-- ══ STEP 4 ══ --}}
-        <div class="step-panel" id="step4">
-            <div class="c-card">
-                <div class="c-card-header">
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                    <span class="c-section-label">Evaluasi & Standarisasi</span>
-                    <span class="opt-tag" style="margin-left:auto;">Optional</span>
-                </div>
-                <div class="c-card-body space-y">
-                    <div class="info-banner success">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Completing this section improves your evaluation score. Quantitative before/after comparisons are weighted heavily by managers.</span>
+       <div class="step-panel" id="step4">
+    <div class="c-card">
+        <div class="c-card-header">
+            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            <span class="c-section-label">Evaluasi & Standarisasi</span>
+        </div>
+
+        <div class="c-card-body space-y">
+
+            <!-- Info Banner -->
+            <p class="f-hint" style="margin-bottom:6px;">Tips: Bandingkan hasil sebelum dan hasil sesudah dengan melihat dampak terhadapt cost, waktu yang dihemat, quality& Layanan, kemudahan bekerja,  penurunan risiko secara safety,mutu,lingkungan) atau bisa juga terhadap kompetensi dan branding company.</p>
+
+              <!-- Evaluasi Hasil -->
+            <div>
+                <label class="f-label">Evaluasi Hasil</label>
+                <div class="eval-grid">
+
+                    <!-- Card Sebelum -->
+                    <div class="eval-card eval-card--before">
+                        <div class="eval-card-header">
+                            <svg width="13" height="13" fill="none" stroke="#b45309" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+                            <span class="eval-badge eval-badge--before">Sebelum Perbaikan</span>
+                        </div>
+                        <textarea name="evaluation_before" rows="5"
+                            placeholder="Jelaskan kondisi sebelum perbaikan.&#10;&#10;Contoh: Reject rate 8,2% selama 3 bulan terakhir.">{{ old('evaluation_before') }}</textarea>
+                        <div class="eval-card-footer">
+                            <div class="upload-row" onclick="document.getElementById('file-before').click()">
+                                <input type="file" id="file-before" name="photos_before[]" multiple accept="image/*" onchange="previewPhotos(this,'thumbs-before')"/>
+                                <div class="upload-row-icon upload-row-icon--before">
+                                    <svg width="15" height="15" fill="none" stroke="#b45309" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4-4 4m4-4v12"/></svg>
+                                </div>
+                                <div class="upload-row-text">
+                                    <span class="upload-row-title--before">Upload Foto Sebelum</span>
+                                    <span class="upload-row-max--before">JPG, PNG, WebP &mdash; maks. 5 MB per file</span>
+                                </div>
+                                <span class="upload-row-btn upload-row-btn--before">Browse</span>
+                            </div>
+                            <div class="photo-thumbs" id="thumbs-before"></div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="f-label">Evaluasi Hasil</label>
-                        <textarea name="evaluation_result" rows="5" class="f-input"
-                            placeholder="Compare before and after conditions with quantitative data where possible.&#10;&#10;Example: Reject rate decreased from 8.2% to 2.3% over 3 months post-implementation.">{{ old('evaluation_result') }}</textarea>
+
+                    <!-- Card Sesudah -->
+                    <div class="eval-card eval-card--after">
+                        <div class="eval-card-header">
+                            <svg width="13" height="13" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+                            <span class="eval-badge eval-badge--after">Sesudah Perbaikan</span>
+                        </div>
+                        <textarea name="evaluation_after" rows="5"
+                            placeholder="Jelaskan kondisi setelah perbaikan.&#10;&#10;Contoh: Reject rate turun jadi 2,3% dalam 3 bulan setelah implementasi.">{{ old('evaluation_after') }}</textarea>
+                        <div class="eval-card-footer">
+                            <div class="upload-row" onclick="document.getElementById('file-after').click()">
+                                <input type="file" id="file-after" name="photos_after[]" multiple accept="image/*" onchange="previewPhotos(this,'thumbs-after')"/>
+                                <div class="upload-row-icon upload-row-icon--after">
+                                    <svg width="15" height="15" fill="none" stroke="#059669" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4-4 4m4-4v12"/></svg>
+                                </div>
+                                <div class="upload-row-text">
+                                    <span class="upload-row-title--after">Upload Foto Sesudah</span>
+                                    <span class="upload-row-max--after">JPG, PNG, WebP &mdash; maks. 5 MB per file</span>
+                                </div>
+                                <span class="upload-row-btn upload-row-btn--after">Browse</span>
+                            </div>
+                            <div class="photo-thumbs" id="thumbs-after"></div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="f-label">Standarisasi</label>
-                        <input type="text" name="standardization" class="f-input"
-                            placeholder="e.g. SOP-QC-001 Rev.2, IK-PRD-015, Form FM-QC-008"
-                            value="{{ old('standardization') }}"/>
-                        <p class="f-hint">Reference the SOP, work instruction, or form number created as a result of this improvement.</p>
-                    </div>
-                </div>
-                <div class="c-card-footer">
-                    <button type="button" onclick="goStep(3)" class="btn btn-secondary">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        Back
-                    </button>
-                    <div style="display:flex;gap:6px;">
-                        <!--<button type="button" onclick="saveDraft()" class="btn btn-secondary">Save Draft</button>-->
-                        <button type="button"  onclick="submitSS()" id="btn-submit" class="btn btn-success">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Submit SS
-                        </button>
-                    </div>
+
                 </div>
             </div>
+
+            <hr class="f-divider"/>
+
+            <!-- Standarisasi -->
+            <div>
+                <label class="f-label">Standarisasi</label>
+                <div class="std-options">
+                    <div class="std-row" id="row-sop">
+                        <input type="checkbox" id="chk-sop" name="std_type[]" value="sop" onchange="toggleStdRow(this,'row-sop')"/>
+                        <label for="chk-sop">Create / Revise SOP / IK / OPL</label>
+                    </div>
+                    <div class="std-row" id="row-form">
+                        <input type="checkbox" id="chk-form" name="std_type[]" value="form" onchange="toggleStdRow(this,'row-form')"/>
+                        <label for="chk-form">Create / Revise Form</label>
+                    </div>
+                    <div class="std-row" id="row-other">
+                        <input type="checkbox" id="chk-other" name="std_type[]" value="other" onchange="toggleStdRow(this,'row-other')"/>
+                        <label for="chk-other">Lainnya</label>
+                    </div>
+                </div>
+                <input type="text" name="standardization" class="f-input"
+                    placeholder="e.g. SOP-QC-001 Rev.2, IK-PRD-015, Form FM-QC-008"
+                    value="{{ old('standardization') }}"/>
+                <p class="f-hint">Cantumkan nomor SOP, instruksi kerja, atau form yang dibuat sebagai hasil perbaikan ini.</p>
+            </div>
+
         </div>
+
+        <div class="c-card-footer">
+            <button type="button" onclick="goStep(3)" class="btn btn-secondary">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Back
+            </button>
+            <div style="display:flex;gap:6px;">
+                <button type="button" onclick="submitSS()" id="btn-submit" class="btn btn-success">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Submit SS
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
         </form>
     </div>
@@ -968,16 +1209,18 @@ async function submitSS() {
 function previewPhotos(input, thumbsId) {
     const container = document.getElementById(thumbsId);
     Array.from(input.files).forEach(file => {
-        if (!file.type.startsWith('image/')) return;
         const reader = new FileReader();
         reader.onload = e => {
-            const div = document.createElement('div');
-            div.className = 'photo-thumb';
-            div.innerHTML = `<img src="${e.target.result}"/><button type="button" class="photo-thumb-rm" onclick="this.parentElement.remove()">✕</button>`;
-            container.appendChild(div);
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            container.appendChild(img);
         };
         reader.readAsDataURL(file);
     });
+}
+
+function toggleStdRow(checkbox, rowId) {
+    document.getElementById(rowId).classList.toggle('is-checked', checkbox.checked);
 }
 
 function handleDrop(e, type) {
@@ -992,6 +1235,7 @@ function handleDrop(e, type) {
 
 updateSummary();
 @if($errors->has('root_cause')) goStep(2); @endif
+
 </script>
 </body>
 </html>

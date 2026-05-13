@@ -756,7 +756,7 @@ foreach ($rows as $index => $row) {
                         transition
                     ";
 
-                    if ($row->status === "submitted" && $isSpv && !$isOwner) {
+                    if ($row->status === "submitted" && $isSpv) {
                         return '
                             <button
                                 type="button"
@@ -1279,6 +1279,7 @@ public function submit(Request $request)
         'location'       => ['required', 'string', 'max:255'],
         'background'     => ['required', 'string'],
         'root_cause'     => ['required', 'string'],
+        'problem'     => ['required', 'string'],
     ];
 
     $validator = Validator::make($request->all(), $rules);
@@ -1313,9 +1314,16 @@ private function saveSuggestion(Request $request, $user, $data, $status)
         'discovery_date' => $data['discovery_date'],
         'location' => $data['location'],
         'background' => $data['background'],
+        'problem' => $request->problem,
         'root_cause' => $request->root_cause,
         'improvement_activity' => $request->improvement_activity,
-        'evaluation_result' => $request->evaluation_result,
+        // Sebelum: evaluation_result (string)
+        // Sesudah: dua kolom terpisah
+        'evaluation_before'    => $request->evaluation_before,
+        'evaluation_after'     => $request->evaluation_after,
+
+        // Standarisasi: checkbox array + teks nomor dokumen
+        'std_type'             => $request->std_type ?? [],   // array, disimpan as JSON
         'standardization' => $request->standardization,
         'status' => $status,
         'period_id' => $activePeriod?->id,
@@ -1499,12 +1507,14 @@ private function saveSuggestion(Request $request, $user, $data, $status)
         'period' => $s->period?->name,
         'discovery_date' => optional($s->discovery_date)->format('d M Y'),
         'location' => $s->location,
-        'evaluation_result' => $s->evaluation_result,
+        'evaluation_before' => $s->evaluation_before,
+        'evaluation_after' => $s->evaluation_after,
         'standardization' => $s->standardization,
         'background'   => $s->background,
         'root_cause'      => $s->root_cause,
+        'problem'     => $s->problem,
         'improvement_activity'  => $s->improvement_activity,
-
+        'std_type'  => $s->std_type,
         'categories'=> $s->categories,
 
         'photos_before' => $s->photosBefore,

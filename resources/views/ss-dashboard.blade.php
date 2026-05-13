@@ -191,7 +191,7 @@ input[type=number] {
         <a href="{{ route('suggestion.dashboard') }}" class="flex items-center gap-2.5 shrink-0">
             <img src="{{ asset('img/asn-logo-bulat.png') }}" alt="ASN" class="w-7 h-7 rounded-full">
             <div class="">
-                <div class="text-white text-xs font-semibold leading-tight">Suggestion System Portal</div>
+                <div class="text-white text-xs font-semibold leading-tight">Portal Suggestion System</div>
                 <div class="text-white/40 text-[10px] leading-tight">PT. Abimanyu Sekar Nusantara</div>
             </div>
         </a>
@@ -222,7 +222,7 @@ input[type=number] {
 </nav>
 
 {{-- ═══════════════ SUB NAV (Improvement & Manager) ═══════════════ --}}
-@if($isImprovement || $isManager)
+@if($isImprovement || $isManager || $isSpv)
 <div class="bg-white border-b border-gray-200 sticky top-14 z-40 shadow-sm">
     <div class="max-w-screen-xl mx-auto px-2 sm:px-4">
         <div class="flex items-center justify-around sm:justify-start gap-0 overflow-x-auto scrollbar-none">
@@ -411,7 +411,7 @@ input[type=number] {
 
 
     {{-- ── 2. SS SAYA ── --}}
-     @if(!$isImprovement || !$isManager || !$isSpv)
+     @if(!$isManager || !$isSpv)
     <div class="bg-white overflow-hidden rounded-md">
       <div class="px-4 py-2.5 border-b border-slate-100">
         <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Statistik Saya</span>
@@ -705,13 +705,13 @@ input[type=number] {
 
 
     {{-- ═══ PANE: ANALYTICS ═══ --}}
-    @if($isImprovement || $isManager)
+    @if($isImprovement || $isManager || $isSpv)
     <div class="tab-pane" id="pane-analytics">
 
         {{-- Trend + Category --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {{-- Department Performance --}}
-<div class="col-span-3 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+<div class="col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
 
     {{-- HEADER --}}
     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
@@ -761,7 +761,7 @@ input[type=number] {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
 
             {{-- TOTAL REWARD --}}
-            <div class="col-span-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
 
                 <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
                     Total Reward
@@ -866,7 +866,6 @@ input[type=number] {
 </div>
 
         {{-- Top SS + Top Dept --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
                 <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                     <div class="text-xs font-semibold text-gray-800">Top SS by Score</div>
@@ -2096,7 +2095,7 @@ class="
     <div class="bg-white px-4 py-3">
         <div class="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[.06em] text-slate-400 mb-1">
             <i class="fa-regular fa-calendar text-[10px]"></i>
-            Tanggal Penemuan
+            Tanggal Pengajuan
         </div>
         <div id="ssDate" class="text-[12px] font-semibold text-slate-900">—</div>
     </div>
@@ -2118,7 +2117,7 @@ class="
     </button>
 
     <div class="ss-acc-body hidden border-t border-slate-100 px-4 py-3.5 text-[12.5px] text-slate-600">
-        <div id="ssProblem" class="whitespace-pre-line">>—</div>
+        <div id="ssBackground" class="whitespace-pre-line">>—</div>
     </div>
 </div>
  
@@ -2136,9 +2135,32 @@ class="
         <i class="fa-solid fa-chevron-down text-slate-400 text-[10px]"></i>
     </button>
 
-    <div class="ss-acc-body hidden border-t border-slate-100 px-4 py-3.5 text-[12.5px] text-slate-600">
-        <div id="ssRoot" class="whitespace-pre-line">>—</div>
+   <div class="ss-acc-body hidden border-t border-slate-100 px-4 py-3.5 text-[12.5px] text-slate-600 space-y-4">
+
+  <!-- Problem -->
+  <div>
+    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">
+      Analisa Masalah
     </div>
+    <div id="ssProblem" class="whitespace-pre-line text-slate-700">
+      —
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="border-t border-slate-100"></div>
+
+  <!-- Root Cause -->
+  <div>
+    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">
+      Akar Masalah
+    </div>
+    <div id="ssRoot" class="whitespace-pre-line text-slate-700">
+      —
+    </div>
+  </div>
+
+</div>
 </div>
  
                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -2175,8 +2197,28 @@ class="
     </button>
 
     <div class="ss-acc-body hidden border-t border-slate-100 px-4 py-3.5 text-[12.5px] text-slate-600">
-        <div id="ssEvaluation">—</div>
+    <div class="grid grid-cols-2 gap-3">
+
+        <!-- Sebelum -->
+        <div class="rounded-lg overflow-hidden border border-amber-200">
+            <div class="flex items-center gap-2 px-3 py-2 bg-amber-50 border-b border-amber-200">
+                <i class="fa-solid fa-circle-xmark text-[10px] text-amber-500"></i>
+                <span class="text-[9px] font-bold uppercase tracking-[.06em] text-amber-700">Sebelum Perbaikan</span>
+            </div>
+            <div id="ssEvalBefore" class="px-3 py-2.5 whitespace-pre-line bg-white text-[12px]">—</div>
+        </div>
+
+        <!-- Sesudah -->
+        <div class="rounded-lg overflow-hidden border border-emerald-200">
+            <div class="flex items-center gap-2 px-3 py-2 bg-emerald-50 border-b border-emerald-200">
+                <i class="fa-solid fa-circle-check text-[10px] text-emerald-500"></i>
+                <span class="text-[9px] font-bold uppercase tracking-[.06em] text-emerald-700">Sesudah Perbaikan</span>
+            </div>
+            <div id="ssEvalAfter" class="px-3 py-2.5 whitespace-pre-line bg-white text-[12px]">—</div>
+        </div>
+
     </div>
+</div>
 </div>
  
                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -2193,9 +2235,18 @@ class="
         <i class="fa-solid fa-chevron-down text-slate-400 text-[10px]"></i>
     </button>
 
-    <div class="ss-acc-body hidden border-t border-slate-100 px-4 py-3.5 text-[12.5px] text-slate-600">
-        <div id="ssStandard">—</div>
+   <div class="ss-acc-body hidden border-t border-slate-100 px-4 py-3.5 text-[12.5px] text-slate-600">
+
+    <!-- Checkbox types -->
+    <div id="ssStdTypes" class="flex flex-wrap gap-2 mb-3"></div>
+
+    <!-- Nomor dokumen -->
+    <div class="flex items-start gap-2">
+        <i class="fa-solid fa-file-lines text-[11px] text-slate-400 mt-0.5"></i>
+        <div id="ssStandard" class="text-[12px] text-slate-700">—</div>
     </div>
+
+</div>
 </div>
  
             </div>{{-- /ss-tab-detail --}}
@@ -2435,15 +2486,35 @@ function ssFillHeader(d) {
    FILL DETAIL TAB
 ════════════════════════════════ */
 function ssFillDetail(d) {
- 
-    document.getElementById('ssLocation').textContent   = d.location        || '—';
-    document.getElementById('ssDate').textContent       = d.discovery_date  || '—';
- 
-    document.getElementById('ssProblem').textContent    = d.background              || '—';
-    document.getElementById('ssRoot').textContent       = d.root_cause              || '—';
-    document.getElementById('ssSolution').textContent   = d.improvement_activity    || '—';
-    document.getElementById('ssEvaluation').textContent = d.evaluation_result       || '—';
-    document.getElementById('ssStandard').textContent   = d.standardization || '—';
+
+  const stdTypeMap = {
+    sop: 'Create / Revise SOP / IK / OPL',
+    form: 'Create / Revise Form',
+    other: 'Lainnya'
+  };
+
+  const rawType = (d.std_type ?? '')
+    .toString()
+    .trim()
+    .toLowerCase();
+
+  const stdLabel = stdTypeMap[rawType] || d.std_type || '—';
+
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value || '—';
+  };
+
+  setText('ssLocation', d.location);
+  setText('ssDate', d.discovery_date);
+  setText('ssBackground', d.background);
+  setText('ssProblem', d.problem);
+  setText('ssRoot', d.root_cause);
+  setText('ssSolution', d.improvement_activity);
+  setText('ssEvalBefore', d.evaluation_before);
+  setText('ssEvalAfter', d.evaluation_after);
+  setText('ssStdTypes', stdLabel);
+  setText('ssStandard', d.standardization);
 }
  
 /* ════════════════════════════════
@@ -2872,6 +2943,20 @@ function ssRenderFooter(actions, id, ssNum, mode = 'view') {
         btns.appendChild(ssMakeBtn('Tutup', 'slate', closeSlideOver, 'fa-solid fa-xmark'));
         return;   // ← RETURN LEBIH AWAL, tidak lanjut ke actions loop
     }
+
+    if (mode === 'review') {
+    btns.innerHTML = '';
+
+    btns.appendChild(
+        ssMakeBtn('Review', 'green', () => openSpvDecision(id, ssNum), 'fa-solid fa-check')
+    );
+
+    btns.appendChild(
+        ssMakeBtn('Tutup', 'slate', closeSlideOver, 'fa-solid fa-xmark')
+    );
+
+    return;
+}
  
     /*
     |--------------------------------------------------------------------------
@@ -2899,13 +2984,13 @@ function ssRenderFooter(actions, id, ssNum, mode = 'view') {
  
             // SPV actions
             approve: () => btns.prepend(
-                ssMakeBtn('Setujui', 'green', () => openSpvModal(id, ssNum), 'fa-solid fa-check')
+                ssMakeBtn('Setujui', 'green', () => openSpvDecision(id, ssNum), 'fa-solid fa-check')
             ),
             reject: () => btns.prepend(
-                ssMakeBtn('Tolak', 'red', () => openSpvModal(id, ssNum), 'fa-solid fa-xmark')
+                ssMakeBtn('Tolak', 'red', () => openSpvDecision(id, ssNum), 'fa-solid fa-xmark')
             ),
             return: () => btns.prepend(
-                ssMakeBtn('Kembalikan', 'amber', () => openSpvModal(id, ssNum), 'fa-solid fa-rotate-left')
+                ssMakeBtn('Kembalikan', 'amber', () => openSpvDecision(id, ssNum), 'fa-solid fa-rotate-left')
             ),
  
             // Manager
@@ -3039,24 +3124,64 @@ document.querySelectorAll('[id$="-modal"]').forEach(m => {
     m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
 });
 
-// ── SPV Modal ──
-function openSpvModal(id, ssNum) {
-    $('#spv-form').attr('action', `/suggestion/${id}/spv-action`);
+
+function showToast(text, type = 'success') {
+    const colors = {
+        success: '#16a34a',
+        error: '#dc2626',
+        info: '#2563eb'
+    };
+
+    Toastify({
+        text,
+        duration: 3000,
+        gravity: 'top',
+        position: 'right',
+        backgroundColor: colors[type] || colors.success
+    }).showToast();
+}
+
+
+// ─────────────────────────────────────────────
+// 🚀 ENTRY POINT (ROLE BASED FLOW)
+// ─────────────────────────────────────────────
+function openScoreFlow(id, ssNum, role) {
+
+    // set common ke score form
+    $('#score-form').attr('action', `/suggestion/${id}/score`);
+    $('#score-ss-num').text(ssNum);
+
+    if (role === 'supervisor') {
+        openSpvDecision(id, ssNum);
+    } else {
+        openScoreModal(id, ssNum);
+    }
+}
+
+
+// ─────────────────────────────────────────────
+// 🧑‍💼 SPV DECISION MODAL
+// ─────────────────────────────────────────────
+function openSpvDecision(id, ssNum) {
+    const form = $('#spv-form');
+
+    form.attr('action', `/suggestion/${id}/spv-action`);
+    form.data('id', id);
+    form.data('ss', ssNum);
+
     $('#spv-ss-num').text(ssNum);
 
+    // reset pilihan
     ['approve', 'return', 'reject'].forEach(action => {
         const tile = document.getElementById('dt-' + action);
 
-        tile.className = tile.className.replace(
-            /border-green-\S+|bg-green-\S+|text-green-\S+|border-amber-\S+|bg-amber-\S+|text-amber-\S+|border-red-\S+|bg-red-\S+|text-red-\S+/g,
-            ''
-        );
+        tile.classList.remove(
+    'border-emerald-500','bg-emerald-50','text-emerald-700',
+    'border-amber-500','bg-amber-50','text-amber-700',
+    'border-red-500','bg-red-50','text-red-700'
+);
 
-        tile.classList.add(
-            'border-gray-200',
-            'text-gray-600'
-        );
-
+        tile.classList.add('border-gray-200','text-gray-600');
         document.getElementById('r-' + action).checked = false;
     });
 
@@ -3066,97 +3191,90 @@ function openSpvModal(id, ssNum) {
     openModal('spv-modal');
 }
 
-
 function selectDecision(action) {
-    const styles = {
-        approve: ['border-green-400', 'bg-green-50', 'text-green-700'],
-        return: ['border-amber-400', 'bg-amber-50', 'text-amber-700'],
-        reject: ['border-red-400', 'bg-red-50', 'text-red-700'],
-    };
 
     ['approve', 'return', 'reject'].forEach(a => {
         const tile = document.getElementById('dt-' + a);
+        const radio = document.getElementById('r-' + a);
 
+        // reset
         tile.classList.remove(
-            ...Object.values(styles).flat(),
-            'border-gray-200',
-            'text-gray-600'
+            'border-emerald-500','bg-emerald-50','text-emerald-700',
+            'border-amber-500','bg-amber-50','text-amber-700',
+            'border-red-500','bg-red-50','text-red-700'
         );
 
-        tile.classList.add(
-            'border-gray-200',
-            'text-gray-600'
-        );
+        tile.classList.add('border-gray-200','text-gray-600');
+        radio.checked = false;
     });
 
-    const selectedTile = document.getElementById('dt-' + action);
+    const tile = document.getElementById('dt-' + action);
+    const radio = document.getElementById('r-' + action);
 
-    selectedTile.classList.remove(
-        'border-gray-200',
-        'text-gray-600'
-    );
+    // set selected
+    radio.checked = true;
 
-    selectedTile.classList.add(...styles[action]);
+    if (action === 'approve') {
+        tile.classList.add('border-emerald-500','bg-emerald-50','text-emerald-700');
+    } else if (action === 'return') {
+        tile.classList.add('border-amber-500','bg-amber-50','text-amber-700');
+    } else if (action === 'reject') {
+        tile.classList.add('border-red-500','bg-red-50','text-red-700');
+    }
 
-    document.getElementById('r-' + action).checked = true;
-
-    $('#note-req').toggleClass(
-        'hidden',
-        action === 'approve'
-    );
+    // toggle note wajib
+    if (action === 'approve') {
+        $('#note-req').addClass('hidden');
+    } else {
+        $('#note-req').removeClass('hidden');
+    }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| AJAX SUBMIT SPV REVIEW
-|--------------------------------------------------------------------------
-| Tidak redirect ke halaman show
-| Hanya update status + reload table + toast
-|--------------------------------------------------------------------------
-*/
-
+// ─────────────────────────────────────────────
+// ⚡ SUBMIT SPV (AJAX + BRANCHING)
+// ─────────────────────────────────────────────
 $('#spv-form').on('submit', function (e) {
     e.preventDefault();
 
     const form = $(this);
-    const url = form.attr('action');
-    const formData = form.serialize();
-
     const selectedAction = $('input[name="action"]:checked').val();
+    const note = $('#spv-note').val().trim();
 
+    // ❌ VALIDASI
     if (!selectedAction) {
-        Toastify({
-            text: 'Pilih keputusan terlebih dahulu',
-            duration: 3000,
-            gravity: 'top',
-            position: 'right',
-            backgroundColor: '#dc2626'
-        }).showToast();
+        showToast('Pilih keputusan terlebih dahulu', 'error');
         return;
     }
 
-    if (
-        selectedAction !== 'approve' &&
-        !$('#spv-note').val().trim()
-    ) {
-        Toastify({
-            text: 'Catatan wajib diisi untuk return / reject',
-            duration: 3000,
-            gravity: 'top',
-            position: 'right',
-            backgroundColor: '#dc2626'
-        }).showToast();
+    if (selectedAction !== 'approve' && !note) {
+        showToast('Catatan wajib diisi untuk return / reject', 'error');
         return;
     }
 
-  $.ajax({
-    url: url,
-    type: 'POST',
-    data: formData,
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-    },
+    // 🔥 APPROVE → LANGSUNG KE SCORE (NO AJAX)
+    if (selectedAction === 'approve') {
+        closeModal('spv-modal');
+
+        showToast('Lanjut ke penilaian', 'info');
+
+        const id = form.data('id');
+        const ssNum = form.data('ss');
+
+        openScoreModal(id, ssNum);
+        return;
+    }
+
+    // ─────────────────────────────
+    // ✅ RETURN / REJECT → AJAX
+    // ─────────────────────────────
+    $.ajax({
+        url: form.attr('action'),
+        type: 'POST',
+        data: form.serialize(),
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
 
         beforeSend: function () {
             $('#spv-submit-btn')
@@ -3167,19 +3285,11 @@ $('#spv-form').on('submit', function (e) {
         success: function (response) {
             closeModal('spv-modal');
 
-            Toastify({
-                text: response.message || 'Review berhasil disimpan',
-                duration: 3000,
-                gravity: 'top',
-                position: 'right',
-                backgroundColor: '#16a34a'
-            }).showToast();
+            showToast(
+                response.message || 'Review berhasil disimpan',
+                'success'
+            );
 
-            /*
-            |------------------------------------------
-            | Reload table tanpa refresh halaman
-            |------------------------------------------
-            */
             loadTable();
         },
 
@@ -3190,13 +3300,7 @@ $('#spv-form').on('submit', function (e) {
                 message = xhr.responseJSON.message;
             }
 
-            Toastify({
-                text: message,
-                duration: 4000,
-                gravity: 'top',
-                position: 'right',
-                backgroundColor: '#dc2626'
-            }).showToast();
+            showToast(message, 'error');
         },
 
         complete: function () {
@@ -3207,16 +3311,29 @@ $('#spv-form').on('submit', function (e) {
     });
 });
 
-// ── Score Modal ──
+
+// ─────────────────────────────────────────────
+// 📊 SCORE MODAL
+// ─────────────────────────────────────────────
 function openScoreModal(id, ssNum) {
-    document.getElementById('score-form').action = `/suggestion/${id}/score`;
+    const form = document.getElementById('score-form');
+
+    form.action = `/suggestion/${id}/score`;
     document.getElementById('score-ss-num').textContent = ssNum;
-    document.querySelectorAll('.score-select').forEach(i => { i.value = ''; });
-    const mn = document.querySelector('#score-form textarea[name="manager_note"]');
-    if (mn) mn.value = '';
+
+    // reset input score
+    document.querySelectorAll('.score-select').forEach(i => {
+        i.value = '';
+    });
+
+    // reset note
+    const note = form.querySelector('textarea[name="manager_note"]');
+    if (note) note.value = '';
+
     updateScoreTotal();
     openModal('score-modal');
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.score-select').forEach(input => {
         input.addEventListener('input', updateScoreTotal);

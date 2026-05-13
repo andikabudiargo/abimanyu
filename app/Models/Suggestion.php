@@ -13,8 +13,9 @@ class Suggestion extends Model
 
     protected $fillable = [
         'user_id', 'ss_number', 'categories', 'theme', 'department',
-        'discovery_date', 'location', 'background',
-        'root_cause', 'improvement_activity', 'evaluation_result',
+        'discovery_date', 'location', 'background', 'problem',
+        'root_cause', 'improvement_activity', 'evaluation_before', 'evaluation_after',
+        'std_type',
         'standardization', 'status', 'completion_step',
         'reviewed_by_spv', 'reviewed_at_spv', 'spv_note',
         'scored_by_manager', 'scored_at',
@@ -23,6 +24,7 @@ class Suggestion extends Model
 
     protected $casts = [
         'categories'       => 'array',
+        'std_type'       => 'array',
         'discovery_date'   => 'date',
         'reviewed_at_spv'  => 'datetime',
         'scored_at'        => 'datetime',
