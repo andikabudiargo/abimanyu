@@ -55,7 +55,7 @@
 <div class="bg-white shadow rounded-xl p-6 mb-2">
 
   {{-- TOGGLE BAR --}}
-  <div class="flex items-center justify-between mb-4">
+  <div class="flex items-center justify-between pb-3 mb-4 border-b border-gray-300">
     <h2 class="text-sm font-semibold text-gray-800">Transfer Chemical List</h2>
 
     <div class="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 gap-0.5" id="viewToggle">
