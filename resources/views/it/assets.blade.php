@@ -13,57 +13,67 @@
     <form id="filter-form">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
-                <label for="filterCustomer" class="block text-sm mb-1 font-medium text-gray-700">Asset Number</label>
-                <input id="filter-ticket-number" type="text" name="ticket_number" class="w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
+                <label class="block text-sm mb-1 font-medium text-gray-700">Asset Number</label>
+                <input id="filter-asset-number" type="text" name="asset_number" class="w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
             </div>
-            <div>
-    <label for="filter-date" class="block text-sm mb-1 font-medium text-gray-700">Purchase Date</label>
-    <input id="filter-date" type="text" name="date"  placeholder="YYYY-MM-DD to YYYY-MM-DD" class="w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
-    
-</div>
+             <div>
+                <label class="block text-sm mb-1 font-medium text-gray-700">Asset Name</label>
+                <input id="filter-name" type="text" name="asset_name" class="w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"/>
+            </div>
 
             <div>
-    <label for="filter-category" class="block text-sm mb-1 font-medium text-gray-700">Category</label>
-    <select id="filter-category" class="select2 w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" data-min-options="5">
+    <label for="filter-type" class="block text-sm mb-1 font-medium text-gray-700">Asset Type</label>
+    <select id="filter-type" class="select2 w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" data-min-options="5">
         <option value="">-- All --</option>
-       
+         <option value="Laptop">Laptop / Notebook</option>
+                                    <option value="Desktop">Desktop / PC</option>
+                                    <option value="Server">Server</option>
+                                     <option value="CCTV">CCTV</option>
+                                    <option value="Printer">Printer</option>
+                                    <option value="Scanner">Scanner</option>
+                                    <option value="Monitor">Monitor</option>
+                                    <option value="Network">Network Device</option>
+                                    <option value="Storage">Storage / NAS</option>
+                                    <option value="UPS">UPS</option>
+                                    <option value="Smartphone">Smartphone</option>
+                                    <option value="Tablet">Tablet</option>
+                                    <option value="Software">Software / License</option>
+                                    <option value="Peripheral">Peripheral</option>
     </select>
 
     
-</div>
-
-<!-- Status -->
-<div>
-    <label for="filter-status" class="block text-sm mb-1 font-medium text-gray-700">Status</label>
-    <select id="filter-status" class="select2 w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" data-min-options="5">
-        <option value="">-- All --</option>
-        <option value="Pending">Pending</option>
-        <option value="Approved">Approved</option>
-        <option value="Work in Progress">Work in Progress</option>
-        <option value="On Hold">On Hold</option>
-        <option value="Done">Done</option>
-        <option value="Closed">Closed</option>
-        <option value="Rejected">Rejected</option>
-    </select>
 </div>
 
 <!-- Department -->
 <div>
-    <label for="filter-department" class="block text-sm mb-1 font-medium text-gray-700">Location</label>
-    <select id="filter-department" name="department" class="select2 w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" data-min-options="5">
+    <label for="filter-location" class="block text-sm mb-1 font-medium text-gray-700">Location</label>
+    <select id="filter-location" name="location" class="select2 w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" data-min-options="5">
+         @php
+                                        $locations = [
+                                            'Ruang General Affair', 'Ruang HR', 'Ruang Server',
+                                            'Pantry', 'Lobby Lt.1', 'R. Accounting', 'R. Purchasing & Marketing', 'Resepsionis',
+                                            'Ruang Office LT.1', 'Ruang Office LT.2', 'Plant 1', 'Plant 2', 'R.Engineering-Quality',
+                                            'Ruang Bima', 'Ruang Arjuna', 'Ruang Srikandi', 'Ruang Yudhistira',
+                                        ];
+                                    @endphp
         <option value="">-- All --</option>
-        
+         @foreach($locations as $loc)
+                                        <option value="{{ $loc }}">{{ $loc }}</option>
+                                    @endforeach
+         
     </select>
 </div>
 
-<div>
-    <label for="filter-teknisi" class="block text-sm mb-1 font-medium text-gray-700">Assigned</label>
-    <select id="filter-teknisi" class="select2 w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" data-min-options="5">
+  <div>
+    <label for="filter-condition" class="block text-sm mb-1 font-medium text-gray-700">Condition</label>
+    <select id="filter-condition" class="select2 w-full px-3 py-1 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" data-min-options="5">
         <option value="">-- All --</option>
-        <option value="Andika Budiargo">Andika Budiargo</option>
-        <option value="Ivan Jovian">Ivan Jovian</option>
-        <option value="Iwan Kuswandi">Iwan Kuswandi</option>
+        <option value="Good">Good</option>
+                                    <option value="Broken but still usable">Broken but still usable</option>
+                                    <option value="Damaged and cannot be used">Damaged and can't be used</option>
     </select>
+
+    
 </div>
             </div>
 
@@ -244,12 +254,11 @@ let today = new Date().toISOString().slice(0, 10); // Hasil: "2025-07-21"
        ajax: {
             url: '{{ route("it.assets.data") }}',
             data: function (d) {
-                d.ticket_number = $('#filter-ticket-number').val();
-                d.status = $('#filter-status').val();
-                d.processed_by = $('#filter-teknisi').val();
-                d.category = $('#filter-category').val();
-                d.date = $('#filter-date').val();
-                d.department = $('#filter-department').val();
+                d.asset_number = $('#filter-asset-number').val();
+                d.location = $('#filter-location').val();
+                d.asset_type = $('#filter-type').val();
+                d.asset_name = $('#filter-name').val();
+                d.condition = $('#filter-condition').val();
             }
         },
         lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
@@ -260,57 +269,60 @@ let today = new Date().toISOString().slice(0, 10); // Hasil: "2025-07-21"
         text: '<i class="fas fa-download mr-2"></i>Export',
         className: 'bg-blue-600 text-white px-4 py-1 text-sm rounded shadow-sm flex items-center',
         buttons: [
-            {
-                extend: 'copyHtml5',
-                text: '<i class="fas fa-copy mr-2"></i>Copy',
-            },
-            {
-                extend: 'excelHtml5',
-                filename: 'Helpdesk_Ticket_' + today, // hasil: Laporan_Departemen_2025-07-21.xlsx
-                title: null,
-                text: '<i class="fas fa-file-excel mr-2 text-green-600"></i>Excel',
-                exportOptions: {
-                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
-                }
-            },
-            {
-                extend: 'pdfHtml5',
-                filename: 'Helpdesk_Ticket_' + today, // hasil: Laporan_Departemen_2025-07-21.xlsx
-                title: null,
-                orientation: 'landscape',
-                pageSize: 'A4',
-                text: '<i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF',
-                exportOptions: {
-                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
-                },
-                 customize: function(doc) {
-        // Ubah font seluruh tabel
-        doc.styles.tableHeader.fontSize = 8;  // header tabel
-        doc.defaultStyle.fontSize = 7;        // isi tabel
-    }
-            },
-            {
-                extend: 'print',
-                title: 'Helpdesk Ticket ' + today, // hasil: Laporan_Departemen_2025-07-21.xlsx ,
-                text: '<i class="fas fa-print mr-2"></i>Print',
-                exportOptions: {
-                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
-                },
-                 customize: function (win) {
-        // Kecilkan font tabel
-        $(win.document.body).css('font-size', '10px');
+    {
+        extend: 'copyHtml5',
+        text: '<i class="fas fa-copy mr-2"></i>Copy',
+    },
+    {
+        extend: 'excelHtml5',
+        filename: 'IT-Assets-' + today,
+        title: null,
+        text: '<i class="fas fa-file-excel mr-2 text-green-600"></i>Excel',
+        exportOptions: {
+            columns: [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+        }
+    },
 
-        
+    // ✅ FULL EXPORT MASUK SINI
+    {
+        text: '<i class="fas fa-file-excel mr-2 text-green-600"></i>Report',
+       
+        action: function (e, dt, node, config) {
+
+            let params = dt.ajax.params(); // filter datatable
+            let url = '/it/assets/export?' + $.param(params);
+
+            window.location.href = url;
+        }
+    },
+
+    {
+        extend: 'pdfHtml5',
+        filename: 'IT-Assets-' + today,
+        title: null,
+        orientation: 'landscape',
+        pageSize: 'A4',
+        text: '<i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF',
+        exportOptions: {
+            columns: [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+        },
+        customize: function(doc) {
+            doc.styles.tableHeader.fontSize = 8;
+            doc.defaultStyle.fontSize = 7;
+        }
+    },
+    {
+        extend: 'print',
+        title: 'IT Assets ' + today,
+        text: '<i class="fas fa-print mr-2"></i>Print',
+        exportOptions: {
+            columns: [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+        },
+        customize: function (win) {
+            $(win.document.body).css('font-size', '10px');
+        }
     }
-            },
-             {
-    text: '<i class="fas fa-chart-pie mr-1" style="font-size: 12px;"></i>Report',
-    className: 'text-sm rounded shadow-sm flex items-center',
-    action: function (e, dt, node, config) {
-        window.open('/it/ticket/report', '_blank'); // ganti sesuai URL
-    }
-},
-        ]
+]
     },
 
     

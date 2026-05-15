@@ -333,7 +333,7 @@
                 <button 
                     type="button" 
                     onclick="closeRejectModal()"
-                    class="px-4 py-2 rounded-lg border border-gray-300 text-white hover:bg-gray-100 transition"
+                    class="px-4 py-2 rounded-lg border border-slate-600 text-white hover:bg-slate-700 transition"
                 >
                     Cancel
                 </button>
@@ -376,7 +376,7 @@
 
             {{-- Actions --}}
             <div class="flex justify-end gap-2">
-                <button type="button" onclick="closeProcessModal()" class="px-4 py-2 bg-gray-400 text-white rounded">Cancel</button>
+                <button type="button" onclick="closeProcessModal()" class="px-4 py-2 bg-slate-400 text-white rounded">Cancel</button>
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Submit</button>
             </div>
         </form>

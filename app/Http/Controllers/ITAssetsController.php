@@ -112,7 +112,49 @@ class ITAssetsController extends Controller
   public function data(Request $request)
 {
    $query = ITAsset::query()
-    ->orderByRaw("
+        ->with(['supplier','user']);
+
+    /**
+     * 🔹 FILTER CUSTOM (dari ajax DataTables)
+     */
+    if ($request->filled('asset_number')) {
+        $query->where('asset_number', 'like', '%' . $request->asset_number . '%');
+    }
+
+    if ($request->filled('asset_name')) {
+        $query->where('asset_name', 'like', '%' . $request->asset_name . '%');
+    }
+
+    if ($request->filled('asset_type')) {
+        $query->where('asset_type', $request->asset_type);
+    }
+
+    if ($request->filled('location')) {
+        $query->where('location', $request->location);
+    }
+
+    if ($request->filled('condition')) {
+        $query->where('conditions', $request->condition);
+    }
+
+    /**
+     * 🔹 GLOBAL SEARCH (dari DataTables search box)
+     */
+    if ($request->search['value'] ?? false) {
+        $search = $request->search['value'];
+
+        $query->where(function ($q) use ($search) {
+            $q->where('asset_number', 'like', "%$search%")
+              ->orWhere('asset_name', 'like', "%$search%")
+              ->orWhere('asset_type', 'like', "%$search%")
+              ->orWhere('location', 'like', "%$search%");
+        });
+    }
+
+    /**
+     * 🔹 ORDERING CUSTOM (status & condition)
+     */
+    $query->orderByRaw("
         CASE 
             WHEN status = 'Loaned' THEN 0
             WHEN status = 'Available' THEN 1
@@ -120,16 +162,21 @@ class ITAssetsController extends Controller
             WHEN status = 'Disposed' THEN 3
             ELSE 4
         END
-    ")
-    ->orderByRaw("
+    ");
+
+    $query->orderByRaw("
         CASE
             WHEN conditions = 'Good' THEN 0
             WHEN conditions = 'Broken but still usable' THEN 1
             WHEN conditions = 'Damaged and can\\'t be used' THEN 2
             ELSE 3
         END
-    ")
-    ->get();
+    ");
+
+    /**
+     * 🔥 PENTING: JANGAN ->get()
+     * biarkan DataTables yang handle pagination
+     */
 
 
   
