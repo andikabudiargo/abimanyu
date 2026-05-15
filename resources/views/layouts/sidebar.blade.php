@@ -130,13 +130,14 @@
           <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="repeat"></i> </span><span
           class="pc-mtext">Logistic</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span></a>
           <ul class="pc-submenu">
-            <li class="pc-item"><a class="pc-link" href="{{ route('ppic.warehouse.index') }}">Warehouse</a></li>
+            <!--<li class="pc-item"><a class="pc-link" href="{{ route('ppic.warehouse.index') }}">Warehouse</a></li>
             <li class="pc-item"><a class="pc-link" href="{{ route('ppic.rec.index') }}">Receiving</a></li>
             <li class="pc-item"><a class="pc-link" href="{{ route('ppic.transfer-in.index') }}">Transfer In</a></li>
              <li class="pc-item"><a class="pc-link" href="{{ route('ppic.transfer-out.index') }}">Transfer Out</a></li>
-             <li class="pc-item"><a class="pc-link" href="{{ route('ppic.stock.index') }}">Stock</a></li>
+             <li class="pc-item"><a class="pc-link" href="{{ route('ppic.stock.index') }}">Stock</a></li>-->
              <li class="pc-item"><a class="pc-link" href="{{ route('ppic.barcode-part.index') }}">Part Barcode</a></li>
               <li class="pc-item"><a class="pc-link" href="{{ route('ppic.product-knowledge.index') }}">Product Knowledge</a></li>
+              <li class="pc-item"><a class="pc-link" href="{{ route('ppic.tfcm1.index') }}">Transfer Chemical</a></li>
              </ul>
             </li>
             

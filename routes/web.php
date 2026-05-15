@@ -64,6 +64,7 @@ use App\Http\Controllers\RekapBupotController;
 use App\Http\Controllers\RemoteAccessController;
 use App\Http\Controllers\STOController;
 use App\Http\Controllers\TemporaryStockController;
+use App\Http\Controllers\TransferChemicalController;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 use Minishlink\WebPush\WebPush; 
@@ -411,7 +412,21 @@ Route::prefix('ppic')->name('ppic.')->group(function () {
     Route::post('/process-barcode-part', [BarcodePartController::class, 'process'])->name('barcode-part.process');
     Route::get('/product-knowledge/index', [ProductKnowledgeController::class, 'index'])->name('product-knowledge.index');
     Route::get('/product-knowledge/data', [ProductKnowledgeController::class, 'search'])->name('product-knowledge.data');
-   
+    Route::get('/transfer-chemical/dashboard', [TransferChemicalController::class, 'index'])->name('tfcm1.index');
+    Route::get('/transfer-chemical/create', [TransferChemicalController::class, 'create'])->name('tfcm1.create');
+    Route::get('/transfer-chemical/api', [TransferChemicalController::class, 'chemicals'])->name('tfcm1.api');
+    Route::get('/transfer-chemical/data', [TransferChemicalController::class, 'data'])->name('tfcm1.data');
+    Route::post('/transfer-chemical/store', [TransferChemicalController::class, 'store'])->name('tfcm1.store');
+    Route::get('/transfer-chemical/{id}', [TransferChemicalController::class, 'show'])  ->name('tfcm1.show');
+    Route::get('/transfer-chemical/{transfer}/export/ims', 
+    [TransferChemicalController::class, 'exportIMS'])
+    ->name('tfcm1.export.ims');
+    Route::get('/transfer-chemical/{transfer}/print',
+    [TransferChemicalController::class, 'print'])
+    ->name('ppic.tfcm1.print');
+    Route::get('/transfer-chemical/data/detail',
+    [TransferChemicalController::class, 'dataDetail'])
+    ->name('tfcm1.data.detail');
 });
 
 Route::prefix('purchasing')->name('purchasing.')->group(function () {
