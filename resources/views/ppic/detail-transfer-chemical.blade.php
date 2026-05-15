@@ -225,10 +225,10 @@
 
     {{-- Meta --}}
     <div class="mt-6 pt-4 border-t border-gray-100 flex flex-col md:flex-row gap-1 text-xs text-gray-400">
-      <a href=""
-      class="inline-flex w-full sm:w-24 justify-center items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded shadow">
-      <i data-feather="printer" class="h-4 w-4"></i> Print
-    </a>
+     <button onclick="printData({{ $transfer->id }})"
+  class="inline-flex w-full sm:w-24 justify-center items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded shadow">
+  <i data-feather="printer" class="h-4 w-4"></i> Print
+</button>
       <a href=""
       class="inline-flex w-full sm:w-24 justify-center items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded shadow">
       <i data-feather="edit-2" class="h-4 w-4"></i> Edit
@@ -248,4 +248,12 @@
     vertical-align: middle;
   }
 </style>
+
+@push('scripts')
+<script>
+function printData(id) {
+    window.open(`/ppic/transfer-chemical/${id}/print`, '_blank');
+}
+</script>
+@endpush
 @endsection
