@@ -527,20 +527,29 @@ function initSelect2() {
       width: '100%',
       placeholder: '-- Select Chemical --',
       allowClear: true,
-      ajax: {
-        url: '{{ route("ppic.tfcm1.api") }}',
-        dataType: 'json',
-        delay: 250,
-        data: params => ({ search: params.term }),
-        processResults: data => ({
-          results: data.data.map(item => ({
-            id: item.id,
-            text: item.article_code + ' - ' + item.description,
-            full: item
-          })),
-          pagination: { more: data.next_cursor !== null }
-        })
+    ajax: {
+  url: '{{ route("ppic.tfcm1.api") }}',
+  dataType: 'json',
+  delay: 250,
+  data: function(params) {
+    return {
+      search: params.term,
+      page: params.page || 1    // Select2 otomatis increment ini
+    };
+  },
+  processResults: function(data) {
+    return {
+      results: data.data.map(item => ({
+        id: item.id,
+        text: item.article_code + ' - ' + item.description,
+        full: item
+      })),
+      pagination: {
+        more: data.more        // true = Select2 load page berikutnya
       }
+    };
+  }
+}
     });
 
     // Restore saved selection without triggering AJAX

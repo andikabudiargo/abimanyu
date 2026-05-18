@@ -320,30 +320,24 @@ public function create() {
 public function chemicals(Request $request)
 {
     $query = Article::query()
-        ->select([
-            'id',
-            'article_code',
-            'description',
-            'min_package',
-            'unit',
-            'conversion_value',
-            //'uom_conversion'
-        ])
+        ->select(['id', 'article_code', 'description', 'min_package', 'unit', 'conversion_value'])
         ->where('article_type', 'CM1')
-        ->orderBy('id'); // wajib untuk cursor
+        ->orderBy('id');
 
     if ($request->search) {
         $query->where(function ($q) use ($request) {
-            $q->where('code', 'like', "%{$request->search}%")
+            $q->where('article_code', 'like', "%{$request->search}%")
               ->orWhere('description', 'like', "%{$request->search}%");
         });
     }
 
-    $data = $query->cursorPaginate(20); // per load 20 item
+    $perPage = 20;
+    $page    = (int) ($request->page ?? 1);
+    $data    = $query->paginate($perPage, ['*'], 'page', $page);
 
     return response()->json([
-        'data' => $data->items(),
-        'next_cursor' => $data->nextCursor()?->encode()
+        'data'      => $data->items(),
+        'more'      => $data->hasMorePages(),
     ]);
 }
 
