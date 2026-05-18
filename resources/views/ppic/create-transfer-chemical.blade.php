@@ -410,7 +410,7 @@ function renderDesktop() {
 
      
 
-    <td class="p-2 w-[100px]">
+    <td class="p-2 min-w-[100px]">
   <div class="flex items-center">
     
     <input type="number" data-field="min_package"
