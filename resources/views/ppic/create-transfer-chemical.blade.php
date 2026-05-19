@@ -563,19 +563,6 @@ function initSelect2() {
       const data  = e.params.data;
       const item  = data.full;
 
-      // Duplicate check: reject if same chemical already exists in another row
-      const isDuplicate = chemicals.some((c, i) => i !== index && c.id == item.id);
-      if (isDuplicate) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Duplikat Chemical',
-          text: `"${data.text}" sudah ada di baris lain.`,
-          confirmButtonColor: '#3b82f6'
-        });
-        // Clear the selection
-        $el.val(null).trigger('change');
-        return;
-      }
 
       chemicals[index].id          = item.id;
       chemicals[index].text        = data.text;

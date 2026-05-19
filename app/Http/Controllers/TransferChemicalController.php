@@ -281,7 +281,7 @@ public function data(Request $request)
             $conversion = (float) ($row->conversion_value ?? 1);
 
             $result = $row->condition === 'Tidak Utuh'
-                ? round($qty * $conversion, 2)
+                ? round($qty / $conversion, 2)
                 : $qty;
 
             return '<span class="font-semibold text-indigo-700">' . $result . '</span>';
@@ -364,13 +364,6 @@ public function chemicals(Request $request)
             'items.*.qty.min'             => 'Qty harus lebih dari 0.',
         ]);
  
-        // ── 2. Cek duplikat chemical_id dalam satu transfer ─────────────────
-        $ids = array_column($request->items, 'article_code');
-        if (count($ids) !== count(array_unique($ids))) {
-            throw ValidationException::withMessages([
-                'items' => 'Terdapat duplikat chemical dalam satu transfer.',
-            ]);
-        }
  
         // ── 3. Simpan dalam satu transaksi ──────────────────────────────────
         DB::transaction(function () use ($request) {
@@ -431,7 +424,7 @@ public function chemicals(Request $request)
         // ── Build spreadsheet ───────────────────────────────────────────────
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('IMS Export');
+        $sheet->setTitle('article');
  
         // Header row
         $sheet->setCellValue('A1', 'article_code');
@@ -443,32 +436,43 @@ public function chemicals(Request $request)
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
  
-        // Data rows
-        $row = 2;
-        foreach ($transfer->items as $item) {
-            $chemical    = $item->article;
-            $articleCode = $chemical->article_code ?? '';
- 
-            // Qty conversion:
-            // - Utuh      → use qty as-is
-            // - Tidak Utuh → qty * conversion_value (from articles table)
-            if ($item->condition === 'Tidak Utuh') {
-                $conversionValue = floatval($chemical->conversion_value ?? 1);
-                $qty             = round(floatval($item->qty) * $conversionValue, 2);
-            } else {
-                $qty = floatval($item->qty);
-            }
- 
-            $sheet->setCellValue("A{$row}", $articleCode);
-            $sheet->setCellValue("B{$row}", $locationCode);
-            $sheet->setCellValue("C{$row}", $qty);
- 
-            // Right-align qty column
-            $sheet->getStyle("C{$row}")->getAlignment()
-                  ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
- 
-            $row++;
-        }
+       // Data rows
+$row = 2;
+
+// Group items by article_code and sum qty
+$groupedItems = [];
+foreach ($transfer->items as $item) {
+    $chemical    = $item->article;
+    $articleCode = $chemical->article_code ?? '';
+
+    // Qty conversion:
+    // - Utuh      → use qty as-is
+    // - Tidak Utuh → qty * conversion_value (from articles table)
+    if ($item->condition === 'Tidak Utuh') {
+        $conversionValue = floatval($chemical->conversion_value ?? 1);
+        $qty             = round(floatval($item->qty) / $conversionValue, 2);
+    } else {
+        $qty = floatval($item->qty);
+    }
+
+    if (isset($groupedItems[$articleCode])) {
+        $groupedItems[$articleCode] += $qty;
+    } else {
+        $groupedItems[$articleCode] = $qty;
+    }
+}
+
+foreach ($groupedItems as $articleCode => $totalQty) {
+    $sheet->setCellValue("A{$row}", $articleCode);
+    $sheet->setCellValue("B{$row}", $locationCode);
+    $sheet->setCellValue("C{$row}", round($totalQty, 2));
+
+    // Right-align qty column
+    $sheet->getStyle("C{$row}")->getAlignment()
+          ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+
+    $row++;
+}
 
  
         // ── Stream as download ──────────────────────────────────────────────

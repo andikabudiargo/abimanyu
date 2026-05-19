@@ -126,7 +126,7 @@
   <div class="bg-white w-full max-w-xl rounded-xl shadow-xl p-6">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-lg font-semibold text-gray-800">Export Data</h2>
-      <button onclick="closeExportModal()" class="text-gray-400 hover:text-gray-600">✕</button>
+      <button onclick="closeExportModal()" class="text-gray-400 hover:text-red-600">✕</button>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <button onclick="exportIMS()"
@@ -140,11 +140,11 @@
         </div>
       </button>
       <button onclick="printData()"
-        class="group border rounded-xl p-5 hover:border-gray-700 hover:shadow-md transition text-left">
+        class="group border rounded-xl p-5 hover:border-green-500 hover:shadow-md transition text-left">
         <div class="flex flex-col items-start gap-3">
-          <i data-feather="printer" class="w-8 h-8 text-gray-700"></i>
+          <i data-feather="printer" class="w-8 h-8 text-green-600"></i>
           <div>
-            <h3 class="font-semibold text-gray-800 group-hover:text-gray-700">Print</h3>
+            <h3 class="font-semibold text-gray-800 group-hover:text-green-600">Print</h3>
             <p class="text-sm text-gray-500">Cetak langsung dalam format siap print</p>
           </div>
         </div>
@@ -422,9 +422,7 @@ document.addEventListener('click', function (e) {
   }
 });
 
-/* =========================
-   EXPORT MODAL
-========================= */
+//* ========================= EXPORT MODAL ========================= */
 let currentExportId = null;
 
 function modalExport(id) {
@@ -441,8 +439,35 @@ function closeExportModal() {
   modal.classList.remove('flex');
 }
 
-function exportIMS()    { window.location.href = `/ppic/transfer-chemical/${currentExportId}/export/ims`; }
-function printData()    { window.open(`/ppic/transfer-chemical/${currentExportId}/print`, '_blank'); }
+/* === CLICK OUTSIDE TO CLOSE === */
+document.addEventListener('click', function (e) {
+  const modal = document.getElementById('exportModal');
+  if (!modal) return;
+
+  // cek apakah modal sedang tampil
+  if (!modal.classList.contains('hidden')) {
+    // klik langsung ke overlay (bukan isi modal)
+    if (e.target === modal) {
+      closeExportModal();
+    }
+  }
+});
+
+/* OPTIONAL: ESC KEY CLOSE */
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    closeExportModal();
+  }
+});
+
+/* ACTION */
+function exportIMS() { 
+  window.location.href = `/ppic/transfer-chemical/${currentExportId}/export/ims`; 
+}
+
+function printData() { 
+  window.open(`/ppic/transfer-chemical/${currentExportId}/print`, '_blank'); 
+}
 </script>
 @endpush
 @endsection
