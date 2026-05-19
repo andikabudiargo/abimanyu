@@ -528,5 +528,383 @@ foreach ($groupedItems as $articleCode => $totalQty) {
         ));
     }
 
+    public function konsumsiPerBooth(Request $request)
+{
+    $query = DB::table('transfer_chemical_items as tci')
+        ->join('transfer_chemicals as tc', 'tc.id', '=', 'tci.transfer_chemical_id')
+        ->join('articles', 'articles.article_code', '=', 'tci.article_code')
+        ->select([
+            DB::raw("
+                CASE
+                    WHEN tc.location_from = 'Warehouse Chemical' THEN tc.location_to
+                    WHEN tc.location_to   = 'Warehouse Chemical' THEN tc.location_from
+                END AS spraybooth
+            "),
+            'tci.article_code',
+            'articles.description',
+            'articles.unit as uom',
+            DB::raw("
+                SUM(
+                    CASE
+                        WHEN tc.location_from = 'Warehouse Chemical' THEN  tci.qty
+                        WHEN tc.location_to   = 'Warehouse Chemical' THEN -tci.qty
+                        ELSE 0
+                    END
+                ) AS konsumsi
+            "),
+            DB::raw("
+                SUM(
+                    CASE WHEN tc.location_from = 'Warehouse Chemical' THEN tci.qty ELSE 0 END
+                ) AS total_supply
+            "),
+            DB::raw("
+                SUM(
+                    CASE WHEN tc.location_to = 'Warehouse Chemical' THEN tci.qty ELSE 0 END
+                ) AS total_return
+            "),
+        ])
+        ->where(function ($q) {
+            $q->where('tc.location_from', 'Warehouse Chemical')
+              ->orWhere('tc.location_to',  'Warehouse Chemical');
+        });
+ 
+    // Filter date range
+    if ($request->filled('date')) {
+        if (str_contains($request->date, ' to ')) {
+            [$start, $end] = explode(' to ', $request->date);
+            $query->whereBetween('tc.transfer_date', [trim($start), trim($end)]);
+        } else {
+            $query->whereDate('tc.transfer_date', $request->date);
+        }
+    }
+ 
+    $rows = $query
+        ->groupBy('spraybooth', 'tci.article_code', 'articles.description', 'articles.unit')
+        ->having('konsumsi', '!=', 0)
+        ->orderBy('spraybooth')
+        ->orderBy('tci.article_code')
+        ->get();
+ 
+    // Group by booth for easy consumption in JS
+    $grouped = [];
+    foreach ($rows as $row) {
+        $booth = $row->spraybooth;
+        if (!isset($grouped[$booth])) {
+            $grouped[$booth] = [
+                'booth'        => $booth,
+                'items'        => [],
+                'total_supply' => 0,
+                'total_return' => 0,
+                'total_net'    => 0,
+            ];
+        }
+        $grouped[$booth]['items'][]      = [
+            'article_code'  => $row->article_code,
+            'description'   => $row->description,
+            'uom'           => $row->uom,
+            'supply'        => (float) $row->total_supply,
+            'return'        => (float) $row->total_return,
+            'net'           => (float) $row->konsumsi,
+        ];
+        $grouped[$booth]['total_supply'] += (float) $row->total_supply;
+        $grouped[$booth]['total_return'] += (float) $row->total_return;
+        $grouped[$booth]['total_net']    += (float) $row->konsumsi;
+    }
+ 
+    return response()->json(array_values($grouped));
+}
+ 
+/**
+ * GET /ppic/transfer-chemical/transaksi-booth
+ * List transaksi Supply & Return untuk satu booth + article_code.
+ * Query params: booth, article_code, date
+ */
+public function transaksiPerBooth(Request $request)
+{
+    $query = DB::table('transfer_chemical_items as tci')
+        ->join('transfer_chemicals as tc', 'tc.id', '=', 'tci.transfer_chemical_id')
+        ->join('articles', 'articles.article_code', '=', 'tci.article_code')
+        ->leftJoin('users', 'users.id', '=', 'tc.created_by')
+        ->select([
+            'tc.id as transfer_id',
+            'tc.transfer_date',
+            'tc.location_from',
+            'tc.location_to',
+            'tci.article_code',
+            'articles.description',
+            'tci.condition',
+            'tci.qty',
+            'articles.unit as uom',
+            DB::raw("
+                CASE
+                    WHEN tc.location_from = 'Warehouse Chemical' THEN 'Supply'
+                    ELSE 'Return'
+                END AS status
+            "),
+            'users.name as created_by',
+            'tc.created_at',
+        ])
+        ->where(function ($q) {
+            $q->where('tc.location_from', 'Warehouse Chemical')
+              ->orWhere('tc.location_to',  'Warehouse Chemical');
+        });
+ 
+    // Filter booth
+    if ($request->filled('booth')) {
+        $query->where(function ($q) use ($request) {
+            $q->where('tc.location_from', $request->booth)
+              ->orWhere('tc.location_to',  $request->booth);
+        });
+    }
+ 
+    // Filter article_code
+    if ($request->filled('article_code')) {
+        $query->where('tci.article_code', $request->article_code);
+    }
+ 
+    // Filter date
+    if ($request->filled('date')) {
+        if (str_contains($request->date, ' to ')) {
+            [$start, $end] = explode(' to ', $request->date);
+            $query->whereBetween('tc.transfer_date', [trim($start), trim($end)]);
+        } else {
+            $query->whereDate('tc.transfer_date', $request->date);
+        }
+    }
+ 
+    $rows = $query
+        ->orderBy('tc.transfer_date', 'desc')
+        ->orderBy('tc.id', 'desc')
+        ->get()
+        ->map(function ($row) {
+            return [
+                'transfer_id'   => $row->transfer_id,
+                'transfer_date' => \Carbon\Carbon::parse($row->transfer_date)->format('d-m-Y'),
+                'status'        => $row->status,
+                'from'          => $row->location_from,
+                'to'            => $row->location_to,
+                'article_code'  => $row->article_code,
+                'description'   => $row->description,
+                'condition'     => $row->condition,
+                'qty'           => (float) $row->qty,
+                'uom'           => $row->uom,
+                'created_by'    => $row->created_by ?? '-',
+            ];
+        });
+ 
+    return response()->json($rows);
+}
+
+public function exportKonsumsiExcel(Request $request): StreamedResponse
+{
+    // ── Ambil data (logika sama dengan konsumsiPerBooth) ─────────────────
+    $query = DB::table('transfer_chemical_items as tci')
+        ->join('transfer_chemicals as tc', 'tc.id', '=', 'tci.transfer_chemical_id')
+        ->join('articles', 'articles.article_code', '=', 'tci.article_code')
+        ->select([
+            DB::raw("
+                CASE
+                    WHEN tc.location_from = 'Warehouse Chemical' THEN tc.location_to
+                    WHEN tc.location_to   = 'Warehouse Chemical' THEN tc.location_from
+                END AS spraybooth
+            "),
+            'tci.article_code',
+            'articles.description',
+            'articles.unit as uom',
+            DB::raw("SUM(CASE WHEN tc.location_from = 'Warehouse Chemical' THEN  tci.qty
+                              WHEN tc.location_to   = 'Warehouse Chemical' THEN -tci.qty
+                              ELSE 0 END) AS konsumsi"),
+            DB::raw("SUM(CASE WHEN tc.location_from = 'Warehouse Chemical' THEN tci.qty ELSE 0 END) AS total_supply"),
+            DB::raw("SUM(CASE WHEN tc.location_to   = 'Warehouse Chemical' THEN tci.qty ELSE 0 END) AS total_return"),
+        ])
+        ->where(function ($q) {
+            $q->where('tc.location_from', 'Warehouse Chemical')
+              ->orWhere('tc.location_to',  'Warehouse Chemical');
+        });
+ 
+    if ($request->filled('date')) {
+        if (str_contains($request->date, ' to ')) {
+            [$start, $end] = explode(' to ', $request->date);
+            $query->whereBetween('tc.transfer_date', [trim($start), trim($end)]);
+        } else {
+            $query->whereDate('tc.transfer_date', $request->date);
+        }
+    }
+ 
+    $rows = $query
+        ->groupBy('spraybooth', 'tci.article_code', 'articles.description', 'articles.unit')
+        ->having('konsumsi', '!=', 0)
+        ->orderBy('spraybooth')
+        ->orderBy('tci.article_code')
+        ->get();
+ 
+    // ── Build Spreadsheet ─────────────────────────────────────────────────
+    $spreadsheet = new Spreadsheet();
+    $sheet       = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Konsumsi per Booth');
+ 
+    // ── Styles helper ─────────────────────────────────────────────────────
+    $headerFill = [
+        'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+        'fill'      => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                        'startColor' => ['argb' => 'FF2563EB']],   // blue-600
+        'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+        'borders'   => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                         'color'       => ['argb' => 'FFD1D5DB']]],
+    ];
+ 
+    $boothFill = [
+        'font'  => ['bold' => true, 'color' => ['argb' => 'FF1E3A5F']],
+        'fill'  => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['argb' => 'FFE0EDFF']],       // blue-100
+        'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                       'color'       => ['argb' => 'FFD1D5DB']]],
+    ];
+ 
+    $dataBorder = [
+        'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                       'color'       => ['argb' => 'FFE5E7EB']]],
+    ];
+ 
+    $totalFill = [
+        'font'  => ['bold' => true],
+        'fill'  => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['argb' => 'FFF3F4F6']],       // gray-100
+        'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                       'color'       => ['argb' => 'FFD1D5DB']]],
+    ];
+ 
+    // ── Header row ────────────────────────────────────────────────────────
+    $headers = ['Booth', 'Article Code', 'Description', 'UoM', 'Supply', 'Return', 'Net Konsumsi'];
+    foreach ($headers as $i => $h) {
+        $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+        $sheet->setCellValue("{$col}1", $h);
+    }
+    $sheet->getStyle('A1:G1')->applyFromArray($headerFill);
+    $sheet->setAutoFilter('A1:G1');
+ 
+    // Column widths
+    $sheet->getColumnDimension('A')->setWidth(18);
+    $sheet->getColumnDimension('B')->setWidth(16);
+    $sheet->getColumnDimension('C')->setWidth(36);
+    $sheet->getColumnDimension('D')->setWidth(8);
+    $sheet->getColumnDimension('E')->setWidth(12);
+    $sheet->getColumnDimension('F')->setWidth(12);
+    $sheet->getColumnDimension('G')->setWidth(14);
+    $sheet->getRowDimension(1)->setRowHeight(20);
+ 
+    // ── Data rows ─────────────────────────────────────────────────────────
+    $currentRow  = 2;
+    $currentBooth = null;
+    $boothStart   = 2;
+    $boothSupply  = 0;
+    $boothReturn  = 0;
+    $boothNet     = 0;
+ 
+    $numCols = ['E', 'F', 'G'];
+ 
+    foreach ($rows as $row) {
+ 
+        // ── Booth group header ────────────────────────────────────────────
+        if ($row->spraybooth !== $currentBooth) {
+ 
+            // Subtotal row untuk booth sebelumnya
+            if ($currentBooth !== null) {
+                $sheet->setCellValue("A{$currentRow}", 'Subtotal ' . $currentBooth);
+                $sheet->mergeCells("A{$currentRow}:D{$currentRow}");
+                $sheet->setCellValue("E{$currentRow}", round($boothSupply, 2));
+                $sheet->setCellValue("F{$currentRow}", round($boothReturn, 2));
+                $sheet->setCellValue("G{$currentRow}", round($boothNet,    2));
+                $sheet->getStyle("A{$currentRow}:G{$currentRow}")->applyFromArray($totalFill);
+                foreach ($numCols as $c) {
+                    $sheet->getStyle("{$c}{$currentRow}")->getAlignment()
+                          ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+                }
+                $currentRow++;
+            }
+ 
+            // Reset akumulator
+            $currentBooth = $row->spraybooth;
+            $boothSupply  = 0;
+            $boothReturn  = 0;
+            $boothNet     = 0;
+        }
+ 
+        // ── Item row ──────────────────────────────────────────────────────
+        $sheet->setCellValue("A{$currentRow}", $row->spraybooth);
+        $sheet->setCellValue("B{$currentRow}", $row->article_code);
+        $sheet->setCellValue("C{$currentRow}", $row->description);
+        $sheet->setCellValue("D{$currentRow}", $row->uom);
+        $sheet->setCellValue("E{$currentRow}", round((float) $row->total_supply, 2));
+        $sheet->setCellValue("F{$currentRow}", round((float) $row->total_return, 2));
+        $sheet->setCellValue("G{$currentRow}", round((float) $row->konsumsi,     2));
+        $sheet->getStyle("A{$currentRow}:G{$currentRow}")->applyFromArray($dataBorder);
+        foreach ($numCols as $c) {
+            $sheet->getStyle("{$c}{$currentRow}")->getAlignment()
+                  ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+        }
+ 
+        $boothSupply += (float) $row->total_supply;
+        $boothReturn += (float) $row->total_return;
+        $boothNet    += (float) $row->konsumsi;
+ 
+        $currentRow++;
+    }
+ 
+    // Subtotal booth terakhir
+    if ($currentBooth !== null) {
+        $sheet->setCellValue("A{$currentRow}", 'Subtotal ' . $currentBooth);
+        $sheet->mergeCells("A{$currentRow}:D{$currentRow}");
+        $sheet->setCellValue("E{$currentRow}", round($boothSupply, 2));
+        $sheet->setCellValue("F{$currentRow}", round($boothReturn, 2));
+        $sheet->setCellValue("G{$currentRow}", round($boothNet,    2));
+        $sheet->getStyle("A{$currentRow}:G{$currentRow}")->applyFromArray($totalFill);
+        foreach ($numCols as $c) {
+            $sheet->getStyle("{$c}{$currentRow}")->getAlignment()
+                  ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+        }
+        $currentRow++;
+    }
+ 
+    // Grand total
+    $grandRow = $currentRow;
+    $sheet->setCellValue("A{$grandRow}", 'GRAND TOTAL');
+    $sheet->mergeCells("A{$grandRow}:D{$grandRow}");
+    $sheet->setCellValue("E{$grandRow}", "=SUM(E2:E" . ($grandRow - 1) . ")");
+    $sheet->setCellValue("F{$grandRow}", "=SUM(F2:F" . ($grandRow - 1) . ")");
+    $sheet->setCellValue("G{$grandRow}", "=SUM(G2:G" . ($grandRow - 1) . ")");
+    $sheet->getStyle("A{$grandRow}:G{$grandRow}")->applyFromArray([
+        'font'  => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+        'fill'  => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['argb' => 'FF1E40AF']],       // blue-800
+        'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                       'color'       => ['argb' => 'FF1E40AF']]],
+        'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT],
+    ]);
+    $sheet->getStyle("A{$grandRow}")->getAlignment()
+          ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+ 
+    // ── Freeze pane & zoom ────────────────────────────────────────────────
+    $sheet->freezePane('A2');
+    $sheet->getSheetView()->setZoomScale(90);
+ 
+    // ── Stream ────────────────────────────────────────────────────────────
+    $dateLabel = $request->filled('date')
+        ? str_replace(' to ', '_', $request->date)
+        : now()->format('Ymd');
+ 
+    $filename = "Konsumsi_Booth_{$dateLabel}.xlsx";
+    $writer   = new Xlsx($spreadsheet);
+ 
+    return new StreamedResponse(function () use ($writer) {
+        $writer->save('php://output');
+    }, 200, [
+        'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        'Cache-Control'       => 'max-age=0',
+    ]);
+}
+
+
 
 }
