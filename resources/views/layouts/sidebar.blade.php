@@ -140,28 +140,25 @@
               <li class="pc-item"><a class="pc-link" href="{{ route('ppic.tfcm1.index') }}">Transfer Chemical</a></li>
              </ul>
             </li>
+             @endif
             
+               @if(
+    in_array('Production', $userDepartments) || 
+    in_array('Superuser', $userRoles)
+)
             <li class="pc-item pc-caption">
-          <label>Production Management</label>
+          <label>Production</label>
           <i data-feather="monitor"></i>
         </li>
          <li class="pc-item pc-hasmenu">
           <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="package"></i> </span><span
               class="pc-mtext">Production Material</span><span class="pc-arrow"></i><i class="ti ti-chevron-right"></i></span></a>
                <ul class="pc-submenu">
-            <li class="pc-item"><a class="pc-link" href="{{ route('production.mrc.index') }}">Material Management</a></li>
-             <li class="pc-item"><a href="{{ route('inventory.article-type.index') }}" class="pc-link">Stock Management</a></li>
-             </ul>
-            </li>
-             <li class="pc-item pc-hasmenu">
-          <a href="#!" class="pc-link"><span class="pc-micon"> <i data-feather="activity"></i> </span><span
-              class="pc-mtext">Production Process</span><span class="pc-arrow"></i><i class="ti ti-chevron-right"></i></span></a>
-               <ul class="pc-submenu">
-                <li class="pc-item"><a href="{{ route('production.workstation.index') }}" class="pc-link">Workstation Management</a></li>
-            <li class="pc-item"><a class="pc-link" href="{{ route('inventory.article.index') }}">Production Loading</a></li>
+            <li class="pc-item"><a class="pc-link" href="{{ route('ppic.tfcm1.index') }}">Transfer Chemical</a></li>
              </ul>
             </li>
             @endif
+           
 
              @if(
     in_array('Quality', $userDepartments) || 
@@ -339,6 +336,9 @@
     <li class="pc-item">
       <a class="pc-link" href="{{ route('facility.apd.index') }}">APD Management</a>
     </li>
+      <li class="pc-item">
+      <a class="pc-link" href="{{ route('facility.atk.index') }}">ATK Management</a>
+    </li>
   </ul>
 </li>
 
@@ -350,8 +350,8 @@
   </a>
   <ul class="pc-submenu">
     <li class="pc-item">
-      <a class="pc-link" href="{{ route('facility.sto.index') }}">E-STO</a>
-      <a class="pc-link" href="{{ route('facility.sto.indexv2') }}">E-STO v2</a>
+      <a class="pc-link" href="{{ route('facility.sto.index') }}">E-STO Consumable</a>
+      <!--<a class="pc-link" href="{{ route('facility.sto.indexv2') }}">Admin Panel</a>-->
     </li>
   </ul>
 </li>
@@ -573,8 +573,6 @@
              </ul>
             </li>
             @endif
-
-
             
              <li class="pc-item pc-caption">
           <label>Management Representative</label>
