@@ -106,12 +106,11 @@
                     <th class="px-4 py-2 text-left">Address</th>
                     <th class="px-4 py-2 text-left">Part Code</th>
                     <th class="px-4 py-2 text-left">Part Name</th>
-                   @if(!in_array(auth()->id(), [53, 2]))
-<th class="px-4 py-2 text-center">Qty</th>
-@endif
-                    @if(in_array(auth()->id(), [53, 2]))
-<th class="px-4 py-2 text-center">Qty</th>
-<th class="px-4 py-2 text-center">Qty 2</th>
+                 @if(in_array(auth()->id(), [53, 2]))
+    <th class="px-4 py-2 text-center">Qty 1</th>
+    <th class="px-4 py-2 text-center">Qty 2</th>
+@else
+    <th class="px-4 py-2 text-center">Qty</th>
 @endif
                     <th class="px-4 py-2 text-center">Packing</th>
                     <th class="px-4 py-2 text-center">UoM</th>
@@ -320,54 +319,51 @@ div.dt-button-collection .dt-button:hover {
 $(function () {
 
 // ✅ Taruh di sini, SEBELUM DataTable init
-  const isSuperUser = {{ in_array(auth()->id(), [53, 2]) ? 'true' : 'false' }};
+ const isSuperUser = {{ in_array(auth()->id(), [53, 2]) ? 'true' : 'false' }};
 
-  const extraQtyColumns = isSuperUser ? [
-      { data: 'qty_1', className: 'text-center' },
-      { data: 'qty_2', className: 'text-center' },
-  ] : [];
+const qtyColumns = isSuperUser ? [
+    { data: 'qty_1', className: 'text-center' },  // ganti qty dengan qty_1
+    { data: 'qty_2', className: 'text-center' },
+] : [
+    { data: 'qty', className: 'text-center' },
+];
 
-  const table = $('#sto-table').DataTable({
+const table = $('#sto-table').DataTable({
     processing: true,
     serverSide: true,
     responsive: true,
 
     ajax: {
-      url: '/facility/sto/data',
-      type: 'GET',
-      data: function (d) {
-        d.location   = $('#filter-location').val();
-        d.article    = $('#filter-article').val();
-        d.sto_number = $('#filter-sto_number').val();
-        d.sto_month = $('#filter-sto-periode').val();
-        d.status = $('#filter-status').val();
-      }
+        url: '/facility/sto/data',
+        type: 'GET',
+        data: function (d) {
+            d.location   = $('#filter-location').val();
+            d.article    = $('#filter-article').val();
+            d.sto_number = $('#filter-sto_number').val();
+            d.sto_month  = $('#filter-sto-periode').val();
+            d.status     = $('#filter-status').val();
+        }
     },
 
     columns: [
-    { data: 'action', orderable: false, searchable: false },
-      { data: 'location', className: 'text-center' },
-       { data: 'area', className: 'text-center' },
-        { data: 'shelves', className: 'text-center' },
-      { data: 'article_code' },
-      { data: 'part_name' },
-    { data: 'qty',          className: 'text-center', visible: !isSuperUser },  // ← hidden kalau superuser
-  ...extraQtyColumns,
-       { data: 'min_package', className: 'text-center' },
-      { data: 'unit', className: 'text-center' },
-       { data: 'status', className: 'text-center' },
-      { data: 'sto_number', className: 'text-center' },
-      { data: 'created_by', className: 'text-center' },
-      { data: 'created_by_2', className: 'text-center' },
-      { 
-        data: 'created_at',
-        className: 'text-center',
-    
-      },
-      { data: 'note' },
+        { data: 'action',        orderable: false, searchable: false },
+        { data: 'location',      className: 'text-center' },
+        { data: 'area',          className: 'text-center' },
+        { data: 'shelves',       className: 'text-center' },
+        { data: 'article_code' },
+        { data: 'part_name' },
+        ...qtyColumns,           // ← qty ATAU qty_1+qty_2, tidak ada yg hidden
+        { data: 'min_package',   className: 'text-center' },
+        { data: 'unit',          className: 'text-center' },
+        { data: 'status',        className: 'text-center' },
+        { data: 'sto_number',    className: 'text-center' },
+        { data: 'created_by',    className: 'text-center' },
+        { data: 'created_by_2',  className: 'text-center' },
+        { data: 'created_at',    className: 'text-center' },
+        { data: 'note' },
     ],
 
-    order: [[12, 'desc']],
+   order: [[ isSuperUser ? 13 : 12, 'desc']],
 
     lengthMenu: [
       [10, 25, 50, -1],
