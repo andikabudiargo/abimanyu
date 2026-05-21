@@ -131,7 +131,7 @@ public function createv2()
         43,47     => 'WIP Buffing',
         44,45,88  => 'WIP Touch Up',
         108,126   => 'WIP Sanding',
-        2, 63, 129   => 'Consumable',
+        63, 129   => 'Consumable',
         67, 54    => 'Chemical',
         45        => 'Finish Goods',
         44        => 'OT',
@@ -586,7 +586,8 @@ public function datatables(Request $request)
         8  => 'articles.unit',
         9  => 'status',                // alias dari select
         10  => 'stos.sto_number',
-        11 => 'u1.name',               // pakai alias u1
+        11 => 'u1.name',    
+        11 => 'u2.name',           // pakai alias u1
         12 => 'stos.created_at',
         13 => 'stos.note',
     ];
@@ -635,6 +636,8 @@ CASE
     ELSE 0
 END as qty_display
 "),
+'sto_items.qty',    // qty user 1
+'sto_items.qty_2',  // qty user 2
             'articles.min_package',
  
             DB::raw("
@@ -841,8 +844,18 @@ if ($request->filled('status')) {
         $twoDecimalLocations = ['Chemical', 'Dead Stock CM1', 'Consumable'];
  
         $qtyFormatted = in_array($row->location, $twoDecimalLocations)
-            ? number_format($row->qty_display, 2)
-            : number_format($row->qty_display, 0);
+    ? number_format($row->qty_display, 2)
+    : number_format($row->qty_display, 0);
+
+// ✅ Override qty untuk superuser → pakai qty (user 1)
+if ($isSuperUser) {
+    $qty1 = $row->qty !== null
+        ? (in_array($row->location, $twoDecimalLocations) ? number_format($row->qty, 2) : number_format($row->qty, 0))
+        : '-';
+    $qty2 = $row->qty_2 !== null
+        ? (in_array($row->location, $twoDecimalLocations) ? number_format($row->qty_2, 2) : number_format($row->qty_2, 0))
+        : '-';
+}
  
         // Badge status 3 kondisi
         $statusBadge = null;
@@ -891,12 +904,17 @@ if ($request->filled('status')) {
             'shelves' => $row->shelves,
             'article_code' => $row->article_code,
             'part_name'    => $row->part_name,
-            'qty'          => $qtyFormatted,
+            'qty'      => $isSuperUser ? $qty1 : $qtyFormatted,  // ← superuser: qty = qty1
+...($isSuperUser ? [
+    'qty_1' => $qty1,
+    'qty_2' => $qty2,
+] : []),
             'min_package'  => $row->min_package,
             'unit'         => $row->unit,
             'status'       => $statusBadge,
             'sto_number'   => $row->sto_number,
             'created_by'   => $row->created_by,
+            'created_by_2'   => $row->created_by_2,
             'created_at'   => $row->created_at,
             'note'         => $row->note,
         ];

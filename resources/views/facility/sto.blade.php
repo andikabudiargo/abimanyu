@@ -106,12 +106,19 @@
                     <th class="px-4 py-2 text-left">Address</th>
                     <th class="px-4 py-2 text-left">Part Code</th>
                     <th class="px-4 py-2 text-left">Part Name</th>
-                    <th class="px-4 py-2 text-center">Qty</th>
+                   @if(!in_array(auth()->id(), [53, 2]))
+<th class="px-4 py-2 text-center">Qty</th>
+@endif
+                    @if(in_array(auth()->id(), [53, 2]))
+<th class="px-4 py-2 text-center">Qty</th>
+<th class="px-4 py-2 text-center">Qty 2</th>
+@endif
                     <th class="px-4 py-2 text-center">Packing</th>
                     <th class="px-4 py-2 text-center">UoM</th>
                     <th class="px-4 py-2 text-center">Status</th>
                     <th class="px-4 py-2 text-center">STO Number</th>
-                    <th class="px-4 py-2 text-center">Created by</th>
+                    <th class="px-4 py-2 text-center">Verifikator 1</th>
+                    <th class="px-4 py-2 text-center">Verifikator 2</th>
                     <th class="px-4 py-2 text-center">Created at</th>
                     <th class="px-4 py-2 text-left">Note</th>
                 </tr>
@@ -294,29 +301,8 @@ div.dt-button-collection .dt-button:hover {
 
 </style>
 <script>
-$('#sto-table').on('draw.dt', function () {
-    $('#sto-table tbody tr').each(function () {
-        $(this).find('td').each(function (index) {
-            const headers = [
-                "Action",
-                "Location",
-                "Area",
-                "Rak",
-                "Part Code",
-                "Part Name",
-                "Qty",
-                "UoM",
-                "Packing",
-                 "Status",
-                "STO Number",
-                "Created By",
-                "Created At",
-                "Note"
-            ];
-            $(this).attr('data-label', headers[index]);
-        });
-    });
-});
+  
+
 
  function showToast(type, message) {
     Swal.fire({
@@ -332,6 +318,14 @@ $('#sto-table').on('draw.dt', function () {
     let today = new Date().toISOString().slice(0, 10); // Hasil: "2025-07-21"
 
 $(function () {
+
+// ✅ Taruh di sini, SEBELUM DataTable init
+  const isSuperUser = {{ in_array(auth()->id(), [53, 2]) ? 'true' : 'false' }};
+
+  const extraQtyColumns = isSuperUser ? [
+      { data: 'qty_1', className: 'text-center' },
+      { data: 'qty_2', className: 'text-center' },
+  ] : [];
 
   const table = $('#sto-table').DataTable({
     processing: true,
@@ -357,12 +351,14 @@ $(function () {
         { data: 'shelves', className: 'text-center' },
       { data: 'article_code' },
       { data: 'part_name' },
-      { data: 'qty', className: 'text-center' },
+    { data: 'qty',          className: 'text-center', visible: !isSuperUser },  // ← hidden kalau superuser
+  ...extraQtyColumns,
        { data: 'min_package', className: 'text-center' },
       { data: 'unit', className: 'text-center' },
        { data: 'status', className: 'text-center' },
       { data: 'sto_number', className: 'text-center' },
       { data: 'created_by', className: 'text-center' },
+      { data: 'created_by_2', className: 'text-center' },
       { 
         data: 'created_at',
         className: 'text-center',
@@ -441,6 +437,20 @@ $(function () {
       }
     ]
   });
+
+  $('#sto-table').on('draw.dt', function () {
+    $('#sto-table tbody tr').each(function () {
+        $(this).find('td').each(function (index) {
+          const headers = [
+  "Action", "Location", "Area", "Rak", "Part Code", "Part Name",
+  ...(isSuperUser ? ["Qty 1", "Qty 2"] : ["Qty"]),  // ← switch
+  "Packing", "UoM", "Status", "STO Number",
+  "Verifikator 1", "Verifikator 2", "Created At", "Note"
+];
+            $(this).attr('data-label', headers[index]);
+        });
+    });
+});
  
   // ─────────────────────────────────────────────────────────────
   // Helper: tampilkan toast + trigger download via iframe
