@@ -1,3 +1,53 @@
+@extends('layouts.app-sto')
+
+@section('title', 'Create STO')
+@section('page-title', 'CREATE STO')
+@section('breadcrumb-item', 'Stock Opname')
+@section('breadcrumb-active', 'Create STO')
+
+@section('content')
+
+<form id="stoForm" class="space-y-6 w-full">
+  @if (Agent::isMobile())
+    @include('facility.create-sto-mobile')
+  @else
+    @include('facility.create-sto-desktop-2')
+  @endif
+</form>
+
+<style>
+/* ── Spinner angka ─────────────────────── */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
+/* ── Select2 sizing ────────────────────── */
+.select2-container { width: 100% !important; min-width: 0 !important; }
+.select2-container .select2-selection--single {
+  height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0 0.75rem !important;
+}
+.select2-container .select2-selection__rendered {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 42px !important;
+  font-size: 15px;
+  color: #374151;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 42px !important;
+  right: 0.75rem;
+}
+</style>
+
+@push('scripts')
+<script>
 // ══════════════════════════════════════════════════════════
 // KONSTANTA GLOBAL
 // ══════════════════════════════════════════════════════════
@@ -757,3 +807,7 @@ $(document).ready(function () {
     });
 
 }); // end document.ready
+</script>
+@endpush
+
+@endsection
