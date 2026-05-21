@@ -9,6 +9,7 @@ use App\Http\Controllers\MaterialMovementController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\APDController;
+use App\Http\Controllers\ATKController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ArticleTypeController;
@@ -274,10 +275,25 @@ Route::get('/article/select', [STOController::class, 'selectArticle'])
 Route::get('/sto/get-sto-by-warehouse', [STOController::class, 'getStoByWarehouse']);
 Route::get('/sto/report', [STOController::class, 'exportReport']);
 Route::get('/sto/review', [STOController::class, 'exportReview']);
-
-
-
-     
+ Route::get('/sto/reference/areas',  [STOController::class, 'getReferenceAreas'])->name('sto.reference.areas');
+    Route::get('/sto/reference/shelves', [STOController::class, 'getReferenceShelves'])
+         ->name('sto.reference.shelves');
+    Route::get('/sto/reference/items',  [STOController::class, 'getReferenceItems'])
+         ->name('sto.reference.items');
+Route::get('/sto/check-area-shelf', [STOController::class, 'checkAreaShelf']);
+ Route::get('/atk/dashboard', [ATKController::class, 'index'])->name('atk.index');
+     Route::post('/atk/add', [AtkController::class, 'store'])->name('atk.store');
+     Route::get('/atk/data',    [AtkController::class, 'dataStock'])->name('atk.data.stock');
+     Route::get('/atk/request/data-summary', [ATKController::class, 'dataSummary'])->name('atk.data.summary');
+Route::get('/atk/request/data-detail',  [ATKController::class, 'dataDetail'])->name('atk.data.detail');
+     Route::post('/atk/adjustment', [ATKController::class, 'adjustment'])->name('atk.adjustment');
+     Route::get('/atk/request/create',  [ATKController::class, 'create'])->name('atk.create');
+Route::post('/atk/request/store',         [ATKController::class, 'request'])->name('atk.request');
+     Route::get('/atk/{id}/movements',        [ATKController::class, 'movements'])->name('atk.movements');
+Route::get('/atk/{id}/movements/export', [ATKController::class, 'movementsExport'])->name('atk.movements.export');
+     Route::get('/atk/{id}/edit',    [ATKController::class, 'edit'])->name('atk.edit');
+Route::post('/atk/{id}',        [ATKController::class, 'update'])->name('atk.update');   // POST + _method spoofing
+Route::delete('/atk/{id}',      [ATKController::class, 'destroy'])->name('atk.destroy');
 
 });
 
@@ -417,16 +433,16 @@ Route::prefix('ppic')->name('ppic.')->group(function () {
     Route::get('/transfer-chemical/api', [TransferChemicalController::class, 'chemicals'])->name('tfcm1.api');
     Route::get('/transfer-chemical/data', [TransferChemicalController::class, 'data'])->name('tfcm1.data');
     Route::post('/transfer-chemical/store', [TransferChemicalController::class, 'store'])->name('tfcm1.store');
-    Route::get('/transfer-chemical/{id}', [TransferChemicalController::class, 'show'])  ->name('tfcm1.show');
-    Route::get('/transfer-chemical/{transfer}/export/ims', 
-    [TransferChemicalController::class, 'exportIMS'])
-    ->name('tfcm1.export.ims');
-    Route::get('/transfer-chemical/{transfer}/print',
-    [TransferChemicalController::class, 'print'])
-    ->name('ppic.tfcm1.print');
-    Route::get('/transfer-chemical/data/detail',
-    [TransferChemicalController::class, 'dataDetail'])
-    ->name('tfcm1.data.detail');
+   
+    
+    Route::get('/transfer-chemical/data/detail', [TransferChemicalController::class, 'dataDetail'])->name('tfcm1.data.detail');
+    Route::get('transfer-chemical/konsumsi-booth',  [TransferChemicalController::class, 'konsumsiPerBooth'])->name('tfcm1.konsumsi-booth');
+    Route::get('transfer-chemical/transaksi-booth', [TransferChemicalController::class, 'transaksiPerBooth'])->name('tfcm1.transaksi-booth');
+    Route::get('/transfer-chemical/konsumsi-booth/export', [TransferChemicalController::class, 'exportKonsumsiExcel'])->name('tfcm1.konsumsi-booth.export');
+
+     Route::get('/transfer-chemical/{id}', [TransferChemicalController::class, 'show'])  ->name('tfcm1.show');
+    Route::get('/transfer-chemical/{transfer}/export/ims', [TransferChemicalController::class, 'exportIMS'])->name('tfcm1.export.ims');
+    Route::get('/transfer-chemical/{transfer}/print',[TransferChemicalController::class, 'print'])->name('ppic.tfcm1.print');
 });
 
 Route::prefix('purchasing')->name('purchasing.')->group(function () {
@@ -519,6 +535,7 @@ Route::prefix('it')->name('it.')->group(function () {
     Route::get('/assets/edit/{id}', [ITAssetsController::class, 'edit'])->name('assets.edit');
     Route::put('/assets/update/{id}', [ITAssetsController::class, 'update'])->name('assets.update');
     Route::post('/assets/store', [ITAssetsController::class, 'store'])->name('assets.store');
+    Route::get('/assets/export', [ITAssetsController::class, 'export'])->name('assets.export');
     Route::get('/backup/index', [ITBackupController::class, 'index'])->name('backup.index');
      Route::get('/backup/data', [ITBackupController::class, 'data'])->name('backup.data');
     Route::post('/backup/store', [ITBackupController::class, 'store'])->name('backup.store');
