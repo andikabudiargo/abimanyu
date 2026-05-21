@@ -116,8 +116,10 @@
                     <th class="px-4 py-2 text-center">UoM</th>
                     <th class="px-4 py-2 text-center">Status</th>
                     <th class="px-4 py-2 text-center">STO Number</th>
-                    <th class="px-4 py-2 text-center">Verifikator 1</th>
-                    <th class="px-4 py-2 text-center">Verifikator 2</th>
+                   <th class="px-4 py-2 text-center">Verifikator 1</th>
+@if(in_array(auth()->id(), [53, 2]))
+<th class="px-4 py-2 text-center">Verifikator 2</th>
+@endif
                     <th class="px-4 py-2 text-center">Created at</th>
                     <th class="px-4 py-2 text-left">Note</th>
                 </tr>
@@ -357,13 +359,15 @@ const table = $('#sto-table').DataTable({
         { data: 'unit',          className: 'text-center' },
         { data: 'status',        className: 'text-center' },
         { data: 'sto_number',    className: 'text-center' },
-        { data: 'created_by',    className: 'text-center' },
-        { data: 'created_by_2',  className: 'text-center' },
+        { data: 'created_by', className: 'text-center' },
+...(isSuperUser ? [{ data: 'created_by_2', className: 'text-center' }] : []),
         { data: 'created_at',    className: 'text-center' },
         { data: 'note' },
     ],
 
-   order: [[ isSuperUser ? 13 : 12, 'desc']],
+   // superuser: action+loc+area+shelves+code+name+qty1+qty2+pack+uom+status+sto+v1+v2+created_at = index 14
+// non-superuser: action+loc+area+shelves+code+name+qty+pack+uom+status+sto+v1+created_at = index 12
+order: [[ isSuperUser ? 14 : 12, 'desc']],
 
     lengthMenu: [
       [10, 25, 50, -1],
@@ -437,11 +441,13 @@ const table = $('#sto-table').DataTable({
   $('#sto-table').on('draw.dt', function () {
     $('#sto-table tbody tr').each(function () {
         $(this).find('td').each(function (index) {
-          const headers = [
-  "Action", "Location", "Area", "Rak", "Part Code", "Part Name",
-  ...(isSuperUser ? ["Qty 1", "Qty 2"] : ["Qty"]),  // ← switch
-  "Packing", "UoM", "Status", "STO Number",
-  "Verifikator 1", "Verifikator 2", "Created At", "Note"
+         const headers = [
+    "Action", "Location", "Area", "Rak", "Part Code", "Part Name",
+    ...(isSuperUser ? ["Qty 1", "Qty 2"] : ["Qty"]),
+    "Packing", "UoM", "Status", "STO Number",
+    "Verifikator 1",
+    ...(isSuperUser ? ["Verifikator 2"] : []),
+    "Created At", "Note"
 ];
             $(this).attr('data-label', headers[index]);
         });

@@ -672,13 +672,25 @@ END as qty_display
             'stos.sto_number',
  
             // Nama created_by sesuai auth — u1 jika user pertama, u2 jika user kedua
-            DB::raw("
-                CASE
-                    WHEN stos.created_by   = {$userId} THEN u1.name
-                    WHEN stos.created_by_2 = {$userId} THEN u2.name
-                    ELSE NULL
-                END as created_by
-            "),
+           // ✅ BARU — superuser lihat kedua nama, non-superuser lihat nama sendiri
+DB::raw("
+    CASE
+        WHEN " . ($isSuperUser ? 1 : 0) . " = 1
+            THEN u1.name
+        WHEN stos.created_by   = {$userId} THEN u1.name
+        WHEN stos.created_by_2 = {$userId} THEN u2.name
+        ELSE NULL
+    END as created_by
+"),
+
+// Tambah kolom ini khusus superuser (u2.name selalu diambil)
+DB::raw("
+    CASE
+        WHEN " . ($isSuperUser ? 1 : 0) . " = 1
+            THEN u2.name
+        ELSE NULL
+    END as created_by_2_name
+"),
  
             'stos.created_at',
             'stos.note'
@@ -914,7 +926,7 @@ if ($isSuperUser) {
             'status'       => $statusBadge,
             'sto_number'   => $row->sto_number,
             'created_by'   => $row->created_by,
-            'created_by_2'   => $row->created_by_2,
+'created_by_2' => $isSuperUser ? ($row->created_by_2_name ?? '-') : null,
             'created_at'   => $row->created_at,
             'note'         => $row->note,
         ];
