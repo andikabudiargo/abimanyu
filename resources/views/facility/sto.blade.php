@@ -102,12 +102,12 @@
                 <tr>
                      <th class="px-4 py-2 text-left">Action</th>
                     <th class="px-4 py-2 text-left">Location</th>
-                    <th class="px-4 py-2 text-left">Area</th>
-                    <th class="px-4 py-2 text-left">Shelf / Rak</th>
+                    <th class="px-4 py-2 text-left">Rack</th>
+                    <th class="px-4 py-2 text-left">Address</th>
                     <th class="px-4 py-2 text-left">Part Code</th>
                     <th class="px-4 py-2 text-left">Part Name</th>
-                     <th class="px-4 py-2 text-center">Qty</th>
-                      <th class="px-4 py-2 text-center">Packing</th>
+                    <th class="px-4 py-2 text-center">Qty</th>
+                    <th class="px-4 py-2 text-center">Packing</th>
                     <th class="px-4 py-2 text-center">UoM</th>
                     <th class="px-4 py-2 text-center">Status</th>
                     <th class="px-4 py-2 text-center">STO Number</th>

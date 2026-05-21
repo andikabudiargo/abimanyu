@@ -129,12 +129,12 @@ public function createv2()
         69        => 'Raw Material',
         85        => 'Werate',
         43,47     => 'WIP Buffing',
-        44,45,88     => 'WIP Touch Up',
-        108,126    => 'WIP Sanding',
-        63        => 'Consumable',
-         2  , 53     => 'Chemical',
+        44,45,88  => 'WIP Touch Up',
+        108,126   => 'WIP Sanding',
+        2, 63, 129   => 'Consumable',
+        67, 54    => 'Chemical',
         45        => 'Finish Goods',
-          44      => 'OT',
+        44        => 'OT',
         45 => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
