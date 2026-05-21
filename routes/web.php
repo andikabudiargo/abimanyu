@@ -273,6 +273,7 @@ Route::get('/article/select', [STOController::class, 'selectArticle'])
      ->name('article.select');
      Route::get('/articles/by-warehouse', [STOController::class, 'getArticlesByWarehouse']);
 Route::get('/sto/get-sto-by-warehouse', [STOController::class, 'getStoByWarehouse']);
+Route::get('/sto/reference/items-by-area', [STOController::class, 'getReferenceItemsByArea']);
 Route::get('/sto/report', [STOController::class, 'exportReport']);
 Route::get('/sto/review', [STOController::class, 'exportReview']);
  Route::get('/sto/reference/areas',  [STOController::class, 'getReferenceAreas'])->name('sto.reference.areas');

@@ -2178,6 +2178,70 @@ public function getReferenceAreas(Request $request)
  
     return response()->json(['areas' => $areas]);
 }
+
+// GET /facility/sto/reference/items-by-area?warehouse=Chemical&area=Line+1
+public function getReferenceItemsByArea(Request $request)
+{
+    $warehouse = $request->input('warehouse');
+    $area      = $request->input('area');
+
+    if (!$warehouse || !$area) {
+        return response()->json(['items' => [], 'shelves' => []]);
+    }
+
+    // Semua shelf di area ini
+    $masters = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
+        ->where('area', $area)
+        ->where('is_active', 1)
+        ->with(['items.article'])
+        ->orderBy('shelves')
+        ->get();
+
+    // Cek item yang sudah tersimpan hari ini
+    $savedItems = \DB::table('sto_items')
+        ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+        ->where('stos.warehouse', $warehouse)
+        ->whereDate('stos.created_at', now()->toDateString())
+        ->select('sto_items.article_code', 'stos.area', 'stos.shelves')
+        ->get()
+        ->groupBy(fn($r) => $r->area . '|' . $r->shelves);
+
+    $shelves = [];
+    foreach ($masters as $master) {
+        $key        = $area . '|' . $master->shelves;
+        $savedCodes = collect($savedItems->get($key, []))->pluck('article_code')->toArray();
+
+        $items = $master->items->map(function ($item) use ($savedCodes) {
+            return [
+                'article_code' => $item->article_code,
+                'description'  => optional($item->article)->description,
+                'unit'         => optional($item->article)->unit,
+                'min_package'  => optional($item->article)->min_package,
+                'already_saved'=> in_array($item->article_code, $savedCodes),
+            ];
+        });
+
+        $allSaved = $items->every(fn($i) => $i['already_saved']);
+
+        $shelves[] = [
+            'id'        => $master->id,
+            'shelves'   => $master->shelves,
+            'items'     => $items,
+            'all_saved' => $allSaved,
+        ];
+    }
+
+    // Semua item unik dari area (gabungan semua shelf)
+    $allItems = collect($shelves)
+        ->flatMap(fn($s) => $s['items'])
+        ->unique('article_code')
+        ->values();
+
+    return response()->json([
+        'shelves'   => $shelves,
+        'all_items' => $allItems,
+    ]);
+}
  
  
 /**
