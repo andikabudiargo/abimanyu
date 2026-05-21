@@ -128,14 +128,14 @@ public function createv2()
     return match ($userId) {
         69        => 'Raw Material',
         85        => 'Werate',
-        43,86     => 'WIP Buffing',
+        43,47     => 'WIP Buffing',
         44,45,88     => 'WIP Touch Up',
         108,126    => 'WIP Sanding',
         63        => 'Consumable',
-        67        => 'Chemical',
-        68        => 'Finish Goods',
-        92        => 'OT',
-        53,2 => null, // 🔥 BOLEH PILIH SENDIRI
+         2  , 53     => 'Chemical',
+        45        => 'Finish Goods',
+          44      => 'OT',
+        45 => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -217,88 +217,35 @@ public function getArticlesByWarehouse(Request $request)
 }
 
 
-public function getStoByWarehouse(Request $request)
-{
-    $warehouse = $request->warehouse;
-
-    $year  = 2026;
-    $month = '03';
-
-    $stoRange = [
-        'Dead Stock CM1' => [1, 500],
-        'Chemical'     => [1000, 1999],
-        'Consumable'   => [2000, 2999],
-        'Raw Material' => [3000, 3999],
-        'WIP Buffing'  => [4000, 4999],
-        'WIP Sanding'  => [5000, 5999],
-        'WIP Touch Up' => [6000, 6999],
-        'Finish Goods' => [7000, 7999],
-        'OT'           => [8000, 8999],
-        'Werate'       => [9000, 9999],
-    ];
-
-    $start = 1;
-    $end   = 2000;
-
-    if (isset($stoRange[$warehouse])) {
-        [$start, $end] = $stoRange[$warehouse];
-    }
-
-    $usedStoNumbers = DB::table('stos')
-        ->pluck('sto_number')
-        ->toArray();
-
-    $options = '';
-
-    for ($i = $start; $i <= $end; $i++) {
-
-        $number = str_pad($i, 4, '0', STR_PAD_LEFT);
-        $val = "{$year}/{$month}/{$number}";
-
-        if (!in_array($val, $usedStoNumbers)) {
-            $options .= "<option value='{$val}'>{$val}</option>";
-        }
-    }
-
-    return response()->json([
-        'html' => $options
-    ]);
-}
-
-
 public function store(Request $request)
 {
     // =========================
     // VALIDATION
     // =========================
     $validator = \Validator::make($request->all(), [
-        'sto_number'                => 'required|string|unique:stos,sto_number',
+        'sto_number'                => 'nullable|string|unique:stos,sto_number',
+        'area'                      => 'nullable|string',
+        'shelf'                     => 'nullable|string',
         'articles'                  => 'required|array|min:1',
         'articles.*.article_code'   => 'required|string',
         'articles.*.qty'            => 'required|numeric|min:0',
         'articles.*.uom'            => 'nullable|string',
+        'articles.*.kondisi'        => 'nullable|string',
         'articles.*.location'       => 'required|string',
         'note'                      => 'nullable|string',
     ]);
 
-    // 🔥 VALIDASI KHUSUS OTHER
+    // VALIDASI OTHER
     $validator->after(function ($validator) use ($request) {
         foreach ($request->articles as $i => $row) {
-
             if (($row['article_code'] ?? null) === 'OTHER') {
 
                 if (empty($row['other_name'])) {
-                    $validator->errors()->add(
-                        "articles.$i.other_name",
-                        "Nama part wajib diisi untuk OTHER"
-                    );
+                    $validator->errors()->add("articles.$i.other_name", "Nama part wajib diisi untuk OTHER");
                 }
 
                 if (empty($row['uom'])) {
-                    $validator->errors()->add(
-                        "articles.$i.uom",
-                        "UOM wajib diisi untuk OTHER"
-                    );
+                    $validator->errors()->add("articles.$i.uom", "UOM wajib diisi untuk OTHER");
                 }
             }
         }
@@ -315,11 +262,13 @@ public function store(Request $request)
     DB::beginTransaction();
 
     try {
-        // =========================
-        // CREATE STO HEADER
-        // =========================
+
+        $userId   = auth()->id();
         $warehouse = $this->userWarehouse();
 
+        // =========================
+        // HANDLE WAREHOUSE NULL
+        // =========================
         if ($warehouse === null) {
             $firstLocation = $request->articles[0]['location'] ?? null;
 
@@ -336,69 +285,201 @@ public function store(Request $request)
                 : $firstLocation;
         }
 
-        $sto = Sto::create([
-            'sto_number' => $request->sto_number,
-            'warehouse'  => $warehouse,
-            'note'       => $request->note,
-            'created_by' => auth()->id(),
-        ]);
+        $location = strtolower($request->articles[0]['location'] ?? '');
+        $isChemical   = str_contains($location, 'chemical');
+        $isConsumable = str_contains($location, 'consumable');
+
+        $sto = null;
 
         // =========================
-        // CREATE STO ITEMS
+        // CHEMICAL / CONSUMABLE RULE
         // =========================
-        $itemCount = 0;
+        if ($isChemical || $isConsumable) {
 
-        foreach ($request->articles as $row) {
+            $existingSto = Sto::where('warehouse', $warehouse)
+                ->where('area', $request->area)
+                ->where('shelves', $request->shelf)
+                ->whereDate('created_at', now()->toDateString())
+                ->lockForUpdate()
+                ->first();
 
-            if (empty($row['article_code']) || empty($row['qty'])) {
-                continue;
+            if ($existingSto) {
+
+                // user sudah terdaftar
+                if (
+                    $existingSto->created_by == $userId ||
+                    $existingSto->created_by_2 == $userId
+                ) {
+                    $sto = $existingSto;
+                }
+
+                // slot ke-2 kosong
+                elseif (!$existingSto->created_by_2) {
+
+                    $existingSto->update([
+                        'created_by_2' => $userId
+                    ]);
+
+                    $sto = $existingSto;
+                }
+
+                // sudah 2 user
+                else {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'STO ini sudah digunakan oleh 2 user'
+                    ], 422);
+                }
+
+            } else {
+
+                // create baru
+                $sto = Sto::create([
+                    'sto_number' => $request->sto_number ?? null,
+                    'warehouse'  => $warehouse,
+                    'area'       => $request->area,
+                    'shelves'    => $request->shelf,
+                    'note'       => $request->note,
+                    'created_by' => $userId,
+                ]);
             }
 
-            $isOverrideLocation =
-    str_contains($row['location'], 'Chemical') ||
-    str_contains($row['location'], 'Dead Stock CM1');
+        } else {
 
-if ($row['article_code'] === 'OTHER' || $isOverrideLocation) {
+            // =========================
+            // NON CHEMICAL
+            // =========================
+            $sto = Sto::create([
+                'sto_number' => $request->sto_number ?? null,
+                'warehouse'  => $warehouse,
+                'area'       => $request->area,
+                'shelves'    => $request->shelf,
+                'note'       => $request->note,
+                'created_by' => $userId,
+            ]);
+        }
 
-    // pakai UOM dari input user
-    $uom = $row['uom'];
+        // =========================
+        // AUTO GENERATE NUMBER
+        // =========================
+        if (($isChemical || $isConsumable) && !$sto->sto_number) {
 
-} else {
+            $year  = $sto->created_at->format('Y');
+            $month = $sto->created_at->format('m');
 
-    // default ambil dari master
-    $uom = Article::where(
-        'article_code',
-        $row['article_code']
-    )->value('unit');
-}
+            $start = $isChemical ? 1000 : 2000;
+            $end   = $isChemical ? 1999 : 2999;
 
-            $sto->items()->create([
-                'article_code' => $row['article_code'],
-                'other_name'   => $row['article_code'] === 'OTHER'
-                                    ? $row['other_name']
-                                    : null,
-                'uom'          => $uom,
-                'qty'          => $row['qty'],
-                'location'     => $row['location'],
+            $lastSto = Sto::whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->whereBetween(
+                    DB::raw("CAST(SUBSTRING_INDEX(sto_number, '/', -1) AS UNSIGNED)"),
+                    [$start, $end]
+                )
+                ->lockForUpdate()
+                ->orderByDesc('sto_number')
+                ->first();
+
+            $nextIndex = $lastSto
+                ? ((int) explode('/', $lastSto->sto_number)[2] + 1)
+                : $start;
+
+            if ($nextIndex > $end) {
+                throw new \Exception('Index STO habis');
+            }
+
+            $sto->update([
+                'sto_number' => sprintf('%s/%s/%04d', $year, $month, $nextIndex)
+            ]);
+        }
+
+    // =========================
+// CREATE / UPDATE ITEMS (UPSERT)
+// =========================
+$itemCount = 0;
+
+// tentukan apakah user ke-2
+$isSecondUser = $sto->created_by_2 == $userId;
+
+foreach ($request->articles as $row) {
+
+    if (empty($row['article_code']) || !isset($row['qty'])) {
+        continue;
+    }
+
+    $isOverrideLocation =
+        str_contains($row['location'], 'Chemical') ||
+        str_contains($row['location'], 'Dead Stock CM1');
+
+    $uom = ($row['article_code'] === 'OTHER' || $isOverrideLocation)
+        ? $row['uom']
+        : Article::where('article_code', $row['article_code'])->value('unit');
+
+    // =========================
+    // FIND EXISTING ITEM
+    // =========================
+    $existingItem = $sto->items()
+        ->where('article_code', $row['article_code'])
+        ->where('location', $row['location'])
+        ->where('uom', $uom)
+        ->when($row['article_code'] === 'OTHER', function ($q) use ($row) {
+            $q->where('other_name', $row['other_name']);
+        })
+        ->lockForUpdate()
+        ->first();
+
+    if ($existingItem) {
+
+        // =========================
+        // UPDATE EXISTING
+        // =========================
+        if ($isSecondUser) {
+
+            $existingItem->update([
+                'qty_2' => ($existingItem->qty_2 ?? 0) + $row['qty']
             ]);
 
-            $itemCount++;
+        } else {
+
+            $existingItem->update([
+                'qty' => ($existingItem->qty ?? 0) + $row['qty']
+            ]);
         }
 
-        if ($itemCount === 0) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak ada item STO yang valid',
-            ], 400);
-        }
+    } else {
+
+        // =========================
+        // CREATE NEW
+        // =========================
+        $sto->items()->create([
+            'article_code' => $row['article_code'],
+            'other_name'   => $row['article_code'] === 'OTHER' ? $row['other_name'] : null,
+            'uom'          => $uom,
+            'qty'          => $isSecondUser ? 0 : $row['qty'],
+            'qty_2'        => $isSecondUser ? $row['qty'] : null,
+            'kondisi'     => $row['kondisi'],
+            'location'     => $row['location'],
+        ]);
+    }
+
+    $itemCount++;
+}
+
+if ($itemCount === 0) {
+    DB::rollBack();
+    return response()->json([
+        'success' => false,
+        'message' => 'Tidak ada item STO yang valid',
+    ], 400);
+}
 
         DB::commit();
 
         return response()->json([
             'success' => true,
             'message' => 'STO berhasil disimpan',
-            'data'    => [
+            'data' => [
                 'sto_id'     => $sto->id,
                 'sto_number' => $sto->sto_number,
                 'warehouse'  => $sto->warehouse,
@@ -407,245 +488,421 @@ if ($row['article_code'] === 'OTHER' || $isOverrideLocation) {
         ]);
 
     } catch (\Throwable $e) {
+
         DB::rollBack();
 
         return response()->json([
             'success' => false,
-            'message' => 'Terjadi kesalahan saat menyimpan STO',
+            'message' => $e->getMessage()
         ], 500);
     }
+}
+
+public function checkAreaShelf(Request $request)
+{
+    $request->validate([
+        'area'  => 'required|string',
+        'shelf' => 'required|string',
+    ]);
+
+    $userId = auth()->id();
+
+    // =========================
+    // CARI STO BERDASARKAN AREA + SHELF
+    // =========================
+    $sto = Sto::where('area', $request->area)
+        ->where('shelves', $request->shelf)
+        ->first();
+
+    // =========================
+    // DEFAULT RESPONSE
+    // =========================
+    $response = [
+        'can_input' => true,
+        'reason'    => null,
+    ];
+
+    if ($sto) {
+
+        // =========================
+        // ❌ USER SUDAH PERNAH INPUT
+        // =========================
+        if (
+            $sto->created_by == $userId ||
+            $sto->created_by_2 == $userId
+        ) {
+            return response()->json([
+                'can_input' => false,
+                'reason'    => 'already_joined',
+                'message'   => 'Anda sudah pernah input di area & shelf ini'
+            ]);
+        }
+
+        // =========================
+        // ❌ SLOT SUDAH 2 USER
+        // =========================
+        if ($sto->created_by && $sto->created_by_2) {
+            return response()->json([
+                'can_input' => false,
+                'reason'    => 'slot_full',
+                'message'   => 'Maksimal 2 user untuk area & shelf ini'
+            ]);
+        }
+
+        // =========================
+        // ✅ MASIH BISA JOIN (USER KE-2)
+        // =========================
+        return response()->json([
+            'can_input' => true,
+            'reason'    => 'available_as_second_user',
+        ]);
+    }
+
+    // =========================
+    // ✅ BELUM ADA STO → BEBAS
+    // =========================
+    return response()->json([
+        'can_input' => true,
+        'reason'    => 'new_sto',
+    ]);
 }
 
 
 public function datatables(Request $request)
 {
     $userId = Auth::id();
-
-   $columns = [
-    0 => null, // action (tidak sortable)
-    1 => 'sto_items.location',
-    2 => 'sto_items.article_code',
-    3 => 'articles.description',
-    4 => 'sto_items.qty',
-    5 => 'articles.min_package',
-    6 => 'articles.unit',
-    7 => 'stos.sto_number',   // ✅ FIX
-    8 => 'users.name',
-    9 => 'stos.created_at',
-    10 => 'stos.note',
-];
-
-
-    // 🔥 AMBIL MAPPING USER
-    $warehouse     = $this->userWarehouse();
-    $limit  = $request->length;
-    $start  = $request->start;
-    $order  = $columns[$request->input('order.0.column')];
-    $dir    = $request->input('order.0.dir');
-
-    // =====================
-    // 🔹 BASE QUERY
-    // =====================
+ 
+    $columns = [
+        0  => null,                    // action
+        1  => 'sto_items.location',
+        2  => 'stos.area',
+        3  => 'stos.shelves',
+        4  => 'sto_items.article_code',
+        5  => 'articles.description',
+        6  => 'sto_items.qty_display', // kolom virtual (alias)
+        7  => 'articles.min_package',
+        8  => 'articles.unit',
+        9  => 'status',                // alias dari select
+        10  => 'stos.sto_number',
+        11 => 'u1.name',               // pakai alias u1
+        12 => 'stos.created_at',
+        13 => 'stos.note',
+    ];
+ 
+    $warehouse = $this->userWarehouse();
+    $limit     = $request->length;
+    $start     = $request->start;
+ 
+    // =====================================================================
+    // BASE QUERY
+    // =====================================================================
     $query = DB::table('sto_items')
         ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
         ->leftJoin('articles', 'articles.article_code', '=', 'sto_items.article_code')
-        ->leftJoin('users', 'users.id', '=', 'stos.created_by')
-       ->select(
-    'sto_items.id as sto_item_id',
-    'sto_items.sto_id',
-    'sto_items.location',
-    'sto_items.article_code',
+        ->leftJoin('users as u1', 'u1.id', '=', 'stos.created_by')
+        ->leftJoin('users as u2', 'u2.id', '=', 'stos.created_by_2')
+        ->select(
+              'stos.area',        // ✅ TAMBAH INI
+    'stos.shelves',     // ✅ TAMBAH INI
+            'sto_items.id as sto_item_id',
+            'sto_items.sto_id',
+            'sto_items.location',
+            'sto_items.article_code',
+ 
+            // Nama part: OTHER pakai other_name, sisanya pakai description artikel
+            DB::raw("
+                CASE
+                    WHEN sto_items.article_code = 'OTHER'
+                    THEN sto_items.other_name
+                    ELSE articles.description
+                END as part_name
+            "),
+ 
+            // qty hanya milik auth sendiri
+          DB::raw("
+CASE
+    WHEN {$userId} = stos.created_by THEN
+        COALESCE(sto_items.qty, 0)
 
-    DB::raw("
-      CASE
-        WHEN sto_items.article_code = 'OTHER'
-        THEN sto_items.other_name
-        ELSE articles.description
-      END as part_name
-    "),
+    WHEN {$userId} = stos.created_by_2 THEN
+        COALESCE(sto_items.qty_2, 0)
 
-    'sto_items.qty',
-     'articles.min_package',
-
-    DB::raw("
-      CASE
-        WHEN sto_items.article_code = 'OTHER'
-        THEN sto_items.uom
-        ELSE articles.unit
-      END as unit
-    "),
-
-    'stos.sto_number',
-    'users.name as created_by',
-    'stos.created_at',
-    'stos.note'
-       );
-
-       // =====================
-// 📅 FILTER STO MONTH (TAMBAH DI SINI)
-// =====================
-$defaultMonth = '2026/04';
-
-$selectedMonth = $request->filled('sto_month')
-    ? $request->sto_month
-    : $defaultMonth;
-
-$query->where('stos.sto_number', 'like', $selectedMonth . '/%');
-    // =====================
-    // 🔐 FILTER KHUSUS USER 67
-if ($userId == 67) {
-    $query->whereIn('sto_items.location', ['Chemical', 'Consumable']);
-}
-
+    ELSE 0
+END as qty_display
+"),
+            'articles.min_package',
+ 
+            DB::raw("
+                CASE
+                    WHEN sto_items.article_code = 'OTHER'
+                    THEN sto_items.uom
+                    ELSE articles.unit
+                END as unit
+            "),
+ 
+            // ✅ STATUS 3 KONDISI — hanya untuk Chemical / Consumable
+            // Logika:
+            //   NOT COMPLETE → salah satu qty atau qty_2 masih NULL
+            //   NOT MATCH    → keduanya sudah diisi tapi nilainya berbeda
+            //   MATCH        → keduanya sudah diisi dan nilainya sama
+            DB::raw("
+                CASE
+                    WHEN LOWER(sto_items.location) LIKE '%chemical%'
+                      OR LOWER(sto_items.location) LIKE '%consumable%'
+                    THEN
+                        CASE
+                            WHEN sto_items.qty IS NULL OR sto_items.qty_2 IS NULL
+                                THEN 'NOT COMPLETE'
+                            WHEN sto_items.qty = sto_items.qty_2
+                                THEN 'MATCH'
+                            ELSE 'NOT MATCH'
+                        END
+                    ELSE NULL
+                END as status
+            "),
+ 
+            'stos.sto_number',
+ 
+            // Nama created_by sesuai auth — u1 jika user pertama, u2 jika user kedua
+            DB::raw("
+                CASE
+                    WHEN stos.created_by   = {$userId} THEN u1.name
+                    WHEN stos.created_by_2 = {$userId} THEN u2.name
+                    ELSE NULL
+                END as created_by
+            "),
+ 
+            'stos.created_at',
+            'stos.note'
+        );
+ 
+    // =====================================================================
+    // ✅ KUNCI UTAMA ANTI-CONTEK: user hanya bisa lihat STO miliknya
+    //
+    // Masalah: Chemical/Consumable bisa punya 2 user dalam 1 STO (created_by
+    // dan created_by_2). Tanpa filter ini, semua user bisa melihat baris
+    // yang sama, termasuk qty user lain.
+    //
+    // Solusi: tampilkan baris HANYA jika auth user terdaftar sebagai
+    // created_by ATAU created_by_2 di STO tersebut. Jika user tidak
+    // terdaftar di STO itu, baris tidak akan muncul sama sekali.
+    //
+    // Efeknya:
+    //   - User A (created_by)   → lihat qty, status, dan namanya sendiri
+    //   - User B (created_by_2) → lihat qty_2, status, dan namanya sendiri
+    //   - User C (tidak terdaftar di STO ini) → baris tidak muncul sama sekali
+    // =====================================================================
+    $query->where(function ($q) use ($userId) {
+        $q->where('stos.created_by', $userId)
+          ->orWhere('stos.created_by_2', $userId);
+    });
+ 
+    // =====================================================================
+    // FILTER BULAN (default bulan berjalan)
+    // =====================================================================
+    $defaultMonth = '2026/05';
+ 
+    $selectedMonth = $request->filled('sto_month')
+        ? $request->sto_month
+        : $defaultMonth;
+ 
+    $query->where('stos.sto_number', 'like', $selectedMonth . '/%');
+ 
+    // =====================================================================
+    // FILTER WAREHOUSE (user terkunci ke warehouse tertentu)
+    // =====================================================================
     if (!is_null($warehouse)) {
         $query->where('sto_items.location', $warehouse);
     }
-
-    // =====================
-    // 🔍 FILTER REQUEST (AMAN)
-    // =====================
+ 
+    // =====================================================================
+    // FILTER REQUEST TAMBAHAN
+    // =====================================================================
+ 
+    // Filter location — hanya aktif jika user bebas pilih warehouse
     if ($request->filled('location') && is_null($warehouse)) {
-        // hanya user yg boleh pilih gudang
         $query->where('sto_items.location', $request->location);
     }
-
+ 
+    // Filter article (code atau other_name)
     if ($request->filled('article')) {
-    $query->where(function ($q) use ($request) {
-        $q->where('sto_items.article_code', 'like', "%{$request->article}%")
-          ->orWhere('sto_items.other_name', 'like', "%{$request->article}%");
-    });
-}
-
-
-    if ($request->filled('sto_number')) {
-        $query->where('stos.sto_number', 'like', '%'.$request->sto_number.'%');
-    }
-
-    // =====================
-    // 🔍 SEARCH
-    // =====================
-    if (!empty($request->search['value'])) {
-        $search = $request->search['value'];
-
-        $query->where(function ($q) use ($search) {
-            $q->where('sto_items.article_code', 'LIKE', "%{$search}%")
-              ->orWhere('articles.description', 'LIKE', "%{$search}%")
-              ->orWhere('stos.sto_number', 'LIKE', "%{$search}%")
-              ->orWhere('sto_items.location', 'LIKE', "%{$search}%")
-              ->orWhere('users.name', 'LIKE', "%{$search}%")
-              ->orWhere('sto_items.other_name', 'LIKE', "%{$search}%");
-
+        $query->where(function ($q) use ($request) {
+            $q->where('sto_items.article_code', 'like', "%{$request->article}%")
+              ->orWhere('sto_items.other_name', 'like', "%{$request->article}%");
         });
     }
+ 
+    // Filter sto_number
+    if ($request->filled('sto_number')) {
+        $query->where('stos.sto_number', 'like', '%' . $request->sto_number . '%');
+    }
 
-    // =====================
-    // 🔢 TOTAL DATA (WAJIB SESUAI USER)
-    // =====================
+    // Filter status (computed, bukan dari DB)
+if ($request->filled('status')) {
+    $status = $request->status;
+
+    $query->where(function ($q) use ($status) {
+        if ($status === 'MATCH') {
+            $q->whereNotNull('sto_items.qty')
+              ->whereNotNull('sto_items.qty_2')
+              ->whereColumn('sto_items.qty', '=', 'sto_items.qty_2');
+        }
+
+        if ($status === 'NOT MATCH') {
+            $q->whereNotNull('sto_items.qty')
+              ->whereNotNull('sto_items.qty_2')
+              ->whereColumn('sto_items.qty', '!=', 'sto_items.qty_2');
+        }
+
+        if ($status === 'NOT COMPLETE') {
+            $q->where(function ($sub) {
+                $sub->whereNull('sto_items.qty')
+                    ->orWhereNull('sto_items.qty_2');
+            });
+        }
+    });
+}
+ 
+    // =====================================================================
+    // GLOBAL SEARCH
+    // =====================================================================
+    if (!empty($request->search['value'])) {
+        $search = $request->search['value'];
+ 
+        $query->where(function ($q) use ($search) {
+            $q->where('sto_items.article_code', 'LIKE', "%{$search}%")
+              ->orWhere('articles.description',  'LIKE', "%{$search}%")
+              ->orWhere('stos.sto_number',        'LIKE', "%{$search}%")
+              ->orWhere('sto_items.location',     'LIKE', "%{$search}%")
+              ->orWhere('u1.name',                'LIKE', "%{$search}%")
+              ->orWhere('u2.name',                'LIKE', "%{$search}%")
+              ->orWhere('sto_items.other_name',   'LIKE', "%{$search}%");
+        });
+    }
+ 
+    // =====================================================================
+    // TOTAL RECORDS
+    // ✅ Pakai query yang sama persis dengan filter ownership di atas
+    //    agar angka recordsTotal / recordsFiltered akurat
+    // =====================================================================
     $totalDataQuery = DB::table('sto_items')
-        ->join('articles', 'articles.article_code', '=', 'sto_items.article_code');
-
-        $totalDataQuery->join('stos', 'stos.id', '=', 'sto_items.sto_id')
-               ->where('stos.sto_number', 'like', $selectedMonth . '/%');
-
+        ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+        ->leftJoin('articles', 'articles.article_code', '=', 'sto_items.article_code')
+        ->where('stos.sto_number', 'like', $selectedMonth . '/%')
+        ->where(function ($q) use ($userId) {
+            $q->where('stos.created_by', $userId)
+              ->orWhere('stos.created_by_2', $userId);
+        });
+ 
     if (!is_null($warehouse)) {
         $totalDataQuery->where('sto_items.location', $warehouse);
     }
-
-    $totalData = $totalFiltered = $totalDataQuery->count();
-
-  // =====================
-// 📊 ORDER & PAGINATION (FINAL)
-// =====================
-$orderColumnIndex = $request->input('order.0.column');
-$orderDir         = $request->input('order.0.dir', 'desc');
-
-if (
-    isset($columns[$orderColumnIndex]) &&
-    $columns[$orderColumnIndex] !== null
-) {
-    // sorting dari header DataTables
-    $query->orderBy($columns[$orderColumnIndex], $orderDir);
-} else {
-    // fallback default
-    $query->orderBy('stos.sto_number', 'desc');
-}
-
-if ($limit != -1) {
-    $query->offset($start)->limit($limit);
-}
-
-$data = $query->get();
-
-
-    // =====================
-    // 📦 FORMAT DATA
-    // =====================
-  $result = [];
-
  
-foreach ($data as $row) {
-    // 🔥 ID unik untuk dropdown
-    $dropdownId = 'dropdown-' . $row->sto_item_id;
-$editUrl = route('facility.sto.edit', ['id' => $row->sto_id]);
-$twoDecimalLocations = ['Chemical', 'Dead Stock CM1', 'Consumable'];
-
-$qtyFormatted = in_array($row->location, $twoDecimalLocations)
-    ? number_format($row->qty, 2)
-    : number_format($row->qty, 0);
-
-     // 🔥 CEK USER LOGIN
-    //$editButton = '';
-    //if (auth()->id() == 53) {
+    $totalData = $totalFiltered = $totalDataQuery->count();
+ 
+    // =====================================================================
+    // ORDERING & PAGINATION
+    // =====================================================================
+    $orderColumnIndex = $request->input('order.0.column');
+    $orderDir         = $request->input('order.0.dir', 'desc');
+ 
+    if (
+        isset($columns[$orderColumnIndex]) &&
+        $columns[$orderColumnIndex] !== null
+    ) {
+        $query->orderBy($columns[$orderColumnIndex], $orderDir);
+    } else {
+        $query->orderBy('stos.sto_number', 'desc');
+    }
+ 
+    if ($limit != -1) {
+        $query->offset($start)->limit($limit);
+    }
+ 
+    $data = $query->get();
+ 
+    // =====================================================================
+    // FORMAT DATA UNTUK RESPONSE
+    // =====================================================================
+    $result = [];
+ 
+    foreach ($data as $row) {
+ 
+        $dropdownId = 'dropdown-' . $row->sto_item_id;
+        $editUrl    = route('facility.sto.edit', ['id' => $row->sto_id]);
+ 
+        $twoDecimalLocations = ['Chemical', 'Dead Stock CM1', 'Consumable'];
+ 
+        $qtyFormatted = in_array($row->location, $twoDecimalLocations)
+            ? number_format($row->qty_display, 2)
+            : number_format($row->qty_display, 0);
+ 
+        // Badge status 3 kondisi
+        $statusBadge = null;
+        if (!is_null($row->status)) {
+            $statusBadge = match ($row->status) {
+                'MATCH'        => '<span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded font-semibold">MATCH</span>',
+                'NOT MATCH'    => '<span class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded font-semibold">NOT MATCH</span>',
+                'NOT COMPLETE' => '<span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded font-semibold">NOT COMPLETE</span>',
+                default        => null,
+            };
+        }
+ 
         $editButton = '
             <a href="' . $editUrl . '" class="block px-4 py-2 hover:bg-gray-100">
                 <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
             </a>
         ';
-   // }
-
-    $result[] = [
-        'DT_RowAttr' => [
-            'data-id' => $row->sto_id,
-            'class'   => 'sto-row cursor-pointer hover:bg-blue-50'
-        ],
-        // 🔹 ACTION DROPDOWN DI AWAL
-        'action' => '
-        <div class="relative inline-block text-left">
-          <button type="button" onclick="toggleDropdown(\'' . $dropdownId . '\')" class="inline-flex justify-center w-full px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
-           <i data-feather="align-justify"></i>
-          </button>
-          <div id="' . $dropdownId . '" class="hidden origin-top-right absolute right-100 mt-2 w-28 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-            <div class="py-1 text-sm text-gray-700">
-            
-              ' . $editButton . '
-             <button onclick="deleteSTO(' . $row->sto_id . ')" class="w-full text-red-500 text-left px-4 py-2 hover:bg-red-500 hover:text-gray-100">
-    <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
-</button>
-            </div>
-          </div>
-        </div>',
-        // 🔹 DATA LAINNYA
-        'location'     => $row->location,
-        'article_code' => $row->article_code,
-        'part_name'    => $row->part_name,
-        'qty'          => $qtyFormatted, // ✅ FIX DI SINI
-        'min_package' => $row->min_package,
-        'unit'         => $row->unit,
-        'sto_number'   => $row->sto_number,
-        'created_by'   => $row->created_by,
-        'created_at'   => $row->created_at,
-        'note'         => $row->note,
-    ];
-}
-
-
+ 
+        $result[] = [
+            'DT_RowAttr' => [
+                'data-id' => $row->sto_id,
+                'class'   => 'sto-row cursor-pointer hover:bg-blue-50',
+            ],
+ 
+            'action' => '
+                <div class="relative inline-block text-left">
+                  <button type="button"
+                    onclick="toggleDropdown(\'' . $dropdownId . '\')"
+                    class="inline-flex justify-center w-full px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <i data-feather="align-justify"></i>
+                  </button>
+                  <div id="' . $dropdownId . '"
+                    class="hidden origin-top-right absolute right-100 mt-2 w-28 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div class="py-1 text-sm text-gray-700">
+                      ' . $editButton . '
+                      <button onclick="deleteSTO(' . $row->sto_id . ')"
+                        class="w-full text-red-500 text-left px-4 py-2 hover:bg-red-500 hover:text-gray-100">
+                        <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>',
+ 
+            'location'     => $row->location,
+            'area' => $row->area,
+            'shelves' => $row->shelves,
+            'article_code' => $row->article_code,
+            'part_name'    => $row->part_name,
+            'qty'          => $qtyFormatted,
+            'min_package'  => $row->min_package,
+            'unit'         => $row->unit,
+            'status'       => $statusBadge,
+            'sto_number'   => $row->sto_number,
+            'created_by'   => $row->created_by,
+            'created_at'   => $row->created_at,
+            'note'         => $row->note,
+        ];
+    }
+ 
     return response()->json([
-        "draw"            => intval($request->draw),
-        "recordsTotal"    => $totalData,
-        "recordsFiltered" => $totalFiltered,
-        "data"            => $result
+        'draw'            => intval($request->draw),
+        'recordsTotal'    => $totalData,
+        'recordsFiltered' => $totalFiltered,
+        'data'            => $result,
     ]);
 }
+
 
 
 public function edit($id)
@@ -1864,6 +2121,85 @@ ORDER BY sort_group ASC, rm_code, fg_code
         'Content-Disposition' => "attachment; filename=\"$fileName\"",
         'Cache-Control'       => 'max-age=0',
     ]);
+}
+
+public function getReferenceAreas(Request $request)
+{
+    $warehouse = $request->input('warehouse');
+ 
+    if (!$warehouse) {
+        return response()->json(['areas' => []]);
+    }
+ 
+    $areas = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
+        ->where('is_active', 1)
+        ->select('id', 'area')
+        ->orderBy('area')
+        ->get()
+        ->unique('area')          // jika ada duplikat area, ambil 1 saja
+        ->values();
+ 
+    return response()->json(['areas' => $areas]);
+}
+ 
+ 
+/**
+ * GET /facility/sto/reference/shelves?warehouse=Chemical&area=Line+1
+ *
+ * Mengembalikan daftar shelf (beserta id master-nya) untuk
+ * kombinasi warehouse + area tertentu.
+ */
+public function getReferenceShelves(Request $request)
+{
+    $warehouse = $request->input('warehouse');
+    $area      = $request->input('area');
+ 
+    if (!$warehouse || !$area) {
+        return response()->json(['shelves' => []]);
+    }
+ 
+    $shelves = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
+        ->where('area', $area)
+        ->where('is_active', 1)
+        ->select('id', 'shelves')
+        ->orderBy('shelves')
+        ->get();
+ 
+    return response()->json(['shelves' => $shelves]);
+}
+ 
+ 
+/**
+ * GET /facility/sto/reference/items?master_id=1
+ *
+ * Mengembalikan article_code + detail artikel dari sto_reference_items
+ * untuk master_id tertentu.
+ */
+public function getReferenceItems(Request $request)
+{
+    $masterId = $request->input('master_id');
+ 
+    if (!$masterId) {
+        return response()->json(['items' => []]);
+    }
+ 
+    // JOIN ke tabel articles untuk ambil description, unit, min_package
+    $items = \DB::table('sto_reference_items as ri')
+        ->leftJoin('articles as a', 'a.article_code', '=', 'ri.article_code')
+        ->where('ri.sto_reference_id', $masterId)
+        ->select(
+            'ri.id',
+            'ri.article_code',
+            'ri.qty',
+            'a.id as article_id',
+            'a.description',
+            'a.unit',
+            'a.min_package'
+        )
+        ->orderBy('a.description')
+        ->get();
+ 
+    return response()->json(['items' => $items]);
 }
 
 }
