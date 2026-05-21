@@ -66,9 +66,9 @@ class AtkRequest extends Model
         return $this->belongsTo(\App\Models\User::class, 'received_by');
     }
 
-    public function departmentRelation(): BelongsTo
-    {
-        return $this->belongsTo(\App\Models\Department::class, 'department');
+    
+    public function departemen(){
+        return $this->belongsTo(Department::class, 'department', 'id');
     }
 
     // ─── Helpers ─────────────────────────────────────────────

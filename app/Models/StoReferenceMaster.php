@@ -10,6 +10,6 @@ class StoReferenceMaster extends Model
 
     public function items()
     {
-        return $this->hasMany(StoReferenceItem::class, 'sto_header_id');
+        return $this->hasMany(StoReferenceItem::class, 'sto_reference_id');
     }
 }

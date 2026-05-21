@@ -20,6 +20,10 @@ class Atk extends Model
         return $this->belongsTo(AtkAdjustment::class);
     }
 
+    public function departemen(){
+        return $this->belongsTo(Department::class, 'department', 'id');
+    }
+
     // Accessor untuk URL foto langsung dari model
     public function getPhotoUrlAttribute(): ?string
     {

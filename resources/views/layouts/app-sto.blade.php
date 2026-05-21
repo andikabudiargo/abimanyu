@@ -264,6 +264,10 @@ $ticketsToApprove = $canApprove
   </div>
 </header>
 
+@php
+  $isChemCons = in_array($warehouse, ['Chemical', 'Consumable']);
+@endphp
+
 <div class="relative block sm:hidden h-[46vh] p-5 overflow-hidden bg-gradient-to-tr from-sky-600 via-blue-700 to-blue-900 rounded-b-3xl shadow-xl">
 
  
@@ -285,21 +289,45 @@ $ticketsToApprove = $canApprove
 </p>
 
 
-    <!-- Glass Card Wrapper -->
- <div class="w-full mt-5 p-4 bg-white/10 backdrop-blur-md rounded-xl shadow-lg border border-white/20 space-y-3">
+   <div class="w-full mt-5 p-4 bg-white/10 backdrop-blur-md rounded-xl shadow-lg border border-white/20 space-y-3">
 
-  <!-- STO Number -->
-  <select
-    name="sto_number"
-    id="sto_number_mobile"
-    required
-    class="w-full px-4 py-2 rounded-lg bg-white/90 text-gray-800 shadow-sm border border-transparent
-           focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 transition-all duration-200"
-  >
+ {{-- SESUDAH --}}
+  @if($isChemCons)
+    {{-- Area --}}
+    <select
+      id="area_mobile"
+      class="w-full px-4 py-2 rounded-lg bg-white/90 text-gray-800 shadow-sm border border-transparent
+             focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 transition-all duration-200"
+      data-warehouse="{{ $warehouse }}">
+      <option value="">— Memuat area... —</option>
+    </select>
+
+    {{-- Shelf --}}
+    <select
+      id="shelf_mobile"
+      class="w-full px-4 py-2 rounded-lg bg-white/90 text-gray-800 shadow-sm border border-transparent
+             focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 transition-all duration-200"
+      disabled>
+      <option value="">— Pilih area dulu —</option>
+    </select>
+
+    <input type="hidden" name="area"       id="area_value_mobile">
+    <input type="hidden" name="shelf"      id="shelf_value_mobile">
+    <input type="hidden" name="sto_number" id="sto_number_mobile">
+    <input type="hidden" id="ref_master_id_mobile" value="">
+
+  @else
+    <select
+      name="sto_number"
+      id="sto_number_mobile"
+      required
+      class="w-full px-4 py-2 rounded-lg bg-white/90 text-gray-800 shadow-sm border border-transparent
+             focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 transition-all duration-200"
+    >
    
         @php
   $year  = 2026;
-  $month = '04';
+  $month = '05';
 
   // Mapping lokasi → range
  $stoRange = [
@@ -345,7 +373,7 @@ $ticketsToApprove = $canApprove
   @endfor
 @endforeach
   </select>
-
+ @endif
 
   <!-- Warehouse Selector untuk user 67 & 53 -->
   @if(in_array(auth()->id(), [2, 53, 92]))

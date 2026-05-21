@@ -155,6 +155,63 @@
 ════════════════════════════════════════════════════════════ --}}
 <div id="tab-stock" class="hidden">
 
+{{-- Summary Cards --}}
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5" id="atkSummaryCards">
+
+  <button onclick="filterByStatus('')"
+    class="atk-card-btn text-left p-4 rounded-xl border-2 transition group"
+    data-card="all">
+    <div class="flex items-center justify-between mb-2">
+      <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition">
+        <i data-feather="package" class="w-4 h-4 text-blue-600"></i>
+      </div>
+      <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Total</span>
+    </div>
+    <p class="text-2xl font-bold text-gray-800" id="cardTotal">—</p>
+    <p class="text-[11px] text-gray-400 mt-0.5">Total ATK</p>
+  </button>
+
+  <button onclick="filterByStatus('safe')"
+    class="atk-card-btn text-left p-4 rounded-xl border-2 transition group"
+    data-card="safe">
+    <div class="flex items-center justify-between mb-2">
+      <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition">
+        <i data-feather="check-circle" class="w-4 h-4 text-emerald-600"></i>
+      </div>
+      <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Safe</span>
+    </div>
+    <p class="text-2xl font-bold text-emerald-600" id="cardSafe">—</p>
+    <p class="text-[11px] text-gray-400 mt-0.5">Stok Aman</p>
+  </button>
+
+  <button onclick="filterByStatus('critical')"
+    class="atk-card-btn text-left p-4 rounded-xl border-2 transition group"
+    data-card="critical">
+    <div class="flex items-center justify-between mb-2">
+      <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition">
+        <i data-feather="alert-triangle" class="w-4 h-4 text-amber-600"></i>
+      </div>
+      <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Critical</span>
+    </div>
+    <p class="text-2xl font-bold text-amber-600" id="cardCritical">—</p>
+    <p class="text-[11px] text-gray-400 mt-0.5">Stok Kritis</p>
+  </button>
+
+  <button onclick="filterByStatus('empty')"
+    class="atk-card-btn text-left p-4 rounded-xl border-2 transition group"
+    data-card="empty">
+    <div class="flex items-center justify-between mb-2">
+      <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition">
+        <i data-feather="x-circle" class="w-4 h-4 text-red-500"></i>
+      </div>
+      <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Empty</span>
+    </div>
+    <p class="text-2xl font-bold text-red-500" id="cardEmpty">—</p>
+    <p class="text-[11px] text-gray-400 mt-0.5">Stok Habis</p>
+  </button>
+
+</div>
+
   <div class="bg-white shadow rounded-xl p-6 mb-6">
 
     {{-- Header + Actions --}}
@@ -260,14 +317,14 @@
       <div class="w-10 h-1 bg-gray-300 rounded-full"></div>
     </div>
 
-    {{-- Header --}}
-    <div class="flex justify-between items-center border-b border-dashed py-3 px-6">
-      <div>
-        <h2 class="text-sm font-semibold text-gray-900">Add New ATK</h2>
-        <p class="text-xs text-gray-500">Tambahkan ATK Baru untuk dikelola</p>
-      </div>
-      <button onclick="closeModalAddATK()" class="text-gray-400 hover:text-red-500 text-xl">&times;</button>
-    </div>
+   {{-- Header --}}
+<div class="flex justify-between items-center border-b border-dashed py-3 px-6">
+  <div>
+    <h2 class="text-sm font-semibold text-gray-900" id="modalATKTitle">Add New ATK</h2>
+    <p class="text-xs text-gray-500" id="modalATKSubtitle">Tambahkan ATK Baru untuk dikelola</p>
+  </div>
+  <button onclick="closeModalAddATK()" class="text-gray-400 hover:text-red-500 text-xl">&times;</button>
+</div>
 
     {{-- Body --}}
     <div class="overflow-y-auto px-6 pb-2 flex-1">
@@ -284,7 +341,7 @@
     <div class="relative w-36 h-36 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
       <div id="previewPlaceholder" class="flex flex-col items-center gap-1 text-gray-300">
         <i class="ti ti-photo text-3xl"></i>
-        <span class="text-[10px]">Preview 1:1</span>
+        <span class="text-[10px]">Preview</span>
       </div>
       <img id="previewImg" src="" alt="Preview" class="w-full h-full object-cover hidden">
       <button type="button" id="removeBtn" onclick="removePhoto()"
@@ -402,7 +459,7 @@
           {{-- Reason --}}
           <div>
             <label class="block text-xs font-medium text-gray-600 mb-1.5">Alasan Adjustment</label>
-            <input type="text" name="reason" id="adjustmentReason" required
+            <input type="text" name="reason" id="adjustmentReason"
               placeholder="cth: Pembelian baru, Koreksi opname, Rusak/hilang..."
               class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400">
             <p id="error_reason" class="field-error text-[11px] text-red-500 mt-1 hidden"></p>
@@ -415,6 +472,12 @@
           <span class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Adjustment Item</span>
           <div class="flex-1 border-t border-gray-100"></div>
         </div>
+
+        {{-- Banner Validasi --}}
+<div id="adjBanner" class="hidden mb-3 p-3 rounded-lg border text-xs flex items-start gap-2">
+  <i data-feather="alert-circle" class="w-3.5 h-3.5 flex-shrink-0 mt-0.5"></i>
+  <div id="adjBannerMsg"></div>
+</div>
 
         {{-- Item Rows --}}
         <div id="adjustmentRows" class="space-y-2.5 mb-4">
@@ -440,7 +503,7 @@
           Cancel
         </button>
         <button type="submit" form="formAdjustment" id="btnSaveAdjustment"
-          class="px-5 py-2 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 shadow transition flex items-center gap-1.5">
+          class="px-5 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 shadow transition flex items-center gap-1.5">
           <i data-feather="check" class="w-3.5 h-3.5"></i> Adjust Stock
         </button>
       </div>
@@ -550,8 +613,8 @@
           <select id="mvmType"
             class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-gray-600">
             <option value="">Semua Type</option>
-            <option value="in">IN</option>
-            <option value="out">OUT</option>
+            <option value="IN">IN</option>
+            <option value="OUT">OUT</option>
           </select>
         </div>
 
@@ -662,6 +725,33 @@
 }
 #doc-table tbody tr:nth-child(odd) {
     background-color: #ffffff;
+}
+
+/* Summary Cards */
+.atk-card-btn {
+    border-color: #e5e7eb;
+    background: white;
+    cursor: pointer;
+}
+.atk-card-btn:hover {
+    border-color: #d1d5db;
+    background: #f9fafb;
+}
+.atk-card-btn.active[data-card="all"] {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+.atk-card-btn.active[data-card="safe"] {
+    border-color: #10b981;
+    background: #ecfdf5;
+}
+.atk-card-btn.active[data-card="critical"] {
+    border-color: #f59e0b;
+    background: #fffbeb;
+}
+.atk-card-btn.active[data-card="empty"] {
+    border-color: #ef4444;
+    background: #fef2f2;
 }
 
 /* Paksa Select2 container tingginya konsisten */
@@ -841,6 +931,11 @@ function switchTab(tab) {
     if (tab === 'request') {
         if (typeof summaryTable !== 'undefined') summaryTable.columns.adjust();
         if (typeof detailTable  !== 'undefined') detailTable.columns.adjust();
+    }
+     if (tab === 'stock') {
+        // ✅ Set default active card saat masuk tab stock
+        $('.atk-card-btn').removeClass('active');
+        $('.atk-card-btn[data-card="all"]').addClass('active');
     }
 }
 
@@ -1096,6 +1191,7 @@ function addAdjustmentRow() {
     // On change → update stock info
     $sel.on('change', function () {
         recalcRow($(this).closest('[data-row]'));
+        validateAndShowBanners(); // ✅ cek duplicate saat pilih ATK
     });
 
     // On qty change → update after adj
@@ -1117,12 +1213,76 @@ function removeAdjustmentRow($btn) {
         $(this).find('.row-number').text(`Item #${i + 1}`);
     });
     updateRowCount();
+    validateAndShowBanners(); // ✅ re-check setelah hapus baris
+}
+
+// ── Banner helper ─────────────────────────────────────────
+function showAdjBanner(type, html) {
+    const $banner = $('#adjBanner');
+    $banner.removeClass('hidden bg-red-50 border-red-200 text-red-700 bg-amber-50 border-amber-200 text-amber-700');
+
+    if (type === 'error') {
+        $banner.addClass('bg-red-50 border-red-200 text-red-700');
+    } else {
+        $banner.addClass('bg-amber-50 border-amber-200 text-amber-700');
+    }
+
+    $('#adjBannerMsg').html(html);
+    $banner.removeClass('hidden');
+    feather.replace();
+}
+
+function hideAdjBanner() {
+    $('#adjBanner').addClass('hidden');
+}
+
+function validateAndShowBanners() {
+    const messages = [];
+
+    // 1. Cek duplicate
+    const atkCount = {};
+    $('#adjustmentRows [data-row]').each(function (i) {
+        const atkId = $(this).find('.adj-select-atk').val();
+        if (!atkId) return;
+        const atk = atkOptions.find(a => a.id == atkId);
+        const name = atk ? atk.name : `ATK #${atkId}`;
+        if (!atkCount[atkId]) atkCount[atkId] = { name, rows: [] };
+        atkCount[atkId].rows.push(i + 1);
+    });
+
+    Object.values(atkCount).forEach(({ name, rows }) => {
+        if (rows.length > 1) {
+            messages.push(`<b>${name}</b> duplikat di baris ${rows.join(', ')}`);
+        }
+    });
+
+    // 2. Cek qty > current saat OUT
+    if (adjType === 'out') {
+        $('#adjustmentRows [data-row]').each(function (i) {
+            const atkId = $(this).find('.adj-select-atk').val();
+            const qty   = parseInt($(this).find('.row-qty').val()) || 0;
+            if (!atkId) return;
+            const atk = atkOptions.find(a => a.id == atkId);
+            if (!atk) return;
+            const current = (atk.initial_stock ?? 0) + (atk.total_in ?? 0) - (atk.total_out ?? 0);
+            if (qty > current) {
+                messages.push(`<b>${atk.name}</b> (baris ${i + 1}): qty tidak bisa lebih dari stok saat ini (<b>${current}</b>)`);
+            }
+        });
+    }
+
+    if (messages.length > 0) {
+        showAdjBanner('error', messages.map(m => `<div class="mb-0.5">• ${m}</div>`).join(''));
+    } else {
+        hideAdjBanner();
+    }
 }
 
 function recalcRow($row) {
-    const atkId   = $row.find('.adj-select-atk').val();
-    const qty     = parseInt($row.find('.row-qty').val()) || 0;
-    const atk     = atkOptions.find(a => a.id == atkId);
+    const atkId    = $row.find('.adj-select-atk').val();
+    const $qtyInput = $row.find('.row-qty');
+    let qty        = parseInt($qtyInput.val()) || 0;
+    const atk      = atkOptions.find(a => a.id == atkId);
 
     const $current = $row.find('.row-current-stock');
     const $after   = $row.find('.row-after-stock');
@@ -1132,23 +1292,39 @@ function recalcRow($row) {
         $current.text('—');
         $after.text('—').removeClass('text-emerald-600 text-red-500 text-gray-700');
         $wrap.removeClass('border-emerald-200 bg-emerald-50 border-red-200 bg-red-50').addClass('border-gray-200 bg-white');
+        $qtyInput.removeClass('border-red-500 ring-1 ring-red-400');
+        $row.removeAttr('data-invalid');
+        validateAndShowBanners();
         return;
     }
 
     const current = (atk.initial_stock ?? 0) + (atk.total_in ?? 0) - (atk.total_out ?? 0);
-    const after   = adjType === 'in' ? current + qty : current - qty;
+    const isIn    = adjType === 'in';
+
+    // ✅ Auto-clear qty jika OUT dan melebihi current
+    if (!isIn && qty > current) {
+        $qtyInput.val('');
+        qty = 0;
+        $qtyInput.addClass('border-red-500 ring-1 ring-red-400');
+        $row.attr('data-invalid', 'true');
+    } else {
+        $qtyInput.removeClass('border-red-500 ring-1 ring-red-400');
+        $row.removeAttr('data-invalid');
+    }
+
+    const after = isIn ? current + qty : current - qty;
 
     $current.text(current);
 
-    const isIn   = adjType === 'in';
-    const symbol = isIn ? `<i data-feather="arrow-up-right" class="w-3 h-3 inline"></i> +${qty}` : `<i data-feather="arrow-down-right" class="w-3 h-3 inline"></i> -${qty}`;
-
-    $after.html(`${after}`)
+    $after.html(`${qty > 0 ? after : '—'}`)
           .removeClass('text-emerald-600 text-red-500 text-gray-700')
           .addClass(after > current ? 'text-emerald-600' : after < current ? 'text-red-500' : 'text-gray-700');
 
     $wrap.removeClass('border-gray-200 bg-white border-emerald-200 bg-emerald-50 border-red-200 bg-red-50')
          .addClass(isIn ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50');
+
+    // Trigger banner validation
+    validateAndShowBanners();
 
     feather.replace();
 }
@@ -1191,6 +1367,23 @@ $('#formAdjustment').on('submit', function (e) {
             });
             return false;
         }
+
+         // ✅ Cek stok tidak boleh minus saat OUT
+    if (adjType === 'out') {
+        const atk = atkOptions.find(a => a.id == atkId);
+        if (atk) {
+            const current = (atk.initial_stock ?? 0) + (atk.total_in ?? 0) - (atk.total_out ?? 0);
+            if (qty > current) {
+                valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stok tidak cukup',
+                    html: `<span class="text-sm">ATK <strong>${atk.name}</strong> hanya memiliki stok <strong>${current}</strong>, tidak bisa OUT sebanyak <strong>${qty}</strong>.</span>`,
+                });
+                return false;
+            }
+        }
+    }
 
         atkSet.add(atkId);
         items.push({ atk_id: atkId, qty });
@@ -1260,6 +1453,7 @@ function loadTableATK() {
             atkData = res.data ?? [];
             atkOptions = res.data ?? [];  // ← tambahkan ini
             currentPage = 1;
+               updateSummaryCards(atkData); // ✅ update cards
             renderTableATK();
         },
         error: function () {
@@ -1483,14 +1677,14 @@ function loadMovement() {
 function applyMovementFilter() {
     const startDate = $('#mvmStartDate').val();
     const endDate   = $('#mvmEndDate').val();
-    const type      = $('#mvmType').val();
-    const source    = $('#mvmSource').val();
+    const type      = $('#mvmType').val();      // nilai dari select, misal 'IN' atau 'OUT'
+    const source    = $('#mvmSource').val();    // misal 'adjustment' atau 'request'
 
     movementFiltered = movementRawData.filter(row => {
-        const rowDate = row.date; // format YYYY-MM-DD
+        const rowDate = row.date;
         if (startDate && rowDate < startDate) return false;
         if (endDate   && rowDate > endDate)   return false;
-        if (type   && row.type   !== type)   return false;
+        if (type   && row.type   !== type)   return false;   // ✅ pastikan select value pakai 'IN'/'OUT'
         if (source && row.source !== source) return false;
         return true;
     });
@@ -1521,87 +1715,67 @@ function renderMovement(rows) {
     updateMovementSummary(rows);
     $('#mvmRowCount').text(`${rows.length} records`);
 
-    // Hitung rolling stock
-    // Ambil initial_stock dari atkData
-    const atk     = atkData.find(a => a.id == movementAtkId);
-    const initial = atk ? (atk.initial_stock ?? 0) : 0;
-
-    // Sort ascending by date+id untuk rolling stock
-    const sorted = [...rows].sort((a, b) => {
-        if (a.date !== b.date) return a.date.localeCompare(b.date);
-        return a.id - b.id;
-    });
-
-    // Hitung running balance per baris
-    let runningBalance = initial;
-
-    // Buat map id → {openingStock, balance}
-    const balanceMap = {};
-    sorted.forEach(row => {
-        const opening = runningBalance;
-        if (row.type === 'in') {
-            runningBalance += row.qty;
-        } else {
-            runningBalance -= row.qty;
-        }
-        balanceMap[row.id] = { opening, balance: runningBalance };
-    });
-
     const html = rows.map((row, i) => {
-        const bm       = balanceMap[row.id] ?? { opening: '—', balance: '—' };
-        const typeBadge = row.type === 'in'
-            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> IN
-               </span>`
-            : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-200">
-                 <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> OUT
-               </span>`;
+    // ✅ Pakai stock_awal & balance dari backend, bukan balanceMap
+    const opening  = row.stock_awal ?? '—';
+    const balance  = row.balance ?? '—';
 
-        const sourceBadge = row.source === 'adjustment'
-            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">
-                 <i data-feather="repeat" class="w-2.5 h-2.5"></i> Adjustment
-               </span>`
-            : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-50 text-purple-600 border border-purple-100">
-                 <i data-feather="bell" class="w-2.5 h-2.5"></i> Request
-               </span>`;
+    const typeBadge = row.type === 'IN'  // backend return uppercase
+        ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> IN
+           </span>`
+        : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-200">
+             <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> OUT
+           </span>`;
 
-        const qtyDisplay = row.type === 'in'
-            ? `<span class="font-semibold text-emerald-600">+${row.qty}</span>`
-            : `<span class="font-semibold text-red-500">-${row.qty}</span>`;
+    const sourceBadge = row.source === 'adjustment'
+        ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">
+             <i data-feather="repeat" class="w-2.5 h-2.5"></i> Adjustment
+           </span>`
+        : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-50 text-purple-600 border border-purple-100">
+             <i data-feather="bell" class="w-2.5 h-2.5"></i> Request
+           </span>`;
 
-        const balanceColor = typeof bm.balance === 'number' && bm.balance <= 0
-            ? 'text-red-500' : 'text-gray-800';
+    const qtyDisplay = row.type === 'IN'
+        ? `<span class="font-semibold text-emerald-600">+${row.qty}</span>`
+        : `<span class="font-semibold text-red-500">-${row.qty}</span>`;
 
-        return `
-        <tr class="hover:bg-gray-50/60 transition-colors">
-          <td class="px-3 py-2.5 text-center text-gray-400">${i + 1}</td>
-          <td class="px-3 py-2.5 text-gray-600">${row.date}</td>
-          <td class="px-3 py-2.5 text-center">${typeBadge}</td>
-          <td class="px-3 py-2.5 text-center">${sourceBadge}</td>
-          <td class="px-3 py-2.5 text-center text-gray-500">${bm.opening}</td>
-          <td class="px-3 py-2.5 text-center">${qtyDisplay}</td>
-          <td class="px-3 py-2.5 text-center font-semibold ${balanceColor}">${bm.balance}</td>
-          <td class="px-3 py-2.5 text-gray-500">${row.distributed_by ?? '<span class="text-gray-300">—</span>'}</td>
-          <td class="px-3 py-2.5 text-gray-500">${row.received_by ?? '<span class="text-gray-300">—</span>'}</td>
-          <td class="px-3 py-2.5 text-gray-500 max-w-[160px] truncate" title="${row.reason ?? ''}">${row.reason ?? '<span class="text-gray-300">—</span>'}</td>
-        </tr>`;
-    }).join('');
+    const balanceColor = typeof balance === 'number' && balance <= 0
+        ? 'text-red-500' : 'text-gray-800';
+
+    return `
+    <tr class="hover:bg-gray-50/60 transition-colors">
+      <td class="px-3 py-2.5 text-center text-gray-400">${i + 1}</td>
+      <td class="px-3 py-2.5 text-gray-600">${row.date}</td>
+      <td class="px-3 py-2.5 text-center">${typeBadge}</td>
+      <td class="px-3 py-2.5 text-center">${sourceBadge}</td>
+      <td class="px-3 py-2.5 text-center text-gray-500">${opening}</td>
+      <td class="px-3 py-2.5 text-center">${qtyDisplay}</td>
+      <td class="px-3 py-2.5 text-center font-semibold ${balanceColor}">${balance}</td>
+      <td class="px-3 py-2.5 text-gray-500">${row.distributed_by ?? '<span class="text-gray-300">—</span>'}</td>
+      <td class="px-3 py-2.5 text-gray-500">${row.received_by ?? '<span class="text-gray-300">—</span>'}</td>
+      <td class="px-3 py-2.5 text-gray-500 max-w-[160px] truncate" title="${row.reason ?? ''}">${row.reason ?? '<span class="text-gray-300">—</span>'}</td>
+    </tr>`;
+}).join('');
 
     $('#tbodyMovement').html(html);
     feather.replace();
 }
 
 function updateMovementSummary(rows) {
-    const totalIn  = rows.filter(r => r.type === 'in').reduce((s, r) => s + r.qty, 0);
-    const totalOut = rows.filter(r => r.type === 'out').reduce((s, r) => s + r.qty, 0);
-    const atk      = atkData.find(a => a.id == movementAtkId);
-    const initial  = atk ? (atk.initial_stock ?? 0) : 0;
-    const balance  = initial + totalIn - totalOut;
+    // ✅ Pakai data dari backend langsung
+    const totalIn  = rows.filter(r => r.type === 'IN').reduce((s, r) => s + r.qty, 0);
+    const totalOut = rows.filter(r => r.type === 'OUT').reduce((s, r) => s + r.qty, 0);
+
+    // Ambil ending balance dari row terakhir (sudah sorted & dihitung backend)
+    const lastRow = rows[rows.length - 1];
+    const balance = lastRow ? lastRow.balance : (atkData.find(a => a.id == movementAtkId)?.initial_stock ?? 0);
 
     $('#mvmSumIn').text(`+${totalIn}`);
     $('#mvmSumOut').text(`-${totalOut}`);
     $('#mvmSumBalance').text(balance);
 }
+
 
 function exportMovementExcel() {
     if (!movementAtkId) return;
@@ -1765,6 +1939,33 @@ document.addEventListener('click', function (e) {
     dd.remove(); openDropdown = null;
   }
 });
+
+// ── Summary Cards ─────────────────────────────────────────
+function updateSummaryCards(data) {
+    const total    = data.length;
+    const safe     = data.filter(i => getStatusKey(i) === 'safe').length;
+    const critical = data.filter(i => getStatusKey(i) === 'critical').length;
+    const empty    = data.filter(i => getStatusKey(i) === 'empty').length;
+
+    $('#cardTotal').text(total);
+    $('#cardSafe').text(safe);
+    $('#cardCritical').text(critical);
+    $('#cardEmpty').text(empty);
+}
+
+function filterByStatus(status) {
+    // Update select filter
+    $('#filterStatus').val(status);
+
+    // Update active card
+    $('.atk-card-btn').removeClass('active');
+    const cardKey = status === '' ? 'all' : status;
+    $(`.atk-card-btn[data-card="${cardKey}"]`).addClass('active');
+
+    // Reset ke page 1 & render
+    currentPage = 1;
+    renderTableATK();
+}
 
 // Populate atkOptions saat data loaded (tambahkan di dalam loadTableATK success)
 // atkOptions = res.data ?? [];  ← tambahkan baris ini di dalam success loadTableATK

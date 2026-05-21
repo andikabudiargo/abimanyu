@@ -104,7 +104,7 @@ public function request(Request $request)
 
 public function dataSummary(Request $request)
 {
-    $query = AtkRequest::query()
+    $query = AtkRequest::with('departemen')
         ->leftJoin('users as uc', 'uc.id', '=', 'atk_requests.created_by')
         ->leftJoin('users as ua', 'ua.id', '=', 'atk_requests.approved_by')
         ->leftJoin('users as ur', 'ur.id', '=', 'atk_requests.rejected_by')
@@ -194,7 +194,7 @@ public function dataSummary(Request $request)
 
      ->editColumn('department', fn($row) =>
     '<span class="text-xs text-gray-600">'
-    . e($row->departments->first()?->name ?? '—') .
+    . e($row->departemen?->name ?? '—') .
     '</span>'
 )
 
@@ -370,11 +370,15 @@ private static function userCell(?string $name): string
 
 private static function dateCell(?string $datetime): string
 {
-    if (!$datetime) return '<span class="text-gray-300">—</span>';
+    if (!$datetime) {
+        return '<span class="text-gray-300">—</span>';
+    }
 
     return '<span class="text-xs text-gray-600">'
-        . \Carbon\Carbon::parse($datetime)->format('d-M-Y')
-        . '</span>';
+         . \Carbon\Carbon::parse($datetime)
+            ->locale('id')
+            ->translatedFormat('d M Y H:i')
+         . '</span>';
 }
 
 // Data JSON untuk tabel (dipanggil AJAX)
@@ -585,61 +589,103 @@ public function adjustment(Request $request)
 public function movements(Request $request, $id)
 {
     $atk = Atk::findOrFail($id);
+    $openingStock = (int) ($atk->initial_stock ?? 0);
 
     // ── Adjustment movements ─────────────────────────────
-    $adjustments = AtkAdjustmentItem::query()
+    $adjustments = DB::table('atk_adjustment_items')
         ->join('atk_adjustments', 'atk_adjustments.id', '=', 'atk_adjustment_items.atk_adjustment_id')
         ->leftJoin('users as u', 'u.id', '=', 'atk_adjustments.created_by')
         ->where('atk_adjustment_items.atk_id', $id)
         ->select([
             'atk_adjustment_items.id',
-            'atk_adjustments.type',
-            DB::raw("DATE(atk_adjustments.created_at) as date"),
+            DB::raw("LOWER(atk_adjustments.type) as type"),
             'atk_adjustment_items.qty',
+            'atk_adjustments.created_at',
             'atk_adjustments.reason',
             'u.name as distributed_by',
             DB::raw("NULL as received_by"),
             DB::raw("'adjustment' as source"),
-        ]);
+            DB::raw("0 as priority"), // adjustment duluan jika timestamp sama
+        ])
+        ->get();
 
-    // ── Request movements (fallback jika tabel belum ada) ─
+    // ── Request movements (ONLY APPROVED) ────────────────
     $requests = collect();
+
     if (Schema::hasTable('atk_request_items')) {
         $requests = DB::table('atk_request_items')
             ->join('atk_requests', 'atk_requests.id', '=', 'atk_request_items.atk_request_id')
-            ->leftJoin('users as ud', 'ud.id', '=', 'atk_requests.distributed_by')
-            ->leftJoin('users as ur', 'ur.id', '=', 'atk_requests.received_by')
+            ->leftJoin('users as ud', 'ud.id', '=', 'atk_requests.approved_by')
+            ->leftJoin('users as ur', 'ur.id', '=', 'atk_requests.created_by')
             ->where('atk_request_items.atk_id', $id)
+            ->whereRaw("LOWER(atk_requests.status) = 'approved'")
             ->select([
                 'atk_request_items.id',
                 DB::raw("'out' as type"),
-                DB::raw("DATE(atk_requests.created_at) as date"),
                 'atk_request_items.qty',
+                'atk_requests.approved_at as created_at', // pakai approved_at bukan created_at
                 DB::raw("NULL as reason"),
                 'ud.name as distributed_by',
                 'ur.name as received_by',
                 DB::raw("'request' as source"),
+                DB::raw("1 as priority"), // request belakangan jika timestamp sama
             ])
             ->get();
     }
 
-    // ── Merge & sort ascending ───────────────────────────
-    $merged = $adjustments->get()
+    // ── Merge & Sort ─────────────────────────────────────
+    $rows = $adjustments
         ->concat($requests)
-        ->sortBy(['date', 'id'])
-        ->values()
-        ->map(fn($row) => [
-            'id'             => $row->id,
-            'date'           => $row->date,
-            'type'           => $row->type,
-            'source'         => $row->source,
-            'qty'            => (int) $row->qty,
-            'reason'         => $row->reason,
-            'distributed_by' => $row->distributed_by,
-            'received_by'    => $row->received_by,
-        ]);
+        ->sort(function ($a, $b) {
+            $timeA = strtotime($a->created_at);
+            $timeB = strtotime($b->created_at);
 
-    return response()->json(['data' => $merged]);
+            if ($timeA !== $timeB) {
+                return $timeA <=> $timeB;
+            }
+
+            // Timestamp sama → adjustment (priority=0) duluan dari request (priority=1)
+            return $a->priority <=> $b->priority;
+        })
+        ->values();
+
+    // ── Running Balance ───────────────────────────────────
+    $runningBalance = $openingStock;
+
+    $result = $rows->map(function ($row) use (&$runningBalance) {
+        $qty  = (int) $row->qty;
+        $type = strtolower($row->type);
+
+        $stock_awal = $runningBalance;
+
+        if ($type === 'in') {
+            $runningBalance += $qty;
+        } elseif ($type === 'out') {
+            $runningBalance -= $qty;
+        }
+
+        return [
+            'id'             => $row->id,
+            'date'           => \Carbon\Carbon::parse($row->created_at)->format('Y-m-d'),
+            'time'           => \Carbon\Carbon::parse($row->created_at)->format('H:i:s'),
+            'type'           => strtoupper($type),
+            'source'         => $row->source,
+            'qty'            => $qty,
+            'stock_awal'     => $stock_awal,
+            'balance'        => $runningBalance,
+            'reason'         => $row->reason ?? null,
+            'distributed_by' => $row->distributed_by ?? null,
+            'received_by'    => $row->received_by ?? null,
+        ];
+    });
+
+    return response()->json([
+        'data' => $result,
+        'summary' => [
+            'opening_balance' => $openingStock,
+            'ending_balance'  => $runningBalance,
+        ],
+    ]);
 }
 
 public function movementsExport(Request $request, $id)

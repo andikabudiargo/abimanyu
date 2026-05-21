@@ -436,11 +436,13 @@ Route::prefix('ppic')->name('ppic.')->group(function () {
    
     
     Route::get('/transfer-chemical/data/detail', [TransferChemicalController::class, 'dataDetail'])->name('tfcm1.data.detail');
+    
     Route::get('transfer-chemical/konsumsi-booth',  [TransferChemicalController::class, 'konsumsiPerBooth'])->name('tfcm1.konsumsi-booth');
     Route::get('transfer-chemical/transaksi-booth', [TransferChemicalController::class, 'transaksiPerBooth'])->name('tfcm1.transaksi-booth');
     Route::get('/transfer-chemical/konsumsi-booth/export', [TransferChemicalController::class, 'exportKonsumsiExcel'])->name('tfcm1.konsumsi-booth.export');
 
      Route::get('/transfer-chemical/{id}', [TransferChemicalController::class, 'show'])  ->name('tfcm1.show');
+     Route::get('/transfer-chemical/edit/{id}', [TransferChemicalController::class, 'edit'])->name('tfcm1.edit');
     Route::get('/transfer-chemical/{transfer}/export/ims', [TransferChemicalController::class, 'exportIMS'])->name('tfcm1.export.ims');
     Route::get('/transfer-chemical/{transfer}/print',[TransferChemicalController::class, 'print'])->name('ppic.tfcm1.print');
 });

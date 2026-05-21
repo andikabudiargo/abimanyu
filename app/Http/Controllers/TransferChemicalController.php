@@ -55,7 +55,7 @@ public function data(Request $request)
     $dropdownId = 'dropdown-' . $row->id;
     $detail_url = route('ppic.tfcm1.show', ['id' => $row->id]);
     $delete_url = route('qc.inspections.destroy', $row->id);
-    $edit_url = route('qc.inspection.edit', ['id' => $row->id]);
+    $edit_url = route('ppic.tfcm1.edit', ['id' => $row->id]);
 
     $actionButtons = '
     <div class="relative inline-block text-left">
@@ -903,6 +903,26 @@ public function exportKonsumsiExcel(Request $request): StreamedResponse
         'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         'Cache-Control'       => 'max-age=0',
     ]);
+}
+
+public function edit($id)
+{
+    $transfer = TransferChemical::with('items')->findOrFail($id);
+    
+    $existingItems = $transfer->items->map(function($item) {
+        return [
+            'id'                  => $item->chemical_id,
+            'text'                => $item->article_code . ' - ' . $item->description,
+            'article_code'        => $item->article_code,
+            'min_package'         => $item->min_package,
+            'qty'                 => $item->qty,
+            'unit'                => $item->unit,
+            'condition'           => $item->condition,
+            'conditionOverridden' => true,
+        ];
+    });
+
+    return view('ppic.edit-transfer-chemical', compact('transfer', 'existingItems'));
 }
 
 

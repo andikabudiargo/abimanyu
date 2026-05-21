@@ -15,6 +15,8 @@ class StoItem extends Model
         'sto_id',
         'article_code',
         'qty',
+        'qty_2',
+        'kondisi',
         'location',
         'other_name',
         'uom'

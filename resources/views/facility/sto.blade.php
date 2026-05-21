@@ -41,7 +41,7 @@
 
        <div>
   <label class="block text-sm mb-1 font-medium text-gray-700">
-    Number e-STO
+    STO Number
   </label>
 
   <select id="filter-sto_number"
@@ -53,13 +53,14 @@
  @if(in_array(auth()->id(), [53, 2]))
 <div>
   <label class="block text-sm mb-1 font-medium text-gray-700">
-    Periode STO
+    Periode
   </label>
 
   <select id="filter-sto-periode"
           class="w-full px-3 py-2 border border-gray-300 rounded-md">
     <option value="">-- All STO Periode --</option>
-    <option value="2026/04">2026 April</option>
+    <option value="2026/05">2026 Mei</option>
+    <option value="2026/04">2026 April (Closed)</option>
     <option value="2026/03">2026 Maret (Closed)</option>
     <option value="2026/02">2026 Februari (Closed)</option>
     <option value="2026/01">2026 Januari (Closed)</option>
@@ -67,6 +68,20 @@
   </select>
 </div>
 @endif
+
+<div>
+  <label class="block text-sm mb-1 font-medium text-gray-700">
+    Status
+  </label>
+
+  <select id="filter-status"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md">
+    <option value="">-- All Status --</option>
+    <option value="Match">Match</option>
+    <option value="Not Match">Not Match</option>
+    <option value="Not Complete">Not Complete</option>
+  </select>
+</div>
 
         </div>
 
@@ -87,11 +102,14 @@
                 <tr>
                      <th class="px-4 py-2 text-left">Action</th>
                     <th class="px-4 py-2 text-left">Location</th>
+                    <th class="px-4 py-2 text-left">Area</th>
+                    <th class="px-4 py-2 text-left">Shelf / Rak</th>
                     <th class="px-4 py-2 text-left">Part Code</th>
                     <th class="px-4 py-2 text-left">Part Name</th>
                      <th class="px-4 py-2 text-center">Qty</th>
-                      <th class="px-4 py-2 text-center">Qty Box</th>
+                      <th class="px-4 py-2 text-center">Packing</th>
                     <th class="px-4 py-2 text-center">UoM</th>
+                    <th class="px-4 py-2 text-center">Status</th>
                     <th class="px-4 py-2 text-center">STO Number</th>
                     <th class="px-4 py-2 text-center">Created by</th>
                     <th class="px-4 py-2 text-center">Created at</th>
@@ -218,7 +236,7 @@ div.dt-button-collection .dt-button:hover {
         padding: 4px 10px !important;
         border: 1px solid #d1d5db !important; /* gray-300 */
         border-radius: 0.375rem !important; /* rounded-md */
-        font-size: 1rem !important; /* text-base */
+        font-size: 14px !important; /* text-base */
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
     }
 
@@ -282,11 +300,14 @@ $('#sto-table').on('draw.dt', function () {
             const headers = [
                 "Action",
                 "Location",
+                "Area",
+                "Rak",
                 "Part Code",
                 "Part Name",
                 "Qty",
                 "UoM",
-                "Qty Box",
+                "Packing",
+                 "Status",
                 "STO Number",
                 "Created By",
                 "Created At",
@@ -325,17 +346,21 @@ $(function () {
         d.article    = $('#filter-article').val();
         d.sto_number = $('#filter-sto_number').val();
         d.sto_month = $('#filter-sto-periode').val();
+        d.status = $('#filter-status').val();
       }
     },
 
     columns: [
     { data: 'action', orderable: false, searchable: false },
       { data: 'location', className: 'text-center' },
+       { data: 'area', className: 'text-center' },
+        { data: 'shelves', className: 'text-center' },
       { data: 'article_code' },
       { data: 'part_name' },
       { data: 'qty', className: 'text-center' },
        { data: 'min_package', className: 'text-center' },
       { data: 'unit', className: 'text-center' },
+       { data: 'status', className: 'text-center' },
       { data: 'sto_number', className: 'text-center' },
       { data: 'created_by', className: 'text-center' },
       { 
@@ -346,7 +371,7 @@ $(function () {
       { data: 'note' },
     ],
 
-    order: [[7, 'desc']],
+    order: [[12, 'desc']],
 
     lengthMenu: [
       [10, 25, 50, -1],
@@ -575,7 +600,7 @@ $(function () {
 $(document).ready(function () {
 
   $('#filter-sto_number').select2({
-    placeholder: '-- All STO Number --',
+    placeholder: '-- All Number --',
     allowClear: true,
     width: '100%',
     ajax: {
@@ -595,9 +620,7 @@ $(document).ready(function () {
     }
   });
 
-});
 
-$(document).ready(function () {
 
   $('#filter-article').select2({
     placeholder: '-- All Article --',
@@ -619,6 +642,26 @@ $(document).ready(function () {
       }
     }
   });
+
+  $('#filter-location').select2({
+    placeholder: '-- All Location --',
+    allowClear: true,
+    width: '100%',
+});
+
+$('#filter-sto-periode').select2({
+    placeholder: '-- All Periode --',
+    allowClear: true,
+    width: '100%',
+});
+
+$('#filter-status').select2({
+    placeholder: '-- All Status --',
+    allowClear: true,
+    width: '100%',
+});
+
+
 
 });
 

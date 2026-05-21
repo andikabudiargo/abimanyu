@@ -1,3 +1,7 @@
+ @php
+  $isChemCons = in_array($warehouse ?? null, ['Chemical', 'Consumable']);
+@endphp
+
  <div class="relative z-20 -mt-20 overflow-hidden w-full bg-white p-6 space-y-4 rounded-t-md sm:rounded-2xl shadow-lg">
     <!-- MOBILE VERSION (REPLACE SELECT WITH HEADING) -->
     <div class="relative pb-4">
@@ -5,7 +9,7 @@
       <span class="text-xs text-gray-500 mt-1">(e-STO)</span>
     </div>
     <!-- MOBILE MODE (CARD STYLE) -->
-  <div class="col-span-2 space-y-4">
+  <div class="col-span-2 space-y-4" id="mobile-article-list">
   
     @for ($i = 0; $i < 8; $i++)
     <div class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 overflow-hidden sto-row" data-row="{{ $i }}">
@@ -27,7 +31,7 @@
             <option value="{{ $a->id }}"
                     data-code="{{ $a->article_code }}"
                     data-uom="{{ $a->unit }}"
-                    data-min-package="$a->min_package">
+                    data-min-package="{{ $a->min_package }}">
               {{ $a->description }}
             </option>
           @endforeach
@@ -53,7 +57,7 @@
           </div>
 
           <div>
-            <label class="text-xs font-semibold text-gray-600 mb-1 block">Qty Box</label>
+            <label class="text-xs font-semibold text-gray-600 mb-1 block">Packing</label>
             <input type="number"
                   min="0"
                   name="articles[{{ $i }}][min_package]"
@@ -61,6 +65,9 @@
           </div>
         </div>
 
+        <!-- LOCATION -->
+
+{{-- SESUDAH --}}
           <div>
             <label class="text-xs font-semibold text-gray-600 mb-1 block">UOM</label>
             <input type="text"
@@ -68,6 +75,18 @@
                   class="part-uom w-full border rounded px-2 py-1 bg-gray-100"
                   readonly>
           </div>
+
+          @if(($warehouse ?? null) === 'Chemical')
+          <div class="mt-3">
+            <label class="text-xs font-semibold text-gray-600 mb-1 block">Kondisi</label>
+            <select name="articles[{{ $i }}][kondisi]"
+              class="kondisi-select w-full border rounded px-2 py-1 text-sm">
+              <option value="">—</option>
+              <option value="Utuh">Utuh</option>
+              <option value="Tidak Utuh">Tidak Utuh</option>
+            </select>
+          </div>
+          @endif
 
         <!-- LOCATION -->
         <label class="text-xs font-semibold text-gray-600 mt-3 mb-1 block">Location</label>
@@ -84,6 +103,21 @@
 
   </div>
 
+  @if($isChemCons)
+  <div class="flex gap-2 mt-2 mb-4">
+    <button type="button" id="btnAddRowMobile"
+      class="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-blue-600
+             bg-blue-50 border border-blue-200 rounded-lg">
+      ＋ Add Row
+    </button>
+    <button type="button" id="btnClearRefMobile"
+      class="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600
+             bg-gray-100 border border-gray-200 rounded-lg"
+      style="display:none;">
+      ✕ Reset ke Default
+    </button>
+  </div>
+  @endif
   <!-- MOBILE VIEW -->
   <div class=" mb-4">
     <h2 class="text-lg font-semibold text-gray-700 tracking-wide drop-shadow">

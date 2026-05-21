@@ -14,8 +14,11 @@ class Sto extends Model
     protected $fillable = [
         'sto_number',
         'warehouse',
+        'area',
+        'shelves',
         'note',
         'created_by',
+        'created_by_2',
     ];
 
     /* =====================

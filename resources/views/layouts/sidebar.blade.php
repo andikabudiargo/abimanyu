@@ -350,7 +350,7 @@
   </a>
   <ul class="pc-submenu">
     <li class="pc-item">
-      <a class="pc-link" href="{{ route('facility.sto.index') }}">E-STO Consumable</a>
+      <a class="pc-link" href="{{ route('facility.sto.index') }}">E-STO</a>
       <!--<a class="pc-link" href="{{ route('facility.sto.indexv2') }}">Admin Panel</a>-->
     </li>
   </ul>
