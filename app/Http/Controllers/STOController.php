@@ -634,7 +634,7 @@ CASE
 
     ELSE 0
 END as qty_display
-")
+"),
             'articles.min_package',
  
             DB::raw("
