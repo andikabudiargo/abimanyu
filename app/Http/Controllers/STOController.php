@@ -135,7 +135,7 @@ public function createv2()
         67, 54    => 'Chemical',
         45        => 'Finish Goods',
         44        => 'OT',
-        45 => null, // 🔥 BOLEH PILIH SENDIRI
+        53 => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -571,6 +571,8 @@ public function checkAreaShelf(Request $request)
 public function datatables(Request $request)
 {
     $userId = Auth::id();
+    $superUsers = [53, 2]; // <-- tambahin di sini kalau nambah lagi
+    $isSuperUser = in_array($userId, $superUsers);
  
     $columns = [
         0  => null,                    // action
@@ -619,17 +621,20 @@ public function datatables(Request $request)
             "),
  
             // qty hanya milik auth sendiri
-          DB::raw("
+         DB::raw("
 CASE
-    WHEN {$userId} = stos.created_by THEN
-        COALESCE(sto_items.qty, 0)
+    WHEN " . ($isSuperUser ? 1 : 0) . " = 1
+        THEN COALESCE(sto_items.qty, sto_items.qty_2, 0)
 
-    WHEN {$userId} = stos.created_by_2 THEN
-        COALESCE(sto_items.qty_2, 0)
+    WHEN {$userId} = stos.created_by
+        THEN COALESCE(sto_items.qty, 0)
+
+    WHEN {$userId} = stos.created_by_2
+        THEN COALESCE(sto_items.qty_2, 0)
 
     ELSE 0
 END as qty_display
-"),
+")
             'articles.min_package',
  
             DB::raw("
@@ -692,10 +697,12 @@ END as qty_display
     //   - User B (created_by_2) → lihat qty_2, status, dan namanya sendiri
     //   - User C (tidak terdaftar di STO ini) → baris tidak muncul sama sekali
     // =====================================================================
+   if (!$isSuperUser) {
     $query->where(function ($q) use ($userId) {
         $q->where('stos.created_by', $userId)
           ->orWhere('stos.created_by_2', $userId);
     });
+}
  
     // =====================================================================
     // FILTER BULAN (default bulan berjalan)
@@ -711,9 +718,9 @@ END as qty_display
     // =====================================================================
     // FILTER WAREHOUSE (user terkunci ke warehouse tertentu)
     // =====================================================================
-    if (!is_null($warehouse)) {
-        $query->where('sto_items.location', $warehouse);
-    }
+   if (!$isSuperUser && !is_null($warehouse)) {
+    $query->where('sto_items.location', $warehouse);
+}
  
     // =====================================================================
     // FILTER REQUEST TAMBAHAN
@@ -794,9 +801,9 @@ if ($request->filled('status')) {
               ->orWhere('stos.created_by_2', $userId);
         });
  
-    if (!is_null($warehouse)) {
-        $totalDataQuery->where('sto_items.location', $warehouse);
-    }
+   if (!$isSuperUser && !is_null($warehouse)) {
+    $totalDataQuery->where('sto_items.location', $warehouse);
+}
  
     $totalData = $totalFiltered = $totalDataQuery->count();
  
