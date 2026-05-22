@@ -15,13 +15,15 @@ use App\Models\AtkAdjustment;
 use App\Models\AtkAdjustmentItem;
 use App\Models\AtkRequest;
 use App\Models\AtkRequestItem;
+use App\Models\Department;
 
 class ATKController extends Controller
 {
 
 public function index() {
 
-  return view('facility.atk');
+ $departments = Department::orderBy('name')->get(); // ambil semua department
+  return view('facility.atk', compact('departments'));
 
 }
 
@@ -116,6 +118,7 @@ public function dataSummary(Request $request)
             'atk_requests.department',
             'atk_requests.status',
             'atk_requests.note',
+            'atk_requests.created_by',
             'atk_requests.created_at',
             'atk_requests.approved_at',
             'atk_requests.rejected_at',
@@ -151,37 +154,71 @@ public function dataSummary(Request $request)
 
     return DataTables::of($query)
    ->addColumn('action', function ($row) {
-    $id = $row->id;
+
+    $authUser  = auth()->user()->loadMissing('roles');
+    $authId    = $authUser->id;
+
+    $isCreator = $authId == $row->created_by;
+    $isAdminGA = $authUser->roles->contains('name', 'Admin GA');
+    $status    = strtolower($row->status);
+
     $dropdownId = 'dropdown-' . $row->id;
-    $detail_url = route('ppic.tfcm1.show', ['id' => $row->id]);
-    $delete_url = route('qc.inspections.destroy', $row->id);
-    $edit_url = route('qc.inspection.edit', ['id' => $row->id]);
+    $detail_url = route('facility.atk.detail', ['id' => $row->id]);
+    $edit_url   = route('facility.atk.request.edit', ['id' => $row->id]);
 
     $actionButtons = '
     <div class="relative inline-block text-left">
       <button type="button"
-        data-dropdown-id="' . $dropdownId . '"
+       data-dropdown-id="' . $dropdownId . '"
         onclick="toggleDropdown(\'' . $dropdownId . '\', event)"
-        class="inline-flex justify-center w-full rounded-md shadow-sm px-2 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+        class="inline-flex justify-center w-full rounded-md px-2 py-1 bg-white text-sm text-gray-700 hover:bg-gray-50">
         <i data-feather="align-justify"></i>
       </button>
-      <div id="' . $dropdownId . '" class="dropdown-menu hidden absolute right-0 mt-2 z-50 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 text-sm text-gray-700">
+
+      <div id="' . $dropdownId . '" 
+        class="dropdown-menu hidden absolute right-0 mt-2 z-50 w-44 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 text-sm text-gray-700">
     ';
 
+    // ✅ DEFAULT (selalu muncul)
     $actionButtons .= '
-        <a href="" class="block px-4 py-2 hover:bg-gray-100">
-            <i data-feather="eye" class="w-4 h-4 inline mr-2"></i>Detail
+        <a href="' . $detail_url . '" class="block px-4 py-2 hover:bg-gray-100">
+            <i data-feather="eye" class="w-4 h-4 inline mr-2"></i> Detail
         </a>
-        <a href="" class="block px-4 py-2 hover:bg-gray-100">
-            <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
-        </a>
-         <button onclick="modalExport(' . $row->id .')" class="w-full text-left px-4 py-2 text-purple-600 hover:bg-purple-100">
-            <i data-feather="printer" class="w-4 h-4 inline mr-2"></i>Print
+
+        <button onclick="modalExport(' . $row->id . ')" 
+            class="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100">
+            <i data-feather="printer" class="w-4 h-4 inline mr-2"></i> Print
         </button>
-        <button onclick="cancelRequest(' . $row->id . ', \'' . $row->request_number . '\')" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-100">
-                <i data-feather="x-circle" class="w-4 h-4 inline mr-2"></i>Cancel
-              </button>'
-    ;
+    ';
+
+    // 🔥 CREATOR (submitted)
+    if ($status === 'submitted' && $isCreator) {
+        $actionButtons .= '
+            <a href="' . $edit_url . '" class="block px-4 py-2 hover:bg-gray-100">
+                <i data-feather="edit" class="w-4 h-4 inline mr-2"></i> Edit
+            </a>
+
+            <button onclick="cancelRequest(' . $row->id . ', \'' . $row->request_number . '\')" 
+                class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-100">
+                <i data-feather="x-circle" class="w-4 h-4 inline mr-2"></i> Cancel
+            </button>
+        ';
+    }
+
+    // 🔥 ADMIN GA (submitted)
+    if ($status === 'submitted' && $isAdminGA) {
+        $actionButtons .= '
+            <button onclick="approveRequest(' . $row->id . ', \'' . $row->request_number . '\')"
+                class="w-full text-left px-4 py-2 text-emerald-600 hover:bg-emerald-100">
+                <i data-feather="check-circle" class="w-4 h-4 inline mr-2"></i> Approve
+            </button>
+
+            <button onclick="rejectRequest(' . $row->id . ', \'' . $row->request_number . '\')" 
+                class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-100">
+                <i data-feather="x" class="w-4 h-4 inline mr-2"></i> Reject
+            </button>
+        ';
+    }
 
     $actionButtons .= '</div></div>';
 
@@ -234,120 +271,16 @@ public function dataSummary(Request $request)
         ->make(true);
 }
 
-public function dataDetail(Request $request)
-{
-    $query = AtkRequestItem::query()
-        ->join('atk_requests as ar',  'ar.id',  '=', 'atk_request_items.atk_request_id')
-        ->join('atks',                'atks.id', '=', 'atk_request_items.atk_id')
-        ->leftJoin('users as uc',     'uc.id',   '=', 'ar.created_by')
-        ->leftJoin('users as ua',     'ua.id',   '=', 'ar.approved_by')
-        ->leftJoin('users as ur',     'ur.id',   '=', 'ar.rejected_by')
-        ->select([
-            'atk_request_items.id',
-            'ar.request_number',
-            'ar.department',
-            'ar.status',
-            'ar.created_at',
-            'ar.approved_at',
-            'ar.rejected_at',
-            'atks.name  as atk_name',
-            'atks.uom',
-            'atk_request_items.qty',
-            'uc.name    as created_by_name',
-            'ua.name    as approved_by_name',
-            'ur.name    as rejected_by_name',
-        ])
-        ->when($request->request_number, fn($q) =>
-            $q->where('ar.request_number', 'like', '%' . $request->request_number . '%')
-        )
-        ->when($request->department, fn($q) =>
-            $q->where('ar.department', $request->department)
-        )
-        ->when($request->status, fn($q) =>
-            $q->where('ar.status', $request->status)
-        )
-        ->when($request->request_date, function ($q) use ($request) {
-            if (str_contains($request->request_date, ' to ')) {
-                [$start, $end] = explode(' to ', $request->request_date);
-                $q->whereBetween('ar.created_at', [
-                    trim($start) . ' 00:00:00',
-                    trim($end)   . ' 23:59:59',
-                ]);
-            } else {
-                $q->whereDate('ar.created_at', trim($request->request_date));
-            }
-        })
-        ->orderByDesc('ar.created_at');
-
-    return DataTables::of($query)
-
-        ->editColumn('created_at', fn($row) =>
-            self::dateCell($row->created_at)
-        )
-
-        ->editColumn('status', fn($row) =>
-            self::statusBadge($row->status)
-        )
-
-        ->editColumn('department', fn($row) =>
-            '<span class="text-xs text-gray-600">' . e($row->department ?? '—') . '</span>'
-        )
-
-        ->editColumn('atk_name', fn($row) =>
-            '<span class="font-medium text-gray-800">' . e($row->atk_name) . '</span>'
-        )
-
-        ->editColumn('qty', fn($row) =>
-            '<span class="font-semibold text-gray-800">' . $row->qty . '</span>'
-        )
-
-        ->editColumn('uom', fn($row) =>
-            '<span class="text-xs text-gray-500">' . e($row->uom ?? '—') . '</span>'
-        )
-
-        ->addColumn('created_by', fn($row) =>
-            self::userCell($row->created_by_name)
-        )
-
-        ->addColumn('approved_by', fn($row) =>
-            self::userCell($row->approved_by_name)
-        )
-
-        ->editColumn('approved_at', fn($row) =>
-            self::dateCell($row->approved_at)
-        )
-
-        ->addColumn('rejected_by', fn($row) =>
-            self::userCell($row->rejected_by_name)
-        )
-
-        ->editColumn('rejected_at', fn($row) =>
-            self::dateCell($row->rejected_at)
-        )
-
-        ->rawColumns([
-            'created_at', 'status', 'department',
-            'atk_name', 'qty', 'uom',
-            'created_by', 'approved_by', 'approved_at',
-            'rejected_by', 'rejected_at',
-        ])
-
-        ->make(true);
-}
-
 // ─── Shared Helpers (private static) ─────────────────────────────
 
 private static function statusBadge(string $status): string
 {
     $map = [
-        'submitted'         => ['bg-blue-50 text-blue-600 border-blue-200',   'Submitted'],
+        'submitted'         => ['bg-gray-50 text-gray-600 border-gray-200',   'Submitted'],
         'approved'          => ['bg-emerald-50 text-emerald-700 border-emerald-200', 'Approved'],
         'rejected'          => ['bg-red-50 text-red-600 border-red-200',       'Rejected'],
         'distributed'       => ['bg-purple-50 text-purple-600 border-purple-200', 'Distributed'],
         'received'          => ['bg-teal-50 text-teal-700 border-teal-200',    'Received'],
-        'returned_from_spv' => ['bg-amber-50 text-amber-700 border-amber-200', 'Returned (SPV)'],
-        'returned_from_mr'  => ['bg-orange-50 text-orange-700 border-orange-200', 'Returned (MR)'],
-        'resubmitted'       => ['bg-indigo-50 text-indigo-600 border-indigo-200', 'Resubmitted'],
     ];
 
     [$cls, $label] = $map[$status] ?? ['bg-gray-50 text-gray-500 border-gray-200', ucfirst($status)];
@@ -392,37 +325,66 @@ private static function dateCell(?string $datetime): string
             'atks.initial_stock',
             'atks.photo',
         )
+
+        // ── TOTAL IN (Adjustment IN only) ─────────────────
         ->selectSub(function ($q) {
             $q->from('atk_adjustment_items')
               ->join('atk_adjustments', 'atk_adjustments.id', '=', 'atk_adjustment_items.atk_adjustment_id')
-              ->whereColumn('atk_adjustment_items.atk_id', 'atks.id') // ✅ FIX UTAMA
-              ->where('atk_adjustments.type', 'in')
+              ->whereColumn('atk_adjustment_items.atk_id', 'atks.id')
+              ->whereRaw("LOWER(atk_adjustments.type) = 'in'")
               ->selectRaw('COALESCE(SUM(atk_adjustment_items.qty),0)');
         }, 'total_in')
+
+        // ── TOTAL OUT (Adjustment OUT) ───────────────────
         ->selectSub(function ($q) {
             $q->from('atk_adjustment_items')
               ->join('atk_adjustments', 'atk_adjustments.id', '=', 'atk_adjustment_items.atk_adjustment_id')
-              ->whereColumn('atk_adjustment_items.atk_id', 'atks.id') // ✅ FIX UTAMA
-              ->where('atk_adjustments.type', 'out')
+              ->whereColumn('atk_adjustment_items.atk_id', 'atks.id')
+              ->whereRaw("LOWER(atk_adjustments.type) = 'out'")
               ->selectRaw('COALESCE(SUM(atk_adjustment_items.qty),0)');
-        }, 'total_out')
+        }, 'total_out_adjustment')
+
+        // ── TOTAL OUT (Request APPROVED) ─────────────────
+        ->selectSub(function ($q) {
+            $q->from('atk_request_items')
+              ->join('atk_requests', 'atk_requests.id', '=', 'atk_request_items.atk_request_id')
+              ->whereColumn('atk_request_items.atk_id', 'atks.id')
+              ->whereRaw("LOWER(atk_requests.status) = 'approved'")
+              ->selectRaw('COALESCE(SUM(atk_request_items.qty),0)');
+        }, 'total_out_request')
+
         ->orderBy('name')
         ->get()
-        ->map(fn($item) => [
-            'id'            => $item->id,
-            'name'          => $item->name,
-            'uom'           => $item->uom,
-            'min_stock'     => $item->min_stock,
-            'initial_stock' => $item->initial_stock,
-            'total_in'      => (int) $item->total_in,
-            'total_out'     => (int) $item->total_out,
-            'photo_url'     => $item->photo ? Storage::url($item->photo) : null,
 
-            // 🔥 BONUS (langsung siap pakai di FE)
-           'balance' => (int) $item->initial_stock 
-           + (int) $item->total_in 
-           - (int) $item->total_out,
-        ]);
+        ->map(function ($item) {
+
+            $totalIn  = (int) $item->total_in;
+            $outAdj   = (int) $item->total_out_adjustment;
+            $outReq   = (int) $item->total_out_request;
+
+            $totalOut = $outAdj + $outReq;
+
+            return [
+                'id'            => $item->id,
+                'name'          => $item->name,
+                'uom'           => $item->uom,
+                'min_stock'     => $item->min_stock,
+                'initial_stock' => (int) $item->initial_stock,
+
+                'total_in'      => $totalIn,
+                'total_out'     => $totalOut,
+
+                // optional debug (kalau mau lihat breakdown)
+                // 'total_out_adjustment' => $outAdj,
+                // 'total_out_request'    => $outReq,
+
+                'photo_url'     => $item->photo ? Storage::url($item->photo) : null,
+
+                'balance' => (int) $item->initial_stock 
+                           + $totalIn 
+                           - $totalOut,
+            ];
+        });
 
     return response()->json(['data' => $atk]);
 }
@@ -441,14 +403,26 @@ public function store(Request $request)
             'photo.mimes'       => 'Format foto harus JPG, PNG, atau WEBP.',
             'photo.max'         => 'Ukuran foto maksimal 2 MB.',
         ]);
+// Handle upload foto
+$photoName = null;
 
-        // Handle upload foto
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $file     = $request->file('photo');
-            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-            $photoPath = $file->storeAs('atk/photos', $filename, 'public');
-        }
+if ($request->hasFile('photo')) {
+    $file = $request->file('photo');
+
+    // Ambil nama asli file
+    $photoName = $file->getClientOriginalName();
+
+    // Path tujuan (hardcode sesuai request)
+    $destinationPath = '/home/abimany3/public_html/atk/' . $atk_request->id;
+
+    // Pastikan folder ada
+    if (!File::exists($destinationPath)) {
+        File::makeDirectory($destinationPath, 0755, true);
+    }
+
+    // Pindahkan file ke folder tujuan
+    $file->move($destinationPath, $photoName);
+}
 
         $atk = Atk::create([
             'name'          => $validated['name'],
@@ -554,7 +528,7 @@ public function adjustment(Request $request)
 {
     $request->validate([
         'type'            => 'required|in:in,out',
-        'reason'          => 'required|string|max:255',
+        'reason'          => 'nullable|string|max:255',
         'items'           => 'required|array|min:1',
         'items.*.atk_id'  => 'required|exists:atks,id',
         'items.*.qty'     => 'required|integer|min:1',
@@ -736,6 +710,230 @@ public function movementsExport(Request $request, $id)
         }
         fclose($out);
     }, $filename, $headers);
+}
+
+public function cancel($id)
+{
+    try {
+        DB::beginTransaction();
+
+        $request = AtkRequest::with('items')->findOrFail($id);
+
+        // 🔒 Optional: permission
+        if ($request->created_by !== Auth::id()) {
+            return response()->json([
+                'message' => 'Tidak punya akses.'
+            ], 403);
+        }
+
+        // 🔥 Hapus detail dulu (jika relasi tidak cascade)
+        $request->items()->delete();
+
+        // 🔥 Hapus header
+        $request->delete();
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Request berhasil dihapus.'
+        ]);
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'message' => 'Gagal hapus request.',
+            'error'   => $e->getMessage()
+        ], 500);
+    }
+}
+
+public function approve($id)
+{
+    try {
+        DB::beginTransaction();
+
+        $request = AtkRequest::with('items')->findOrFail($id);
+
+        // 🔒 Validasi status
+        if ($request->status !== 'submitted') {
+            return response()->json([
+                'message' => 'Request tidak bisa di-approve.'
+            ], 400);
+        }
+
+        // ✅ Update status
+        $request->update([
+            'status'      => 'approved',
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Request berhasil di-approve.'
+        ]);
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'message' => 'Gagal approve request.',
+            'error'   => $e->getMessage()
+        ], 500);
+    }
+}
+
+public function reject(Request $req, $id)
+{
+    $req->validate([
+        'reason' => 'required|string|max:1000'
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        $request = AtkRequest::findOrFail($id);
+
+        // 🔒 Validasi status
+        if ($request->status !== 'submitted') {
+            return response()->json([
+                'message' => 'Request tidak bisa direject.'
+            ], 400);
+        }
+
+        // ✅ Update status
+        $request->update([
+            'status'        => 'rejected',
+            'rejected_by'   => Auth::id(),
+            'rejected_at'   => now(),
+            'rejected_reason' => $req->reason,
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Request berhasil direject.'
+        ]);
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'message' => 'Gagal reject request.',
+            'error'   => $e->getMessage()
+        ], 500);
+    }
+}
+
+public function editRequest($id)
+{
+    $atkRequest = AtkRequest::with('items')->findOrFail($id);
+
+    // Pastikan hanya creator yang bisa edit, dan status masih submitted
+    if ($atkRequest->created_by !== auth()->id() || strtolower($atkRequest->status) !== 'submitted') {
+        abort(403, 'Tidak diizinkan.');
+    }
+
+    return view('facility.edit-atk', compact('atkRequest'));
+}
+
+public function updateRequest(Request $request, $id)
+{
+    $atkRequest = AtkRequest::with('items')->findOrFail($id);
+
+    if ($atkRequest->created_by !== auth()->id() || strtolower($atkRequest->status) !== 'submitted') {
+        return response()->json(['message' => 'Tidak diizinkan.'], 403);
+    }
+
+    // Hapus items lama, insert baru
+    $atkRequest->items()->delete();
+    foreach ($request->items as $item) {
+        $atkRequest->items()->create([
+            'atk_id' => $item['atk_id'],
+            'qty'    => $item['qty'],
+        ]);
+    }
+
+    $atkRequest->update(['note' => $request->notes]);
+
+    return response()->json(['message' => 'Request berhasil diperbarui.']);
+}
+
+public function show($id)
+{
+    $atkRequest = AtkRequest::with([
+        'items.atk',
+        'createdBy',
+        'approvedBy',
+        'rejectedBy',
+        'distributedBy',
+        'receivedBy',
+        'departemen',
+    ])->findOrFail($id);
+
+    auth()->user()->load('roles');
+
+    return view('facility.detail-atk', compact('atkRequest'));
+}
+
+public function analyticsData()
+{
+    $currentYear = now()->year;
+
+    // ── 1. Request per Department ─────────────────────────
+    $byDepartment = AtkRequest::with('departemen')
+        ->select('department', DB::raw('COUNT(*) as total'))
+        ->groupBy('department')
+        ->get()
+        ->map(fn($r) => [
+            'department' => $r->departemen?->name ?? 'Unknown',
+            'total'      => $r->total,
+        ]);
+
+    // ── 2. Top 5 ATK yang sering direquest ───────────────
+    $topAtk = AtkRequestItem::with('atk')
+        ->select('atk_id', DB::raw('SUM(qty) as total_qty'), DB::raw('COUNT(*) as total_request'))
+        ->groupBy('atk_id')
+        ->orderByDesc('total_request')
+        ->limit(5)
+        ->get()
+        ->map(fn($r) => [
+            'name'          => $r->atk?->name ?? '—',
+            'uom'           => $r->atk?->uom ?? '—',
+            'photo_url'     => $r->atk?->photo ? Storage::url($r->atk->photo) : null,
+            'total_request' => $r->total_request,
+            'total_qty'     => $r->total_qty,
+        ]);
+
+    // ── 3. Request bulanan per status (current year) ─────
+    $monthly = AtkRequest::select(
+            DB::raw('MONTH(created_at) as month'),
+            'status',
+            DB::raw('COUNT(*) as total')
+        )
+        ->whereYear('created_at', $currentYear)
+        ->groupBy('month', 'status')
+        ->get();
+
+    $monthlyData = [];
+    for ($m = 1; $m <= 12; $m++) {
+        $monthlyData[$m] = ['submitted' => 0, 'approved' => 0, 'rejected' => 0];
+    }
+    foreach ($monthly as $row) {
+        $status = strtolower($row->status);
+        if (isset($monthlyData[$row->month][$status])) {
+            $monthlyData[$row->month][$status] = $row->total;
+        }
+    }
+
+    return response()->json([
+        'by_department' => $byDepartment,
+        'top_atk'       => $topAtk,
+        'monthly'       => $monthlyData,
+        'year'          => $currentYear,
+    ]);
 }
 
 }

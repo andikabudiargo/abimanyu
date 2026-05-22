@@ -7,6 +7,7 @@
 
 @section('content')
 
+@if(Auth::user()->roles->contains('name', 'Admin GA'))
 <div class="bg-white shadow rounded-xl mb-6 overflow-hidden">
   <div class="flex border-b border-gray-200">
     <button id="tab-btn-request"
@@ -29,11 +30,20 @@
     </button>
   </div>
 </div>
+@endif
 
 
 <div id="tab-request">
    <div class="bg-white shadow rounded-xl p-6 mb-6">
-    <h2 class="text-lg font-semibold mb-4">Filter ATK Management</h2>
+      {{-- View Toggle --}}
+  <div class="flex items-center justify-between pb-3 mb-4 border-b border-gray-300">
+  
+  <div class="flex items-center gap-2">
+    <i data-feather="filter" class="w-4 h-4 text-gray-500"></i>
+    <h2 class="text-sm font-semibold text-gray-800">Filter</h2>
+  </div>
+
+</div>
 
     <form id="filter-form">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -51,7 +61,9 @@
                 <label class="block text-sm mb-1 font-medium text-gray-700">Department</label>
                   <select id="filter-dept" name="department" class=" w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
          <option value="">-- All --</option>
-          <option value="2">HRGAIT</option>
+           @foreach($departments as $dept)
+            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+        @endforeach
        
         <!-- tambahkan sesuai kebutuhan -->
     </select>
@@ -63,10 +75,6 @@
         <option value="">-- All Status --</option>
         <option value="Submitted">Submitted</option>
         <option value="Approved">Approved</option>
-        <option value="Returned from SPV">Returned from SPV</option>
-        <option value="Returned from MR">Returned from MR</option>
-        <option value="Resubmitted">Resubmitted</option>
-        <option value="Published">Published</option>
         <option value="Rejected">Rejected</option>
         <!-- tambahkan sesuai kebutuhan -->
     </select>
@@ -84,19 +92,14 @@
   <div class="bg-white shadow rounded-xl p-6 mb-2">
 
     {{-- View Toggle --}}
-    <div class="flex items-center justify-between pb-3 mb-4 border-b border-gray-300">
-      <h2 class="text-sm font-semibold text-gray-800">ATK Request List</h2>
-      <div class="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 gap-0.5" id="viewToggle">
-        <button id="btn-summary" onclick="switchView('summary')"
-          class="view-btn active-view flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-medium transition">
-          <i data-feather="list" class="w-3.5 h-3.5"></i> Summary
-        </button>
-        <button id="btn-detail" onclick="switchView('detail')"
-          class="view-btn flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-medium transition">
-          <i data-feather="layers" class="w-3.5 h-3.5"></i> Detail
-        </button>
-      </div>
-    </div>
+  <div class="flex items-center justify-between pb-3 mb-4 border-b border-gray-300">
+  
+  <div class="flex items-center gap-2">
+    <i data-feather="bell" class="w-4 h-4 text-gray-500"></i>
+    <h2 class="text-sm font-semibold text-gray-800">ATK Request List</h2>
+  </div>
+
+</div>
 
     {{-- Summary Table --}}
     <div id="view-summary">
@@ -116,7 +119,13 @@
               <th class="px-4 py-2">Rejected At</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody class="divide-y divide-gray-100
+         
+         [&>tr:nth-child(odd)>td]:bg-white
+         [&>tr:nth-child(even)>td]:bg-gray-50
+         
+         [&>tr:hover>td]:bg-blue-50
+         [&>tr>td]:transition-colors"></tbody>
         </table>
       </div>
     </div>
@@ -158,56 +167,48 @@
 {{-- Summary Cards --}}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5" id="atkSummaryCards">
 
-  <button onclick="filterByStatus('')"
-    class="atk-card-btn text-left p-4 rounded-xl border-2 transition group"
-    data-card="all">
-    <div class="flex items-center justify-between mb-2">
-      <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition">
-        <i data-feather="package" class="w-4 h-4 text-blue-600"></i>
-      </div>
-      <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Total</span>
+  <button onclick="filterByStatus('')" data-card="all"
+    class="atk-card-btn flex items-center gap-3 p-4 rounded-xl border bg-white text-left transition">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#E6F1FB;">
+      <i data-feather="package" class="w-5 h-5" style="color:#185FA5;"></i>
     </div>
-    <p class="text-2xl font-bold text-gray-800" id="cardTotal">—</p>
-    <p class="text-[11px] text-gray-400 mt-0.5">Total ATK</p>
+    <div class="min-w-0">
+      <p class="text-xl font-medium leading-none mb-1 text-gray-800" id="cardTotal">—</p>
+      <p class="text-[11px] font-medium uppercase tracking-wider truncate" style="color:#378ADD;">Total ATK</p>
+    </div>
   </button>
 
-  <button onclick="filterByStatus('safe')"
-    class="atk-card-btn text-left p-4 rounded-xl border-2 transition group"
-    data-card="safe">
-    <div class="flex items-center justify-between mb-2">
-      <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition">
-        <i data-feather="check-circle" class="w-4 h-4 text-emerald-600"></i>
-      </div>
-      <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Safe</span>
+  <button onclick="filterByStatus('safe')" data-card="safe"
+    class="atk-card-btn flex items-center gap-3 p-4 rounded-xl border bg-white text-left transition">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#E1F5EE;">
+      <i data-feather="check-circle" class="w-5 h-5" style="color:#0F6E56;"></i>
     </div>
-    <p class="text-2xl font-bold text-emerald-600" id="cardSafe">—</p>
-    <p class="text-[11px] text-gray-400 mt-0.5">Stok Aman</p>
+    <div class="min-w-0">
+      <p class="text-xl font-medium leading-none mb-1" style="color:#0F6E56;" id="cardSafe">—</p>
+      <p class="text-[11px] font-medium uppercase tracking-wider truncate" style="color:#1D9E75;">Safe</p>
+    </div>
   </button>
 
-  <button onclick="filterByStatus('critical')"
-    class="atk-card-btn text-left p-4 rounded-xl border-2 transition group"
-    data-card="critical">
-    <div class="flex items-center justify-between mb-2">
-      <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition">
-        <i data-feather="alert-triangle" class="w-4 h-4 text-amber-600"></i>
-      </div>
-      <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Critical</span>
+  <button onclick="filterByStatus('critical')" data-card="critical"
+    class="atk-card-btn flex items-center gap-3 p-4 rounded-xl border bg-white text-left transition">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#FAEEDA;">
+      <i data-feather="alert-triangle" class="w-5 h-5" style="color:#854F0B;"></i>
     </div>
-    <p class="text-2xl font-bold text-amber-600" id="cardCritical">—</p>
-    <p class="text-[11px] text-gray-400 mt-0.5">Stok Kritis</p>
+    <div class="min-w-0">
+      <p class="text-xl font-medium leading-none mb-1" style="color:#854F0B;" id="cardCritical">—</p>
+      <p class="text-[11px] font-medium uppercase tracking-wider truncate" style="color:#BA7517;">Critical</p>
+    </div>
   </button>
 
-  <button onclick="filterByStatus('empty')"
-    class="atk-card-btn text-left p-4 rounded-xl border-2 transition group"
-    data-card="empty">
-    <div class="flex items-center justify-between mb-2">
-      <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition">
-        <i data-feather="x-circle" class="w-4 h-4 text-red-500"></i>
-      </div>
-      <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Empty</span>
+  <button onclick="filterByStatus('empty')" data-card="empty"
+    class="atk-card-btn flex items-center gap-3 p-4 rounded-xl border bg-white text-left transition">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#FCEBEB;">
+      <i data-feather="x-circle" class="w-5 h-5" style="color:#A32D2D;"></i>
     </div>
-    <p class="text-2xl font-bold text-red-500" id="cardEmpty">—</p>
-    <p class="text-[11px] text-gray-400 mt-0.5">Stok Habis</p>
+    <div class="min-w-0">
+      <p class="text-xl font-medium leading-none mb-1" style="color:#A32D2D;" id="cardEmpty">—</p>
+      <p class="text-[11px] font-medium uppercase tracking-wider truncate" style="color:#E24B4A;">Empty</p>
+    </div>
   </button>
 
 </div>
@@ -232,24 +233,55 @@
       </div>
     </div>
 
-    {{-- Search + Filter Bar --}}
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-      <div class="relative">
-        <i data-feather="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-        <input type="text" id="searchATK" placeholder="Cari nama ATK..."
-          class="pl-8 pr-4 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 w-52">
-      </div>
-      <div class="flex items-center gap-2">
-        <select id="filterStatus"
-          class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-600">
-          <option value="">Semua Status</option>
-          <option value="safe">Safe</option>
-          <option value="critical">Critical</option>
-          <option value="empty">Empty</option>
-        </select>
-        <span class="text-xs text-gray-400" id="tableInfo">— item</span>
-      </div>
-    </div>
+
+  <div class="flex items-center gap-3 mb-4 w-full">
+
+  {{-- Kiri --}}
+  <div class="flex items-center gap-1.5 shrink-0">
+    <span class="text-xs text-gray-400">Show</span>
+   <select id="perPageATK"
+  class="text-xs border border-gray-200 rounded-lg px-2 py-1.5">
+  <option value="10">10</option>
+  <option value="25">25</option>
+  <option value="50">50</option>
+  <option value="100">100</option>
+  <option value="99999">All</option>  {{-- ← value harus angka --}}
+</select>
+    <span class="text-xs text-gray-400">entries</span>
+  </div>
+
+  {{-- 🔥 SEARCH FULL --}}
+  <div class="relative flex-1 w-full">
+    <i data-feather="search"
+      class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+
+    <input type="text" id="searchATK"
+      placeholder="Cari nama ATK..."
+      class="pl-8 pr-4 py-2 text-xs border border-gray-200 rounded-lg 
+             focus:outline-none focus:ring-2 focus:ring-blue-400 
+             w-full">
+  </div>
+
+  {{-- Kanan --}}
+    <div class="flex items-center gap-2 justify-end flex-wrap">
+    <button onclick="exportATKExcel()"
+      class="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-lg transition">
+      <i data-feather="download" class="w-3.5 h-3.5"></i> Export Excel
+    </button>
+
+    <select id="filterStatus"
+      class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-600">
+      <option value="">Semua Status</option>
+      <option value="safe">Safe</option>
+      <option value="critical">Critical</option>
+      <option value="empty">Empty</option>
+    </select>
+
+
+    <span class="text-xs text-gray-400">11 item</span>
+  </div>
+
+</div>
 
     {{-- Table --}}
     <div class="overflow-x-auto rounded-lg ">
@@ -269,7 +301,13 @@
             <th class="px-4 py-3 font-medium text-center w-28">Action</th>
           </tr>
         </thead>
-        <tbody id="tbodyATK" class="divide-y divide-gray-100">
+        <tbody id="tbodyATK"   class="divide-y divide-gray-100
+         
+         [&>tr:nth-child(odd)>td]:bg-white
+         [&>tr:nth-child(even)>td]:bg-gray-50
+         
+         [&>tr:hover>td]:bg-blue-50
+         [&>tr>td]:transition-colors">
           {{-- Skeleton loader --}}
           @for ($i = 0; $i < 5; $i++)
           <tr class="animate-pulse">
@@ -306,6 +344,100 @@
   </div>
 
 </div>{{-- end #tab-stock --}}
+
+{{-- ═══════════════════════════════════════════════════════
+     TAB: ANALYTICS
+════════════════════════════════════════════════════════════ --}}
+<div id="tab-analisa" class="hidden space-y-4">
+
+  {{-- Row 1: Summary Cards --}}
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="analyticsCards">
+    <div class="bg-white shadow rounded-xl p-4">
+      <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Total Request</p>
+      <p class="text-2xl font-medium text-gray-800" id="anTotalRequest">—</p>
+      <p class="text-[11px] text-gray-400 mt-1">Semua waktu</p>
+    </div>
+    <div class="bg-white shadow rounded-xl p-4">
+      <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Approved</p>
+      <p class="text-2xl font-medium text-emerald-600" id="anTotalApproved">—</p>
+      <p class="text-[11px] text-gray-400 mt-1">Tahun ini</p>
+    </div>
+    <div class="bg-white shadow rounded-xl p-4">
+      <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Rejected</p>
+      <p class="text-2xl font-medium text-red-500" id="anTotalRejected">—</p>
+      <p class="text-[11px] text-gray-400 mt-1">Tahun ini</p>
+    </div>
+    <div class="bg-white shadow rounded-xl p-4">
+      <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Pending</p>
+      <p class="text-2xl font-medium text-blue-600" id="anTotalPending">—</p>
+      <p class="text-[11px] text-gray-400 mt-1">Submitted</p>
+    </div>
+  </div>
+
+  {{-- Row 2: Monthly Chart + Top ATK --}}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+    {{-- Monthly Chart (2/3) --}}
+    <div class="lg:col-span-2 bg-white shadow rounded-xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-sm font-semibold text-gray-800">Request Bulanan</p>
+          <p class="text-[11px] text-gray-400 mt-0.5" id="anYearLabel">—</p>
+        </div>
+        <div class="flex items-center gap-3 text-[11px]">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block"></span>
+            <span class="text-gray-500">Approved</span>
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-sm bg-blue-400 inline-block"></span>
+            <span class="text-gray-500">Submitted</span>
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-sm bg-red-400 inline-block"></span>
+            <span class="text-gray-500">Rejected</span>
+          </span>
+        </div>
+      </div>
+      <div class="relative h-56">
+        <canvas id="chartMonthly"></canvas>
+      </div>
+    </div>
+
+    {{-- Top 5 ATK (1/3) --}}
+    <div class="bg-white shadow rounded-xl overflow-hidden">
+      <div class="px-5 py-3.5 border-b border-gray-100">
+        <p class="text-xs font-semibold text-gray-700">Top 5 ATK Paling Sering Direquest</p>
+      </div>
+      <div id="topAtkList" class="divide-y divide-gray-100">
+        {{-- Filled by JS --}}
+        @for($i = 0; $i < 5; $i++)
+        <div class="flex items-center gap-3 px-5 py-3 animate-pulse">
+          <div class="w-8 h-8 rounded-lg bg-gray-200 flex-shrink-0"></div>
+          <div class="flex-1 space-y-1.5">
+            <div class="h-3 bg-gray-200 rounded w-3/4"></div>
+            <div class="h-2.5 bg-gray-100 rounded w-1/2"></div>
+          </div>
+          <div class="h-4 w-8 bg-gray-200 rounded"></div>
+        </div>
+        @endfor
+      </div>
+    </div>
+
+  </div>
+
+  {{-- Row 3: By Department Chart --}}
+  <div class="bg-white shadow rounded-xl p-5">
+    <div class="mb-4">
+      <p class="text-sm font-semibold text-gray-800">Request per Department</p>
+      <p class="text-[11px] text-gray-400 mt-0.5">Total request berdasarkan department</p>
+    </div>
+    <div class="relative h-52">
+      <canvas id="chartDepartment"></canvas>
+    </div>
+  </div>
+
+</div>{{-- end #tab-analisa --}}
 
 {{-- Desktop: center modal; Mobile: bottom sheet --}}
 <div id="modalAddATK" class="hidden fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[1050] p-0 sm:p-6">
@@ -429,35 +561,48 @@
      
 
     {{-- Body --}}
-    <div class="overflow-y-auto px-6 pb-4 pt-4 flex-1">
-         <form id="formAdjustment" class="py-4 space-y-4 text-sm">
+    <div class="overflow-y-auto px-6 pb-4 flex-1">
+         <form id="formAdjustment" class="space-y-4 text-sm">
         @csrf
     
-        {{-- Adjustment Type + Reason --}}
-        <div class="grid grid-cols-1 gap-4">
+       <div>
+  <label class="block text-xs font-medium text-gray-600 mb-2">
+    Tipe Adjustment
+  </label>
 
-          {{-- Type --}}
-          <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1.5">Tipe Adjustment</label>
-            <div class="flex gap-2" id="adjustmentTypeGroup">
-              <button type="button" data-type="in"
-                onclick="setAdjustmentType('in')"
-                class="adj-type-btn flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border-2 text-xs font-medium transition
-                       border-emerald-500 bg-emerald-50 text-emerald-700">
-                <i data-feather="plus-circle" class="w-3.5 h-3.5"></i> IN — Tambah Stock
-              </button>
-              <button type="button" data-type="out"
-                onclick="setAdjustmentType('out')"
-                class="adj-type-btn flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border-2 text-xs font-medium transition
-                       border-gray-200 bg-white text-gray-500 hover:border-gray-300">
-                <i data-feather="minus-circle" class="w-3.5 h-3.5"></i> OUT — Kurangi Stock
-              </button>
-            </div>
-            <input type="hidden" name="type" id="adjustmentType" value="in">
-          </div>
+  <div class="grid grid-cols-3 gap-3">
+    
+    <div class="col-span-3 flex justify-start gap-3">
+      
+      <button type="button" data-type="in"
+        onclick="setAdjustmentType('in')"
+        class="adj-type-btn flex items-center justify-center gap-2 px-4 py-2.5 
+               rounded-lg border-2 text-xs font-medium transition
+               border-emerald-500 bg-emerald-50 text-emerald-700
+               w-full max-w-[200px]">
+        <i data-feather="plus-circle" class="w-3.5 h-3.5"></i>
+        IN — Tambah Stock
+      </button>
 
+      <button type="button" data-type="out"
+        onclick="setAdjustmentType('out')"
+        class="adj-type-btn flex items-center justify-center gap-2 px-4 py-2.5 
+               rounded-lg border-2 text-xs font-medium transition
+               border-gray-200 bg-white text-gray-500 hover:border-gray-300
+               w-full max-w-[200px]">
+        <i data-feather="minus-circle" class="w-3.5 h-3.5"></i>
+        OUT — Kurangi Stock
+      </button>
+
+    </div>
+
+  </div>
+
+  <input type="hidden" name="type" id="adjustmentType" value="in">
+</div>
+  <div class="grid grid-cols-1 sm:grid grid-cols-2 lg:grid grid-cols-3 gap-4">
           {{-- Reason --}}
-          <div>
+          <div class="col-span-2">
             <label class="block text-xs font-medium text-gray-600 mb-1.5">Alasan Adjustment</label>
             <input type="text" name="reason" id="adjustmentReason"
               placeholder="cth: Pembelian baru, Koreksi opname, Rusak/hilang..."
@@ -468,7 +613,7 @@
         </div>
 
         {{-- Divider --}}
-        <div class="flex items-center gap-3 pt-6 pb-6">
+        <div class="flex items-center gap-3 pt-6 pb-2">
           <span class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Adjustment Item</span>
           <div class="flex-1 border-t border-gray-100"></div>
         </div>
@@ -685,7 +830,11 @@
               <th class="px-3 py-2.5 font-medium">Catatan</th>
             </tr>
           </thead>
-          <tbody id="tbodyMovement" class="divide-y divide-gray-100">
+          <tbody id="tbodyMovement"   class="divide-y divide-gray-100
+         [&>tr:nth-child(odd)]:bg-white
+         [&>tr:nth-child(even)]:bg-gray-50
+         [&>tr:hover]:bg-blue-50
+         [&>tr]:transition-colors">
           </tbody>
         </table>
       </div>
@@ -726,33 +875,12 @@
 #doc-table tbody tr:nth-child(odd) {
     background-color: #ffffff;
 }
-
-/* Summary Cards */
-.atk-card-btn {
-    border-color: #e5e7eb;
-    background: white;
-    cursor: pointer;
-}
-.atk-card-btn:hover {
-    border-color: #d1d5db;
-    background: #f9fafb;
-}
-.atk-card-btn.active[data-card="all"] {
-    border-color: #3b82f6;
-    background: #eff6ff;
-}
-.atk-card-btn.active[data-card="safe"] {
-    border-color: #10b981;
-    background: #ecfdf5;
-}
-.atk-card-btn.active[data-card="critical"] {
-    border-color: #f59e0b;
-    background: #fffbeb;
-}
-.atk-card-btn.active[data-card="empty"] {
-    border-color: #ef4444;
-    background: #fef2f2;
-}
+.atk-card-btn { border-color: #e5e7eb; cursor: pointer; }
+.atk-card-btn:hover { border-color: #d1d5db; background: #f9fafb !important; }
+.atk-card-btn.active[data-card="all"]      { border-color: #378ADD; background: #E6F1FB !important; }
+.atk-card-btn.active[data-card="safe"]     { border-color: #1D9E75; background: #E1F5EE !important; }
+.atk-card-btn.active[data-card="critical"] { border-color: #EF9F27; background: #FAEEDA !important; }
+.atk-card-btn.active[data-card="empty"]    { border-color: #E24B4A; background: #FCEBEB !important; }
 
 /* Paksa Select2 container tingginya konsisten */
 .adj-select-atk + .select2-container .select2-selection--single {
@@ -925,17 +1053,20 @@ function switchTab(tab) {
     activeTab = tab;
     document.getElementById('tab-request').classList.toggle('hidden', tab !== 'request');
     document.getElementById('tab-stock').classList.toggle('hidden', tab !== 'stock');
+    document.getElementById('tab-analisa').classList.toggle('hidden', tab !== 'analisa');  // ← tambah ini
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active-tab'));
     document.getElementById('tab-btn-' + tab).classList.add('active-tab');
     feather.replace();
+
     if (tab === 'request') {
         if (typeof summaryTable !== 'undefined') summaryTable.columns.adjust();
-        if (typeof detailTable  !== 'undefined') detailTable.columns.adjust();
     }
-     if (tab === 'stock') {
-        // ✅ Set default active card saat masuk tab stock
+    if (tab === 'stock') {
         $('.atk-card-btn').removeClass('active');
         $('.atk-card-btn[data-card="all"]').addClass('active');
+    }
+    if (tab === 'analisa') {
+        loadAnalytics(); // ← load setiap kali tab dibuka
     }
 }
 
@@ -1077,11 +1208,19 @@ function openEditATK(id) {
             $('#formAddATK [name="min_stock"]').val(d.min_stock);
             $('#formAddATK [name="initial_stock"]').val(d.initial_stock);
 
-            // Tampilkan foto existing
-            if (d.photo_url) {
-                $('#previewImg').attr('src', d.photo_url).removeClass('hidden');
-                $('#previewPlaceholder').addClass('hidden');
-                $('#removeBtn').removeClass('hidden').addClass('flex');
+           // Tampilkan foto existing
+if (d.photo) {
+    const url = `/atk/${d.id}/${encodeURIComponent(d.photo)}`;
+
+    $('#previewImg')
+        .attr('src', url)
+        .removeClass('hidden');
+
+    $('#previewPlaceholder').addClass('hidden');
+
+    $('#removeBtn')
+        .removeClass('hidden')
+        .addClass('flex');
             } else {
                 removePhoto();
             }
@@ -1443,7 +1582,7 @@ $('#formAdjustment').on('submit', function (e) {
 ================================================================ */
 let atkData    = [];
 let currentPage = 1;
-const perPage   = 10;
+let perPage   = 10;
 
 function loadTableATK() {
     $.ajax({
@@ -1502,7 +1641,8 @@ function renderTableATK() {
     const filtered = getFilteredData();
     const total    = filtered.length;
     const start    = (currentPage - 1) * perPage;
-    const paged    = filtered.slice(start, start + perPage);
+    // Di dalam renderTableATK, bagian slice:
+const paged = perPage >= 99999 ? filtered.slice(start) : filtered.slice(start, start + perPage);
 
     $('#tableInfo').text(`${total} item`);
 
@@ -1517,12 +1657,13 @@ function renderTableATK() {
     $('#paginationATK').removeClass('hidden');
 
     const rows = paged.map((item, i) => {
-        const balance  = (item.initial_stock ?? 0) + (item.total_in ?? 0) - (item.total_out ?? 0);
-        const photoUrl = item.photo_url
-            ? `<img src="${item.photo_url}" class="w-8 h-8 rounded-lg object-cover mx-auto border border-gray-200">`
-            : `<div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mx-auto text-gray-300">
-                 <i data-feather="image" class="w-4 h-4"></i>
-               </div>`;
+    const balance  = (item.initial_stock ?? 0) + (item.total_in ?? 0) - (item.total_out ?? 0);
+
+    const photoUrl = item.photo
+        ? `<img src="/atk/${item.id}/${item.photo}" class="w-8 h-8 rounded-lg object-cover mx-auto border border-gray-200">`
+        : `<div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mx-auto text-gray-300">
+             <i data-feather="image" class="w-4 h-4"></i>
+           </div>`;
 
         return `
         <tr class="hover:bg-gray-50/60 transition-colors group">
@@ -1563,6 +1704,12 @@ function renderTableATK() {
 }
 
 function renderPagination(total) {
+    if (perPage >= 99999) {
+        $('#paginationInfo').text(`Menampilkan semua ${total} item`);
+        $('#paginationButtons').html('');
+        return;
+    }
+
     const totalPages = Math.ceil(total / perPage);
     const start      = (currentPage - 1) * perPage + 1;
     const end        = Math.min(currentPage * perPage, total);
@@ -1585,6 +1732,13 @@ function goPageATK(page) {
 }
 
 $('#searchATK, #filterStatus').on('input change', function () {
+    currentPage = 1;
+    renderTableATK();
+});
+
+$('#perPageATK').on('change', function () {
+    const val = parseInt($(this).val());
+    perPage   = isNaN(val) ? 99999 : val;
     currentPage = 1;
     renderTableATK();
 });
@@ -1793,17 +1947,48 @@ function exportMovementExcel() {
 /* ================================================================
    DATATABLES — ATK REQUEST
 ================================================================ */
-let summaryTable, detailTable;
+/* ================================================================
+   DATATABLES INIT
+================================================================ */
+let summaryTable;
 
 $(function () {
-    summaryTable = $('#atk-table').DataTable({
-        processing  : true,
-        serverSide  : true,
-        ajax: {
-            url  : '{{ route("facility.atk.data.summary") }}',
-            data : d => Object.assign(d, getFilters()),
+  flatpickr('#filter-date',    { mode: 'range', dateFormat: 'Y-m-d', maxDate: 'today', allowInput: true });
+  flatpickr('#kb-filter-date', { mode: 'range', dateFormat: 'Y-m-d', maxDate: 'today', allowInput: true });
+
+  ['#filter-status', '#filter-dept'].forEach(sel =>
+    $(sel).select2({ placeholder: '-- All --', allowClear: true, width: '100%' })
+  );
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  function makeExportButtons(filename) {
+    return [{
+      extend: 'collection',
+      text: '<i class="fas fa-download mr-2"></i>Export',
+      className: 'bg-blue-600 text-white px-4 py-1 text-sm rounded shadow-sm flex items-center',
+      buttons: [
+        { extend: 'copyHtml5',  text: '<i class="fas fa-copy mr-2"></i>Copy' },
+        { extend: 'excelHtml5', filename: filename + '_' + today, title: null,
+          text: '<i class="fas fa-file-excel mr-2 text-green-600"></i>Excel' },
+        { extend: 'pdfHtml5',   filename: filename + '_' + today, title: null,
+          orientation: 'landscape', pageSize: 'A4',
+          text: '<i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF',
+          customize: doc => { doc.styles.tableHeader.fontSize = 8; doc.defaultStyle.fontSize = 7; }
         },
-        columns: [
+        { extend: 'print', title: filename + '_' + today,
+          text: '<i class="fas fa-print mr-2"></i>Print',
+          customize: win => $(win.document.body).css('font-size', '10px')
+        }
+      ]
+    }];
+  }
+
+  summaryTable = $('#atk-table').DataTable({
+    processing: true, serverSide: true, autoWidth: false, scrollX: true,
+    drawCallback: () => feather.replace(),
+    ajax: { url: '{{ route("facility.atk.data.summary") }}', data: d => Object.assign(d, getFilters()) },
+    columns: [
             { data: 'action',         orderable: false, searchable: false, width: '80px' },
             { data: 'request_number'  },
             { data: 'department'      },
@@ -1814,44 +1999,20 @@ $(function () {
             { data: 'approved_at'     },
             { data: 'rejected_by'     },
             { data: 'rejected_at'     },
-        ],
-        order       : [[5, 'desc']],
-        pageLength  : 25,
-        dom         : 'rtip',   // tanpa search box bawaan DT (kita pakai filter form sendiri)
-        language    : { processing: '<span class="text-xs text-gray-400">Memuat data...</span>' },
-    });
+    ],
+    order: [[9, 'desc']],
+    buttons: makeExportButtons('Request_ATK_Summary'),
+    dom: '<"flex justify-between items-center mb-2"l<"flex"fB>>rt<"flex justify-between items-center mt-2"ip>',
+  });
 
-    detailTable = $('#atk-detail-table').DataTable({
-        processing : true,
-        serverSide : true,
-        ajax: {
-            url  : '{{ route("facility.atk.data.detail") }}',
-            data : d => Object.assign(d, getFilters()),
-        },
-        columns: [
-            { data: 'created_at'      },
-            { data: 'status'          },
-            { data: 'department'      },
-            { data: 'atk_name'        },
-            { data: 'qty'             },
-            { data: 'uom'             },
-            { data: 'created_by'      },
-            { data: 'approved_by'     },
-            { data: 'approved_at'     },
-            { data: 'rejected_by'     },
-            { data: 'rejected_at'     },
-        ],
-        order      : [[0, 'desc']],
-        pageLength : 25,
-        dom        : 'rtip',
-        language   : { processing: '<span class="text-xs text-gray-400">Memuat data...</span>' },
-    });
+  $('#filter-form').on('submit', function (e) {
+    e.preventDefault();
+    if (currentView === 'summary') summaryTable.draw();
+    else detailTable.draw();
+  });
 
-    // Init setelah feather render
-    summaryTable.on('draw', () => feather.replace());
-    detailTable.on('draw',  () => feather.replace());
+  feather.replace();
 });
-
 // Kumpulkan nilai filter dari form
 function getFilters() {
     return {
@@ -1895,7 +2056,7 @@ function cancelRequest(id, number) {
         if (!result.isConfirmed) return;
         $.ajax({
             url    : `/facility/atk/request/${id}/cancel`,
-            method : 'POST',
+            method : 'DELETE',
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             success: res => {
                 showToast('success', res.message ?? 'Request berhasil dibatalkan.');
@@ -1903,6 +2064,68 @@ function cancelRequest(id, number) {
                 detailTable.ajax.reload(null, false);
             },
             error  : xhr => Swal.fire({ icon: 'error', title: 'Gagal!', text: xhr.responseJSON?.message ?? 'Terjadi kesalahan.' }),
+        });
+    });
+}
+
+function approveRequest(id, number) {
+    Swal.fire({
+        title: 'Approve Request?',
+        html: `Request <strong>${number}</strong> akan disetujui.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonText: 'Batal',
+        confirmButtonText: 'Ya, Approve',
+    }).then(result => {
+        if (!result.isConfirmed) return;
+        $.ajax({
+            url    : `/facility/atk/request/${id}/approve`,
+            method : 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: res => {
+                showToast('success', res.message ?? 'Request berhasil disetujui.');
+                summaryTable.ajax.reload(null, false);
+                detailTable.ajax.reload(null, false);
+            },
+            error: xhr => Swal.fire({ icon: 'error', title: 'Gagal!', text: xhr.responseJSON?.message ?? 'Terjadi kesalahan.' }),
+        });
+    });
+}
+
+function rejectRequest(id, number) {
+    Swal.fire({
+        title: 'Reject Request?',
+        html: `Request <strong>${number}</strong> akan ditolak.`,
+        icon: 'warning',
+        input: 'textarea',
+        inputLabel: 'Alasan penolakan',
+        inputPlaceholder: 'Tulis alasan...',
+        inputAttributes: { rows: 3 },
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonText: 'Batal',
+        confirmButtonText: 'Ya, Reject',
+        preConfirm: (reason) => {
+            if (!reason?.trim()) {
+                Swal.showValidationMessage('Alasan penolakan wajib diisi.');
+                return false;
+            }
+            return reason;
+        }
+    }).then(result => {
+        if (!result.isConfirmed) return;
+        $.ajax({
+            url    : `/facility/atk/request/${id}/reject`,
+            method : 'POST',
+            data   : { reason: result.value },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: res => {
+                showToast('success', res.message ?? 'Request berhasil ditolak.');
+                summaryTable.ajax.reload(null, false);
+                detailTable.ajax.reload(null, false);
+            },
+            error: xhr => Swal.fire({ icon: 'error', title: 'Gagal!', text: xhr.responseJSON?.message ?? 'Terjadi kesalahan.' }),
         });
     });
 }
@@ -1965,6 +2188,276 @@ function filterByStatus(status) {
     // Reset ke page 1 & render
     currentPage = 1;
     renderTableATK();
+}
+
+function exportATKExcel() {
+    const filtered = getFilteredData();
+    const start    = (currentPage - 1) * perPage;
+    const paged    = perPage >= 99999 ? filtered : filtered.slice(start, start + perPage);
+
+    if (paged.length === 0) {
+        Swal.fire({ icon: 'info', title: 'Tidak ada data', text: 'Tidak ada data untuk diekspor.' });
+        return;
+    }
+
+    // Build rows
+    const wsData = [
+        ['No', 'Nama ATK', 'UoM', 'Min Stock', 'Status', 'Stock Awal', 'Total In', 'Total Out', 'Actual Stock']
+    ];
+
+    paged.forEach((item, i) => {
+        const balance = (item.initial_stock ?? 0) + (item.total_in ?? 0) - (item.total_out ?? 0);
+        wsData.push([
+            i + 1,
+            item.name,
+            item.uom ?? '',
+            item.min_stock ?? 0,
+            getStatusKey(item).toUpperCase(),
+            item.initial_stock ?? 0,
+            item.total_in ?? 0,
+            item.total_out ?? 0,
+            balance,
+        ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Column widths
+    ws['!cols'] = [
+        { wch: 5  },  // No
+        { wch: 30 },  // Nama ATK
+        { wch: 8  },  // UoM
+        { wch: 10 },  // Min Stock
+        { wch: 10 },  // Status
+        { wch: 12 },  // Stock Awal
+        { wch: 10 },  // Total In
+        { wch: 10 },  // Total Out
+        { wch: 12 },  // Actual Stock
+    ];
+
+    const wb   = XLSX.utils.book_new();
+    const now  = new Date().toISOString().slice(0, 10);
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Stock ATK');
+    XLSX.writeFile(wb, `ATK_Stock_${now}.xlsx`);
+
+    showToast('success', `${paged.length} baris berhasil diekspor.`);
+}
+
+/* ================================================================
+   ANALYTICS
+================================================================ */
+let chartMonthly    = null;
+let chartDepartment = null;
+
+function loadAnalytics() {
+    $.ajax({
+        url: '{{ route("facility.atk.analytics") }}',
+        method: 'GET',
+        success: function (res) {
+            renderAnalyticsCards(res);
+            renderMonthlyChart(res.monthly, res.year);
+            renderTopAtk(res.top_atk);
+            renderDepartmentChart(res.by_department);
+        },
+        error: function () {
+            showToast('error', 'Gagal memuat data analytics.');
+        }
+    });
+}
+
+function renderAnalyticsCards(res) {
+    const monthly = res.monthly;
+    let approved = 0, rejected = 0, submitted = 0;
+    Object.values(monthly).forEach(m => {
+        approved  += m.approved;
+        rejected  += m.rejected;
+        submitted += m.submitted;
+    });
+    const total = res.by_department.reduce((s, d) => s + d.total, 0);
+
+    $('#anTotalRequest').text(total);
+    $('#anTotalApproved').text(approved);
+    $('#anTotalRejected').text(rejected);
+    $('#anTotalPending').text(submitted);
+    $('#anYearLabel').text('Januari – Desember ' + res.year);
+}
+
+function renderMonthlyChart(monthly, year) {
+    const labels   = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    const approved  = Object.values(monthly).map(m => m.approved);
+    const submitted = Object.values(monthly).map(m => m.submitted);
+    const rejected  = Object.values(monthly).map(m => m.rejected);
+
+    if (chartMonthly) chartMonthly.destroy();
+
+    const ctx = document.getElementById('chartMonthly').getContext('2d');
+    chartMonthly = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label     : 'Approved',
+                    data      : approved,
+                    backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                    borderRadius: 4,
+                    borderSkipped: false,
+                },
+                {
+                    label     : 'Submitted',
+                    data      : submitted,
+                    backgroundColor: 'rgba(96, 165, 250, 0.75)',
+                    borderRadius: 4,
+                    borderSkipped: false,
+                },
+                {
+                    label     : 'Rejected',
+                    data      : rejected,
+                    backgroundColor: 'rgba(248, 113, 113, 0.75)',
+                    borderRadius: 4,
+                    borderSkipped: false,
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: ctx => labels[ctx[0].dataIndex] + ' ' + year,
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    grid: { display: false },
+                    ticks: { font: { size: 11 }, color: '#9ca3af' },
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        font: { size: 11 }, color: '#9ca3af',
+                        stepSize: 1,
+                        callback: val => Number.isInteger(val) ? val : null,
+                    },
+                    grid: { color: '#f3f4f6' },
+                }
+            }
+        }
+    });
+}
+
+function renderTopAtk(topAtk) {
+    if (!topAtk || topAtk.length === 0) {
+        $('#topAtkList').html(`
+            <div class="px-5 py-10 text-center">
+                <i data-feather="inbox" class="w-8 h-8 text-gray-200 mx-auto mb-2"></i>
+                <p class="text-xs text-gray-400">Belum ada data</p>
+            </div>
+        `);
+        feather.replace();
+        return;
+    }
+
+    const maxReq = Math.max(...topAtk.map(a => a.total_request));
+
+    const html = topAtk.map((atk, i) => {
+        const pct  = maxReq > 0 ? Math.round((atk.total_request / maxReq) * 100) : 0;
+       const photo = atk.photo
+    ? `<img src="/atk/${atk.id}/${encodeURIComponent(atk.photo)}" class="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0">`
+    : `<div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-300">
+         <i data-feather="package" class="w-4 h-4"></i>
+       </div>`;
+
+        const rankColor = ['text-amber-500','text-gray-400','text-orange-400','text-gray-300','text-gray-300'][i];
+
+        return `
+        <div class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/60 transition">
+          <span class="text-xs font-semibold ${rankColor} w-4 text-center flex-shrink-0">${i + 1}</span>
+          ${photo}
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-medium text-gray-800 truncate">${atk.name}</p>
+            <div class="mt-1 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-1 bg-blue-400 rounded-full transition-all" style="width:${pct}%"></div>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xs font-semibold text-gray-700">${atk.total_request}x</p>
+            <p class="text-[10px] text-gray-400">${atk.total_qty} ${atk.uom}</p>
+          </div>
+        </div>`;
+    }).join('');
+
+    $('#topAtkList').html(html);
+    feather.replace();
+}
+
+function renderDepartmentChart(byDept) {
+    if (!byDept || byDept.length === 0) return;
+
+    const labels = byDept.map(d => d.department);
+    const data   = byDept.map(d => d.total);
+
+    const palette = [
+        'rgba(59, 130, 246, 0.7)',
+        'rgba(16, 185, 129, 0.7)',
+        'rgba(245, 158, 11, 0.7)',
+        'rgba(239, 68, 68, 0.7)',
+        'rgba(139, 92, 246, 0.7)',
+        'rgba(236, 72, 153, 0.7)',
+        'rgba(20, 184, 166, 0.7)',
+        'rgba(249, 115, 22, 0.7)',
+    ];
+    const colors = data.map((_, i) => palette[i % palette.length]);
+
+    if (chartDepartment) chartDepartment.destroy();
+
+    const ctx = document.getElementById('chartDepartment').getContext('2d');
+    chartDepartment = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label           : 'Jumlah Request',
+                data,
+                backgroundColor : colors,
+                borderRadius    : 6,
+                borderSkipped   : false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.parsed.y} request`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid : { display: false },
+                    ticks: { font: { size: 11 }, color: '#9ca3af' },
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: { size: 11 }, color: '#9ca3af',
+                        stepSize: 1,
+                        callback: val => Number.isInteger(val) ? val : null,
+                    },
+                    grid: { color: '#f3f4f6' },
+                }
+            }
+        }
+    });
 }
 
 // Populate atkOptions saat data loaded (tambahkan di dalam loadTableATK success)

@@ -293,9 +293,18 @@ Route::post('/atk/request/store',         [ATKController::class, 'request'])->na
      Route::get('/atk/{id}/movements',        [ATKController::class, 'movements'])->name('atk.movements');
 Route::get('/atk/{id}/movements/export', [ATKController::class, 'movementsExport'])->name('atk.movements.export');
      Route::get('/atk/{id}/edit',    [ATKController::class, 'edit'])->name('atk.edit');
+     Route::get('/atk/{id}/detail',    [ATKController::class, 'show'])->name('atk.detail');
+     Route::get('/atk/request/{id}/edit',    [ATKController::class, 'editRequest'])->name('atk.request.edit');
 Route::post('/atk/{id}',        [ATKController::class, 'update'])->name('atk.update');   // POST + _method spoofing
+Route::put('/atk/request/{id}',        [ATKController::class, 'updateRequest'])->name('atk.request.update');  
 Route::delete('/atk/{id}',      [ATKController::class, 'destroy'])->name('atk.destroy');
-
+Route::delete('/atk/request/{id}/cancel', [ATKController::class, 'cancel'])
+    ->name('atk.cancel');
+    Route::post('/atk/request/{id}/approve', [ATKController::class, 'approve'])
+    ->name('atk.approve');
+Route::post('/atk/request/{id}/reject', [ATKController::class, 'reject'])
+    ->name('atk.reject');
+Route::get('/atk/analytics', [ATKController::class, 'analyticsData'])->name('atk.analytics');
 });
 
 Route::prefix('mr')->name('mr.')->group(function () {
