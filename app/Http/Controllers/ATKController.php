@@ -430,7 +430,7 @@ if ($request->hasFile('photo')) {
             'initial_stock' => $validated['initial_stock'] ?? 0,
             'min_stock'     => $validated['min_stock'] ?? 0,
             'uom'           => $validated['uom'] ?? null,
-            'photo'         => $photoPath,
+            'photo'         => $photoName,
             'created_by'     => Auth::id(),
         ]);
 
