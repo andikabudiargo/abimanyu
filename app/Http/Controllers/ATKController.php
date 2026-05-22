@@ -413,7 +413,7 @@ if ($request->hasFile('photo')) {
     $photoName = $file->getClientOriginalName();
 
     // Path tujuan (hardcode sesuai request)
-    $destinationPath = '/home/abimany3/public_html/atk/' . $atk_request->id;
+    $destinationPath = '/home/abimany3/public_html/atk/' . $request->id;
 
     // Pastikan folder ada
     if (!File::exists($destinationPath)) {
