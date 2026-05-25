@@ -122,6 +122,7 @@
 @endif
                     <th class="px-4 py-2 text-center">Packing</th>
                     <th class="px-4 py-2 text-center">UoM</th>
+                     <th class="px-4 py-2 text-center">Kondisi</th>
                     <th class="px-4 py-2 text-center">Status</th>
                     <th class="px-4 py-2 text-center">STO Number</th>
                    <th class="px-4 py-2 text-center">Verifikator 1</th>
