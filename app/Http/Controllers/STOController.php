@@ -578,24 +578,23 @@ public function datatables(Request $request)
     $userId = Auth::id();
     $superUsers = [53, 2]; // <-- tambahin di sini kalau nambah lagi
     $isSuperUser = in_array($userId, $superUsers);
- 
-    $columns = [
-        0  => null,                    // action
-        1  => 'sto_items.location',
-        2  => 'stos.area',
-        3  => 'stos.shelves',
-        4  => 'sto_items.article_code',
-        5  => 'articles.description',
-        6  => 'sto_items.qty_display', // kolom virtual (alias)
-        7  => 'articles.min_package',
-        8  => 'articles.unit',
-        9  => 'status',                // alias dari select
-        10  => 'stos.sto_number',
-        11 => 'u1.name',    
-        11 => 'u2.name',           // pakai alias u1
-        12 => 'stos.created_at',
-        13 => 'stos.note',
-    ];
+ $columns = [
+    0  => null,
+    1  => 'sto_items.location',
+    2  => 'stos.area',
+    3  => 'stos.shelves',
+    4  => 'sto_items.article_code',
+    5  => 'articles.description',
+    6  => 'sto_items.qty_display',
+    7  => 'articles.min_package',
+    8  => 'articles.unit',
+    9  => 'sto_items.kondisi',   // ✅ BARU — geser status ke bawah
+    10 => 'status',
+    11 => 'stos.sto_number',
+    12 => 'u1.name',
+    13 => 'stos.created_at',
+    14 => 'stos.note',
+];
  
     $warehouse = $this->userWarehouse();
     $limit     = $request->length;
@@ -616,7 +615,8 @@ public function datatables(Request $request)
             'sto_items.sto_id',
             'sto_items.location',
             'sto_items.article_code',
- 
+            // Tambahkan di bagian ->select(...):
+'sto_items.kondisi',
             // Nama part: OTHER pakai other_name, sisanya pakai description artikel
             DB::raw("
                 CASE
@@ -764,6 +764,11 @@ DB::raw("
         $query->where('stos.sto_number', 'like', '%' . $request->sto_number . '%');
     }
 
+    // Filter kondisi (Utuh / Tidak Utuh)
+if ($request->filled('kondisi')) {
+    $query->where('sto_items.kondisi', $request->kondisi);
+}
+
     // Filter status (computed, bukan dari DB)
 if ($request->filled('status')) {
     $status = $request->status;
@@ -884,6 +889,15 @@ if ($isSuperUser) {
                 default        => null,
             };
         }
+
+        // Ganti 'kondisi' => $row->kondisi ?? '—' dengan badge:
+$kondisiBadge = match($row->kondisi ?? '') {
+    'Utuh'       => '<span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded font-semibold">Utuh</span>',
+    'Tidak Utuh' => '<span class="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded font-semibold">Tidak Utuh</span>',
+    default      => '<span class="text-gray-400">—</span>',
+};
+
+
  
         $editButton = '
             <a href="' . $editUrl . '" class="block px-4 py-2 hover:bg-gray-100">
@@ -928,6 +942,8 @@ if ($isSuperUser) {
 ] : []),
             'min_package'  => $row->min_package,
             'unit'         => $row->unit,
+            // Setelah 'unit' => $row->unit,:
+'kondisi' => $kondisiBadge,
             'status'       => $statusBadge,
             'sto_number'   => $row->sto_number,
             'created_by'   => $row->created_by,

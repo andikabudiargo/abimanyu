@@ -83,6 +83,14 @@
   </select>
 </div>
 
+<!-- Filter Kondisi (Utuh / Tidak Utuh) — khusus Chemical -->
+<select id="filter-kondisi"
+    class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-blue-500 focus:border-blue-500">
+    <option value="">— Semua Kondisi —</option>
+    <option value="Utuh">Utuh</option>
+    <option value="Tidak Utuh">Tidak Utuh</option>
+</select>
+
         </div>
 
     <div class="flex justify-start gap-2 mt-6">
@@ -344,6 +352,7 @@ const table = $('#sto-table').DataTable({
             d.sto_number = $('#filter-sto_number').val();
             d.sto_month  = $('#filter-sto-periode').val();
             d.status     = $('#filter-status').val();
+            d.kondisi    = $('#filter-kondisi').val(); // ✅ BARU
         }
     },
 
@@ -357,6 +366,7 @@ const table = $('#sto-table').DataTable({
         ...qtyColumns,           // ← qty ATAU qty_1+qty_2, tidak ada yg hidden
         { data: 'min_package',   className: 'text-center' },
         { data: 'unit',          className: 'text-center' },
+          { data: 'kondisi',       className: 'text-center' }, // ✅ BARU
         { data: 'status',        className: 'text-center' },
         { data: 'sto_number',    className: 'text-center' },
         { data: 'created_by', className: 'text-center' },
@@ -444,7 +454,7 @@ order: [[ isSuperUser ? 14 : 12, 'desc']],
          const headers = [
     "Action", "Location", "Area", "Rak", "Part Code", "Part Name",
     ...(isSuperUser ? ["Qty 1", "Qty 2"] : ["Qty"]),
-    "Packing", "UoM", "Status", "STO Number",
+    "Packing", "UoM", "Kondisi",  "Status", "STO Number",
     "Verifikator 1",
     ...(isSuperUser ? ["Verifikator 2"] : []),
     "Created At", "Note"
