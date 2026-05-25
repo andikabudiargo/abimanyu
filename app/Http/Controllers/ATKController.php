@@ -379,7 +379,9 @@ private static function dateCell(?string $datetime): string
                 // 'total_out_adjustment' => $outAdj,
                 // 'total_out_request'    => $outReq,
 
-                'photo_url'     => $item->photo ? Storage::url($item->photo) : null,
+                'photo' => $item->photo 
+    ? asset('atk/' . $item->id . '/' . $item->photo) 
+    : null,
 
                 'balance' => (int) $item->initial_stock 
                            + $totalIn 
@@ -460,7 +462,9 @@ if ($request->hasFile('photo')) {
             'uom'           => $atk->uom,
             'min_stock'     => $atk->min_stock,
             'initial_stock' => $atk->initial_stock,
-            'photo_url'     => $atk->photo ? Storage::url($atk->photo) : null,
+             'photo' => $item->photo 
+    ? asset('atk/' . $item->id . '/' . $item->photo) 
+    : null,
         ]
     ]);
 }
@@ -506,7 +510,9 @@ public function update(Request $request, $id)
             'uom'           => $atk->uom,
             'min_stock'     => $atk->min_stock,
             'initial_stock' => $atk->initial_stock,
-            'photo_url'     => $atk->photo ? Storage::url($atk->photo) : null,
+             'photo' => $item->photo 
+    ? asset('atk/' . $item->id . '/' . $item->photo) 
+    : null,
         ]
     ]);
 }
@@ -895,21 +901,26 @@ public function analyticsData()
             'total'      => $r->total,
         ]);
 
-    // ── 2. Top 5 ATK yang sering direquest ───────────────
-    $topAtk = AtkRequestItem::with('atk')
-        ->select('atk_id', DB::raw('SUM(qty) as total_qty'), DB::raw('COUNT(*) as total_request'))
-        ->groupBy('atk_id')
-        ->orderByDesc('total_request')
-        ->limit(5)
-        ->get()
-        ->map(fn($r) => [
-            'name'          => $r->atk?->name ?? '—',
-            'uom'           => $r->atk?->uom ?? '—',
-            'photo_url'     => $r->atk?->photo ? Storage::url($r->atk->photo) : null,
-            'total_request' => $r->total_request,
-            'total_qty'     => $r->total_qty,
-        ]);
-
+   $topAtk = AtkRequestItem::with('atk')
+    ->select(
+        'atk_id', 
+        DB::raw('SUM(qty) as total_qty'), 
+        DB::raw('COUNT(*) as total_request')
+    )
+    ->groupBy('atk_id')
+    ->orderByDesc('total_request')
+    ->limit(5)
+    ->get()
+    ->map(fn($r) => [
+        'id'            => $r->atk?->id,
+        'name'          => $r->atk?->name ?? '—',
+        'uom'           => $r->atk?->uom ?? '—',
+        'photo'     => $r->atk?->photo 
+            ? asset('atk/' . $r->atk->id . '/' . $r->atk->photo) 
+            : null,
+        'total_request' => $r->total_request,
+        'total_qty'     => $r->total_qty,
+    ]);
     // ── 3. Request bulanan per status (current year) ─────
     $monthly = AtkRequest::select(
             DB::raw('MONTH(created_at) as month'),
