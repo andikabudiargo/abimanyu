@@ -89,7 +89,7 @@
   </label>
 <!-- Filter Kondisi (Utuh / Tidak Utuh) — khusus Chemical -->
 <select id="filter-kondisi"
-    class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-blue-500 focus:border-blue-500">
+    class="w-full px-3 py-2 border border-gray-300 rounded-md">
     <option value="">— Semua Kondisi —</option>
     <option value="Utuh">Utuh</option>
     <option value="Tidak Utuh">Tidak Utuh</option>
