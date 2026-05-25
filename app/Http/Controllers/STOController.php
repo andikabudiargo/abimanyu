@@ -2163,19 +2163,46 @@ ORDER BY sort_group ASC, rm_code, fg_code
 public function getReferenceAreas(Request $request)
 {
     $warehouse = $request->input('warehouse');
- 
+
     if (!$warehouse) {
         return response()->json(['areas' => []]);
     }
- 
-    $areas = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
+
+    $masters = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
         ->where('is_active', 1)
-        ->select('id', 'area')
+        ->select('id', 'area', 'shelves')
         ->orderBy('area')
+        ->get();
+
+    // ✅ Ambil semua shelves yang sudah all_saved di warehouse ini bulan ini
+    $savedShelvesInWarehouse = \DB::table('sto_items')
+        ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+        ->where('stos.warehouse', $warehouse)
+        ->whereYear('stos.created_at', now()->year)
+        ->whereMonth('stos.created_at', now()->month)
+        ->select('stos.area', 'stos.shelves')
+        ->distinct()
         ->get()
-        ->unique('area')          // jika ada duplikat area, ambil 1 saja
+        ->groupBy('area')
+        ->map(fn($rows) => $rows->pluck('shelves')->toArray());
+
+    // Group per area, cek apakah SEMUA shelf di area tersebut sudah tersimpan
+    $areas = $masters
+        ->groupBy('area')
+        ->map(function ($shelvesInArea, $area) use ($savedShelvesInWarehouse) {
+            $allShelvesInArea  = $shelvesInArea->pluck('shelves')->toArray();
+            $savedShelves      = $savedShelvesInWarehouse->get($area, []);
+            // all_saved = semua shelf di referensi sudah ada di sto_items
+            $allSaved = count($allShelvesInArea) > 0
+                && count(array_diff($allShelvesInArea, $savedShelves)) === 0;
+
+            return [
+                'area'      => $area,
+                'all_saved' => $allSaved,
+            ];
+        })
         ->values();
- 
+
     return response()->json(['areas' => $areas]);
 }
 
@@ -2189,7 +2216,6 @@ public function getReferenceItemsByArea(Request $request)
         return response()->json(['items' => [], 'shelves' => []]);
     }
 
-    // Semua shelf di area ini
     $masters = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
         ->where('area', $area)
         ->where('is_active', 1)
@@ -2197,27 +2223,44 @@ public function getReferenceItemsByArea(Request $request)
         ->orderBy('shelves')
         ->get();
 
-    // Cek item yang sudah tersimpan hari ini
-    $savedItems = \DB::table('sto_items')
+    // ✅ Kumpulkan semua article_code yang sudah tersimpan di SELURUH AREA ini
+    //    (bukan per shelf, tapi per area — agar item yang ada di 2 shelf
+    //    tidak muncul lagi jika salah satunya sudah tersimpan)
+    $savedCodesInArea = \DB::table('sto_items')
         ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
         ->where('stos.warehouse', $warehouse)
-        ->whereDate('stos.created_at', now()->toDateString())
-        ->select('sto_items.article_code', 'stos.area', 'stos.shelves')
+        ->where('stos.area', $area)                    // ← filter per area
+        ->whereYear('stos.created_at', now()->year)
+        ->whereMonth('stos.created_at', now()->month)
+        ->pluck('sto_items.article_code')
+        ->unique()
+        ->toArray();
+
+    // Tetap pertahankan per-shelf untuk keperluan all_saved & shelf view
+    $savedItemsByShelf = \DB::table('sto_items')
+        ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+        ->where('stos.warehouse', $warehouse)
+        ->where('stos.area', $area)
+        ->whereYear('stos.created_at', now()->year)
+        ->whereMonth('stos.created_at', now()->month)
+        ->select('sto_items.article_code', 'stos.shelves')
         ->get()
-        ->groupBy(fn($r) => $r->area . '|' . $r->shelves);
+        ->groupBy('shelves');
 
     $shelves = [];
     foreach ($masters as $master) {
-        $key        = $area . '|' . $master->shelves;
-        $savedCodes = collect($savedItems->get($key, []))->pluck('article_code')->toArray();
+        $savedCodesInShelf = collect($savedItemsByShelf->get($master->shelves, []))
+            ->pluck('article_code')
+            ->toArray();
 
-        $items = $master->items->map(function ($item) use ($savedCodes) {
+        $items = $master->items->map(function ($item) use ($savedCodesInArea) {
             return [
-                'article_code' => $item->article_code,
-                'description'  => optional($item->article)->description,
-                'unit'         => optional($item->article)->unit,
-                'min_package'  => optional($item->article)->min_package,
-                'already_saved'=> in_array($item->article_code, $savedCodes),
+                'article_code'  => $item->article_code,
+                'description'   => optional($item->article)->description,
+                'unit'          => optional($item->article)->unit,
+                'min_package'   => optional($item->article)->min_package,
+                // ✅ already_saved berdasarkan seluruh area, bukan hanya shelf ini
+                'already_saved' => in_array($item->article_code, $savedCodesInArea),
             ];
         });
 
@@ -2231,7 +2274,6 @@ public function getReferenceItemsByArea(Request $request)
         ];
     }
 
-    // Semua item unik dari area (gabungan semua shelf)
     $allItems = collect($shelves)
         ->flatMap(fn($s) => $s['items'])
         ->unique('article_code')

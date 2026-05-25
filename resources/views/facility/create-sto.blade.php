@@ -58,8 +58,8 @@ const AREA_URL           = '/facility/sto/reference/areas';
 const ITEMS_URL          = '/facility/sto/reference/items';
 const ARTICLE_SELECT_URL = "{{ route('facility.article.select') }}";
 
-let desktopRowCount = 7;
-let mobileRowCount  = 8;
+let desktopRowCount = IS_CHEM_CONS ? 3 : 7;
+let mobileRowCount  = IS_CHEM_CONS ? 3 : 7;
 
 // Cache area → shelves+items, hindari re-fetch
 const areaCache = {};
@@ -237,7 +237,7 @@ function buildMobileRowHtml(idx, opts = {}) {
 // ══════════════════════════════════════════════════════════
 // RESET ROWS
 // ══════════════════════════════════════════════════════════
-function resetDesktopRows(n = 7) {
+function resetDesktopRows(n = IS_CHEM_CONS ? 3 : 7) {
     const tbody = document.getElementById('article-table');
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -247,7 +247,7 @@ function resetDesktopRows(n = 7) {
     if (window.feather) feather.replace();
 }
 
-function resetMobileRows(n = 8) {
+function resetMobileRows(n = IS_CHEM_CONS ? 3 : 7) {
     const list = document.getElementById('mobile-article-list');
     if (!list) return;
     list.innerHTML = '';
@@ -268,7 +268,15 @@ function loadAreas(warehouse, selectEl) {
             (data.areas || []).forEach(a => {
                 const opt       = document.createElement('option');
                 opt.value       = a.area;
-                opt.textContent = a.area;
+
+                // ✅ Jika semua shelf di area ini sudah tersimpan → disable + gembok
+                if (a.all_saved) {
+                    opt.textContent = `🔒 ${a.area} — Already Closed`;
+                    opt.disabled    = true;
+                } else {
+                    opt.textContent = a.area;
+                }
+
                 selectEl.appendChild(opt);
             });
         })
@@ -325,6 +333,51 @@ async function loadShelves(warehouse, area, shelfEl) {
     }
 }
 
+// Fungsi baru — populate dari semua shelf di area
+async function populateAllItemsFromArea(warehouse, area, mode = 'desktop') {
+    const cacheKey = `${warehouse}|${area}`;
+
+    if (!areaCache[cacheKey]) {
+        const res = await fetch(
+            `/facility/sto/reference/items-by-area?warehouse=${encodeURIComponent(warehouse)}&area=${encodeURIComponent(area)}`
+        );
+        areaCache[cacheKey] = await res.json();
+    }
+
+    const shelves   = areaCache[cacheKey].shelves || [];
+    const allItems  = [];
+    const seenCodes = new Set();
+
+    // ✅ Kumpulkan semua article_code yang already_saved di area ini
+    //    (dari shelf manapun)
+    const savedCodes = new Set();
+    shelves.forEach(shelf => {
+        (shelf.items || []).forEach(item => {
+            if (item.already_saved) savedCodes.add(item.article_code);
+        });
+    });
+
+    shelves.forEach(shelf => {
+        (shelf.items || []).forEach(item => {
+            // ✅ Skip jika sudah tersimpan di shelf manapun dalam area ini
+            if (savedCodes.has(item.article_code)) return;
+            if (!seenCodes.has(item.article_code)) {
+                seenCodes.add(item.article_code);
+                allItems.push(item);
+            }
+        });
+    });
+
+    if (!allItems.length) {
+        // Semua item sudah tersimpan — reset ke baris kosong
+        if (mode === 'desktop') resetDesktopRows();
+        else resetMobileRows();
+        return;
+    }
+
+    populateFromItems(allItems, area, '— semua address —', mode);
+}
+
 // ══════════════════════════════════════════════════════════
 // POPULATE FROM ITEMS (dari cache)
 // ══════════════════════════════════════════════════════════
@@ -337,7 +390,8 @@ function populateFromItems(items, area, shelf, mode = 'desktop') {
         const tbody = document.getElementById('article-table');
         if (!tbody) return;
         tbody.innerHTML = '';
-        const total = Math.max(7, items.length);
+        const defaultMin = IS_CHEM_CONS ? 3 : 7;
+const total = Math.max(defaultMin, items.length);
         items.forEach((item, i) => {
             tbody.insertAdjacentHTML('beforeend', buildDesktopRowHtml(i, {
                 articleCode: item.article_code || '',
@@ -403,7 +457,8 @@ function populateFromReference(masterId, area, shelf, mode = 'desktop') {
                 const tbody = document.getElementById('article-table');
                 if (!tbody) return;
                 tbody.innerHTML = '';
-                const total = Math.max(7, items.length);
+                const defaultMobile = IS_CHEM_CONS ? 3 : 8;
+resetMobileRows(Math.max(defaultMobile, items.length));
                 items.forEach((item, i) => {
                     tbody.insertAdjacentHTML('beforeend', buildDesktopRowHtml(i, {
                         articleCode: item.article_code || '',
@@ -569,42 +624,62 @@ $(document).ready(function () {
         loadAreas(WAREHOUSE_VAL, document.getElementById('area_mobile'));
     }
 
-    // ── AREA CHANGE ──────────────────────────────────────
-    $(document).on('change', '#area_desktop', function () {
-        const area    = this.value;
-        const wh      = this.dataset.warehouse || WAREHOUSE_VAL;
-        const shelfEl = document.getElementById('shelf_desktop');
-        shelfEl.innerHTML = '<option value="">— Pilih Address —</option>';
-        shelfEl.disabled  = true;
-        document.getElementById('sto_number_desktop').value    = '';
-        document.getElementById('ref_master_id_desktop').value = '';
-        const banner = document.getElementById('refBanner');
-        if (banner) banner.classList.add('hidden');
-        const btnC = document.getElementById('btnClearRef');
-        if (btnC) btnC.style.display = 'none';
-        resetDesktopRows(7);
-        if (area) loadShelves(wh, area, shelfEl);
-    });
+   // ── AREA CHANGE ──────────────────────────────────────
+$(document).on('change', '#area_desktop', async function () {
+    const area    = this.value;
+    const wh      = this.dataset.warehouse || WAREHOUSE_VAL;
+    const shelfEl = document.getElementById('shelf_desktop');
 
-    $(document).on('change', '#area_mobile', function () {
-        const area    = this.value;
-        const wh      = this.dataset.warehouse || WAREHOUSE_VAL;
-        const shelfEl = document.getElementById('shelf_mobile');
-        if (!shelfEl) return;
-        shelfEl.innerHTML = '<option value="">— Pilih Address —</option>';
-        shelfEl.disabled  = true;
-        document.getElementById('area_value_mobile').value  = area;
-        document.getElementById('shelf_value_mobile').value = '';
-        document.getElementById('sto_number_mobile').value  = '';
-        const refHid = document.getElementById('ref_master_id_mobile');
-        if (refHid) refHid.value = '';
-        const banner = document.getElementById('refBannerMobile');
-        if (banner) banner.classList.add('hidden');
-        const btnC = document.getElementById('btnClearRefMobile');
-        if (btnC) btnC.style.display = 'none';
-        resetMobileRows(8);
-        if (area) loadShelves(wh, area, shelfEl);
-    });
+    shelfEl.innerHTML = '<option value="">— Pilih Address —</option>';
+    shelfEl.disabled  = true;
+    document.getElementById('sto_number_desktop').value    = '';
+    document.getElementById('ref_master_id_desktop').value = '';
+
+    const banner = document.getElementById('refBanner');
+    if (banner) banner.classList.add('hidden');
+    const btnC = document.getElementById('btnClearRef');
+    if (btnC) btnC.style.display = 'none';
+
+    resetDesktopRows(); // ← otomatis IS_CHEM_CONS ? 3 : 7
+
+    if (!area) return;
+
+    // ✅ await loadShelves dulu — cache terisi di sini
+    await loadShelves(wh, area, shelfEl);
+
+    // ✅ populateAllItemsFromArea pakai cache yang sudah ada, tidak double-fetch
+    if (IS_CHEM_CONS) populateAllItemsFromArea(wh, area, 'desktop');
+});
+
+$(document).on('change', '#area_mobile', async function () {
+    const area    = this.value;
+    const wh      = this.dataset.warehouse || WAREHOUSE_VAL;
+    const shelfEl = document.getElementById('shelf_mobile');
+    if (!shelfEl) return;
+
+    shelfEl.innerHTML = '<option value="">— Pilih Address —</option>';
+    shelfEl.disabled  = true;
+    document.getElementById('area_value_mobile').value  = area;
+    document.getElementById('shelf_value_mobile').value = '';
+    document.getElementById('sto_number_mobile').value  = '';
+
+    const refHid = document.getElementById('ref_master_id_mobile');
+    if (refHid) refHid.value = '';
+    const banner = document.getElementById('refBannerMobile');
+    if (banner) banner.classList.add('hidden');
+    const btnC = document.getElementById('btnClearRefMobile');
+    if (btnC) btnC.style.display = 'none';
+
+    resetMobileRows(); // ← otomatis IS_CHEM_CONS ? 3 : 8
+
+    if (!area) return;
+
+    // ✅ await loadShelves dulu
+    await loadShelves(wh, area, shelfEl);
+
+    // ✅ pakai cache, tidak double-fetch
+    if (IS_CHEM_CONS) populateAllItemsFromArea(wh, area, 'mobile');
+});
 
     // ── SHELF CHANGE ─────────────────────────────────────
     $(document).on('change', '#shelf_desktop', function () {
@@ -613,7 +688,14 @@ $(document).ready(function () {
         const shelvesName = $(this).find(':selected').data('shelves') || '';
         const cacheKey    = `${WAREHOUSE_VAL}|${area}`;
         document.getElementById('ref_master_id_desktop').value = masterId || '';
-        if (!masterId) { resetDesktopRows(7); return; }
+        if (!masterId) {
+    if (area && IS_CHEM_CONS) {
+        populateAllItemsFromArea(WAREHOUSE_VAL, area, 'desktop'); // ← kembali ke area view
+    } else {
+        resetDesktopRows();
+    }
+    return;
+}
 
         const cached = areaCache[cacheKey];
         if (cached) {
@@ -761,12 +843,26 @@ $(document).ready(function () {
             const $row        = $(this);
             const articleId   = $row.find('.part-select').val();
             const articleCode = $row.find('.article-code').val()?.trim();
+             const qtyRaw      = $row.find('input[name$="[qty]"]').val(); // ← deklarasi qtyRaw
             const qty         = parseFloat($row.find('input[name$="[qty]"]').val());
             const location    = $row.find('.location-input').val();
             const uom         = $row.find('.part-uom').val()?.trim();
             const otherName   = $row.find('input[name$="[other_name]"]').val()?.trim() || null;
-            if (!articleId) return;
-            if (isNaN(qty) || qty < 0) { hasError = true; errorRow = index + 1; return false; }
+           const isRef       = $row.data('is-ref') == 1; // ← dari data-is-ref attribute
+
+    // Skip baris kosong (tidak ada part dipilih sama sekali)
+    if (!articleId && !articleCode) return;
+
+    const qtyKosong = qtyRaw === '' || qtyRaw === null || qtyRaw === undefined;
+
+    if (qtyKosong) {
+        if (isRef) return;           // ✅ baris referensi → skip saja
+        hasError = true;             // ✅ baris manual → error
+        errorRow = index + 1;
+        return false;
+    }
+
+    if (isNaN(qty) || qty < 0) { hasError = true; errorRow = index + 1; return false; }
             const kondisi = IS_CHEM_ONLY ? ($row.find('.kondisi-select').val() || null) : null;
             articles.push({ article_code: articleCode, other_name: articleCode === 'OTHER' ? otherName : null,
                 qty, uom: uom || null, kondisi, location });
