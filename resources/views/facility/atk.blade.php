@@ -1210,7 +1210,7 @@ function openEditATK(id) {
 
            // Tampilkan foto existing
 if (d.photo) {
-    const url = `/atk/${d.id}/${encodeURIComponent(d.photo)}`;
+    const url = `https://abimanyulive.cloud/atk/${d.id}/${encodeURIComponent(d.photo)}`;
 
     $('#previewImg')
         .attr('src', url)
@@ -1660,7 +1660,7 @@ const paged = perPage >= 99999 ? filtered.slice(start) : filtered.slice(start, s
     const balance  = (item.initial_stock ?? 0) + (item.total_in ?? 0) - (item.total_out ?? 0);
 
     const photoUrl = item.photo
-        ? `<img src="/atk/${item.id}/${item.photo}" class="w-8 h-8 rounded-lg object-cover mx-auto border border-gray-200">`
+        ? `<img src="https://abimanyulive.cloud/atk/${item.id}/${item.photo}" class="w-8 h-8 rounded-lg object-cover mx-auto border border-gray-200">`
         : `<div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mx-auto text-gray-300">
              <i data-feather="image" class="w-4 h-4"></i>
            </div>`;
@@ -2369,7 +2369,7 @@ function renderTopAtk(topAtk) {
     const html = topAtk.map((atk, i) => {
         const pct  = maxReq > 0 ? Math.round((atk.total_request / maxReq) * 100) : 0;
        const photo = atk.photo
-    ? `<img src="/atk/${atk.id}/${encodeURIComponent(atk.photo)}" class="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0">`
+    ? `<img src="https://abimanyulive.cloud/atk/${atk.id}/${encodeURIComponent(atk.photo)}" class="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0">`
     : `<div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-300">
          <i data-feather="package" class="w-4 h-4"></i>
        </div>`;
