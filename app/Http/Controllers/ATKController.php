@@ -950,4 +950,16 @@ public function analyticsData()
     ]);
 }
 
+public function printRequest($id)
+{
+    $atkRequest = AtkRequest::with([
+        'items.atk',
+        'createdBy',
+        'approvedBy',
+        'departemen',
+    ])->findOrFail($id);
+
+    return view('facility.print-atk', compact('atkRequest'));
+}
+
 }

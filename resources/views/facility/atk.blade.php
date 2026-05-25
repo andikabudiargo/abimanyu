@@ -2460,6 +2460,11 @@ function renderDepartmentChart(byDept) {
     });
 }
 
+// Ganti fungsi modalExport() di JS dengan:
+function modalExport(id) {
+    window.open(`/facility/atk/${id}/print`, '_blank');
+}
+
 // Populate atkOptions saat data loaded (tambahkan di dalam loadTableATK success)
 // atkOptions = res.data ?? [];  ← tambahkan baris ini di dalam success loadTableATK
 

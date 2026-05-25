@@ -305,6 +305,8 @@ Route::delete('/atk/request/{id}/cancel', [ATKController::class, 'cancel'])
 Route::post('/atk/request/{id}/reject', [ATKController::class, 'reject'])
     ->name('atk.reject');
 Route::get('/atk/analytics', [ATKController::class, 'analyticsData'])->name('atk.analytics');
+Route::get('/atk/{id}/print', [ATKController::class, 'printRequest'])
+    ->name('atk.print');
 });
 
 Route::prefix('mr')->name('mr.')->group(function () {
