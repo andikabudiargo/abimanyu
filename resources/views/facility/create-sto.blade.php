@@ -60,6 +60,7 @@ const ARTICLE_SELECT_URL = "{{ route('facility.article.select') }}";
 
 let desktopRowCount = IS_CHEM_CONS ? 3 : 7;
 let mobileRowCount  = IS_CHEM_CONS ? 3 : 7;
+let shelvesLoaded = false;
 
 // Cache area → shelves+items, hindari re-fetch
 const areaCache = {};
@@ -326,11 +327,35 @@ async function loadShelves(warehouse, area, shelfEl) {
 
         shelfEl.disabled = false;
 
+        // 🔥 SET FLAG
+        shelvesLoaded = true;
+        toggleSaveButton(warehouse);
+
     } catch (err) {
         console.error('Gagal load shelf:', err);
         shelfEl.innerHTML = '<option value="">Gagal memuat</option>';
         shelfEl.disabled  = true;
     }
+}
+
+function toggleSaveButton(warehouse) {
+    const btn = document.getElementById('btnSave');
+    if (!btn) return;
+
+    const isSpecialWH = ['chemical', 'consumable'].includes(
+        (warehouse || '').toLowerCase()
+    );
+
+    if (isSpecialWH) {
+        btn.style.display = shelvesLoaded ? 'inline-flex' : 'none';
+    } else {
+        btn.style.display = 'inline-flex'; // warehouse lain bebas
+    }
+}
+
+function onWarehouseChange(warehouse) {
+    shelvesLoaded = false; // reset
+    toggleSaveButton(warehouse);
 }
 
 // Fungsi baru — populate dari semua shelf di area

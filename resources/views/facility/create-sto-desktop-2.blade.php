@@ -700,10 +700,10 @@
             <i data-feather="arrow-left" class="w-3.5 h-3.5"></i>
             Back
           </a>
-          <button type="submit" id="btnSave" class="sto-btn sto-btn-save">
-            <i data-feather="save" class="w-3.5 h-3.5"></i>
-            Save
-          </button>
+        <button type="submit" id="btnSave" class="sto-btn sto-btn-save" style="display:none;">
+    <i data-feather="save" class="w-3.5 h-3.5"></i>
+    Save
+</button>
         </div>
       </div>
 
