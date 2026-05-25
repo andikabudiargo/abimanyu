@@ -1071,6 +1071,83 @@ public function selectArticle(Request $request)
     $perPage   = 20;
     $offset    = ($page - 1) * $perPage;
 
+    $warehouse    = $this->userWarehouse() ?? $request->warehouse;
+    $allowedTypes = $this->allowedArticleTypes($warehouse);
+
+    $isReferenceWarehouse = in_array($warehouse, ['Chemical', 'Consumable']);
+
+    // ✅ Pisah query — non-reference tidak perlu JOIN ref_items sama sekali
+    if ($isReferenceWarehouse) {
+        $query = Article::query()
+            ->select([
+                'articles.article_code',
+                'articles.description',
+                'articles.article_type',
+                'articles.min_package',
+                DB::raw('COALESCE(ref_items.uom, articles.unit) as unit'),
+            ])
+            ->leftJoin('sto_reference_items as ref_items', 'ref_items.article_code', '=', 'articles.article_code')
+            ->leftJoin('sto_reference_masters as ref', function ($join) use ($warehouse) {
+                $join->on('ref.id', '=', 'ref_items.sto_reference_id')
+                     ->where('ref.warehouse', $warehouse);
+            })
+            ->when(!empty($allowedTypes), fn($q) => $q->whereIn('articles.article_type', $allowedTypes))
+            ->when($search, fn($q) => $q->where(fn($qq) =>
+                $qq->where('articles.article_code', 'like', "%{$search}%")
+                   ->orWhere('articles.description', 'like', "%{$search}%")
+            ))
+            ->groupBy(
+                'articles.article_code',
+                'articles.unit',
+                'articles.description',
+                'articles.article_type',
+                'articles.min_package',
+                'ref_items.uom'
+            )
+            ->orderBy('articles.article_code');
+
+    } else {
+        // ✅ Non-reference: query sederhana tanpa JOIN apapun
+        $query = Article::query()
+            ->select([
+                'articles.article_code',
+                'articles.description',
+                'articles.article_type',
+                'articles.min_package',
+                'articles.unit',
+            ])
+            ->when(!empty($allowedTypes), fn($q) => $q->whereIn('articles.article_type', $allowedTypes))
+            ->when($search, fn($q) => $q->where(fn($qq) =>
+                $qq->where('article_code', 'like', "%{$search}%")
+                   ->orWhere('description', 'like', "%{$search}%")
+            ))
+            ->orderBy('article_code');
+    }
+
+    $totalCount = (clone $query)->count('articles.article_code');
+
+    $articles = $query->offset($offset)->limit($perPage)->get();
+
+    return response()->json([
+        'results' => $articles->map(fn($a) => [
+            'id'          => $a->article_code,
+            'text'        => "{$a->article_code} - {$a->description}",
+            'unit'        => $a->unit,
+            'min_package' => $a->min_package,
+        ]),
+        'pagination' => [
+            'more' => $offset + $perPage < $totalCount
+        ]
+    ]);
+}
+
+public function selectArticle2(Request $request)
+{
+    $search    = $request->get('q');
+    $page      = $request->get('page', 1);
+    $perPage   = 20;
+    $offset    = ($page - 1) * $perPage;
+
     $warehouse = $this->userWarehouse() ?? $request->warehouse;
     $allowedTypes = $this->allowedArticleTypes($warehouse);
 
