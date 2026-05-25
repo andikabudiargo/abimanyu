@@ -421,12 +421,15 @@ foreach ($request->articles as $row) {
     // =========================
    $rowLocation = strtolower($row['location']);
 
-// Ganti seluruh blok FIND EXISTING ITEM:
 $existingItem = $sto->items()
     ->where('article_code', $row['article_code'])
     ->where('location', $row['location'])
     ->when($row['article_code'] === 'OTHER', function ($q) use ($row) {
         $q->where('other_name', $row['other_name'] ?? null);
+    })
+    // ✅ Untuk Chemical: bedakan Utuh vs Tidak Utuh
+    ->when(!empty($row['kondisi']), function ($q) use ($row) {
+        $q->where('kondisi', $row['kondisi']);
     })
     ->lockForUpdate()
     ->first();
