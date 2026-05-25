@@ -409,20 +409,20 @@ $photoName = null;
 
 if ($request->hasFile('photo')) {
     $file = $request->file('photo');
-
-    // Ambil nama asli file
     $photoName = $file->getClientOriginalName();
 
-    // Path tujuan (hardcode sesuai request)
-    $destinationPath = '/home/abimany3/public_html/atk/' . $request->id;
+    $destinationPath = '/home/abimany3/public_html/atk/' . $atk->id;
 
-    // Pastikan folder ada
     if (!File::exists($destinationPath)) {
         File::makeDirectory($destinationPath, 0755, true);
     }
 
-    // Pindahkan file ke folder tujuan
     $file->move($destinationPath, $photoName);
+
+    // update DB
+    $atk->update([
+        'photo' => $photoName
+    ]);
 }
 
         $atk = Atk::create([
@@ -442,7 +442,9 @@ if ($request->hasFile('photo')) {
                 'initial_stock' => $atk->initial_stock,
                 'min_stock'     => $atk->min_stock,
                 'uom'           => $atk->uom,
-                'photo_url'     => $atk->photo ? Storage::url($atk->photo) : null,
+                'photo' => $atk->photo 
+    ? asset('atk/' . $atk->id . '/' . $atk->photo) 
+    : null,
             ],
         ], 201);
     }
