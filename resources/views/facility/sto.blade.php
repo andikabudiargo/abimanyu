@@ -85,7 +85,7 @@
 
 <div>
   <label class="block text-sm mb-1 font-medium text-gray-700">
-    Status
+    Kondisi
   </label>
 <!-- Filter Kondisi (Utuh / Tidak Utuh) — khusus Chemical -->
 <select id="filter-kondisi"
