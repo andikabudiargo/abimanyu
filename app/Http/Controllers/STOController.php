@@ -419,6 +419,12 @@ foreach ($request->articles as $row) {
     // =========================
     // FIND EXISTING ITEM
     // =========================
+   $rowLocation = strtolower($row['location']);
+$isChemOrCons = str_contains($rowLocation, 'chemical') || str_contains($rowLocation, 'consumable');
+
+$existingItem = null;
+
+if (!$isChemOrCons) {
     $existingItem = $sto->items()
         ->where('article_code', $row['article_code'])
         ->where('location', $row['location'])
@@ -428,6 +434,7 @@ foreach ($request->articles as $row) {
         })
         ->lockForUpdate()
         ->first();
+}
 
     if ($existingItem) {
 
@@ -1050,18 +1057,36 @@ public function selectArticle(Request $request)
     $perPage   = 20;
     $offset    = ($page - 1) * $perPage;
 
-    // Gunakan warehouse dari user dulu, jika tidak ada pakai request
     $warehouse = $this->userWarehouse() ?? $request->warehouse;
-
     $allowedTypes = $this->allowedArticleTypes($warehouse);
 
-    $query = Article::select('article_code', 'unit', 'description', 'article_type', 'min_package')
-        ->when(!empty($allowedTypes), fn($q) => $q->whereIn('article_type', $allowedTypes))
-        ->when($search, fn($q) => $q->where(fn($qq) => 
-            $qq->where('article_code', 'like', "%{$search}%")
-               ->orWhere('description', 'like', "%{$search}%")
-        ))
-        ->orderBy('article_code');
+    $isReferenceWarehouse = in_array(strtolower($warehouse), ['chemical', 'consumable']);
+
+    $query = Article::query()
+        ->select(
+            'articles.article_code',
+            'articles.unit as default_unit',
+            'articles.description',
+            'articles.article_type',
+            'articles.min_package',
+            DB::raw('COALESCE(sto_reference_items.uom, articles.unit) as unit') // 🔥 override
+        )
+        ->leftJoin('sto_reference_items', function ($join) use ($warehouse, $isReferenceWarehouse) {
+            if ($isReferenceWarehouse) {
+                $join->on('sto_reference_items.article_code', '=', 'articles.article_code')
+                     ->where('sto_reference_items.warehouse', $warehouse);
+            }
+        })
+        ->when(!empty($allowedTypes), fn($q) => 
+            $q->whereIn('articles.article_type', $allowedTypes)
+        )
+        ->when($search, fn($q) => 
+            $q->where(function ($qq) use ($search) {
+                $qq->where('articles.article_code', 'like', "%{$search}%")
+                   ->orWhere('articles.description', 'like', "%{$search}%");
+            })
+        )
+        ->orderBy('articles.article_code');
 
     $totalCount = $query->count();
 
@@ -1073,7 +1098,7 @@ public function selectArticle(Request $request)
         'results' => $articles->map(fn($a) => [
             'id'   => $a->article_code,
             'text' => "{$a->article_code} - {$a->description}",
-            'unit' => $a->unit,
+            'unit' => $a->unit, // 🔥 sudah auto override
             'min_package' => $a->min_package,
         ]),
         'pagination' => [
@@ -2180,6 +2205,10 @@ public function getReferenceAreas(Request $request)
         ->where('stos.warehouse', $warehouse)
         ->whereYear('stos.created_at', now()->year)
         ->whereMonth('stos.created_at', now()->month)
+         ->where(function ($q) use ($userId) {
+        $q->where('stos.created_by', $userId)
+          ->orWhere('stos.created_by_2', $userId);
+    })
         ->select('stos.area', 'stos.shelves')
         ->distinct()
         ->get()
@@ -2232,6 +2261,10 @@ public function getReferenceItemsByArea(Request $request)
         ->where('stos.area', $area)                    // ← filter per area
         ->whereYear('stos.created_at', now()->year)
         ->whereMonth('stos.created_at', now()->month)
+         ->where(function ($q) use ($userId) {
+        $q->where('stos.created_by', $userId)
+          ->orWhere('stos.created_by_2', $userId);
+    })
         ->pluck('sto_items.article_code')
         ->unique()
         ->toArray();
@@ -2243,6 +2276,10 @@ public function getReferenceItemsByArea(Request $request)
         ->where('stos.area', $area)
         ->whereYear('stos.created_at', now()->year)
         ->whereMonth('stos.created_at', now()->month)
+          ->where(function ($q) use ($userId) {
+        $q->where('stos.created_by', $userId)
+          ->orWhere('stos.created_by_2', $userId);
+    })
         ->select('sto_items.article_code', 'stos.shelves')
         ->get()
         ->groupBy('shelves');
