@@ -874,7 +874,10 @@ $(document).on('change', '#area_mobile', async function () {
         const payload = {
             sto_number: getStoNumber(),
             area  : $('#area_desktop').val() || $('#area_value_mobile').val() || '',
-            shelf : $('#shelf_desktop').val() || $('#shelf_value_mobile').val() || '',
+             // ✅ ambil data-shelves (nama), bukan val() yang berisi master_id
+    shelf : $('#shelf_desktop').find(':selected').data('shelves')
+            || $('#shelf_value_mobile').val()
+            || '',
             note  : $('#note').val() || $('#note_mobile').val() || '',
             articles,
             _token: $('meta[name="csrf-token"]').attr('content'),

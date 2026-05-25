@@ -420,21 +420,16 @@ foreach ($request->articles as $row) {
     // FIND EXISTING ITEM
     // =========================
    $rowLocation = strtolower($row['location']);
-$isChemOrCons = str_contains($rowLocation, 'chemical') || str_contains($rowLocation, 'consumable');
 
-$existingItem = null;
-
-if (!$isChemOrCons) {
-    $existingItem = $sto->items()
-        ->where('article_code', $row['article_code'])
-        ->where('location', $row['location'])
-        ->where('uom', $uom)
-        ->when($row['article_code'] === 'OTHER', function ($q) use ($row) {
-            $q->where('other_name', $row['other_name']);
-        })
-        ->lockForUpdate()
-        ->first();
-}
+// Ganti seluruh blok FIND EXISTING ITEM:
+$existingItem = $sto->items()
+    ->where('article_code', $row['article_code'])
+    ->where('location', $row['location'])
+    ->when($row['article_code'] === 'OTHER', function ($q) use ($row) {
+        $q->where('other_name', $row['other_name'] ?? null);
+    })
+    ->lockForUpdate()
+    ->first();
 
     if ($existingItem) {
 
