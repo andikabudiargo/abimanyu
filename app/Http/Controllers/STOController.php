@@ -2187,6 +2187,8 @@ ORDER BY sort_group ASC, rm_code, fg_code
 
 public function getReferenceAreas(Request $request)
 {
+
+$userId = auth()->id();
     $warehouse = $request->input('warehouse');
 
     if (!$warehouse) {
@@ -2238,6 +2240,7 @@ public function getReferenceAreas(Request $request)
 // GET /facility/sto/reference/items-by-area?warehouse=Chemical&area=Line+1
 public function getReferenceItemsByArea(Request $request)
 {
+    $userId = auth()->id();
     $warehouse = $request->input('warehouse');
     $area      = $request->input('area');
 
