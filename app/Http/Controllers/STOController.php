@@ -1069,7 +1069,7 @@ public function selectArticle(Request $request)
             'articles.description',
             'articles.article_type',
             'articles.min_package',
-            DB::raw('COALESCE(ref.uom, articles.unit) as unit')
+           DB::raw('COALESCE(ref_items.uom, articles.unit) as unit')
         ])
 
         // =========================
@@ -1118,7 +1118,7 @@ public function selectArticle(Request $request)
             'articles.description',
             'articles.article_type',
             'articles.min_package',
-            'ref.uom'
+            'ref_items.uom'
         )
         ->offset($offset)
         ->limit($perPage)
