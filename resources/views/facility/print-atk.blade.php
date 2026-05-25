@@ -246,7 +246,6 @@
 
         .td-no {
             width: 36px;
-            color: #888;
             font-size: 9pt;
         }
 
@@ -556,8 +555,10 @@
 
             {{-- Kolom 1: Pembuat --}}
             <div class="sig-col">
-                <div class="sig-role">Pembuat</div>
-                <div class="sig-sublabel">(Pemohon)</div>
+                <div class="sig-role">Pemohon</div>
+               <div class="sig-sublabel">
+    {{ $atkRequest->departemen?->name ? '(' . $atkRequest->departemen->name . ')' : '—' }}
+</div>
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $atkRequest->createdBy?->name ?? '—' }}</div>
                 <div class="sig-date">
@@ -568,7 +569,7 @@
             {{-- Kolom 2: Menyetujui --}}
             <div class="sig-col">
                 <div class="sig-role">Menyetujui</div>
-                <div class="sig-sublabel">(Admin GA)</div>
+                <div class="sig-sublabel">(General Affair)</div>
                 <div class="sig-line"></div>
 
                 @if ($atkRequest->approvedBy)
@@ -585,10 +586,10 @@
             {{-- Kolom 3: Diterima (kosong, isi manual) --}}
             <div class="sig-col">
                 <div class="sig-role">Diterima</div>
-                <div class="sig-sublabel">(Penerima)</div>
+                <div class="sig-sublabel">(..........................)</div>
                 <div class="sig-line"></div>
                 <div class="sig-name-empty">&nbsp;</div>
-                <div class="sig-date-empty">Tanggal</div>
+                <div class="sig-date-empty">.........</div>
             </div>
 
         </div>

@@ -2367,7 +2367,6 @@ function renderTopAtk(topAtk) {
     const maxReq = Math.max(...topAtk.map(a => a.total_request));
 
     const html = topAtk.map((atk, i) => {
-        const pct  = maxReq > 0 ? Math.round((atk.total_request / maxReq) * 100) : 0;
        const photo = atk.photo
     ? `<img src="${atk.photo}" class="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0">`
     : `<div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-300">
@@ -2382,13 +2381,12 @@ function renderTopAtk(topAtk) {
           ${photo}
           <div class="flex-1 min-w-0">
             <p class="text-xs font-medium text-gray-800 truncate">${atk.name}</p>
-            <div class="mt-1 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-1 bg-blue-400 rounded-full transition-all" style="width:${pct}%"></div>
-            </div>
+           
+              <p class="text-[10px] text-gray-400">dari ${atk.total_request}x request</p>
+            
           </div>
           <div class="text-right flex-shrink-0">
-            <p class="text-xs font-semibold text-gray-700">${atk.total_request}x</p>
-            <p class="text-[10px] text-gray-400">${atk.total_qty} ${atk.uom}</p>
+           <p class="text-xs font-semibold text-gray-700">${atk.total_qty} ${atk.uom}</p>
           </div>
         </div>`;
     }).join('');

@@ -908,7 +908,7 @@ public function analyticsData()
         DB::raw('COUNT(*) as total_request')
     )
     ->groupBy('atk_id')
-    ->orderByDesc('total_request')
+    ->orderByDesc('total_qty')
     ->limit(5)
     ->get()
     ->map(fn($r) => [
