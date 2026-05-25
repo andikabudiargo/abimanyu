@@ -381,7 +381,7 @@
     <div class="lg:col-span-2 bg-white shadow rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <p class="text-sm font-semibold text-gray-800">Request Bulanan</p>
+          <p class="text-sm font-semibold text-gray-800">Monthly Request Trend</p>
           <p class="text-[11px] text-gray-400 mt-0.5" id="anYearLabel">—</p>
         </div>
         <div class="flex items-center gap-3 text-[11px]">
@@ -407,7 +407,7 @@
     {{-- Top 5 ATK (1/3) --}}
     <div class="bg-white shadow rounded-xl overflow-hidden">
       <div class="px-5 py-3.5 border-b border-gray-100">
-        <p class="text-xs font-semibold text-gray-700">Top 5 ATK Paling Sering Direquest</p>
+        <p class="text-xs font-semibold text-gray-700">Top 5 Most Request ATK </p>
       </div>
       <div id="topAtkList" class="divide-y divide-gray-100">
         {{-- Filled by JS --}}
@@ -429,7 +429,7 @@
   {{-- Row 3: By Department Chart --}}
   <div class="bg-white shadow rounded-xl p-5">
     <div class="mb-4">
-      <p class="text-sm font-semibold text-gray-800">Request per Department</p>
+      <p class="text-sm font-semibold text-gray-800">Request by Department</p>
       <p class="text-[11px] text-gray-400 mt-0.5">Total request berdasarkan department</p>
     </div>
     <div class="relative h-52">
