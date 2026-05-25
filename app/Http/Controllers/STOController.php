@@ -1063,42 +1063,72 @@ public function selectArticle(Request $request)
     $isReferenceWarehouse = in_array(strtolower($warehouse), ['chemical', 'consumable']);
 
     $query = Article::query()
-        ->select(
+        ->select([
             'articles.article_code',
             'articles.unit as default_unit',
             'articles.description',
             'articles.article_type',
             'articles.min_package',
-            DB::raw('COALESCE(sto_reference_items.uom, articles.unit) as unit') // 🔥 override
-        )
-        ->leftJoin('sto_reference_items', function ($join) use ($warehouse, $isReferenceWarehouse) {
-            if ($isReferenceWarehouse) {
-                $join->on('sto_reference_items.article_code', '=', 'articles.article_code')
-                     ->where('sto_reference_items.warehouse', $warehouse);
-            }
+            DB::raw('COALESCE(ref.uom, articles.unit) as unit')
+        ])
+
+        // =========================
+        // JOIN (ONLY IF NEEDED)
+        // =========================
+        ->when($isReferenceWarehouse, function ($q) use ($warehouse) {
+            $q->leftJoin('sto_reference_items as ref_items', function ($join) {
+                $join->on('ref_items.article_code', '=', 'articles.article_code');
+            })
+            ->leftJoin('sto_reference_masters as ref', function ($join) use ($warehouse) {
+                $join->on('ref.id', '=', 'ref_items.sto_reference_id')
+                     ->where('ref.warehouse', $warehouse);
+            });
         })
-        ->when(!empty($allowedTypes), fn($q) => 
-            $q->whereIn('articles.article_type', $allowedTypes)
-        )
-        ->when($search, fn($q) => 
+
+        // =========================
+        // FILTER
+        // =========================
+        ->when(!empty($allowedTypes), function ($q) use ($allowedTypes) {
+            $q->whereIn('articles.article_type', $allowedTypes);
+        })
+
+        ->when($search, function ($q) use ($search) {
             $q->where(function ($qq) use ($search) {
                 $qq->where('articles.article_code', 'like', "%{$search}%")
                    ->orWhere('articles.description', 'like', "%{$search}%");
-            })
-        )
+            });
+        })
+
         ->orderBy('articles.article_code');
 
-    $totalCount = $query->count();
+    // =========================
+    // COUNT (ANTI DUPLICATE)
+    // =========================
+    $totalCount = (clone $query)
+        ->select(DB::raw('COUNT(DISTINCT articles.article_code) as aggregate'))
+        ->value('aggregate');
 
-    $articles = $query->offset($offset)
-                      ->limit($perPage)
-                      ->get();
+    // =========================
+    // DATA
+    // =========================
+    $articles = $query
+        ->groupBy(
+            'articles.article_code',
+            'articles.unit',
+            'articles.description',
+            'articles.article_type',
+            'articles.min_package',
+            'ref.uom'
+        )
+        ->offset($offset)
+        ->limit($perPage)
+        ->get();
 
     return response()->json([
         'results' => $articles->map(fn($a) => [
             'id'   => $a->article_code,
             'text' => "{$a->article_code} - {$a->description}",
-            'unit' => $a->unit, // 🔥 sudah auto override
+            'unit' => $a->unit,
             'min_package' => $a->min_package,
         ]),
         'pagination' => [
