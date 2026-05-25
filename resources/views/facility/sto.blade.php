@@ -83,6 +83,10 @@
   </select>
 </div>
 
+<div>
+  <label class="block text-sm mb-1 font-medium text-gray-700">
+    Status
+  </label>
 <!-- Filter Kondisi (Utuh / Tidak Utuh) — khusus Chemical -->
 <select id="filter-kondisi"
     class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-blue-500 focus:border-blue-500">
@@ -90,6 +94,7 @@
     <option value="Utuh">Utuh</option>
     <option value="Tidak Utuh">Tidak Utuh</option>
 </select>
+</div>
 
         </div>
 
