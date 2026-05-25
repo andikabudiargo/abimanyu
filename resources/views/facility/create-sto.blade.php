@@ -327,9 +327,6 @@ async function loadShelves(warehouse, area, shelfEl) {
 
         shelfEl.disabled = false;
 
-        // 🔥 SET FLAG
-        shelvesLoaded = true;
-        toggleSaveButton(warehouse);
 
     } catch (err) {
         console.error('Gagal load shelf:', err);
@@ -342,7 +339,7 @@ function toggleSaveButton(warehouse) {
     const btn = document.getElementById('btnSave');
     if (!btn) return;
 
-    const isSpecialWH = ['chemical', 'consumable'].includes(
+    const isSpecialWH = ['Chemical', 'Consumable'].includes(
         (warehouse || '').toLowerCase()
     );
 
@@ -712,6 +709,12 @@ $(document).on('change', '#area_mobile', async function () {
         const area        = document.getElementById('area_desktop')?.value || '';
         const shelvesName = $(this).find(':selected').data('shelves') || '';
         const cacheKey    = `${WAREHOUSE_VAL}|${area}`;
+
+        // 🔥 TAMBAHKAN INI
+    const isSpecialWH = ['chemical','consumable'].includes((WAREHOUSE_VAL || '').toLowerCase());
+    shelvesLoaded = !!masterId; // true kalau user pilih shelf
+    toggleSaveButton(WAREHOUSE_VAL);
+
         document.getElementById('ref_master_id_desktop').value = masterId || '';
         if (!masterId) {
     if (area && IS_CHEM_CONS) {
@@ -738,6 +741,12 @@ $(document).on('change', '#area_mobile', async function () {
         const area        = document.getElementById('area_mobile')?.value || '';
         const shelvesName = $(this).find(':selected').data('shelves') || '';
         const cacheKey    = `${WAREHOUSE_VAL}|${area}`;
+
+// 🔥 TAMBAHKAN INI
+    const isSpecialWH = ['chemical','consumable'].includes((WAREHOUSE_VAL || '').toLowerCase());
+    shelvesLoaded = !!masterId; // true kalau user pilih shelf
+    toggleSaveButton(WAREHOUSE_VAL);
+
         document.getElementById('shelf_value_mobile').value = shelvesName;
         const refHid = document.getElementById('ref_master_id_mobile');
         if (refHid) refHid.value = masterId || '';
