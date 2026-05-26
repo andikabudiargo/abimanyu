@@ -975,6 +975,20 @@ public function edit($id)
 
     $items = $sto->items;
 
+    $userId = auth()->id();
+
+$isSecondUser = $sto->created_by_2 == $userId;
+
+// 🔥 MAP QTY SESUAI USER
+$items = $sto->items->map(function ($item) use ($isSecondUser) {
+
+    $item->qty_input = $isSecondUser
+        ? ($item->qty_2 ?? 0)
+        : ($item->qty ?? 0);
+
+    return $item;
+});
+
     $warehouse = optional($items->first())->location ?? null;
 
     $canChooseWarehouse = is_null($warehouse);

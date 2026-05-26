@@ -11,7 +11,7 @@
     <!-- MOBILE MODE (CARD STYLE) -->
   <div class="col-span-2 space-y-4" id="mobile-article-list">
   
-   @php $defaultMobileRows = in_array($warehouse ?? null, ['Chemical', 'Consumable']) ? 3 : 8; @endphp
+   @php $defaultMobileRows = in_array($warehouse ?? null, ['Chemical', 'Consumable']) ? 1 : 8; @endphp
 @for ($i = 0; $i < $defaultMobileRows; $i++)
     <div class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 overflow-hidden sto-row" 
      data-row="{{ $i }}" data-is-ref="0" data-is-manual="1">
