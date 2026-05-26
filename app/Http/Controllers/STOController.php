@@ -2416,6 +2416,7 @@ public function getReferenceItemsByArea(Request $request)
 
         $items = $master->items->map(function ($item) use ($savedCodesInArea) {
             return [
+                 'article_id'    => optional($item->article)->id,  // ← tambahkan ini
                 'article_code'  => $item->article_code,
                 'description'   => optional($item->article)->description,
                 'unit'          => optional($item->article)->unit,

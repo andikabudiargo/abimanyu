@@ -731,16 +731,23 @@ const total = Math.max(defaultMin, items.length);
         });
     }
 
-    items.forEach((item, i) => {
-        if (!item.article_code) return;
-        const text = item.description
-            ? `${item.article_code} - ${item.description}`
-            : item.article_code;
-        const $sel = $(`select[name="articles[${i}][article_id]"]`);
-        $sel.append(new Option(text, item.article_code, true, true)).trigger('change');
-        $(`input[name="articles[${i}][article_code]"]`).val(item.article_code);
-        $(`input[name="articles[${i}][uom]"]`).val(item.unit        || '');
-        $(`input[name="articles[${i}][min_package]"]`).val(item.min_package || '');
+  items.forEach((item, i) => {
+    if (!item.article_code) return;
+    const text = item.description
+        ? `${item.article_code} - ${item.description}`
+        : item.article_code;
+
+    const $sel = $(`select[name="articles[${i}][article_id]"]`);
+    
+    // Gunakan article_id sebagai value (konsisten dengan populateFromReference)
+    const optionValue = item.article_id || item.article_code;
+    $sel.append(new Option(text, optionValue, true, true)).trigger('change');
+    
+    // Set fields secara eksplisit karena trigger('change') tidak fire select2:select
+    $(`input[name="articles[${i}][article_code]"]`).val(item.article_code);
+    $(`input[name="articles[${i}][uom]"]`).val(item.unit || '');
+    $(`input[name="articles[${i}][min_package]"]`).val(item.min_package || '');
+    // ...
 
         // Set address label per row
         const shelfName = codeToShelf[item.article_code] || '—';
