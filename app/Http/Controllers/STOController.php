@@ -1016,30 +1016,99 @@ public function edit($id)
 
 public function update(Request $request, $id)
 {
-    DB::transaction(function () use ($request, $id) {
+    DB::beginTransaction();
 
-        $sto = Sto::findOrFail($id);
+    try {
+        $sto = Sto::lockForUpdate()->findOrFail($id);
+
         $sto->note = $request->note;
         $sto->save();
 
-        // reset items
-        StoItem::where('sto_id', $sto->id)->delete();
+        $userId = auth()->id();
+
+        // tentukan role user
+        $isSecondUser = $sto->created_by_2 == $userId;
+
+        $itemCount = 0;
 
         foreach ($request->articles as $row) {
-            StoItem::create([
-                'sto_id'       => $sto->id,
-                'article_code' => $row['article_code'],
-                'qty'          => $row['qty'],
-                'uom'          => $row['uom'] ?? null,           // 🔹 UOM
-                'other_name'   => $row['other_name'] ?? null,   // 🔹 OTHER name
-                'location'     => $row['location'],
-            ]);
-        }
-    });
 
-    return response()->json([
-        'message' => 'STO berhasil diperbarui'
-    ]);
+            if (empty($row['article_code']) || !isset($row['qty'])) {
+                continue;
+            }
+
+            // =========================
+            // FIND EXISTING ITEM
+            // =========================
+            $existingItem = $sto->items()
+                ->where('article_code', $row['article_code'])
+                ->where('location', $row['location'])
+                ->when($row['article_code'] === 'OTHER', function ($q) use ($row) {
+                    $q->where('other_name', $row['other_name'] ?? null);
+                })
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingItem) {
+
+                // =========================
+                // UPDATE EXISTING
+                // =========================
+                if ($isSecondUser) {
+
+                    $existingItem->update([
+                        'qty_2' => ($existingItem->qty_2 ?? 0) + $row['qty']
+                    ]);
+
+                } else {
+
+                    $existingItem->update([
+                        'qty' => ($existingItem->qty ?? 0) + $row['qty']
+                    ]);
+                }
+
+            } else {
+
+                // =========================
+                // CREATE NEW
+                // =========================
+                $sto->items()->create([
+                    'article_code' => $row['article_code'],
+                    'other_name'   => $row['article_code'] === 'OTHER' ? $row['other_name'] : null,
+                    'uom'          => $row['uom'] ?? null,
+                    'qty'          => $isSecondUser ? 0 : $row['qty'],
+                    'qty_2'        => $isSecondUser ? $row['qty'] : null,
+                    'location'     => $row['location'],
+                ]);
+            }
+
+            $itemCount++;
+        }
+
+        if ($itemCount === 0) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada item valid'
+            ], 400);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'STO berhasil diupdate'
+        ]);
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
 }
 
 
