@@ -357,6 +357,7 @@ $(document).on('click', '.btn-sync-item', function () {
                         shelf.items = shelf.items || [];
                         shelf.items.push({
                             article_code: articleCode,
+                            description : res.description ?? null,  // ← tambahkan ini
                             unit: uom,
                             already_saved: false,
                         });
