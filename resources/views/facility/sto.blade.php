@@ -338,11 +338,9 @@ $(function () {
  const isSuperUser = {{ in_array(auth()->id(), [53, 2]) ? 'true' : 'false' }};
 
 const qtyColumns = isSuperUser ? [
-    { data: 'qty_1', className: 'text-center' },  // ganti qty dengan qty_1
+    { data: 'qty_1', className: 'text-center' },
     { data: 'qty_2', className: 'text-center' },
-] : [
-    { data: 'qty', className: 'text-center' },
-];
+] : []; // ❌ jangan kirim qty sama sekali
 
 const table = $('#sto-table').DataTable({
     processing: true,
@@ -383,7 +381,7 @@ const table = $('#sto-table').DataTable({
 
    // superuser: action+loc+area+shelves+code+name+qty1+qty2+pack+uom+status+sto+v1+v2+created_at = index 14
 // non-superuser: action+loc+area+shelves+code+name+qty+pack+uom+status+sto+v1+created_at = index 12
-order: [[ isSuperUser ? 14 : 12, 'desc']],
+order: [[ isSuperUser ? 15 : 13, 'desc' ]]
 
     lengthMenu: [
       [10, 25, 50, -1],
@@ -459,7 +457,7 @@ order: [[ isSuperUser ? 14 : 12, 'desc']],
         $(this).find('td').each(function (index) {
          const headers = [
     "Action", "Location", "Area", "Rak", "Part Code", "Part Name",
-    ...(isSuperUser ? ["Qty 1", "Qty 2"] : ["Qty"]),
+     ...(isSuperUser ? ["Qty 1", "Qty 2"] : []), // ❌ hapus Qty untuk user biasa
     "Packing", "UoM", "Kondisi",  "Status", "STO Number",
     "Verifikator 1",
     ...(isSuperUser ? ["Verifikator 2"] : []),
