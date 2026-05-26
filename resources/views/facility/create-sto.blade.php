@@ -367,6 +367,14 @@ $(document).on('click', '.btn-sync-item', function () {
                 $row.attr('data-is-ref', '1').attr('data-is-manual', '0');
                 const addrCell = $row.find('.td-addr-desktop');
                 addrCell.html(`<span class="row-addr-label" style="color:var(--sto-green); font-weight:700;">✓ ${shelfName}</span>`);
+
+                 const $sel = $row.find('.part-select');
+    if (res.description) {
+        const newText = `${articleCode} - ${res.description}`;
+        const selectedOpt = $sel.find('option:selected');
+        selectedOpt.text(newText);
+        $sel.trigger('change.select2'); // refresh tampilan select2
+    }
                 
                 // Hapus tombol sync
                 $btn.closest('td').remove();

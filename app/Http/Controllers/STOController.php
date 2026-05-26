@@ -2516,7 +2516,6 @@ public function signItem(Request $request)
         'unit'         => 'nullable|string|max:20',
     ]);
 
-    // Cek duplikat
     $exists = \DB::table('sto_reference_items')
         ->where('sto_reference_id', $request->master_id)
         ->where('article_code', $request->article_code)
@@ -2530,16 +2529,22 @@ public function signItem(Request $request)
     }
 
     \DB::table('sto_reference_items')->insert([
-        'sto_reference_id'    => $request->master_id,
-        'article_code' => $request->article_code,
-        'uom'         => $request->unit,
-        'created_at'   => now(),
-        'updated_at'   => now(),
+        'sto_reference_id' => $request->master_id,
+        'article_code'     => $request->article_code,
+        'uom'              => $request->unit,
+        'created_at'       => now(),
+        'updated_at'       => now(),
     ]);
 
+    // Ambil description dari tabel articles
+    $article = \DB::table('articles')
+        ->where('article_code', $request->article_code)
+        ->value('description'); // sesuaikan nama kolom jika berbeda
+
     return response()->json([
-        'success' => true,
-        'message' => 'Item berhasil di-assign ke address',
+        'success'     => true,
+        'message'     => 'Item berhasil di-assign ke address',
+        'description' => $article ?? null,
     ]);
 }
 
