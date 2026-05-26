@@ -381,7 +381,7 @@ const table = $('#sto-table').DataTable({
 
    // superuser: action+loc+area+shelves+code+name+qty1+qty2+pack+uom+status+sto+v1+v2+created_at = index 14
 // non-superuser: action+loc+area+shelves+code+name+qty+pack+uom+status+sto+v1+created_at = index 12
-order: [[ isSuperUser ? 15 : 13, 'desc' ]]
+order: [[ isSuperUser ? 15 : 13, 'desc' ]],
 
     lengthMenu: [
       [10, 25, 50, -1],
