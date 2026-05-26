@@ -131,7 +131,7 @@ public function createv2()
         43,47     => 'WIP Buffing',
         44,45,88  => 'WIP Touch Up',
         108,126   => 'WIP Sanding',
-        63, 129, 132, 2   => 'Consumable',
+        63, 129, 132, 133, 2   => 'Consumable',
         67, 54    => 'Chemical',
         45        => 'Finish Goods',
         44        => 'OT',
@@ -1068,7 +1068,7 @@ public function selectArticle(Request $request)
 {
     $search    = $request->get('q');
     $page      = $request->get('page', 1);
-    $perPage   = 20;
+    $perPage   = 50;
     $offset    = ($page - 1) * $perPage;
 
     $warehouse    = $this->userWarehouse() ?? $request->warehouse;
@@ -1124,7 +1124,15 @@ public function selectArticle(Request $request)
             ->orderBy('article_code');
     }
 
-    $totalCount = (clone $query)->count('articles.article_code');
+   // Untuk isReferenceWarehouse
+$totalCount = Article::query()
+    ->when(!empty($allowedTypes), fn($q) => $q->whereIn('article_type', $allowedTypes))
+    ->when($search, fn($q) => $q->where(fn($qq) =>
+        $qq->where('article_code', 'like', "%{$search}%")
+           ->orWhere('description', 'like', "%{$search}%")
+    ))
+    ->distinct('article_code')
+    ->count('article_code');
 
     $articles = $query->offset($offset)->limit($perPage)->get();
 

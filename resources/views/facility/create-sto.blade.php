@@ -101,7 +101,7 @@ function autoKondisi($row) {
 // ══════════════════════════════════════════════════════════
 function getSelect2Config(warehouseSelector) {
     return {
-        placeholder: '— pilih part —',
+        placeholder: '— Pilih Part —',
         width: '100%',
         allowClear: true,
         tags: true,
@@ -133,7 +133,9 @@ function getSelect2Config(warehouseSelector) {
                         minPackage: a.min_package,
                         isOther   : false,
                     })),
-                    pagination: data.pagination,
+                   pagination: {
+            more: data.pagination.more  // ← harus object { more: true/false }
+        },
                 };
             },
         },
