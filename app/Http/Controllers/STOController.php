@@ -2532,7 +2532,7 @@ public function signItem(Request $request)
     \DB::table('sto_reference_items')->insert([
         'sto_reference_id'    => $request->master_id,
         'article_code' => $request->article_code,
-        'unit'         => $request->unit,
+        'uom'         => $request->unit,
         'created_at'   => now(),
         'updated_at'   => now(),
     ]);
