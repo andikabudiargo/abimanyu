@@ -122,8 +122,6 @@
                  @if(in_array(auth()->id(), [53, 2]))
     <th class="px-4 py-2 text-center">Qty 1</th>
     <th class="px-4 py-2 text-center">Qty 2</th>
-@else
-    <th class="px-4 py-2 text-center">Qty</th>
 @endif
                     <th class="px-4 py-2 text-center">Packing</th>
                     <th class="px-4 py-2 text-center">UoM</th>
