@@ -376,12 +376,50 @@ $(document).on('click', '.btn-sync-item', function () {
         selectedOpt.text(newText);
         $sel.trigger('change.select2'); // refresh tampilan select2
     }
+
+    
                 
                 // Hapus tombol sync
                 $btn.closest('td').remove();
                 
                 if (window.feather) feather.replace();
             },
+            // Fix tampilan mobile setelah sync
+    const isMobileRow = $row.closest('#mobile-article-list').length > 0;
+    if (isMobileRow) {
+        $row.attr('data-is-ref', '1').attr('data-is-manual', '0');
+        const addrSelectBlock = $row.find('.mobile-addr-select-block');
+        addrSelectBlock.replaceWith(`
+            <div class="mobile-addr-block mt-3">
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Address</label>
+              <div class="mobile-addr-label w-full border rounded px-2 py-1 bg-green-50 text-green-700 text-sm font-semibold">
+                ✓ ${shelfName}
+              </div>
+            </div>
+        `);
+        // Update select2 text di mobile juga
+        const $sel = $row.find('.part-select');
+        if (res.description) {
+            const newText = `${articleCode} - ${res.description}`;
+            $sel.find('option:selected').text(newText);
+            $sel.trigger('change.select2');
+        }
+    } else {
+        // desktop — kode existing
+        $row.attr('data-is-ref', '1').attr('data-is-manual', '0');
+        const addrCell = $row.find('.td-addr-desktop');
+        addrCell.html(`<span class="row-addr-label" style="color:var(--sto-green); font-weight:700;">✓ ${shelfName}</span>`);
+        const $sel = $row.find('.part-select');
+        if (res.description) {
+            const newText = `${articleCode} - ${res.description}`;
+            $sel.find('option:selected').text(newText);
+            $sel.trigger('change.select2');
+        }
+        $btn.closest('td').remove();
+    }
+    
+    if (window.feather) feather.replace();
+},
             error(xhr) {
                 const msg = xhr.responseJSON?.message || 'Gagal menyimpan';
                 Swal.fire({ icon: 'error', title: 'Error', text: msg });
@@ -1162,13 +1200,24 @@ $(document).on('change', '#area_mobile', async function () {
     });
 
 
-    $('#btnAddRowMobile').on('click', function () {
-        const list = document.getElementById('mobile-article-list');
-        if (!list) return;
-        list.insertAdjacentHTML('beforeend', buildMobileRowHtml(mobileRowCount));
-        mobileRowCount++;
-        initSelect2OnRows();
-    });
+    // JADI
+$('#btnAddRowMobile').on('click', function () {
+    const list = document.getElementById('mobile-article-list');
+    if (!list) return;
+
+    const area = document.getElementById('area_mobile')?.value || '';
+    let shelvesOptions = '';
+    if (tableMode === 'area' && area) {
+        shelvesOptions = buildShelfOptionsHtml(WAREHOUSE_VAL, area);
+    }
+
+    list.insertAdjacentHTML('beforeend', buildMobileRowHtml(mobileRowCount, {
+        isRef: false,
+        shelvesOptions
+    }));
+    mobileRowCount++;
+    initSelect2OnRows();
+});
 
     // ── WAREHOUSE CHANGE ──────────────────────────────────
     $(document).on('change', '#warehouse-null, #warehouse-null-desktop, #warehouse-null-desktop-th', function () {

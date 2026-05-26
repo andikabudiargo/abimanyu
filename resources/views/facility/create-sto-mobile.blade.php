@@ -11,8 +11,10 @@
     <!-- MOBILE MODE (CARD STYLE) -->
   <div class="col-span-2 space-y-4" id="mobile-article-list">
   
-    @for ($i = 0; $i < 8; $i++)
-    <div class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 overflow-hidden sto-row" data-row="{{ $i }}">
+   @php $defaultMobileRows = in_array($warehouse ?? null, ['Chemical', 'Consumable']) ? 3 : 8; @endphp
+@for ($i = 0; $i < $defaultMobileRows; $i++)
+    <div class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 overflow-hidden sto-row" 
+     data-row="{{ $i }}" data-is-ref="0" data-is-manual="1">
 
       <!-- HEADER CARD -->
       <div class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-2">
