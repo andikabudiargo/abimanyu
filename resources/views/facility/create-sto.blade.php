@@ -61,6 +61,8 @@ const ARTICLE_SELECT_URL = "{{ route('facility.article.select') }}";
 let desktopRowCount = IS_CHEM_CONS ? 3 : 7;
 let mobileRowCount  = IS_CHEM_CONS ? 3 : 7;
 let shelvesLoaded = false;
+// 'default' | 'area' | 'shelf'
+let tableMode = 'default';
 
 // Cache area → shelves+items, hindari re-fetch
 const areaCache = {};
@@ -78,7 +80,7 @@ function toggleUomByLocation($row) {
     const $uom     = $row.find(`input[name="articles[${row}][uom]"]`);
     const code     = ($row.find(`input[name="articles[${row}][article_code]"]`).val() || '').toUpperCase();
     const loc      = ($row.find('.location-input').val() || '').toLowerCase();
-    const editable = loc.includes('chemical') || loc.includes('consumable');
+    const editable = loc.includes('Chemical') || loc.includes('Consumable');
     if (code === 'OTHER') { $uom.prop('readonly', false); return; }
     $uom.prop('readonly', !editable);
 }
@@ -146,38 +148,81 @@ function initSelect2OnRows() {
 }
 
 // ══════════════════════════════════════════════════════════
-// BUILD ROW HTML
+// BUILD ROW HTML — dengan dropdown address untuk baris manual
 // ══════════════════════════════════════════════════════════
 function buildDesktopRowHtml(idx, opts = {}) {
-    const { articleCode = '', uom = '', minPackage = '', qty = '',
-            isRef = false, location = WAREHOUSE_VAL, kondisi = '' } = opts;
+    const { 
+        articleCode = '', uom = '', minPackage = '', qty = '',
+        isRef = false, location = WAREHOUSE_VAL, kondisi = '',
+        shelvesOptions = ''
+    } = opts;
+
+    const showAddrDropdown = tableMode === 'area' && !isRef;
+
+    // 🔥 DETEKSI: ini row baru (Add Row)
+    const isNewRow = true;
+
+    // 🔥 ADDRESS CELL (SELALU ADA TD)
+    const addrCell = showAddrDropdown
+        ? `<td class="center td-addr-desktop">
+             <select class="addr-select sto-select" name="articles[${idx}][shelf_id]" 
+                     data-row="${idx}" style="font-size:11px; height:32px;">
+               <option value="">— pilih —</option>
+               ${shelvesOptions}
+             </select>
+           </td>`
+        : `<td class="center td-addr-desktop" style="display:none;">
+             <span class="row-addr-label">—</span>
+           </td>`;
+
+    // 🔥 ACTION CELL (SELALU ADA TD, TAPI ISI CONDITIONAL)
+    const actionCell = `
+      <td class="center td-action-col" style="${showAddrDropdown ? '' : 'display:none'}">
+        ${showAddrDropdown && isNewRow ? `
+          <button type="button" class="btn-sync-item sto-btn sto-btn-add" data-row="${idx}"
+                  style="font-size:10px; padding:4px 8px; height:26px;" title="Sync ke Address">
+            <i data-feather="link" class="w-3 h-3"></i> Sync
+          </button>
+        ` : ''}
+      </td>`;
 
     return `
-    <tr class="sto-row" data-is-ref="${isRef ? 1 : 0}">
+    <tr class="sto-row" data-is-ref="${isRef ? 1 : 0}" data-is-manual="${!isRef ? 1 : 0}">
       <input type="hidden" name="articles[${idx}][other_name]" class="other-name-input">
+
       <td class="center"><span class="sto-row-num">${idx + 1}</span></td>
+
       <td>
         <input type="text" name="articles[${idx}][article_code]"
           value="${articleCode}" class="article-code sto-input readonly" readonly>
       </td>
+
       <td>
         <select class="part-select sto-select" name="articles[${idx}][article_id]" data-row="${idx}">
           <option value="">— pilih part —</option>
         </select>
       </td>
-      <td class="center">
+
+      <!-- QTY -->
+      <td class="center td-qty-desktop" style="${tableMode === 'area' ? 'display:none' : ''}">
         <input type="number" min="0" name="articles[${idx}][qty]" value="${qty}"
           class="qty-input sto-input" style="text-align:center;">
       </td>
+
+      <!-- PACKING -->
       <td class="center">
         <input type="text" name="articles[${idx}][min_package]" value="${minPackage}"
           class="part-min-package sto-input readonly" readonly style="text-align:center;">
       </td>
+
+      <!-- UOM -->
       <td class="center">
         <input type="text" name="articles[${idx}][uom]" value="${uom}"
           class="part-uom sto-input ${IS_CHEM_CONS ? '' : 'readonly'}"
           ${IS_CHEM_CONS ? '' : 'readonly'} style="text-align:center;">
       </td>
+
+      <!-- KONDISI -->
       ${IS_CHEM_ONLY ? `
       <td class="center">
         <select name="articles[${idx}][kondisi]" class="kondisi-select sto-select"
@@ -187,18 +232,192 @@ function buildDesktopRowHtml(idx, opts = {}) {
           <option value="Tidak Utuh" ${kondisi === 'Tidak Utuh' ? 'selected' : ''}>Tidak Utuh</option>
         </select>
       </td>` : ''}
+
+      <!-- ADDRESS -->
+      ${addrCell}
+
+      <!-- LOCATION -->
       <td class="center">
         <input type="text" name="articles[${idx}][location]" value="${location}"
           readonly class="location-input sto-input readonly" style="text-align:center;">
       </td>
+
+      <!-- ACTION -->
+      ${actionCell}
     </tr>`;
 }
 
+
+
+// ══════════════════════════════════════════════════════════
+// HELPER: Build shelf options HTML dari cache
+// ══════════════════════════════════════════════════════════
+function buildShelfOptionsHtml(warehouse, area) {
+    const cacheKey = `${warehouse}|${area}`;
+    const cached = areaCache[cacheKey];
+    if (!cached || !cached.shelves) return '';
+    
+    return cached.shelves
+        .filter(s => !s.all_saved)
+        .map(s => `<option value="${s.id}" data-shelves="${s.shelves}">${s.shelves}</option>`)
+        .join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// ADD ROW — dengan dropdown address saat mode area
+// ══════════════════════════════════════════════════════════
+$(document)
+  .off('click', '#btnAddRow')
+  .on('click', '#btnAddRow', function (e) {
+    e.preventDefault();
+
+    const tbody = document.getElementById('article-table');
+    if (!tbody) return;
+
+    const area = document.getElementById('area_desktop')?.value || '';
+    let shelvesOptions = '';
+
+    if (tableMode === 'area' && area) {
+        shelvesOptions = buildShelfOptionsHtml(WAREHOUSE_VAL, area);
+    }
+
+    tbody.insertAdjacentHTML(
+        'beforeend',
+        buildDesktopRowHtml(desktopRowCount, {
+            isRef: false,
+            shelvesOptions
+        })
+    );
+
+    desktopRowCount++;
+
+    initSelect2OnRows();
+    if (window.feather) feather.replace();
+});
+
+// ══════════════════════════════════════════════════════════
+// SYNC ITEM — assign item ke address yang dipilih
+// ══════════════════════════════════════════════════════════
+$(document).on('click', '.btn-sync-item', function () {
+    const $btn  = $(this);
+    const row   = $btn.data('row');
+    const $row  = $btn.closest('.sto-row');
+    
+    const shelfId     = $row.find('.addr-select').val();
+    const shelfName   = $row.find('.addr-select option:selected').data('shelves') || '';
+    const articleCode = $row.find(`input[name="articles[${row}][article_code]"]`).val()?.trim();
+    const uom         = $row.find(`input[name="articles[${row}][uom]"]`).val()?.trim() || '';
+    
+    // Validasi
+    if (!shelfId) {
+        return Swal.fire({ icon: 'warning', title: 'Pilih Address', text: 'Pilih address tujuan terlebih dahulu' });
+    }
+    if (!articleCode) {
+        return Swal.fire({ icon: 'warning', title: 'Pilih Part', text: 'Pilih part terlebih dahulu sebelum sync' });
+    }
+    
+    // Konfirmasi
+    Swal.fire({
+        icon: 'question',
+        title: 'Konfirmasi Sync',
+        html: `Assign <strong>${articleCode}</strong> ke address <strong>${shelfName}</strong>?<br>
+               <small class="text-gray-500">Item akan muncul di referensi address tersebut.</small>`,
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Sync',
+        cancelButtonText: 'Batal',
+    }).then(result => {
+        if (!result.isConfirmed) return;
+        
+        $btn.prop('disabled', true).html('<i data-feather="loader" class="w-3 h-3 animate-spin"></i>');
+        
+        $.ajax({
+            url: '/facility/sto/sign-item',
+            method: 'POST',
+            data: {
+                master_id   : shelfId,
+                article_code: articleCode,
+                unit        : uom,
+                _token      : $('meta[name="csrf-token"]').attr('content'),
+            },
+            success(res) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: res.message,
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
+                
+                // Update cache lokal
+                const area = document.getElementById('area_desktop')?.value || '';
+                const cacheKey = `${WAREHOUSE_VAL}|${area}`;
+                if (areaCache[cacheKey]) {
+                    const shelf = areaCache[cacheKey].shelves?.find(s => String(s.id) === String(shelfId));
+                    if (shelf) {
+                        shelf.items = shelf.items || [];
+                        shelf.items.push({
+                            article_code: articleCode,
+                            unit: uom,
+                            already_saved: false,
+                        });
+                    }
+                }
+                
+                // Ubah tampilan row: ganti dropdown jadi label
+                $row.attr('data-is-ref', '1').attr('data-is-manual', '0');
+                const addrCell = $row.find('.td-addr-desktop');
+                addrCell.html(`<span class="row-addr-label" style="color:var(--sto-green); font-weight:700;">✓ ${shelfName}</span>`);
+                
+                // Hapus tombol sync
+                $btn.closest('td').remove();
+                
+                if (window.feather) feather.replace();
+            },
+            error(xhr) {
+                const msg = xhr.responseJSON?.message || 'Gagal menyimpan';
+                Swal.fire({ icon: 'error', title: 'Error', text: msg });
+            },
+            complete() {
+                $btn.prop('disabled', false).html('<i data-feather="link" class="w-3 h-3"></i> Sync');
+                if (window.feather) feather.replace();
+            }
+        });
+    });
+});
+
+
 function buildMobileRowHtml(idx, opts = {}) {
-    const { articleCode = '', uom = '', minPackage = '',
-            qty = '', location = WAREHOUSE_VAL } = opts;
+    const { 
+        articleCode = '', uom = '', minPackage = '',
+        qty = '', location = WAREHOUSE_VAL,
+        isRef = false, shelvesOptions = ''
+    } = opts;
+    
+    const showAddrDropdown = tableMode === 'area' && !isRef;
+    
+    const addrBlock = showAddrDropdown
+        ? `<div class="mobile-addr-select-block mt-3">
+             <label class="text-xs font-semibold text-gray-600 mb-1 block">Assign ke Address</label>
+             <div class="flex gap-2">
+               <select class="addr-select flex-1 border rounded px-2 py-1 text-sm" 
+                       name="articles[${idx}][shelf_id]" data-row="${idx}">
+                 <option value="">— pilih address —</option>
+                 ${shelvesOptions}
+               </select>
+               <button type="button" class="btn-sync-item px-3 py-1 bg-blue-600 text-white rounded text-xs font-semibold" 
+                       data-row="${idx}">
+                 Sync
+               </button>
+             </div>
+           </div>`
+        : `<div class="mobile-addr-block mt-3" style="${tableMode === 'area' ? '' : 'display:none'}">
+             <label class="text-xs font-semibold text-gray-600 mb-1 block">Address</label>
+             <div class="mobile-addr-label w-full border rounded px-2 py-1 bg-blue-50 text-blue-700 text-sm font-semibold">—</div>
+           </div>`;
+    
     return `
-    <div class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 overflow-hidden sto-row" data-row="${idx}">
+    <div class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 overflow-hidden sto-row" 
+         data-row="${idx}" data-is-ref="${isRef ? 1 : 0}" data-is-manual="${!isRef ? 1 : 0}">
       <div class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-2">
         <span class="header-label text-sm font-semibold">❖ Item ${idx + 1}</span>
       </div>
@@ -208,32 +427,41 @@ function buildMobileRowHtml(idx, opts = {}) {
           <option value="">-- pilih part --</option>
         </select>
         <input type="hidden" name="articles[${idx}][other_name]" class="other-name-input">
+        
         <label class="text-xs font-semibold text-gray-600 mt-3 mb-1 block">Kode Part</label>
         <input type="text" name="articles[${idx}][article_code]" value="${articleCode}"
           class="article-code w-full border rounded px-2 py-1 bg-gray-100 text-sm" readonly>
-        <div class="grid grid-cols-2 gap-3 mt-3">
-          <div>
-            <label class="text-xs font-semibold text-gray-600 mb-1 block">Qty</label>
-            <input type="number" min="0" name="articles[${idx}][qty]" value="${qty}"
-              class="qty-input w-full border rounded px-2 py-1 text-sm">
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-gray-600 mb-1 block">Qty Box</label>
-            <input type="number" min="0" name="articles[${idx}][min_package]" value="${minPackage}"
-              class="w-full border rounded px-2 py-1 bg-gray-100 text-sm" readonly>
+        
+        <div class="mobile-qty-block" style="${tableMode === 'area' ? 'display:none' : ''}">
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Qty</label>
+              <input type="number" min="0" name="articles[${idx}][qty]" value="${qty}"
+                class="qty-input w-full border rounded px-2 py-1 text-sm">
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Packing</label>
+              <input type="number" min="0" name="articles[${idx}][min_package]" value="${minPackage}"
+                class="w-full border rounded px-2 py-1 bg-gray-100 text-sm" readonly>
+            </div>
           </div>
         </div>
+        
+        ${addrBlock}
+        
         <div class="mt-3">
           <label class="text-xs font-semibold text-gray-600 mb-1 block">UOM</label>
           <input type="text" name="articles[${idx}][uom]" value="${uom}"
             class="part-uom w-full border rounded px-2 py-1 bg-gray-100 text-sm" readonly>
         </div>
+        
         <label class="text-xs font-semibold text-gray-600 mt-3 mb-1 block">Location</label>
         <input type="text" name="articles[${idx}][location]" value="${location}" readonly
           class="location-input w-full bg-gray-100 border rounded px-2 py-1 text-sm">
       </div>
     </div>`;
 }
+
 
 // ══════════════════════════════════════════════════════════
 // RESET ROWS
@@ -245,6 +473,7 @@ function resetDesktopRows(n = IS_CHEM_CONS ? 3 : 7) {
     for (let i = 0; i < n; i++) tbody.insertAdjacentHTML('beforeend', buildDesktopRowHtml(i));
     desktopRowCount = n;
     initSelect2OnRows();
+    setQtyColumnMode(tableMode === 'area' ? 'address' : 'qty');
     if (window.feather) feather.replace();
 }
 
@@ -255,6 +484,7 @@ function resetMobileRows(n = IS_CHEM_CONS ? 3 : 7) {
     for (let i = 0; i < n; i++) list.insertAdjacentHTML('beforeend', buildMobileRowHtml(i));
     mobileRowCount = n;
     initSelect2OnRows();
+    setQtyColumnModeMobile(tableMode === 'area' ? 'address' : 'qty');
 }
 
 // ══════════════════════════════════════════════════════════
@@ -336,23 +566,69 @@ async function loadShelves(warehouse, area, shelfEl) {
 }
 
 function toggleSaveButton(warehouse) {
-    const btn = document.getElementById('btnSave');
-    if (!btn) return;
+    const btns = ['btnSave', 'btnSaveMobile'].map(id => document.getElementById(id));
+    const isSpecialWH = ['chemical', 'consumable'].includes((warehouse || '').toLowerCase());
 
-    const isSpecialWH = ['Chemical', 'Consumable'].includes(
-        (warehouse || '').toLowerCase()
-    );
+    btns.forEach(btn => {
+        if (!btn) return;
 
-    if (isSpecialWH) {
-        btn.style.display = shelvesLoaded ? 'inline-flex' : 'none';
-    } else {
-        btn.style.display = 'inline-flex'; // warehouse lain bebas
-    }
+        if (isSpecialWH) {
+            // Hanya muncul kalau benar-benar mode shelf
+            const show = tableMode === 'shelf';
+            btn.style.display = show ? 'inline-flex' : 'none';
+        } else {
+            btn.style.display = 'inline-flex';
+        }
+    });
 }
 
+
 function onWarehouseChange(warehouse) {
-    shelvesLoaded = false; // reset
+    shelvesLoaded = false;
+    tableMode = 'default';
     toggleSaveButton(warehouse);
+}
+
+// ── Switch kolom Qty ↔ Address (desktop) ─────────────────────
+function setQtyColumnMode(mode) {
+    const thQty    = document.getElementById('th-qty-desktop');
+    const thAddr   = document.getElementById('th-addr-desktop');
+    const thAction = document.getElementById('th-action-desktop');
+    
+    if (thQty)    thQty.style.display    = mode === 'address' ? 'none' : '';
+    if (thAddr)   thAddr.style.display   = mode === 'address' ? '' : 'none';
+    if (thAction) thAction.style.display = mode === 'address' ? '' : 'none';
+
+    document.querySelectorAll('.sto-row').forEach(row => {
+        const qtyTd  = row.querySelector('.td-qty-desktop');
+        const addrTd = row.querySelector('.td-addr-desktop');
+        if (!qtyTd || !addrTd) return;
+        
+        if (mode === 'address') {
+            qtyTd.style.display  = 'none';
+            addrTd.style.display = '';
+        } else {
+            qtyTd.style.display  = '';
+            addrTd.style.display = 'none';
+        }
+    });
+}
+
+
+// ── Switch kolom Qty ↔ Address (mobile) ──────────────────────
+function setQtyColumnModeMobile(mode) {
+    document.querySelectorAll('.sto-row').forEach(row => {
+        const qtyDiv  = row.querySelector('.mobile-qty-block');
+        const addrDiv = row.querySelector('.mobile-addr-block');
+        if (!qtyDiv || !addrDiv) return;
+        if (mode === 'address') {
+            qtyDiv.style.display  = 'none';
+            addrDiv.style.display = '';
+        } else {
+            qtyDiv.style.display  = '';
+            addrDiv.style.display = 'none';
+        }
+    });
 }
 
 // Fungsi baru — populate dari semua shelf di area
@@ -389,21 +665,23 @@ async function populateAllItemsFromArea(warehouse, area, mode = 'desktop') {
             }
         });
     });
-
-    if (!allItems.length) {
+if (!allItems.length) {
         // Semua item sudah tersimpan — reset ke baris kosong
         if (mode === 'desktop') resetDesktopRows();
         else resetMobileRows();
         return;
     }
 
-    populateFromItems(allItems, area, '— semua address —', mode);
+    // Set mode area sebelum populate
+    tableMode = 'area';
+    toggleSaveButton(WAREHOUSE_VAL);
+    populateFromItems(allItems, area, '— semua address —', mode, shelves);
 }
 
 // ══════════════════════════════════════════════════════════
 // POPULATE FROM ITEMS (dari cache)
 // ══════════════════════════════════════════════════════════
-function populateFromItems(items, area, shelf, mode = 'desktop') {
+function populateFromItems(items, area, shelf, mode = 'desktop', shelvesData = null) {
     const isMobile  = mode === 'mobile';
     const overlayEl = document.getElementById('rowsLoadingOverlay');
     if (overlayEl) overlayEl.classList.add('active');
@@ -433,6 +711,18 @@ const total = Math.max(defaultMin, items.length);
 
     initSelect2OnRows();
 
+   // Build map: article_code → nama shelf (untuk mode area)
+    const codeToShelf = {};
+    if (shelvesData && tableMode === 'area') {
+        shelvesData.forEach(shelf => {
+            (shelf.items || []).forEach(item => {
+                if (!codeToShelf[item.article_code]) {
+                    codeToShelf[item.article_code] = shelf.shelves || '—';
+                }
+            });
+        });
+    }
+
     items.forEach((item, i) => {
         if (!item.article_code) return;
         const text = item.description
@@ -443,10 +733,31 @@ const total = Math.max(defaultMin, items.length);
         $(`input[name="articles[${i}][article_code]"]`).val(item.article_code);
         $(`input[name="articles[${i}][uom]"]`).val(item.unit        || '');
         $(`input[name="articles[${i}][min_package]"]`).val(item.min_package || '');
-        if (isMobile) {
+
+        // Set address label per row
+        const shelfName = codeToShelf[item.article_code] || '—';
+        if (!isMobile) {
+            const rows = document.querySelectorAll('#article-table .sto-row');
+            if (rows[i]) {
+                const addrSpan = rows[i].querySelector('.row-addr-label');
+                if (addrSpan) addrSpan.textContent = shelfName;
+            }
+        } else {
+            const mobileRow = document.querySelector(`#mobile-article-list .sto-row[data-row="${i}"]`);
+            if (mobileRow) {
+                const addrDiv = mobileRow.querySelector('.mobile-addr-label');
+                if (addrDiv) addrDiv.textContent = shelfName;
+            }
             $(`div[data-row="${i}"] .header-label`).text(item.description || `❖ Item ${i + 1}`);
         }
     });
+
+    // Apply kolom mode setelah rows populated
+    if (!isMobile) {
+        setQtyColumnMode(tableMode === 'area' ? 'address' : 'qty');
+    } else {
+        setQtyColumnModeMobile(tableMode === 'area' ? 'address' : 'qty');
+    }
 
     const sfx      = isMobile ? 'Mobile' : '';
     const banner   = document.getElementById(`refBanner${sfx}`);
@@ -542,6 +853,10 @@ resetMobileRows(Math.max(defaultMobile, items.length));
             if (itemCount) itemCount.textContent = items.length;
             if (btnClear)  btnClear.style.display = '';
 
+          // Mode shelf → tampilkan Qty
+            if (!isMobile) setQtyColumnMode('qty');
+            else setQtyColumnModeMobile('qty');
+
             if (window.feather) feather.replace();
         })
         .catch(err => console.error('Gagal load referensi items:', err))
@@ -602,6 +917,12 @@ function fullReset(usedStoNumber) {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
+
+    tableMode = 'default';
+    toggleSaveButton(WAREHOUSE_VAL);
+    // Reset kolom ke default (Qty)
+    setQtyColumnMode('qty');
+    setQtyColumnModeMobile('qty');
 
     if (isMobile) {
         $('.sto-row').each(function () {
@@ -670,7 +991,12 @@ $(document).on('change', '#area_desktop', async function () {
     await loadShelves(wh, area, shelfEl);
 
     // ✅ populateAllItemsFromArea pakai cache yang sudah ada, tidak double-fetch
-    if (IS_CHEM_CONS) populateAllItemsFromArea(wh, area, 'desktop');
+   // ✅ populateAllItemsFromArea pakai cache yang sudah ada, tidak double-fetch
+    if (IS_CHEM_CONS) {
+        tableMode = 'area';
+        toggleSaveButton(WAREHOUSE_VAL);
+        populateAllItemsFromArea(wh, area, 'desktop');
+    }
 });
 
 $(document).on('change', '#area_mobile', async function () {
@@ -700,7 +1026,12 @@ $(document).on('change', '#area_mobile', async function () {
     await loadShelves(wh, area, shelfEl);
 
     // ✅ pakai cache, tidak double-fetch
-    if (IS_CHEM_CONS) populateAllItemsFromArea(wh, area, 'mobile');
+   // ✅ pakai cache, tidak double-fetch
+    if (IS_CHEM_CONS) {
+        tableMode = 'area';
+        toggleSaveButton(WAREHOUSE_VAL);
+        populateAllItemsFromArea(wh, area, 'mobile');
+    }
 });
 
     // ── SHELF CHANGE ─────────────────────────────────────
@@ -711,19 +1042,29 @@ $(document).on('change', '#area_mobile', async function () {
         const cacheKey    = `${WAREHOUSE_VAL}|${area}`;
 
         // 🔥 TAMBAHKAN INI
-    const isSpecialWH = ['chemical','consumable'].includes((WAREHOUSE_VAL || '').toLowerCase());
-    shelvesLoaded = !!masterId; // true kalau user pilih shelf
-    toggleSaveButton(WAREHOUSE_VAL);
+    shelvesLoaded = !!masterId;
+        if (masterId) {
+            tableMode = 'shelf';
+        } else if (area && IS_CHEM_CONS) {
+            tableMode = 'area';
+        } else {
+            tableMode = 'default';
+        }
+        toggleSaveButton(WAREHOUSE_VAL);
 
         document.getElementById('ref_master_id_desktop').value = masterId || '';
-        if (!masterId) {
-    if (area && IS_CHEM_CONS) {
-        populateAllItemsFromArea(WAREHOUSE_VAL, area, 'desktop'); // ← kembali ke area view
-    } else {
-        resetDesktopRows();
-    }
-    return;
-}
+      if (!masterId) {
+            if (area && IS_CHEM_CONS) {
+                tableMode = 'area';
+                toggleSaveButton(WAREHOUSE_VAL);
+                populateAllItemsFromArea(WAREHOUSE_VAL, area, 'desktop');
+            } else {
+                tableMode = 'default';
+                toggleSaveButton(WAREHOUSE_VAL);
+                resetDesktopRows();
+            }
+            return;
+        }
 
         const cached = areaCache[cacheKey];
         if (cached) {
@@ -743,9 +1084,15 @@ $(document).on('change', '#area_mobile', async function () {
         const cacheKey    = `${WAREHOUSE_VAL}|${area}`;
 
 // 🔥 TAMBAHKAN INI
-    const isSpecialWH = ['chemical','consumable'].includes((WAREHOUSE_VAL || '').toLowerCase());
-    shelvesLoaded = !!masterId; // true kalau user pilih shelf
-    toggleSaveButton(WAREHOUSE_VAL);
+   shelvesLoaded = !!masterId;
+        if (masterId) {
+            tableMode = 'shelf';
+        } else if (document.getElementById('area_mobile')?.value) {
+            tableMode = 'area';
+        } else {
+            tableMode = 'default';
+        }
+        toggleSaveButton(WAREHOUSE_VAL);
 
         document.getElementById('shelf_value_mobile').value = shelvesName;
         const refHid = document.getElementById('ref_master_id_mobile');
@@ -773,7 +1120,10 @@ $(document).on('change', '#area_mobile', async function () {
         document.getElementById('ref_master_id_desktop').value = '';
         const banner = document.getElementById('refBanner');
         if (banner) banner.classList.add('hidden');
-        $(this).hide();
+       $(this).hide();
+        tableMode = 'default';
+        shelvesLoaded = false;
+        toggleSaveButton(WAREHOUSE_VAL);
         resetDesktopRows(7);
     });
 
@@ -788,19 +1138,13 @@ $(document).on('change', '#area_mobile', async function () {
         if (refHid) refHid.value = '';
         const banner = document.getElementById('refBannerMobile');
         if (banner) banner.classList.add('hidden');
-        $(this).hide();
+       $(this).hide();
+        tableMode = 'default';
+        shelvesLoaded = false;
+        toggleSaveButton(WAREHOUSE_VAL);
         resetMobileRows(8);
     });
 
-    // ── ADD ROW ───────────────────────────────────────────
-    $('#btnAddRow').on('click', function () {
-        const tbody = document.getElementById('article-table');
-        if (!tbody) return;
-        tbody.insertAdjacentHTML('beforeend', buildDesktopRowHtml(desktopRowCount));
-        desktopRowCount++;
-        initSelect2OnRows();
-        if (window.feather) feather.replace();
-    });
 
     $('#btnAddRowMobile').on('click', function () {
         const list = document.getElementById('mobile-article-list');
@@ -938,7 +1282,7 @@ $(document).on('change', '#area_mobile', async function () {
             complete() { $('#btnSave, #btnSaveMobile').prop('disabled', false).text('Save'); },
         });
     });
-
+syncTableHeader();
 }); // end document.ready
 </script>
 @endpush

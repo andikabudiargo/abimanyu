@@ -281,6 +281,10 @@ Route::get('/sto/review', [STOController::class, 'exportReview']);
          ->name('sto.reference.shelves');
     Route::get('/sto/reference/items',  [STOController::class, 'getReferenceItems'])
          ->name('sto.reference.items');
+         // routes/web.php
+Route::post('/sto/sign-item', [STOController::class, 'signItem'])
+    ->name('facility.sto.sign-item');
+
 Route::get('/sto/check-area-shelf', [STOController::class, 'checkAreaShelf']);
  Route::get('/atk/dashboard', [ATKController::class, 'index'])->name('atk.index');
      Route::post('/atk/add', [AtkController::class, 'store'])->name('atk.store');

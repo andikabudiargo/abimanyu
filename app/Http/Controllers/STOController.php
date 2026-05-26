@@ -2506,4 +2506,42 @@ public function getReferenceItems(Request $request)
     return response()->json(['items' => $items]);
 }
 
+// app/Http/Controllers/StoController.php
+
+public function signItem(Request $request)
+{
+    $request->validate([
+        'master_id'    => 'required|exists:sto_reference_masters,id',
+        'article_code' => 'required|string|max:50',
+        'unit'         => 'nullable|string|max:20',
+    ]);
+
+    // Cek duplikat
+    $exists = \DB::table('sto_reference_items')
+        ->where('sto_reference_id', $request->master_id)
+        ->where('article_code', $request->article_code)
+        ->exists();
+
+    if ($exists) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Article sudah ada di address ini',
+        ], 422);
+    }
+
+    \DB::table('sto_reference_items')->insert([
+        'sto_reference_id'    => $request->master_id,
+        'article_code' => $request->article_code,
+        'unit'         => $request->unit,
+        'created_at'   => now(),
+        'updated_at'   => now(),
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Item berhasil di-assign ke address',
+    ]);
+}
+
+
 }

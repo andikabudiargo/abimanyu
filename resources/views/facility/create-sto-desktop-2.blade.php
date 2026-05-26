@@ -386,6 +386,27 @@
   .sto-body { padding: 20px 16px; }
   .sto-header { padding: 16px 20px; }
 }
+
+/* ── Mode Area: header Address kolom ──────────────────────── */
+.sto-table thead .td-addr-col { display: none; }
+.sto-table thead .td-qty-col  { }
+
+/* Sinkronkan via JS — class .mode-area di table */
+.sto-table.mode-area thead .td-addr-col { display: table-cell; }
+.sto-table.mode-area thead .td-qty-col  { display: none; }
+
+/* Address label styling di cell */
+.sto-addr-badge {
+  display: inline-flex; align-items: center;
+  background: var(--sto-blue-light);
+  border: 1px solid var(--sto-blue-border);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sto-blue);
+  white-space: nowrap;
+}
 </style>
 @endpush
 
@@ -562,19 +583,23 @@
                 <th style="width:36px; text-align:center;">#</th>
                 <th style="width:120px;">Part Code</th>
                 <th>Part Name</th>
-                <th class="center" style="width:90px;">Qty</th>
+                <th class="center td-qty-col" id="th-qty-desktop" style="width:90px;">Qty</th>
+                
                 <th class="center" style="width:80px;">Packing</th>
                 <th class="center" style="width:80px;">UOM</th>
                 @if(($warehouse ?? null) === 'Chemical')
                 <th class="center" style="width:110px;">Kondisi</th>
                 @endif
+                <th id="th-addr-desktop" class="center" style="width:90px;">
+  Address
+</th>
                 <th class="center" style="width:160px;">
                   Location
                   
                     <div style="font-size:11px; font-weight:400; opacity:.75; margin-top:2px;">{{ $warehouse }}</div>
                 
                 </th>
-               
+               <th class="center td-action-col" id="th-action-desktop" style="width:70px; display:none;">Action</th>
               </tr>
             </thead>
            <tbody id="article-table">
@@ -617,7 +642,7 @@
         </select>
       </td>
 
-      <td class="center">
+     <td class="center td-qty-desktop">
         <input type="number" min="0"
           name="articles[{{ $i }}][qty]"
           value=""
@@ -625,6 +650,7 @@
           style="text-align:center;">
       </td>
 
+    
       <td class="center">
         <input type="text"
           name="articles[{{ $i }}][min_package]"
@@ -654,6 +680,11 @@
         </select>
       </td>
       @endif
+
+        <td class="center td-addr-desktop" style=" color:var(--sto-blue); font-size:11px; font-weight:600;">
+        <span class="row-addr-label">—</span>
+      </td>
+
 
       <td class="center">
         <input type="text"

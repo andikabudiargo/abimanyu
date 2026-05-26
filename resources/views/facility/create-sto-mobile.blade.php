@@ -46,23 +46,29 @@
               class="article-code w-full border rounded px-2 py-1 bg-gray-100"
               readonly>
 
-        <!-- QTY + UOM in one row -->
-        <div class="grid grid-cols-2 gap-3 mt-3">
-          <div>
-            <label class="text-xs font-semibold text-gray-600 mb-1 block">Qty</label>
-            <input type="number"
-                  min="0"
-                  name="articles[{{ $i }}][qty]"
-                  class="w-full border rounded px-2 py-1">
+       <!-- QTY block (hidden saat mode area) -->
+        <div class="mobile-qty-block">
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Qty</label>
+              <input type="number"
+                    min="0"
+                    name="articles[{{ $i }}][qty]"
+                    class="qty-input w-full border rounded px-2 py-1">
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Packing</label>
+              <input type="number"
+                    min="0"
+                    name="articles[{{ $i }}][min_package]"
+                    class="w-full border rounded px-2 py-1 bg-gray-100">
+            </div>
           </div>
-
-          <div>
-            <label class="text-xs font-semibold text-gray-600 mb-1 block">Packing</label>
-            <input type="number"
-                  min="0"
-                  name="articles[{{ $i }}][min_package]"
-                  class="w-full border rounded px-2 py-1 bg-gray-100">
-          </div>
+        </div>
+        <!-- ADDRESS block (muncul saat mode area) -->
+        <div class="mobile-addr-block mt-3" style="display:none;">
+          <label class="text-xs font-semibold text-gray-600 mb-1 block">Address</label>
+          <div class="mobile-addr-label w-full border rounded px-2 py-1 bg-blue-50 text-blue-700 text-sm font-semibold">—</div>
         </div>
 
         <!-- LOCATION -->
