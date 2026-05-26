@@ -416,30 +416,45 @@ function buildMobileRowHtml(idx, opts = {}) {
     const { 
         articleCode = '', uom = '', minPackage = '',
         qty = '', location = WAREHOUSE_VAL,
-        isRef = false, shelvesOptions = ''
+        isRef = false, shelvesOptions = '',
+        kondisi = ''
     } = opts;
     
-    const showAddrDropdown = tableMode === 'area' && !isRef;
-    
-    const addrBlock = showAddrDropdown
-        ? `<div class="mobile-addr-select-block mt-3">
-             <label class="text-xs font-semibold text-gray-600 mb-1 block">Assign ke Address</label>
-             <div class="flex gap-2">
-               <select class="addr-select flex-1 border rounded px-2 py-1 text-sm" 
-                       name="articles[${idx}][shelf_id]" data-row="${idx}">
-                 <option value="">— pilih address —</option>
-                 ${shelvesOptions}
-               </select>
-               <button type="button" class="btn-sync-item px-3 py-1 bg-blue-600 text-white rounded text-xs font-semibold" 
-                       data-row="${idx}">
-                 Sync
-               </button>
-             </div>
-           </div>`
-        : `<div class="mobile-addr-block mt-3" style="${tableMode === 'area' ? '' : 'display:none'}">
-             <label class="text-xs font-semibold text-gray-600 mb-1 block">Address</label>
-             <div class="mobile-addr-label w-full border rounded px-2 py-1 bg-blue-50 text-blue-700 text-sm font-semibold">—</div>
-           </div>`;
+    const showAddrDropdown = tableMode === 'area' && !isRef;  // hanya manual + mode area
+
+    let addrBlock;
+    if (isRef) {
+        // Baris referensi: label address saja, tampil hanya saat mode area
+        addrBlock = `
+            <div class="mobile-addr-block mt-3" style="${tableMode === 'area' ? '' : 'display:none'}">
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Address</label>
+              <div class="mobile-addr-label w-full border rounded px-2 py-1 bg-blue-50 text-blue-700 text-sm font-semibold">—</div>
+            </div>`;
+    } else if (showAddrDropdown) {
+        // Baris manual di mode area: dropdown + sync button
+        addrBlock = `
+            <div class="mobile-addr-select-block mt-3">
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Assign ke Address</label>
+              <div class="flex gap-2">
+                <select class="addr-select flex-1 border rounded px-2 py-1 text-sm" 
+                        name="articles[${idx}][shelf_id]" data-row="${idx}">
+                  <option value="">— pilih address —</option>
+                  ${shelvesOptions}
+                </select>
+                <button type="button" class="btn-sync-item px-3 py-1 bg-blue-600 text-white rounded text-xs font-semibold" 
+                        data-row="${idx}">
+                  Sync
+                </button>
+              </div>
+            </div>`;
+    } else {
+        // Baris manual di mode non-area: sembunyikan address block
+        addrBlock = `
+            <div class="mobile-addr-block mt-3" style="display:none;">
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Address</label>
+              <div class="mobile-addr-label w-full border rounded px-2 py-1 bg-blue-50 text-blue-700 text-sm font-semibold">—</div>
+            </div>`;
+    }
     
     return `
     <div class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 overflow-hidden sto-row" 
@@ -480,6 +495,16 @@ function buildMobileRowHtml(idx, opts = {}) {
           <input type="text" name="articles[${idx}][uom]" value="${uom}"
             class="part-uom w-full border rounded px-2 py-1 bg-gray-100 text-sm" readonly>
         </div>
+
+        ${IS_CHEM_ONLY ? `
+        <div class="mt-3">
+          <label class="text-xs font-semibold text-gray-600 mb-1 block">Kondisi</label>
+          <select name="articles[${idx}][kondisi]" class="kondisi-select w-full border rounded px-2 py-1 text-sm">
+            <option value="">—</option>
+            <option value="Utuh" ${kondisi === 'Utuh' ? 'selected' : ''}>Utuh</option>
+            <option value="Tidak Utuh" ${kondisi === 'Tidak Utuh' ? 'selected' : ''}>Tidak Utuh</option>
+          </select>
+        </div>` : ''}
         
         <label class="text-xs font-semibold text-gray-600 mt-3 mb-1 block">Location</label>
         <input type="text" name="articles[${idx}][location]" value="${location}" readonly
@@ -507,7 +532,18 @@ function resetMobileRows(n = IS_CHEM_CONS ? 3 : 7) {
     const list = document.getElementById('mobile-article-list');
     if (!list) return;
     list.innerHTML = '';
-    for (let i = 0; i < n; i++) list.insertAdjacentHTML('beforeend', buildMobileRowHtml(i));
+
+    const area_val = document.getElementById('area_mobile')?.value || '';
+    const shelvesOpts = (tableMode === 'area' && area_val)
+        ? buildShelfOptionsHtml(WAREHOUSE_VAL, area_val)
+        : '';
+
+    for (let i = 0; i < n; i++) {
+        list.insertAdjacentHTML('beforeend', buildMobileRowHtml(i, {
+            isRef         : false,
+            shelvesOptions: shelvesOpts,
+        }));
+    }
     mobileRowCount = n;
     initSelect2OnRows();
     setQtyColumnModeMobile(tableMode === 'area' ? 'address' : 'qty');
@@ -732,11 +768,43 @@ const total = Math.max(defaultMin, items.length);
         }
         desktopRowCount = total;
     } else {
-        resetMobileRows(Math.max(8, items.length));
+       } else {
+        // ── MOBILE: build rows manual, bukan pakai resetMobileRows ──
+        const list = document.getElementById('mobile-article-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        const defaultMin = IS_CHEM_CONS ? 3 : 8;
+        const total = Math.max(defaultMin, items.length);
+
+        // Baris referensi (isRef=true) — TIDAK dapat dropdown/sync
+        items.forEach((item, i) => {
+            list.insertAdjacentHTML('beforeend', buildMobileRowHtml(i, {
+                articleCode: item.article_code || '',
+                uom        : item.unit         || '',
+                minPackage : item.min_package  || '',
+                isRef      : true,              // ← KUNCI: baris ref tidak dapat sync
+                location   : WAREHOUSE_VAL,
+            }));
+        });
+
+        // Baris kosong tambahan (isRef=false) — boleh dapat dropdown jika mode area
+        const area_val = document.getElementById('area_mobile')?.value || '';
+        const shelvesOpts = (tableMode === 'area' && area_val)
+            ? buildShelfOptionsHtml(WAREHOUSE_VAL, area_val)
+            : '';
+
+        for (let i = items.length; i < total; i++) {
+            list.insertAdjacentHTML('beforeend', buildMobileRowHtml(i, {
+                isRef         : false,
+                shelvesOptions: shelvesOpts,
+            }));
+        }
+
+        mobileRowCount = total;
     }
 
     initSelect2OnRows();
-
    // Build map: article_code → nama shelf (untuk mode area)
     const codeToShelf = {};
     if (shelvesData && tableMode === 'area') {
