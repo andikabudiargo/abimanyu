@@ -308,7 +308,6 @@ $(document).on('click', '.btn-sync-item', function () {
     const articleCode = $row.find(`input[name="articles[${row}][article_code]"]`).val()?.trim();
     const uom         = $row.find(`input[name="articles[${row}][uom]"]`).val()?.trim() || '';
     
-    // Validasi
     if (!shelfId) {
         return Swal.fire({ icon: 'warning', title: 'Pilih Address', text: 'Pilih address tujuan terlebih dahulu' });
     }
@@ -316,7 +315,6 @@ $(document).on('click', '.btn-sync-item', function () {
         return Swal.fire({ icon: 'warning', title: 'Pilih Part', text: 'Pilih part terlebih dahulu sebelum sync' });
     }
     
-    // Konfirmasi
     Swal.fire({
         icon: 'question',
         title: 'Konfirmasi Sync',
@@ -349,77 +347,58 @@ $(document).on('click', '.btn-sync-item', function () {
                 });
                 
                 // Update cache lokal
-                const area = document.getElementById('area_desktop')?.value || '';
+                const area = document.getElementById('area_desktop')?.value
+                          || document.getElementById('area_mobile')?.value
+                          || '';
                 const cacheKey = `${WAREHOUSE_VAL}|${area}`;
                 if (areaCache[cacheKey]) {
                     const shelf = areaCache[cacheKey].shelves?.find(s => String(s.id) === String(shelfId));
                     if (shelf) {
                         shelf.items = shelf.items || [];
                         shelf.items.push({
-                            article_code: articleCode,
-                            description : res.description ?? null,  // ← tambahkan ini
-                            unit: uom,
+                            article_code : articleCode,
+                            description  : res.description ?? null,
+                            unit         : uom,
                             already_saved: false,
                         });
                     }
                 }
-                
-                // Ubah tampilan row: ganti dropdown jadi label
-                $row.attr('data-is-ref', '1').attr('data-is-manual', '0');
-                const addrCell = $row.find('.td-addr-desktop');
-                addrCell.html(`<span class="row-addr-label" style="color:var(--sto-green); font-weight:700;">✓ ${shelfName}</span>`);
 
-                 const $sel = $row.find('.part-select');
-    if (res.description) {
-        const newText = `${articleCode} - ${res.description}`;
-        const selectedOpt = $sel.find('option:selected');
-        selectedOpt.text(newText);
-        $sel.trigger('change.select2'); // refresh tampilan select2
-    }
+                // Deteksi desktop vs mobile
+                const isMobileRow = $row.closest('#mobile-article-list').length > 0;
 
-    
-                
-                // Hapus tombol sync
-                $btn.closest('td').remove();
-                
+                if (isMobileRow) {
+                    // ── MOBILE ──────────────────────────────────
+                    $row.attr('data-is-ref', '1').attr('data-is-manual', '0');
+                    $row.find('.mobile-addr-select-block').replaceWith(`
+                        <div class="mobile-addr-block mt-3">
+                          <label class="text-xs font-semibold text-gray-600 mb-1 block">Address</label>
+                          <div class="mobile-addr-label w-full border rounded px-2 py-1 bg-green-50 text-green-700 text-sm font-semibold">
+                            ✓ ${shelfName}
+                          </div>
+                        </div>
+                    `);
+                    const $selM = $row.find('.part-select');
+                    if (res.description) {
+                        $selM.find('option:selected').text(`${articleCode} - ${res.description}`);
+                        $selM.trigger('change.select2');
+                    }
+                } else {
+                    // ── DESKTOP ──────────────────────────────────
+                    $row.attr('data-is-ref', '1').attr('data-is-manual', '0');
+                    $row.find('.td-addr-desktop').html(
+                        `<span class="row-addr-label" style="color:var(--sto-green); font-weight:700;">✓ ${shelfName}</span>`
+                    );
+                    const $selD = $row.find('.part-select');
+                    if (res.description) {
+                        $selD.find('option:selected').text(`${articleCode} - ${res.description}`);
+                        $selD.trigger('change.select2');
+                    }
+                    $btn.closest('td').remove();
+                }
+
                 if (window.feather) feather.replace();
             },
-            // Fix tampilan mobile setelah sync
-    const isMobileRow = $row.closest('#mobile-article-list').length > 0;
-    if (isMobileRow) {
-        $row.attr('data-is-ref', '1').attr('data-is-manual', '0');
-        const addrSelectBlock = $row.find('.mobile-addr-select-block');
-        addrSelectBlock.replaceWith(`
-            <div class="mobile-addr-block mt-3">
-              <label class="text-xs font-semibold text-gray-600 mb-1 block">Address</label>
-              <div class="mobile-addr-label w-full border rounded px-2 py-1 bg-green-50 text-green-700 text-sm font-semibold">
-                ✓ ${shelfName}
-              </div>
-            </div>
-        `);
-        // Update select2 text di mobile juga
-        const $sel = $row.find('.part-select');
-        if (res.description) {
-            const newText = `${articleCode} - ${res.description}`;
-            $sel.find('option:selected').text(newText);
-            $sel.trigger('change.select2');
-        }
-    } else {
-        // desktop — kode existing
-        $row.attr('data-is-ref', '1').attr('data-is-manual', '0');
-        const addrCell = $row.find('.td-addr-desktop');
-        addrCell.html(`<span class="row-addr-label" style="color:var(--sto-green); font-weight:700;">✓ ${shelfName}</span>`);
-        const $sel = $row.find('.part-select');
-        if (res.description) {
-            const newText = `${articleCode} - ${res.description}`;
-            $sel.find('option:selected').text(newText);
-            $sel.trigger('change.select2');
-        }
-        $btn.closest('td').remove();
-    }
-    
-    if (window.feather) feather.replace();
-},
             error(xhr) {
                 const msg = xhr.responseJSON?.message || 'Gagal menyimpan';
                 Swal.fire({ icon: 'error', title: 'Error', text: msg });
