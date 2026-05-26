@@ -768,7 +768,6 @@ const total = Math.max(defaultMin, items.length);
         }
         desktopRowCount = total;
     } else {
-       } else {
         // ── MOBILE: build rows manual, bukan pakai resetMobileRows ──
         const list = document.getElementById('mobile-article-list');
         if (!list) return;
