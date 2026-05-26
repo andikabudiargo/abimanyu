@@ -63,6 +63,11 @@ let mobileRowCount  = IS_CHEM_CONS ? 1 : 7;
 let shelvesLoaded = false;
 // 'default' | 'area' | 'shelf'
 let tableMode = 'default';
+let lastArea = null;
+
+$(document).on('change', '#area_desktop, #area_mobile', function () {
+    lastArea = $(this).val();
+});
 
 // Cache area → shelves+items, hindari re-fetch
 const areaCache = {};
@@ -1006,10 +1011,23 @@ function fullReset(usedStoNumber) {
     // Bersihkan cache agar data fresh setelah save
     Object.keys(areaCache).forEach(k => delete areaCache[k]);
 
-    if (IS_CHEM_CONS) {
-        loadAreas(WAREHOUSE_VAL, document.getElementById('area_desktop'));
-        loadAreas(WAREHOUSE_VAL, document.getElementById('area_mobile'));
+   if (IS_CHEM_CONS) {
+    const areaDesktop = document.getElementById('area_desktop');
+    const areaMobile  = document.getElementById('area_mobile');
+
+    // load ulang area
+    loadAreas(WAREHOUSE_VAL, areaDesktop);
+    loadAreas(WAREHOUSE_VAL, areaMobile);
+
+    // 🔥 restore area saja (tanpa shelf)
+    if (lastArea) {
+        setTimeout(() => {
+            $('#area_desktop, #area_mobile')
+                .val(lastArea)
+                .trigger('change'); // ini akan reload shelf list (kosong)
+        }, 300);
     }
+}
 
     ['refBanner', 'refBannerMobile'].forEach(id => {
         const el = document.getElementById(id);
