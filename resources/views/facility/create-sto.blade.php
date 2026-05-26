@@ -58,8 +58,8 @@ const AREA_URL           = '/facility/sto/reference/areas';
 const ITEMS_URL          = '/facility/sto/reference/items';
 const ARTICLE_SELECT_URL = "{{ route('facility.article.select') }}";
 
-let desktopRowCount = IS_CHEM_CONS ? 3 : 7;
-let mobileRowCount  = IS_CHEM_CONS ? 3 : 7;
+let desktopRowCount = IS_CHEM_CONS ? 1 : 7;
+let mobileRowCount  = IS_CHEM_CONS ? 1 : 7;
 let shelvesLoaded = false;
 // 'default' | 'area' | 'shelf'
 let tableMode = 'default';
@@ -519,7 +519,7 @@ function buildMobileRowHtml(idx, opts = {}) {
 // ══════════════════════════════════════════════════════════
 // RESET ROWS
 // ══════════════════════════════════════════════════════════
-function resetDesktopRows(n = IS_CHEM_CONS ? 3 : 7) {
+function resetDesktopRows(n = IS_CHEM_CONS ? 1 : 7) {
     const tbody = document.getElementById('article-table');
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -530,7 +530,7 @@ function resetDesktopRows(n = IS_CHEM_CONS ? 3 : 7) {
     if (window.feather) feather.replace();
 }
 
-function resetMobileRows(n = IS_CHEM_CONS ? 3 : 7) {
+function resetMobileRows(n = IS_CHEM_CONS ? 1 : 7) {
     const list = document.getElementById('mobile-article-list');
     if (!list) return;
     list.innerHTML = '';
@@ -754,7 +754,7 @@ function populateFromItems(items, area, shelf, mode = 'desktop', shelvesData = n
         const tbody = document.getElementById('article-table');
         if (!tbody) return;
         tbody.innerHTML = '';
-        const defaultMin = IS_CHEM_CONS ? 3 : 7;
+        const defaultMin = IS_CHEM_CONS ? 1 : 7;
 const total = Math.max(defaultMin, items.length);
         items.forEach((item, i) => {
             tbody.insertAdjacentHTML('beforeend', buildDesktopRowHtml(i, {
@@ -775,7 +775,7 @@ const total = Math.max(defaultMin, items.length);
         if (!list) return;
         list.innerHTML = '';
 
-        const defaultMin = IS_CHEM_CONS ? 3 : 8;
+        const defaultMin = IS_CHEM_CONS ? 1 : 7;
         const total = Math.max(defaultMin, items.length);
 
         // Baris referensi (isRef=true) — TIDAK dapat dropdown/sync
@@ -892,7 +892,7 @@ function populateFromReference(masterId, area, shelf, mode = 'desktop') {
                 const tbody = document.getElementById('article-table');
                 if (!tbody) return;
                 tbody.innerHTML = '';
-                const defaultMobile = IS_CHEM_CONS ? 3 : 8;
+                const defaultMobile = IS_CHEM_CONS ? 1 : 7;
 resetMobileRows(Math.max(defaultMobile, items.length));
                 items.forEach((item, i) => {
                     tbody.insertAdjacentHTML('beforeend', buildDesktopRowHtml(i, {
