@@ -178,7 +178,8 @@
 }
 </style>
 @endpush
-<div class="pc-container lg:ml-[264px] p-6 min-h-screen sto-wrap">
+
+<div class="pc-container ml-[264px] p-6 min-h-screen sto-wrap">
 
   {{-- Page Header --}}
   <div class="page-header">
