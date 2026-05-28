@@ -260,7 +260,7 @@
         </div>
         @if($sto->area)
         <div class="sto-field">
-          <label>Rack / Area</label>
+          <label>Rack</label>
           <div style="display:flex;align-items:center;height:36px;">
             <span class="sto-location-tag">
               <i data-feather="layers" class="w-3 h-3"></i>
@@ -269,13 +269,13 @@
           </div>
         </div>
         @endif
-        @if($sto->shelf)
+        @if($sto->shelves)
         <div class="sto-field">
           <label>Address</label>
           <div style="display:flex;align-items:center;height:36px;">
             <span class="sto-location-tag">
               <i data-feather="grid" class="w-3 h-3"></i>
-              {{ $sto->shelf }}
+              {{ $sto->shelves }}
             </span>
           </div>
         </div>
