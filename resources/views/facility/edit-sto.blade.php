@@ -1,4 +1,4 @@
-@extends('layouts.app-sto')
+@extends('layouts.app')
 
 @section('title', 'Edit STO')
 @section('page-title', 'EDIT STO')

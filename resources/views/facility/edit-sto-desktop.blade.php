@@ -212,19 +212,6 @@
         <p>Edit — {{ $sto->sto_number }}</p>
       </div>
       <div style="display:flex; align-items:center; gap:12px;">
-        @if($isSuperUser)
-          <div class="sto-mode-badge mode-super">
-            <span class="dot"></span> Superuser — Dual Qty
-          </div>
-        @elseif($isSecondUser)
-          <div class="sto-mode-badge mode-edit">
-            <span class="dot"></span> Verificator 2
-          </div>
-        @else
-          <div class="sto-mode-badge mode-edit">
-            <span class="dot"></span> Verificator 1
-          </div>
-        @endif
         <div class="sto-logo-wrap">
           <img src="{{ asset('img/logo.png') }}" alt="Company Logo">
         </div>
@@ -296,16 +283,6 @@
         <div class="sto-alert-banner blue mb-6" style="background:rgba(13,71,161,.06);border-color:var(--sto-blue-border);">
           <i data-feather="shield" class="w-4 h-4" style="flex-shrink:0;"></i>
           <span>Mode <strong>Superuser</strong> — Qty → <strong>Verificator 1</strong> &nbsp;|&nbsp; Qty 2 → <strong>Verificator 2</strong>.</span>
-        </div>
-      @elseif($isSecondUser)
-        <div class="sto-alert-banner amber mb-6">
-          <i data-feather="alert-circle" class="w-4 h-4" style="flex-shrink:0;"></i>
-          <span>Anda <strong>Verificator 2</strong>. Input Qty disimpan ke kolom <strong>Qty 2</strong>.</span>
-        </div>
-      @else
-        <div class="sto-alert-banner blue mb-6">
-          <i data-feather="info" class="w-4 h-4" style="flex-shrink:0;"></i>
-          <span>Anda <strong>Verificator 1</strong>. Input Qty disimpan ke kolom <strong>Qty</strong>.</span>
         </div>
       @endif
 
