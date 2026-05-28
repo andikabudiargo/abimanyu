@@ -658,6 +658,8 @@ function onWarehouseChange(warehouse) {
     toggleSaveButton(warehouse);
 }
 
+toggleSaveButton(warehouse);
+
 // ── Switch kolom Qty ↔ Address (desktop) ─────────────────────
 function setQtyColumnMode(mode) {
     const thQty    = document.getElementById('th-qty-desktop');
@@ -1414,8 +1416,7 @@ $('#btnAddRowMobile').on('click', function () {
         });
     });
 syncTableHeader();
-  const warehouse = $('#warehouse').val(); // atau source kamu
-    toggleSaveButton(warehouse);
+    
 }); // end document.ready
 </script>
 @endpush
