@@ -658,7 +658,7 @@ function onWarehouseChange(warehouse) {
     toggleSaveButton(warehouse);
 }
 
-toggleSaveButton(warehouse);
+
 
 // ── Switch kolom Qty ↔ Address (desktop) ─────────────────────
 function setQtyColumnMode(mode) {
