@@ -930,15 +930,13 @@ const total = Math.max(defaultMin, items.length);
         });
     }
 
-  // Di dalam forEach items setelah $sel.append(...)
-items.forEach((item, i) => {
+ items.forEach((item, i) => {
     if (!item.article_code) return;
 
-    const text = item.description
+    const text        = item.description
         ? `${item.article_code} - ${item.description}`
         : item.article_code;
-
-    const $sel = $(`select[name="articles[${i}][article_id]"]`);
+    const $sel        = $(`select[name="articles[${i}][article_id]"]`);
     const optionValue = item.article_id || item.article_code;
 
     $sel.append(new Option(text, optionValue, true, true)).trigger('change');
@@ -947,43 +945,31 @@ items.forEach((item, i) => {
     $(`input[name="articles[${i}][article_code]"]`).val(item.article_code);
     $(`input[name="articles[${i}][min_package]"]`).val(item.min_package || '');
 
-    // ── [BARU] Simpan UOM dari referensi ke data attribute ──
+    // UOM dari referensi — simpan ke data attribute
     const $uomField = $(`input[name="articles[${i}][uom]"]`);
-    const refUom    = item.unit || '';          // ← dari sto_reference_items.uom
+    const refUom    = item.unit || '';
     $uomField
         .val(refUom)
-        .data('ref-uom', refUom)               // ← simpan untuk dipakai saat select2:select
-        .data('original-uom', refUom);         // ← simpan untuk dikembalikan saat Utuh
+        .data('ref-uom', refUom)
+        .data('original-uom', refUom);
 
-    const $sel = $(`select[name="articles[${i}][article_id]"]`);
-    
-    // Gunakan article_id sebagai value (konsisten dengan populateFromReference)
-    const optionValue = item.article_id || item.article_code;
-    $sel.append(new Option(text, optionValue, true, true)).trigger('change');
-    
-    // Set fields secara eksplisit karena trigger('change') tidak fire select2:select
-    $(`input[name="articles[${i}][article_code]"]`).val(item.article_code);
-    $(`input[name="articles[${i}][uom]"]`).val(item.unit || '');
-    $(`input[name="articles[${i}][min_package]"]`).val(item.min_package || '');
-    // ...
-
-        // Set address label per row
-        const shelfName = codeToShelf[item.article_code] || '—';
-        if (!isMobile) {
-            const rows = document.querySelectorAll('#article-table .sto-row');
-            if (rows[i]) {
-                const addrSpan = rows[i].querySelector('.row-addr-label');
-                if (addrSpan) addrSpan.textContent = shelfName;
-            }
-        } else {
-            const mobileRow = document.querySelector(`#mobile-article-list .sto-row[data-row="${i}"]`);
-            if (mobileRow) {
-                const addrDiv = mobileRow.querySelector('.mobile-addr-label');
-                if (addrDiv) addrDiv.textContent = shelfName;
-            }
-            $(`div[data-row="${i}"] .header-label`).text(item.description || `❖ Item ${i + 1}`);
+    // Set address label per row
+    const shelfName = codeToShelf[item.article_code] || '—';
+    if (!isMobile) {
+        const rows = document.querySelectorAll('#article-table .sto-row');
+        if (rows[i]) {
+            const addrSpan = rows[i].querySelector('.row-addr-label');
+            if (addrSpan) addrSpan.textContent = shelfName;
         }
-    });
+    } else {
+        const mobileRow = document.querySelector(`#mobile-article-list .sto-row[data-row="${i}"]`);
+        if (mobileRow) {
+            const addrDiv = mobileRow.querySelector('.mobile-addr-label');
+            if (addrDiv) addrDiv.textContent = shelfName;
+        }
+        $(`div[data-row="${i}"] .header-label`).text(item.description || `❖ Item ${i + 1}`);
+    }
+});
 
     // Apply kolom mode setelah rows populated
     if (!isMobile) {
@@ -1642,7 +1628,7 @@ $(document).on('change', '#area_mobile', async function () {
     }
 
     if (isNaN(qty) || qty < 0) { hasError = true; errorRow = index + 1; return false; }
-            const kondisi = IS_CHEM_ONLY ? ($row.find('.kondisi-select').val() || null) : null;
+            const kondisi = IS_CHEM_ONLY ? ($row.find('.kondisi-input').val() || null) : null;
             articles.push({ article_code: articleCode, other_name: articleCode === 'OTHER' ? otherName : null,
                 qty, uom: uom || null, kondisi, location });
         });
