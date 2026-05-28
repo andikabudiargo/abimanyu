@@ -12,7 +12,7 @@
     $isSuperUser  = in_array($authId, [53, 2]);
     $isSecondUser = !$isSuperUser && ($sto->created_by_2 == $authId);
     $isFirstUser  = !$isSuperUser && ($sto->created_by   == $authId);
-    $isChemCons   = in_array($warehouse ?? null, ['Chemical', 'Consumable']); // ← tambah ini
+    $isChemCons   = in_array($warehouse ?? null, ['Chemical', 'Consumable']); 
 @endphp
 
 
@@ -26,7 +26,7 @@
       'isSuperUser',
       'isSecondUser',
       'isFirstUser',
-      'isChemCons'       {{-- ← tambah ini --}}
+      'isChemCons'       
   ))
 </form>
 
