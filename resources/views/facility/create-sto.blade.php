@@ -581,7 +581,7 @@ function buildMobileRowHtml(idx, opts = {}) {
             <div>
               <label class="text-xs font-semibold text-gray-600 mb-1 block">Packing</label>
               <input type="number" min="0" name="articles[${idx}][min_package]" value="${minPackage}"
-                class="w-full border rounded px-2 py-1 text-sm">
+                class="part-min-package w-full border rounded px-2 py-1 text-sm">
             </div>
           </div>
         </div>
@@ -1200,13 +1200,14 @@ $(document).on('change blur', '.qty-input', function () {
 
   $(document).on('change blur', '.part-min-package', function () {
     if (!IS_CHEM_CONS) return;
+
     const $this  = $(this);
     const $row   = $this.closest('.sto-row');
     const row    = $row.find('.part-select').data('row');
     const newVal = parseFloat($this.val());
 
-    // Ambil article_code, bukan article_id
     const articleCode = $row.find(`input[name="articles[${row}][article_code]"]`).val()?.trim();
+
     if (!articleCode || articleCode === 'OTHER' || isNaN(newVal) || newVal <= 0) return;
 
     autoKondisi($row);
@@ -1222,11 +1223,24 @@ $(document).on('change blur', '.qty-input', function () {
         success() {
             $this.css('border-color', 'var(--sto-green-mid)');
             setTimeout(() => $this.css('border-color', ''), 1500);
+
+            // ✅ TOAST SUCCESS
+            Toast.fire({
+                icon: 'success',
+                title: 'Min package berhasil diupdate'
+            });
         },
         error(xhr) {
             console.warn('Gagal update min_package:', xhr.responseJSON?.message);
+
             $this.css('border-color', '#E53935');
             setTimeout(() => $this.css('border-color', ''), 1500);
+
+            // ❌ TOAST ERROR
+            Toast.fire({
+                icon: 'error',
+                title: xhr.responseJSON?.message || 'Gagal update min package'
+            });
         }
     });
 });

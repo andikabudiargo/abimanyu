@@ -63,7 +63,7 @@
               <input type="number"
                     min="0"
                     name="articles[{{ $i }}][min_package]"
-                    class="w-full border rounded px-2 py-1">
+                    class="part-min-package w-full border rounded px-2 py-1">
             </div>
           </div>
         </div>
