@@ -581,7 +581,7 @@ function buildMobileRowHtml(idx, opts = {}) {
             <div>
               <label class="text-xs font-semibold text-gray-600 mb-1 block">Packing</label>
               <input type="number" min="0" name="articles[${idx}][min_package]" value="${minPackage}"
-                class="w-full border rounded px-2 py-1 bg-gray-100 text-sm" readonly>
+                class="w-full border rounded px-2 py-1 text-sm">
             </div>
           </div>
         </div>
@@ -1079,45 +1079,88 @@ function getStoNumber() {
 function fullReset(usedStoNumber) {
     const isMobile = $(window).width() < 1024;
 
-    if (usedStoNumber) {
-        $(`#sto_number_mobile option[value="${usedStoNumber}"],
-           #sto_number_desktop option[value="${usedStoNumber}"]`).remove();
-    }
-    $('#sto_number_mobile, #sto_number_desktop').val(null).trigger('change');
-
+    // Reset hidden fields STO number & ref master
     ['desktop', 'mobile'].forEach(pfx => {
-        const areaEl  = document.getElementById(`area_${pfx}`);
-        const shelfEl = document.getElementById(`shelf_${pfx}`);
-        const stoHid  = document.getElementById(pfx === 'desktop' ? 'sto_number_desktop' : 'sto_number_mobile');
-        const refHid  = document.getElementById(`ref_master_id_${pfx}`);
-        if (areaEl)  areaEl.value = '';
-        if (shelfEl) { shelfEl.innerHTML = '<option value="">— Pilih rack dulu —</option>'; shelfEl.disabled = true; }
-        if (stoHid)  stoHid.value = '';
-        if (refHid)  refHid.value = '';
-        const areaValEl  = document.getElementById(`area_value_${pfx}`);
-        const shelfValEl = document.getElementById(`shelf_value_${pfx}`);
-        if (areaValEl)  areaValEl.value  = '';
-        if (shelfValEl) shelfValEl.value = '';
+        const stoHid = document.getElementById(pfx === 'desktop' ? 'sto_number_desktop' : 'sto_number_mobile');
+        const refHid = document.getElementById(`ref_master_id_${pfx}`);
+        if (stoHid) stoHid.value = '';
+        if (refHid) refHid.value = '';
     });
 
-    // Bersihkan cache agar data fresh setelah save
-    Object.keys(areaCache).forEach(k => delete areaCache[k]);
+    // Reset note
+    $('#note, #note_mobile').val('');
 
-   if (IS_CHEM_CONS) {
-    const areaDesktop = document.getElementById('area_desktop');
-    const areaMobile  = document.getElementById('area_mobile');
+    if (IS_CHEM_CONS) {
+        // ── Bersihkan cache agar data fresh (item yang baru save sudah masuk DB)
+        Object.keys(areaCache).forEach(k => delete areaCache[k]);
 
-    // load ulang area
-    loadAreas(WAREHOUSE_VAL, areaDesktop);
-    loadAreas(WAREHOUSE_VAL, areaMobile);
+        const areaDesktop = document.getElementById('area_desktop');
+        const areaMobile  = document.getElementById('area_mobile');
+        const currentArea = areaDesktop?.value || areaMobile?.value || lastArea || '';
 
-    // 🔥 restore area saja (tanpa shelf)
-    if (lastArea) {
-        setTimeout(() => {
-            $('#area_desktop, #area_mobile')
-                .val(lastArea)
-                .trigger('change'); // ini akan reload shelf list (kosong)
-        }, 300);
+        // Reload shelf dropdown (tanpa reset area UI)
+        const shelfDesktop = document.getElementById('shelf_desktop');
+        const shelfMobile  = document.getElementById('shelf_mobile');
+
+        if (shelfDesktop) {
+            shelfDesktop.innerHTML = '<option value="">— Pilih Address —</option>';
+            shelfDesktop.disabled  = true;
+        }
+        if (shelfMobile) {
+            shelfMobile.innerHTML = '<option value="">— Pilih Address —</option>';
+            shelfMobile.disabled  = true;
+        }
+
+        // Sembunyikan banner & clear button
+        ['refBanner', 'refBannerMobile'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+        ['btnClearRef', 'btnClearRefMobile'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+
+        // Reset tableMode ke area (bukan shelf, karena shelf direset)
+        tableMode = 'area';
+        shelvesLoaded = false;
+        toggleSaveButton(WAREHOUSE_VAL);
+
+        if (currentArea) {
+            // Reload shelves + re-populate items dari area yang sama
+            // Area UI TETAP terselect, hanya data di-refresh
+            const reloadArea = async (areaEl, shelfEl, mode) => {
+                if (!areaEl || !areaEl.value) return;
+                await loadShelves(WAREHOUSE_VAL, currentArea, shelfEl);
+                await populateAllItemsFromArea(WAREHOUSE_VAL, currentArea, mode);
+            };
+
+            reloadArea(areaDesktop, shelfDesktop, 'desktop');
+            if (isMobile) reloadArea(areaMobile, shelfMobile, 'mobile');
+        } else {
+            // Tidak ada area tersimpan, reset rows saja
+            resetDesktopRows();
+            if (isMobile) resetMobileRows();
+            // Reload area list supaya lock status terupdate
+            loadAreas(WAREHOUSE_VAL, document.getElementById('area_desktop'));
+            loadAreas(WAREHOUSE_VAL, document.getElementById('area_mobile'));
+        }
+
+    } else {
+        // Non chem/cons: flow lama
+        if (usedStoNumber) {
+            $(`#sto_number_mobile option[value="${usedStoNumber}"],
+               #sto_number_desktop option[value="${usedStoNumber}"]`).remove();
+        }
+        $('#sto_number_mobile, #sto_number_desktop').val(null).trigger('change');
+
+        tableMode = 'default';
+        toggleSaveButton(WAREHOUSE_VAL);
+        setQtyColumnMode('qty');
+        setQtyColumnModeMobile('qty');
+        resetDesktopRows(7);
+        $('#warehouse-null, #warehouse-null-desktop').val(null).trigger('change');
+        $('.location-input').val(WAREHOUSE_VAL);
     }
 }
 
