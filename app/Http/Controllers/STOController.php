@@ -131,8 +131,8 @@ public function createv2()
         43,47     => 'WIP Buffing',
         44,45,88  => 'WIP Touch Up',
         108,126   => 'WIP Sanding',
-        63, 129, 132, 133=> 'Consumable',
-        67, 54, 2    => 'Chemical',
+        63, 129, 133=> 'Consumable',
+        67, 54, 132, 2    => 'Chemical',
         45        => 'Finish Goods',
         92        => 'OT',
         53 => null, // 🔥 BOLEH PILIH SENDIRI
