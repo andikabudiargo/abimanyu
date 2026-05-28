@@ -462,8 +462,8 @@ if ($request->hasFile('photo')) {
             'uom'           => $atk->uom,
             'min_stock'     => $atk->min_stock,
             'initial_stock' => $atk->initial_stock,
-             'photo' => $item->photo 
-    ? asset('atk/' . $item->id . '/' . $item->photo) 
+             'photo' => $atk->photo 
+    ? asset('atk/' . $atk->id . '/' . $atk->photo) 
     : null,
         ]
     ]);
