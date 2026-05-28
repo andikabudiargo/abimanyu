@@ -284,7 +284,7 @@ Route::get('/sto/review', [STOController::class, 'exportReview']);
          // routes/web.php
 Route::post('/sto/sign-item', [STOController::class, 'signItem'])
     ->name('facility.sto.sign-item');
-   Route::post('/sto/update-min-package', [STOController::class, 'updateMinPackage']) 
+   Route::post('/sto/update-min-package', [STOController::class, 'updateMinPackage']); 
 
 Route::get('/sto/check-area-shelf', [STOController::class, 'checkAreaShelf']);
  Route::get('/atk/dashboard', [ATKController::class, 'index'])->name('atk.index');
