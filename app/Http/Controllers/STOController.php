@@ -1417,99 +1417,103 @@ $items = $sto->items->map(function ($item) use ($isSecondUser) {
 public function update(Request $request, $id)
 {
     DB::beginTransaction();
-
+ 
     try {
         $sto = Sto::lockForUpdate()->findOrFail($id);
-
+ 
         $sto->note = $request->note;
         $sto->save();
-
-        $userId = auth()->id();
-
-        // tentukan role user
-        $isSecondUser = $sto->created_by_2 == $userId;
-
+ 
+        $userId       = auth()->id();
+        $isSuperUser  = in_array($userId, [53, 2]);
+        $isSecondUser = !$isSuperUser && ($sto->created_by_2 == $userId);
+ 
         $itemCount = 0;
-
+ 
         foreach ($request->articles as $row) {
-
-            if (empty($row['article_code']) || !isset($row['qty'])) {
+ 
+            // Skip baris benar-benar kosong (tidak ada article_code dan tidak ada item_id)
+            if (empty($row['article_code']) && empty($row['item_id'])) {
                 continue;
             }
-
-            // =========================
-            // FIND EXISTING ITEM
-            // =========================
-            $existingItem = $sto->items()
-                ->where('article_code', $row['article_code'])
-                ->where('location', $row['location'])
-                ->when($row['article_code'] === 'OTHER', function ($q) use ($row) {
-                    $q->where('other_name', $row['other_name'] ?? null);
-                })
-                ->lockForUpdate()
-                ->first();
-
+ 
+            // =========================================================
+            // STRATEGY: cari by item_id (primary key) jika dikirim
+            // =========================================================
+            $existingItem = null;
+ 
+            if (!empty($row['item_id'])) {
+                // Baris existing — UPDATE langsung by primary key
+                $existingItem = $sto->items()->lockForUpdate()->find($row['item_id']);
+            }
+ 
             if ($existingItem) {
-
-                // =========================
-                // UPDATE EXISTING
-                // =========================
-                if ($isSecondUser) {
-
-                    $existingItem->update([
-                        'qty_2' => ($existingItem->qty_2 ?? 0) + $row['qty']
-                    ]);
-
+ 
+                // ── UPDATE baris existing ──────────────────────────
+                $updateData = [];
+ 
+                if ($isSuperUser) {
+                    // Superuser: update keduanya kalau dikirim
+                    if (isset($row['qty'])   && $row['qty']   !== '' && $row['qty']   !== null) {
+                        $updateData['qty']   = $row['qty'];
+                    }
+                    if (isset($row['qty_2']) && $row['qty_2'] !== '' && $row['qty_2'] !== null) {
+                        $updateData['qty_2'] = $row['qty_2'];
+                    }
+                } elseif ($isSecondUser) {
+                    if (isset($row['qty_2']) && $row['qty_2'] !== '' && $row['qty_2'] !== null) {
+                        $updateData['qty_2'] = $row['qty_2'];
+                    }
                 } else {
-
-                    $existingItem->update([
-                        'qty' => ($existingItem->qty ?? 0) + $row['qty']
-                    ]);
+                    if (isset($row['qty']) && $row['qty'] !== '' && $row['qty'] !== null) {
+                        $updateData['qty'] = $row['qty'];
+                    }
                 }
-
+ 
+                // Update field lain jika superuser (boleh ubah location)
+                if ($isSuperUser && !empty($row['location'])) {
+                    $updateData['location'] = $row['location'];
+                }
+ 
+                if (!empty($updateData)) {
+                    $existingItem->update($updateData);
+                }
+ 
             } else {
-
-                // =========================
-                // CREATE NEW
-                // =========================
+ 
+                // ── INSERT baris baru ──────────────────────────────
+                // (item_id kosong = baris baru yang diinput user)
+                if (empty($row['article_code'])) continue;
+ 
                 $sto->items()->create([
                     'article_code' => $row['article_code'],
-                    'other_name'   => $row['article_code'] === 'OTHER' ? $row['other_name'] : null,
+                    'other_name'   => $row['article_code'] === 'OTHER' ? ($row['other_name'] ?? null) : null,
                     'uom'          => $row['uom'] ?? null,
-                    'qty'          => $isSecondUser ? 0 : $row['qty'],
-                    'qty_2'        => $isSecondUser ? $row['qty'] : null,
-                    'location'     => $row['location'],
+                    'qty'          => ($isSuperUser || !$isSecondUser) && isset($row['qty'])   ? $row['qty']   : 0,
+                    'qty_2'        => ($isSuperUser || $isSecondUser)  && isset($row['qty_2']) ? $row['qty_2'] : null,
+                    'location'     => $row['location'] ?? null,
+                    'kondisi'      => $row['kondisi']  ?? null,
                 ]);
             }
-
+ 
             $itemCount++;
         }
-
+ 
         if ($itemCount === 0) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak ada item valid'
-            ], 400);
+            return response()->json(['success' => false, 'message' => 'Tidak ada item valid'], 400);
         }
-
+ 
         DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'STO berhasil diupdate'
-        ]);
-
+ 
+        return response()->json(['success' => true, 'message' => 'STO berhasil diupdate']);
+ 
     } catch (\Throwable $e) {
-
         DB::rollBack();
-
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage()
-        ], 500);
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
 }
+
 
 
 public function selectSto(Request $request)
