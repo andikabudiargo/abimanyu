@@ -20,7 +20,21 @@
   @include('facility.edit-sto-desktop', compact('sto','items','articles','warehouse','allowedWarehouses','isSuperUser','isSecondUser','isFirstUser', 'isChemCons'))
 </form>
 
-
+<style>
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+.select2-container { width: 100% !important; min-width: 0 !important; }
+.select2-container .select2-selection--single {
+  height: 32px !important; display: flex !important; align-items: center !important;
+  border: 1px solid var(--sto-border); border-radius: var(--sto-radius-md); padding: 0 0.5rem !important;
+}
+.select2-container .select2-selection__rendered { padding-left: 0 !important; padding-right: 0 !important; }
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 32px !important; font-size: 12px; color: var(--sto-text);
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow { height: 32px !important; right: 0.5rem; }
+</style>
 
 
 @push('scripts')
