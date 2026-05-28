@@ -179,30 +179,6 @@
 </style>
 @endpush
 
-<div class="pc-container ml-[264px] p-6 min-h-screen sto-wrap">
-
-  {{-- Page Header --}}
-  <div class="page-header">
-    <div class="page-block flex items-center justify-start lg:justify-between gap-4">
-      <div class="page-header-title">
-        <h5 class="mb-0 font-medium">@yield('page-title', 'Dashboard')</h5>
-      </div>
-      <ul class="mb-0 text-xs text-gray-500 flex items-center">
-        <li class="flex items-center">
-          <a href="{{ url('/') }}" class="text-gray-600 hover:underline">
-            <i data-feather="home" class="w-4 h-4"></i>
-          </a>
-          <span class="mx-2 text-gray-400">›</span>
-        </li>
-        <li class="flex items-center">
-          <span>@yield('breadcrumb-item')</span>
-          <span class="mx-2 text-gray-400">›</span>
-        </li>
-        <li class="text-gray-800 font-medium">@yield('breadcrumb-active')</li>
-      </ul>
-    </div>
-  </div>
-
   <div class="sto-card">
 
     {{-- Header Bar --}}
@@ -267,15 +243,7 @@
           </div>
         </div>
         @endif
-        <div class="sto-field">
-          <label>Verificator</label>
-          <div style="display:flex;align-items:center;height:36px;">
-            <span class="sto-location-tag">
-              <i data-feather="user" class="w-3 h-3"></i>
-              {{ auth()->user()->name }}
-            </span>
-          </div>
-        </div>
+       
       </div>
 
       {{-- Info Banner --}}
@@ -292,7 +260,7 @@
         Stock Articles
       </p>
 
-      <div class="sto-table-wrap">
+      <div class="sto-table-wrap overflow-x-auto">
         <table class="sto-table">
           <thead>
             <tr>
@@ -411,18 +379,11 @@
             @endif
 
             <td class="center">
-              @if($isSuperUser)
-                <select class="location-input sto-select" name="articles[{{ $i }}][location]"
-                  style="text-align:center;font-size:11px;">
-                  @foreach($allowedWarehouses as $wh)
-                    <option value="{{ $wh }}" @selected($item->location === $wh)>{{ $wh }}</option>
-                  @endforeach
-                </select>
-              @else
+             
                 <input type="text" name="articles[{{ $i }}][location]"
                   value="{{ $item->location }}" readonly
                   class="location-input sto-input readonly" style="text-align:center;">
-              @endif
+              
             </td>
           </tr>
           @endforeach
@@ -500,18 +461,11 @@
             @endif
 
             <td class="center">
-              @if($isSuperUser)
-                <select class="location-input sto-select" name="articles[{{ $i }}][location]"
-                  style="text-align:center;font-size:11px;">
-                  @foreach($allowedWarehouses as $wh)
-                    <option value="{{ $wh }}">{{ $wh }}</option>
-                  @endforeach
-                </select>
-              @else
+             
                 <input type="text" name="articles[{{ $i }}][location]"
                   value="{{ $warehouse ?? '' }}" readonly
                   class="location-input sto-input readonly" style="text-align:center;">
-              @endif
+              
             </td>
           </tr>
           @endfor
@@ -547,4 +501,3 @@
 
     </div>
   </div>
-</div>
