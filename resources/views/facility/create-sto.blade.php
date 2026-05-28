@@ -1164,45 +1164,6 @@ function fullReset(usedStoNumber) {
     }
 }
 
-    ['refBanner', 'refBannerMobile'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
-    });
-    ['btnClearRef', 'btnClearRefMobile'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
-
-    tableMode = 'default';
-    toggleSaveButton(WAREHOUSE_VAL);
-    // Reset kolom ke default (Qty)
-    setQtyColumnMode('qty');
-    setQtyColumnModeMobile('qty');
-
-    if (isMobile) {
-        $('.sto-row').each(function () {
-            const $row = $(this);
-            const idx  = $row.data('row');
-            const $sel = $row.find('.part-select');
-            if ($sel.hasClass('select2-hidden-accessible')) $sel.val(null).trigger('change');
-            else $sel.val('');
-            $row.find(`input[name="articles[${idx}][article_code]"]`).val('');
-            $row.find(`input[name="articles[${idx}][qty]"]`).val('');
-            $row.find(`input[name="articles[${idx}][min_package]"]`).val('');
-            $row.find(`input[name="articles[${idx}][uom]"]`).val('');
-            $row.find(`input[name="articles[${idx}][other_name]"]`).val('');
-            $row.find(`input[name="articles[${idx}][location]"]`).val(WAREHOUSE_VAL);
-            $row.find('.header-label').text(`❖ Item ${idx + 1}`);
-        });
-    } else {
-        resetDesktopRows(7);
-    }
-
-    $('#note, #note_mobile').val('');
-    $('#warehouse-null, #warehouse-null-desktop').val(null).trigger('change');
-    $('.location-input').val(WAREHOUSE_VAL);
-}
-
 // ══════════════════════════════════════════════════════════
 // DOCUMENT READY — hanya event handler, tidak ada fungsi
 // ══════════════════════════════════════════════════════════
