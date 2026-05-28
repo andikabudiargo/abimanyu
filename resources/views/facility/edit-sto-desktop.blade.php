@@ -323,7 +323,7 @@
 
         @php
   $isChemCons = in_array($warehouse ?? null, ['Chemical', 'Consumable']);
-  $maxRow     = $isChemCons ? 1 : 7;   {{-- ← chem/cons cukup 1 --}}
+  $maxRow     = $isChemCons ? 1 : 7;
   $rowCount   = $items->count();
   $total      = max($maxRow, $rowCount);
 @endphp
