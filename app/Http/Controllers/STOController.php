@@ -134,7 +134,7 @@ public function createv2()
         63, 129, 132, 133=> 'Consumable',
         67, 54, 2    => 'Chemical',
         45        => 'Finish Goods',
-        44        => 'OT',
+        92        => 'OT',
         53 => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
