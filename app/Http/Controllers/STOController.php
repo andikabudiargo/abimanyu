@@ -2853,8 +2853,17 @@ $userId = auth()->id();
             $allShelvesInArea  = $shelvesInArea->pluck('shelves')->toArray();
             $savedShelves      = $savedShelvesInWarehouse->get($area, []);
             // all_saved = semua shelf di referensi sudah ada di sto_items
-            $allSaved = count($allShelvesInArea) > 0
-                && count(array_diff($allShelvesInArea, $savedShelves)) === 0;
+             // ── FIX: hitung hanya shelf yang punya item ──────────────
+            $shelvesWithItems = $shelvesInArea
+                ->filter(fn($m) => $m->items_count > 0)
+                ->pluck('shelves')
+                ->toArray();
+
+            // all_saved = true HANYA jika:
+            // 1. Ada minimal 1 shelf yang punya item di area ini
+            // 2. Semua shelf yang punya item sudah tersimpan
+            $allSaved = count($shelvesWithItems) > 0
+                && count(array_diff($shelvesWithItems, $savedShelves)) === 0;
 
             return [
                 'area'      => $area,
@@ -2934,7 +2943,7 @@ public function getReferenceItemsByArea(Request $request)
             ];
         });
 
-        $allSaved = $items->every(fn($i) => $i['already_saved']);
+       $allSaved = $items->isNotEmpty() && $items->every(fn($i) => $i['already_saved']);
 
         $shelves[] = [
             'id'        => $master->id,
