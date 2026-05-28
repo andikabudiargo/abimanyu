@@ -90,41 +90,49 @@ function toggleUomByLocation($row) {
     $uom.prop('readonly', !editable);
 }
 
+
+
 function autoKondisi($row) {
     if (!IS_CHEM_ONLY) return;
- 
+
     const row    = $row.find('.part-select').data('row');
     const qty    = parseFloat($row.find(`input[name="articles[${row}][qty]"]`).val()) || 0;
-    const minPkg = parseFloat($row.find(`input[name="articles[${row}][min_package]"]`).val()) || 0;
- 
-    // Ambil elemen readonly (bukan select lagi)
-    const $kondisiInput = $row.find('.kondisi-input');
-    const $kondisiLabel = $row.find('.kondisi-label');
- 
+    const minPkg = parseFloat($row.find('.part-min-package').val()) || 0;
+    const $input = $row.find('.kondisi-input');
+    const $label = $row.find('.kondisi-label');
+    const $uom   = $row.find('.part-uom');
+
     if (minPkg <= 0 || qty <= 0) {
-        $kondisiInput.val('');
-        $kondisiLabel.text('—').css('color', 'var(--sto-text-muted)');
+        $input.val('');
+        // Mobile pakai div, desktop pakai span — handle keduanya
+        $label.text('—').css('color', $label.is('div') ? '#9ca3af' : 'var(--sto-text-muted)');
         return;
     }
- 
-    // Logika: jika qty >= minPkg DAN qty % minPkg === 0 → Utuh
-    //         jika qty < minPkg → Tidak Utuh
-    //         jika qty >= minPkg tapi bukan kelipatan → ditolak (handle di validasi qty)
-    let kondisi = '';
+
+    let kondisi;
     if (qty < minPkg) {
         kondisi = 'Tidak Utuh';
     } else if (Math.abs(qty % minPkg) < 0.0001) {
         kondisi = 'Utuh';
     } else {
-        // Bukan kelipatan dan >= minPkg → tetap set Tidak Utuh
-        // tapi validasi qty akan menolak nilai ini saat input
         kondisi = 'Tidak Utuh';
     }
- 
-    $kondisiInput.val(kondisi);
-    $kondisiLabel
-        .text(kondisi)
-        .css('color', kondisi === 'Utuh' ? 'var(--sto-green-mid)' : '#E53935');
+
+    $input.val(kondisi);
+
+    // Warna kondisi label — sama untuk desktop (span) & mobile (div)
+    const colorUtuh     = $label.is('div') ? '#2E7D32' : 'var(--sto-green-mid)';
+    const colorTidakUtuh = '#E53935';
+    $label.text(kondisi).css('color', kondisi === 'Utuh' ? colorUtuh : colorTidakUtuh);
+
+    // ── UOM logic ───────────────────────────────────────────
+    if (kondisi === 'Tidak Utuh') {
+        $uom.val('KG');
+    } else {
+        // Utuh → kembalikan ke original UOM
+        const originalUom = $uom.data('original-uom') || $uom.attr('data-original-uom') || $uom.val();
+        $uom.val(originalUom);
+    }
 }
 
 
@@ -251,9 +259,12 @@ function buildDesktopRowHtml(idx, opts = {}) {
 
       <!-- UOM -->
       <td class="center">
-        <input type="text" name="articles[${idx}][uom]" value="${uom}"
-          class="part-uom sto-input ${IS_CHEM_CONS ? '' : 'readonly'}"
-          ${IS_CHEM_CONS ? '' : 'readonly'} style="text-align:center;">
+       <input type="text" name="articles[${idx}][uom]" value="${uom}"
+  class="part-uom sto-input ${IS_CHEM_CONS ? '' : 'readonly'}"
+  ${IS_CHEM_CONS ? '' : 'readonly'}
+  data-ref-uom="${isRef ? uom : ''}"
+  data-original-uom="${uom}"
+  style="text-align:center;">
       </td>
 
       <!-- KONDISI -->
@@ -588,11 +599,15 @@ function buildMobileRowHtml(idx, opts = {}) {
         
         ${addrBlock}
         
-        <div class="mt-3">
-          <label class="text-xs font-semibold text-gray-600 mb-1 block">UOM</label>
-          <input type="text" name="articles[${idx}][uom]" value="${uom}"
-            class="part-uom w-full border rounded px-2 py-1 bg-gray-100 text-sm" readonly>
-        </div>
+       <div class="mt-3">
+  <label class="text-xs font-semibold text-gray-600 mb-1 block">UOM</label>
+  <input type="text" name="articles[${idx}][uom]" value="${uom}"
+    class="part-uom w-full border rounded px-2 py-1 text-sm ${IS_CHEM_CONS ? '' : 'bg-gray-100'}"
+    ${IS_CHEM_CONS ? '' : 'readonly'}
+    data-ref-uom="${isRef ? uom : ''}"
+    data-original-uom="${uom}"
+    style="background:${IS_CHEM_CONS ? '' : '#f3f4f6'};">
+</div>
 
         ${IS_CHEM_ONLY ? `
        <div class="mt-3">
@@ -915,11 +930,30 @@ const total = Math.max(defaultMin, items.length);
         });
     }
 
-  items.forEach((item, i) => {
+  // Di dalam forEach items setelah $sel.append(...)
+items.forEach((item, i) => {
     if (!item.article_code) return;
+
     const text = item.description
         ? `${item.article_code} - ${item.description}`
         : item.article_code;
+
+    const $sel = $(`select[name="articles[${i}][article_id]"]`);
+    const optionValue = item.article_id || item.article_code;
+
+    $sel.append(new Option(text, optionValue, true, true)).trigger('change');
+
+    // Set fields eksplisit
+    $(`input[name="articles[${i}][article_code]"]`).val(item.article_code);
+    $(`input[name="articles[${i}][min_package]"]`).val(item.min_package || '');
+
+    // ── [BARU] Simpan UOM dari referensi ke data attribute ──
+    const $uomField = $(`input[name="articles[${i}][uom]"]`);
+    const refUom    = item.unit || '';          // ← dari sto_reference_items.uom
+    $uomField
+        .val(refUom)
+        .data('ref-uom', refUom)               // ← simpan untuk dipakai saat select2:select
+        .data('original-uom', refUom);         // ← simpan untuk dikembalikan saat Utuh
 
     const $sel = $(`select[name="articles[${i}][article_id]"]`);
     
@@ -1522,32 +1556,41 @@ $(document).on('change', '#area_mobile', async function () {
 
     // ── PART SELECT / CLEAR ───────────────────────────────
     $(document).on('select2:select', '.part-select', function (e) {
-        const data    = e.params.data;
-        const $row    = $(this).closest('.sto-row');
-        const row     = $(this).data('row');
-        const isOther = data.isOther || String(data.id).startsWith('__OTHER__:');
-        const $code   = $(`input[name="articles[${row}][article_code]"]`);
-        const $uom    = $(`input[name="articles[${row}][uom]"]`);
-        const $minPkg = $(`input[name="articles[${row}][min_package]"]`);
-        const $other  = $(`input[name="articles[${row}][other_name]"]`);
-        const $header = $row.find('.header-label');
-        if (isOther) {
-            $code.val('OTHER');
-            $uom.val('').prop('readonly', false);
-            $minPkg.val('').prop('readonly', true);
-            $other.val(data.text);
-            $header.text(data.text);
-        } else {
-            $code.val(data.code || data.id || '');
-            $uom.val(data.uom || '');
-            $minPkg.val(data.minPackage || $(this).find(':selected').data('min-package') || '').prop('readonly', true);
-            $other.val('');
-            $header.text(data.text);
-        }
-        toggleUomByLocation($row);
-        $row.find('.qty-input').prop('disabled', false);
-        autoKondisi($row);
-    });
+    const data    = e.params.data;
+    const $row    = $(this).closest('.sto-row');
+    const row     = $(this).data('row');
+    const isOther = data.isOther || String(data.id).startsWith('__OTHER__:');
+    const isRef   = $row.data('is-ref') == 1;  // baris referensi dari shelf
+
+    const $code   = $(`input[name="articles[${row}][article_code]"]`);
+    const $uom    = $(`input[name="articles[${row}][uom]"]`);
+    const $minPkg = $(`input[name="articles[${row}][min_package]"]`);
+    const $other  = $(`input[name="articles[${row}][other_name]"]`);
+    const $header = $row.find('.header-label');
+
+    if (isOther) {
+        $code.val('OTHER');
+        $uom.val('').removeData('original-uom').prop('readonly', false);
+        $minPkg.val('');
+        $other.val(data.text);
+        $header.text(data.text);
+    } else {
+        $code.val(data.code || data.id || '');
+        $minPkg.val(data.minPackage || $(this).find(':selected').data('min-package') || '');
+        $other.val('');
+        $header.text(data.text);
+
+        // ── UOM: ref row pakai data-ref-uom jika ada, manual pakai article ──
+        const refUom = $uom.data('ref-uom');  // diset saat populateFromItems
+        const uomVal = (isRef && refUom) ? refUom : (data.uom || '');
+
+        $uom.val(uomVal).data('original-uom', uomVal).prop('readonly', true);
+    }
+
+    toggleUomByLocation($row);
+    $row.find('.qty-input').prop('disabled', false);
+    autoKondisi($row);
+});
 
     $(document).on('select2:clear', '.part-select', function () {
         const $sel = $(this);

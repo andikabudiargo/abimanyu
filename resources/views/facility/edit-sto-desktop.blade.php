@@ -176,6 +176,18 @@
   .sto-body   { padding: 20px 16px; }
   .sto-header { padding: 16px 20px; }
 }
+
+.sto-addr-badge {
+  display: inline-flex; align-items: center;
+  background: var(--sto-blue-light); border: 1px solid var(--sto-blue-border);
+  border-radius: 12px; padding: 2px 8px;
+  font-size: 10px; font-weight: 700; color: var(--sto-blue); white-space: nowrap;
+}
+.sto-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
+}
+.sto-select:disabled { background-color: var(--sto-surface); color: var(--sto-text-muted); cursor: not-allowed; opacity:.7; }
 </style>
 @endpush
 
@@ -197,54 +209,80 @@
     <div class="sto-body">
 
       {{-- Document Reference --}}
-      <p class="sto-section-title">
-        <i data-feather="bookmark" class="w-3.5 h-3.5"></i>
-        Document Reference
-      </p>
+<p class="sto-section-title">
+  <i data-feather="bookmark" class="w-3.5 h-3.5"></i>
+  Document Reference
+</p>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-        <div class="sto-field">
-          <label>STO Number</label>
-          <div style="display:flex;align-items:center;height:36px;">
-            <span class="sto-location-tag" style="font-size:13px;padding:4px 14px;">
-              <i data-feather="hash" class="w-3 h-3"></i>
-              {{ $sto->sto_number }}
-            </span>
-          </div>
-        </div>
-        <div class="sto-field">
-          <label>Warehouse</label>
-          <div style="display:flex;align-items:center;height:36px;">
-            <span class="sto-location-tag">
-              <i data-feather="map-pin" class="w-3 h-3"></i>
-              {{ $warehouse ?? 'All Warehouses' }}
-            </span>
-          </div>
-        </div>
-        @if($sto->area)
-        <div class="sto-field">
-          <label>Rack</label>
-          <div style="display:flex;align-items:center;height:36px;">
-            <span class="sto-location-tag">
-              <i data-feather="layers" class="w-3 h-3"></i>
-              {{ $sto->area }}
-            </span>
-          </div>
-        </div>
-        @endif
-        @if($sto->shelves)
-        <div class="sto-field">
-          <label>Address</label>
-          <div style="display:flex;align-items:center;height:36px;">
-            <span class="sto-location-tag">
-              <i data-feather="grid" class="w-3 h-3"></i>
-              {{ $sto->shelves }}
-            </span>
-          </div>
-        </div>
-        @endif
-       
-      </div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+  <div class="sto-field">
+    <label>STO Number</label>
+    <div style="display:flex;align-items:center;height:36px;">
+      <span class="sto-location-tag" style="font-size:13px;padding:4px 14px;">
+        <i data-feather="hash" class="w-3 h-3"></i>
+        {{ $sto->sto_number }}
+      </span>
+    </div>
+  </div>
+
+  <div class="sto-field">
+    <label>Warehouse</label>
+    <div style="display:flex;align-items:center;height:36px;">
+      <span class="sto-location-tag">
+        <i data-feather="map-pin" class="w-3 h-3"></i>
+        {{ $warehouse ?? 'All Warehouses' }}
+      </span>
+    </div>
+  </div>
+
+  @if($isChemCons)
+  {{-- AREA dropdown (editable) --}}
+  <div class="sto-field">
+    <label>Rack</label>
+    <select id="area_edit" name="area" class="sto-select"
+            data-warehouse="{{ $warehouse }}">
+      <option value="">— Memuat rack... —</option>
+    </select>
+    <span class="sto-hint">Rack saat ini: <strong>{{ $sto->area ?? '—' }}</strong></span>
+  </div>
+
+  {{-- SHELF dropdown (editable) --}}
+  <div class="sto-field">
+    <label>Address</label>
+    <select id="shelf_edit" name="shelf" class="sto-select" disabled>
+      <option value="">— Pilih rack dulu —</option>
+    </select>
+    <span class="sto-hint">Address saat ini: <strong>{{ $sto->shelves ?? '—' }}</strong></span>
+  </div>
+
+  {{-- Hidden fields --}}
+  <input type="hidden" name="area_value"  id="area_value_edit"  value="{{ $sto->area ?? '' }}">
+  <input type="hidden" name="shelf_value" id="shelf_value_edit" value="{{ $sto->shelves ?? '' }}">
+
+  @else
+  {{-- Non chem/cons: tampil statis saja --}}
+  @if($sto->area)
+  <div class="sto-field">
+    <label>Rack</label>
+    <div style="display:flex;align-items:center;height:36px;">
+      <span class="sto-location-tag">
+        <i data-feather="layers" class="w-3 h-3"></i>{{ $sto->area }}
+      </span>
+    </div>
+  </div>
+  @endif
+  @if($sto->shelves)
+  <div class="sto-field">
+    <label>Address</label>
+    <div style="display:flex;align-items:center;height:36px;">
+      <span class="sto-location-tag">
+        <i data-feather="grid" class="w-3 h-3"></i>{{ $sto->shelves }}
+      </span>
+    </div>
+  </div>
+  @endif
+  @endif
+</div>
 
       {{-- Info Banner --}}
       @if($isSuperUser)
@@ -283,11 +321,12 @@
           </thead>
           <tbody id="article-table">
 
-          @php
-            $maxRow   = 7;
-            $rowCount = $items->count();
-            $total    = max($maxRow, $rowCount);
-          @endphp
+        @php
+  $isChemCons = in_array($warehouse ?? null, ['Chemical', 'Consumable']);
+  $maxRow     = $isChemCons ? 1 : 7;   {{-- ← chem/cons cukup 1 --}}
+  $rowCount   = $items->count();
+  $total      = max($maxRow, $rowCount);
+@endphp
 
           {{-- ── EXISTING ITEMS (baris dengan data) ── --}}
           @foreach ($items as $i => $item)
@@ -352,11 +391,14 @@
               </td>
             @endif
 
-            <td class="center">
-              <input type="text" name="articles[{{ $i }}][min_package]"
-                value="{{ $item->article->min_package ?? '' }}"
-                class="part-min-package sto-input readonly" readonly style="text-align:center;">
-            </td>
+           {{-- Existing items --}}
+<td class="center">
+  <input type="text" name="articles[{{ $i }}][min_package]"
+    value="{{ $item->article->min_package ?? '' }}"
+    class="part-min-package sto-input"   {{-- ← hapus "readonly" --}}
+    style="text-align:center;">
+</td>
+
 
             <td class="center">
               <input type="text" name="articles[{{ $i }}][uom]"
@@ -366,17 +408,22 @@
                 style="text-align:center;">
             </td>
 
-            @if(($warehouse ?? null) === 'Chemical')
-              <td class="center">
-                <select name="articles[{{ $i }}][kondisi]"
-                  class="kondisi-select sto-select"
-                  style="text-align:center;font-size:11px;height:32px;">
-                  <option value="">—</option>
-                  <option value="Utuh"      @selected(($item->kondisi ?? '') === 'Utuh')>Utuh</option>
-                  <option value="Tidak Utuh" @selected(($item->kondisi ?? '') === 'Tidak Utuh')>Tidak Utuh</option>
-                </select>
-              </td>
-            @endif
+           {{-- EXISTING ITEMS: ganti bagian kondisi --}}
+@if(($warehouse ?? null) === 'Chemical')
+<td class="center">
+  <input type="hidden"
+    name="articles[{{ $i }}][kondisi]"
+    class="kondisi-input"
+    value="{{ $item->kondisi ?? '' }}">
+  <span class="kondisi-label sto-input readonly"
+    style="display:block;text-align:center;line-height:32px;height:32px;
+           font-size:11px;background:var(--sto-surface);
+           border:1px solid var(--sto-border);border-radius:var(--sto-radius-md);
+           color:{{ ($item->kondisi ?? '') === 'Utuh' ? 'var(--sto-green-mid)' : (($item->kondisi ?? '') === 'Tidak Utuh' ? '#E53935' : 'var(--sto-text-muted)') }};">
+    {{ $item->kondisi ?? '—' }}
+  </span>
+</td>
+@endif
 
             <td class="center">
              
@@ -438,27 +485,29 @@
               </td>
             @endif
 
-            <td class="center">
-              <input type="text" name="articles[{{ $i }}][min_package]" value=""
-                class="part-min-package sto-input readonly" readonly style="text-align:center;">
-            </td>
+           {{-- Empty rows --}}
+<td class="center">
+  <input type="text" name="articles[{{ $i }}][min_package]" value=""
+    class="part-min-package sto-input"   {{-- ← hapus "readonly" --}}
+    style="text-align:center;">
+</td>
 
             <td class="center">
               <input type="text" name="articles[{{ $i }}][uom]" value=""
                 class="part-uom sto-input readonly" readonly style="text-align:center;">
             </td>
 
-            @if(($warehouse ?? null) === 'Chemical')
-              <td class="center">
-                <select name="articles[{{ $i }}][kondisi]"
-                  class="kondisi-select sto-select"
-                  style="text-align:center;font-size:11px;height:32px;">
-                  <option value="">—</option>
-                  <option value="Utuh">Utuh</option>
-                  <option value="Tidak Utuh">Tidak Utuh</option>
-                </select>
-              </td>
-            @endif
+           {{-- EMPTY ROWS: sama --}}
+@if(($warehouse ?? null) === 'Chemical')
+<td class="center">
+  <input type="hidden" name="articles[{{ $i }}][kondisi]" class="kondisi-input" value="">
+  <span class="kondisi-label sto-input readonly"
+    style="display:block;text-align:center;line-height:32px;height:32px;
+           font-size:11px;background:var(--sto-surface);
+           border:1px solid var(--sto-border);border-radius:var(--sto-radius-md);
+           color:var(--sto-text-muted);">—</span>
+</td>
+@endif
 
             <td class="center">
              

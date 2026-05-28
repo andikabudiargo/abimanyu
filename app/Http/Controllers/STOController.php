@@ -1430,43 +1430,48 @@ $items = $sto->items->map(function ($item) use ($isSecondUser) {
 public function update(Request $request, $id)
 {
     DB::beginTransaction();
- 
+
     try {
         $sto = Sto::lockForUpdate()->findOrFail($id);
- 
+
         $sto->note = $request->note;
+
+        // ── [FIX 1] Update area & shelves jika dikirim ──────────
+        if ($request->filled('area')) {
+            $sto->area = $request->area;
+        }
+        if ($request->filled('shelf')) {
+            $sto->shelves = $request->shelf;
+        }
+
         $sto->save();
- 
+
         $userId       = auth()->id();
         $isSuperUser  = in_array($userId, [53, 2]);
         $isSecondUser = !$isSuperUser && ($sto->created_by_2 == $userId);
- 
+
+        $isChemical   = in_array($sto->location ?? $sto->warehouse ?? '', ['Chemical', 'Consumable']);
+
         $itemCount = 0;
- 
+
         foreach ($request->articles as $row) {
- 
-            // Skip baris benar-benar kosong (tidak ada article_code dan tidak ada item_id)
+
             if (empty($row['article_code']) && empty($row['item_id'])) {
                 continue;
             }
- 
-            // =========================================================
-            // STRATEGY: cari by item_id (primary key) jika dikirim
-            // =========================================================
+
             $existingItem = null;
- 
+
             if (!empty($row['item_id'])) {
-                // Baris existing — UPDATE langsung by primary key
                 $existingItem = $sto->items()->lockForUpdate()->find($row['item_id']);
             }
- 
+
             if ($existingItem) {
- 
-                // ── UPDATE baris existing ──────────────────────────
+
                 $updateData = [];
- 
+
+                // ── Qty berdasarkan role ─────────────────────────
                 if ($isSuperUser) {
-                    // Superuser: update keduanya kalau dikirim
                     if (isset($row['qty'])   && $row['qty']   !== '' && $row['qty']   !== null) {
                         $updateData['qty']   = $row['qty'];
                     }
@@ -1482,45 +1487,54 @@ public function update(Request $request, $id)
                         $updateData['qty'] = $row['qty'];
                     }
                 }
- 
-                // Update field lain jika superuser (boleh ubah location)
+
+                // ── [FIX 2] Kondisi selalu ikut diupdate ────────
+                if (isset($row['kondisi'])) {
+                    $updateData['kondisi'] = $row['kondisi'] ?: null;
+                }
+
+                // ── Location: superuser saja ─────────────────────
                 if ($isSuperUser && !empty($row['location'])) {
                     $updateData['location'] = $row['location'];
                 }
- 
+
+                // ── [FIX 3] Hitung hanya jika ada yang diupdate ─
                 if (!empty($updateData)) {
                     $existingItem->update($updateData);
+                    $itemCount++;
+                } else {
+                    // Baris existing tapi tidak ada perubahan → tetap hitung
+                    // agar tidak rollback jika semua baris memang tidak berubah
+                    $itemCount++;
                 }
- 
+
             } else {
- 
-                // ── INSERT baris baru ──────────────────────────────
-                // (item_id kosong = baris baru yang diinput user)
+
                 if (empty($row['article_code'])) continue;
- 
+
                 $sto->items()->create([
                     'article_code' => $row['article_code'],
                     'other_name'   => $row['article_code'] === 'OTHER' ? ($row['other_name'] ?? null) : null,
-                    'uom'          => $row['uom'] ?? null,
+                    'uom'          => $row['uom']      ?? null,
                     'qty'          => ($isSuperUser || !$isSecondUser) && isset($row['qty'])   ? $row['qty']   : 0,
                     'qty_2'        => ($isSuperUser || $isSecondUser)  && isset($row['qty_2']) ? $row['qty_2'] : null,
                     'location'     => $row['location'] ?? null,
                     'kondisi'      => $row['kondisi']  ?? null,
                 ]);
+
+                $itemCount++;
             }
- 
-            $itemCount++;
         }
- 
+
         if ($itemCount === 0) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Tidak ada item valid'], 400);
         }
- 
+
         DB::commit();
- 
+
         return response()->json(['success' => true, 'message' => 'STO berhasil diupdate']);
- 
+
     } catch (\Throwable $e) {
         DB::rollBack();
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
