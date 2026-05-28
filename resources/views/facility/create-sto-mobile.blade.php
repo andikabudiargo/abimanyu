@@ -85,16 +85,13 @@
           </div>
 
           @if(($warehouse ?? null) === 'Chemical')
-          <div class="mt-3">
-            <label class="text-xs font-semibold text-gray-600 mb-1 block">Kondisi</label>
-            <select name="articles[{{ $i }}][kondisi]"
-              class="kondisi-select w-full border rounded px-2 py-1 text-sm">
-              <option value="">—</option>
-              <option value="Utuh">Utuh</option>
-              <option value="Tidak Utuh">Tidak Utuh</option>
-            </select>
-          </div>
-          @endif
+       <div class="mt-3">
+         <label class="text-xs font-semibold text-gray-600 mb-1 block">Kondisi</label>
+        <input type="hidden" name="articles[{{ $i }}][kondisi]" class="kondisi-input" value="">
+       <div class="kondisi-label w-full border rounded px-2 py-1 bg-gray-100 text-sm
+                  text-center font-semibold text-gray-500">—</div>
+     </div>
+      @endif
 
         <!-- LOCATION -->
         <label class="text-xs font-semibold text-gray-600 mt-3 mb-1 block">Location</label>

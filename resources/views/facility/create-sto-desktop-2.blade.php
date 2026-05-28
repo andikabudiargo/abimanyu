@@ -655,7 +655,7 @@
         <input type="text"
           name="articles[{{ $i }}][min_package]"
           value=""
-          class="part-min-package sto-input readonly"
+          class="part-min-package sto-input"
           readonly style="text-align:center;">
       </td>
 
@@ -669,17 +669,18 @@
       </td>
 
       {{-- SESUDAH --}}
-     @if(($warehouse ?? null) === 'Chemical')
-      <td class="center">
-        <select name="articles[{{ $i }}][kondisi]"
-          class="kondisi-select sto-select"
-          style="text-align:center; font-size:11px; height:32px;">
-          <option value="">—</option>
-          <option value="Utuh">Utuh</option>
-          <option value="Tidak Utuh">Tidak Utuh</option>
-        </select>
-      </td>
-      @endif
+    @if(($warehouse ?? null) === 'Chemical')
+<td class="center">
+  <input type="hidden"
+    name="articles[{{ $i }}][kondisi]"
+    class="kondisi-input">
+  <span class="kondisi-label sto-input readonly"
+    style="display:block;text-align:center;line-height:32px;
+           height:32px;font-size:11px;background:var(--sto-surface);
+           color:var(--sto-text-muted);border:1px solid var(--sto-border);
+           border-radius:var(--sto-radius-md);">—</span>
+</td>
+@endif
 
         <td class="center td-addr-desktop" style=" color:var(--sto-blue); font-size:11px; font-weight:600;">
         <span class="row-addr-label">—</span>

@@ -140,6 +140,19 @@ public function createv2()
     };
 }
 
+public function updateMinPackage(Request $request)
+{
+    $request->validate([
+        'article_code' => 'required|exists:articles,article_code',
+        'min_package'  => 'required|numeric|min:0.001',
+    ]);
+
+    Article::where('article_code', $request->article_code)
+        ->update(['min_package' => $request->min_package]);
+
+    return response()->json(['message' => 'Min packing diperbarui']);
+}
+
 private function allowedWarehouses(): array
 {
     $userId = Auth::id();

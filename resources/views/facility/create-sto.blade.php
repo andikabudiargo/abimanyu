@@ -92,14 +92,41 @@ function toggleUomByLocation($row) {
 
 function autoKondisi($row) {
     if (!IS_CHEM_ONLY) return;
-    const row      = $row.find('.part-select').data('row');
-    const qty      = parseFloat($row.find(`input[name="articles[${row}][qty]"]`).val()) || 0;
-    const minPkg   = parseFloat($row.find(`input[name="articles[${row}][min_package]"]`).val()) || 0;
-    const $kondisi = $row.find('.kondisi-select');
-    if (!$kondisi.length || minPkg <= 0) { $kondisi.val(''); return; }
-    const isMultiple = qty > 0 && Math.abs(qty % minPkg) < 0.0001;
-    $kondisi.val(isMultiple ? 'Utuh' : 'Tidak Utuh');
+ 
+    const row    = $row.find('.part-select').data('row');
+    const qty    = parseFloat($row.find(`input[name="articles[${row}][qty]"]`).val()) || 0;
+    const minPkg = parseFloat($row.find(`input[name="articles[${row}][min_package]"]`).val()) || 0;
+ 
+    // Ambil elemen readonly (bukan select lagi)
+    const $kondisiInput = $row.find('.kondisi-input');
+    const $kondisiLabel = $row.find('.kondisi-label');
+ 
+    if (minPkg <= 0 || qty <= 0) {
+        $kondisiInput.val('');
+        $kondisiLabel.text('—').css('color', 'var(--sto-text-muted)');
+        return;
+    }
+ 
+    // Logika: jika qty >= minPkg DAN qty % minPkg === 0 → Utuh
+    //         jika qty < minPkg → Tidak Utuh
+    //         jika qty >= minPkg tapi bukan kelipatan → ditolak (handle di validasi qty)
+    let kondisi = '';
+    if (qty < minPkg) {
+        kondisi = 'Tidak Utuh';
+    } else if (Math.abs(qty % minPkg) < 0.0001) {
+        kondisi = 'Utuh';
+    } else {
+        // Bukan kelipatan dan >= minPkg → tetap set Tidak Utuh
+        // tapi validasi qty akan menolak nilai ini saat input
+        kondisi = 'Tidak Utuh';
+    }
+ 
+    $kondisiInput.val(kondisi);
+    $kondisiLabel
+        .text(kondisi)
+        .css('color', kondisi === 'Utuh' ? 'var(--sto-green-mid)' : '#E53935');
 }
+
 
 // ══════════════════════════════════════════════════════════
 // SELECT2
@@ -219,7 +246,7 @@ function buildDesktopRowHtml(idx, opts = {}) {
       <!-- PACKING -->
       <td class="center">
         <input type="text" name="articles[${idx}][min_package]" value="${minPackage}"
-          class="part-min-package sto-input readonly" readonly style="text-align:center;">
+          class="part-min-package sto-input" style="text-align:center;">
       </td>
 
       <!-- UOM -->
@@ -231,14 +258,15 @@ function buildDesktopRowHtml(idx, opts = {}) {
 
       <!-- KONDISI -->
       ${IS_CHEM_ONLY ? `
-      <td class="center">
-        <select name="articles[${idx}][kondisi]" class="kondisi-select sto-select"
-          style="text-align:center; font-size:11px; height:32px;">
-          <option value="">—</option>
-          <option value="Utuh" ${kondisi === 'Utuh' ? 'selected' : ''}>Utuh</option>
-          <option value="Tidak Utuh" ${kondisi === 'Tidak Utuh' ? 'selected' : ''}>Tidak Utuh</option>
-        </select>
-      </td>` : ''}
+       <td class="center">
+         <input type="hidden" name="articles[${idx}][kondisi]" class="kondisi-input" value="${kondisi}">
+         <span class="kondisi-label sto-input readonly"
+          style="display:block;text-align:center;line-height:32px;height:32px;
+                 font-size:11px;border:1px solid var(--sto-border);
+                 border-radius:var(--sto-radius-md);background:var(--sto-surface);
+                 color:${kondisi === 'Utuh' ? 'var(--sto-green-mid)' : kondisi === 'Tidak Utuh' ? '#E53935' : 'var(--sto-text-muted)'};">
+          ${kondisi || '—'}</span>
+     </td>` : ''}
 
       <!-- ADDRESS -->
       ${addrCell}
@@ -277,17 +305,16 @@ $(document)
   .off('click', '#btnAddRow')
   .on('click', '#btnAddRow', function (e) {
     e.preventDefault();
-
+ 
     const tbody = document.getElementById('article-table');
     if (!tbody) return;
-
+ 
     const area = document.getElementById('area_desktop')?.value || '';
     let shelvesOptions = '';
-
     if (tableMode === 'area' && area) {
         shelvesOptions = buildShelfOptionsHtml(WAREHOUSE_VAL, area);
     }
-
+ 
     tbody.insertAdjacentHTML(
         'beforeend',
         buildDesktopRowHtml(desktopRowCount, {
@@ -295,11 +322,75 @@ $(document)
             shelvesOptions
         })
     );
-
+ 
+    const newIdx = desktopRowCount;
     desktopRowCount++;
-
+ 
     initSelect2OnRows();
     if (window.feather) feather.replace();
+ 
+    // ── [PATCH 4] Copy artikel dari baris terakhir sebelum baris baru ──
+    if (IS_CHEM_CONS) {
+        const allRows = tbody.querySelectorAll('.sto-row');
+        // baris ke-2 dari belakang = baris sebelum yang baru ditambah
+        const prevRow = allRows[allRows.length - 2];
+        if (prevRow) {
+            const $prevRow  = $(prevRow);
+            const prevRowIdx = $prevRow.find('.part-select').data('row');
+            const $prevSel  = $prevRow.find(`select[name="articles[${prevRowIdx}][article_id]"]`);
+ 
+            const prevVal     = $prevSel.val();
+            const prevText    = $prevSel.find(':selected').text();
+            const prevCode    = $prevRow.find(`input[name="articles[${prevRowIdx}][article_code]"]`).val();
+            const prevUom     = $prevRow.find(`input[name="articles[${prevRowIdx}][uom]"]`).val();
+            const prevMinPkg  = $prevRow.find(`input[name="articles[${prevRowIdx}][min_package]"]`).val();
+            const prevKondisi = IS_CHEM_ONLY
+                ? $prevRow.find('.kondisi-input').val()
+                : '';
+ 
+            if (prevVal && prevVal !== '__OTHER__:') {
+                const $newRow = $(tbody.querySelectorAll('.sto-row')[allRows.length - 1]);
+                const $newSel = $newRow.find(`select[name="articles[${newIdx}][article_id]"]`);
+ 
+                // Tambah option + set value ke select2
+                const opt = new Option(prevText, prevVal, true, true);
+                $(opt).data('code',       prevCode);
+                $(opt).data('uom',        prevUom);
+                $(opt).data('minPackage', prevMinPkg);
+ 
+                $newSel.append(opt).trigger({
+                    type: 'select2:select',
+                    params: {
+                        data: {
+                            id        : prevVal,
+                            text      : prevText,
+                            code      : prevCode,
+                            uom       : prevUom,
+                            minPackage: prevMinPkg,
+                            isOther   : false,
+                        }
+                    }
+                });
+ 
+                // Isi field secara langsung juga (antisipasi trigger tidak fire)
+                $newRow.find(`input[name="articles[${newIdx}][article_code]"]`).val(prevCode);
+                $newRow.find(`input[name="articles[${newIdx}][uom]"]`).val(prevUom);
+                $newRow.find(`input[name="articles[${newIdx}][min_package]"]`).val(prevMinPkg);
+ 
+                // ── [PATCH 5] Flip kondisi untuk Chemical ──────────────────
+                if (IS_CHEM_ONLY && prevKondisi) {
+                    const flippedKondisi = prevKondisi === 'Utuh' ? 'Tidak Utuh' : 'Utuh';
+                    $newRow.find('.kondisi-input').val(flippedKondisi);
+                    $newRow.find('.kondisi-label')
+                        .text(flippedKondisi)
+                        .css('color', flippedKondisi === 'Utuh' ? 'var(--sto-green-mid)' : '#E53935');
+ 
+                    // Set qty hint: jika Tidak Utuh, biarkan kosong (user isi manual)
+                    // jika Utuh, biarkan kosong juga — user tetap isi qty
+                }
+            }
+        }
+    }
 });
 
 // ══════════════════════════════════════════════════════════
@@ -504,14 +595,13 @@ function buildMobileRowHtml(idx, opts = {}) {
         </div>
 
         ${IS_CHEM_ONLY ? `
-        <div class="mt-3">
-          <label class="text-xs font-semibold text-gray-600 mb-1 block">Kondisi</label>
-          <select name="articles[${idx}][kondisi]" class="kondisi-select w-full border rounded px-2 py-1 text-sm">
-            <option value="">—</option>
-            <option value="Utuh" ${kondisi === 'Utuh' ? 'selected' : ''}>Utuh</option>
-            <option value="Tidak Utuh" ${kondisi === 'Tidak Utuh' ? 'selected' : ''}>Tidak Utuh</option>
-          </select>
-        </div>` : ''}
+       <div class="mt-3">
+         <label class="text-xs font-semibold text-gray-600 mb-1 block">Kondisi</label>
+         <input type="hidden" name="articles[${idx}][kondisi]" class="kondisi-input" value="${kondisi}">
+         <div class="kondisi-label w-full border rounded px-2 py-1 text-sm text-center font-semibold"
+           style="background:#f3f4f6;color:${kondisi === 'Utuh' ? '#2E7D32' : kondisi === 'Tidak Utuh' ? '#E53935' : '#9ca3af'};">
+           ${kondisi || '—'}</div>
+       </div>` : ''}
         
         <label class="text-xs font-semibold text-gray-600 mt-3 mb-1 block">Location</label>
         <input type="text" name="articles[${idx}][location]" value="${location}" readonly
@@ -637,19 +727,19 @@ async function loadShelves(warehouse, area, shelfEl) {
 function toggleSaveButton(warehouse) {
     const btns = ['btnSave', 'btnSaveMobile'].map(id => document.getElementById(id));
     const isSpecialWH = ['chemical', 'consumable'].includes((warehouse || '').toLowerCase());
-
+ 
     btns.forEach(btn => {
         if (!btn) return;
-
         if (isSpecialWH) {
-            // Hanya muncul kalau benar-benar mode shelf
-            const show = tableMode === 'shelf';
-            btn.style.display = show ? 'inline-flex' : 'none';
+            // Tampil hanya saat mode shelf (address sudah dipilih)
+            btn.style.display = tableMode === 'shelf' ? 'inline-flex' : 'none';
         } else {
+            // Non-chem/cons: selalu tampil
             btn.style.display = 'inline-flex';
         }
     });
 }
+
 
 
 function onWarehouseChange(warehouse) {
@@ -1075,6 +1165,68 @@ function fullReset(usedStoNumber) {
 // ══════════════════════════════════════════════════════════
 $(document).ready(function () {
 
+toggleSaveButton(WAREHOUSE_VAL);
+
+$(document).on('change blur', '.qty-input', function () {
+    if (!IS_CHEM_ONLY) return;
+     const $row   = $(this).closest('.sto-row');
+     const row    = $row.find('.part-select').data('row');
+     const qty    = parseFloat($(this).val());
+     const minPkg = parseFloat($row.find(`input[name="articles[${row}][min_package]"]`).val()) || 0;
+
+     if (!isNaN(qty) && qty > 0 && minPkg > 0 && qty >= minPkg) {
+         const remainder = qty % minPkg;
+         if (remainder > 0.0001) {
+             // Bukan kelipatan dan >= minPkg → tolak
+             Swal.fire({
+                 icon: 'warning',
+                 title: 'Qty tidak valid',
+                 html: `Qty harus kelipatan min packing (<strong>${minPkg}</strong>), atau di bawah ${minPkg}.<br>
+                        Contoh valid: ${minPkg}, ${minPkg * 2}, ${minPkg * 3}, ...`,
+                 timer: 3000,
+                 showConfirmButton: false,
+             });
+             $(this).val('');
+             autoKondisi($row);
+             return;
+         }
+     }
+     autoKondisi($row);
+ });
+
+  $(document).on('change blur', '.part-min-package', function () {
+    if (!IS_CHEM_CONS) return;
+    const $this  = $(this);
+    const $row   = $this.closest('.sto-row');
+    const row    = $row.find('.part-select').data('row');
+    const newVal = parseFloat($this.val());
+
+    // Ambil article_code, bukan article_id
+    const articleCode = $row.find(`input[name="articles[${row}][article_code]"]`).val()?.trim();
+    if (!articleCode || articleCode === 'OTHER' || isNaN(newVal) || newVal <= 0) return;
+
+    autoKondisi($row);
+
+    $.ajax({
+        url   : '/facility/sto/update-min-package',
+        method: 'POST',
+        data  : {
+            article_code: articleCode,
+            min_package : newVal,
+            _token      : $('meta[name="csrf-token"]').attr('content'),
+        },
+        success() {
+            $this.css('border-color', 'var(--sto-green-mid)');
+            setTimeout(() => $this.css('border-color', ''), 1500);
+        },
+        error(xhr) {
+            console.warn('Gagal update min_package:', xhr.responseJSON?.message);
+            $this.css('border-color', '#E53935');
+            setTimeout(() => $this.css('border-color', ''), 1500);
+        }
+    });
+});
+
     initSelect2OnRows();
     $('#warehouse-null').select2({ placeholder: '— Pilih Gudang —', width: '100%', allowClear: true });
     $('#warehouse-null-desktop').select2({ placeholder: '— Pilih Gudang —', width: '100%' });
@@ -1268,23 +1420,78 @@ $(document).on('change', '#area_mobile', async function () {
     });
 
 
-    // JADI
-$('#btnAddRowMobile').on('click', function () {
+   $('#btnAddRowMobile').off('click').on('click', function () {
     const list = document.getElementById('mobile-article-list');
     if (!list) return;
-
+ 
     const area = document.getElementById('area_mobile')?.value || '';
     let shelvesOptions = '';
     if (tableMode === 'area' && area) {
         shelvesOptions = buildShelfOptionsHtml(WAREHOUSE_VAL, area);
     }
-
+ 
     list.insertAdjacentHTML('beforeend', buildMobileRowHtml(mobileRowCount, {
         isRef: false,
         shelvesOptions
     }));
+ 
+    const newIdx = mobileRowCount;
     mobileRowCount++;
     initSelect2OnRows();
+ 
+    // ── [PATCH 4] Copy artikel dari baris mobile sebelumnya ──
+    if (IS_CHEM_CONS) {
+        const allRows = list.querySelectorAll('.sto-row');
+        const prevRow = allRows[allRows.length - 2];
+        if (prevRow) {
+            const $prevRow   = $(prevRow);
+            const prevRowIdx = $prevRow.data('row');
+            const $prevSel   = $prevRow.find(`select[name="articles[${prevRowIdx}][article_id]"]`);
+ 
+            const prevVal     = $prevSel.val();
+            const prevText    = $prevSel.find(':selected').text();
+            const prevCode    = $prevRow.find(`input[name="articles[${prevRowIdx}][article_code]"]`).val();
+            const prevUom     = $prevRow.find(`input[name="articles[${prevRowIdx}][uom]"]`).val();
+            const prevMinPkg  = $prevRow.find(`input[name="articles[${prevRowIdx}][min_package]"]`).val();
+            const prevKondisi = IS_CHEM_ONLY
+                ? $prevRow.find('.kondisi-input').val()
+                : '';
+ 
+            if (prevVal) {
+                const $newRow = $(list.querySelectorAll('.sto-row')[allRows.length - 1]);
+                const $newSel = $newRow.find(`select[name="articles[${newIdx}][article_id]"]`);
+ 
+                const opt = new Option(prevText, prevVal, true, true);
+                $newSel.append(opt).trigger({
+                    type: 'select2:select',
+                    params: {
+                        data: {
+                            id        : prevVal,
+                            text      : prevText,
+                            code      : prevCode,
+                            uom       : prevUom,
+                            minPackage: prevMinPkg,
+                            isOther   : false,
+                        }
+                    }
+                });
+ 
+                $newRow.find(`input[name="articles[${newIdx}][article_code]"]`).val(prevCode);
+                $newRow.find(`input[name="articles[${newIdx}][uom]"]`).val(prevUom);
+                $newRow.find(`input[name="articles[${newIdx}][min_package]"]`).val(prevMinPkg);
+                $newRow.find('.header-label').text(prevText || `❖ Item ${newIdx + 1}`);
+ 
+                // ── [PATCH 5] Flip kondisi mobile ──
+                if (IS_CHEM_ONLY && prevKondisi) {
+                    const flippedKondisi = prevKondisi === 'Utuh' ? 'Tidak Utuh' : 'Utuh';
+                    $newRow.find('.kondisi-input').val(flippedKondisi);
+                    $newRow.find('.kondisi-label')
+                        .text(flippedKondisi)
+                        .css('color', flippedKondisi === 'Utuh' ? '#2E7D32' : '#E53935');
+                }
+            }
+        }
+    }
 });
 
     // ── WAREHOUSE CHANGE ──────────────────────────────────
