@@ -309,6 +309,15 @@ $(document).on('select2:clear', '.part-select', function () {
 // ══════════════════════════════════════════════════════════
 function buildRowHtml(idx) {
     const loc = WAREHOUSE_VAL || '';
+    const locationCol = IS_SUPER_USER
+    ? `<td class="center">
+        <select name="articles[${idx}][location]" class="location-input sto-select" style="text-align:center;">
+          <option value="">— Pilih —</option>
+          ${['Consumable','Chemical','Dead Stock CM1','Raw Material','Finish Goods','WIP Buffing','WIP Sanding','WIP Touch Up','Werate']
+            .map(l => `<option value="${l}" ${l === loc ? 'selected' : ''}>${l}</option>`).join('')}
+        </select></td>`
+    : `<td class="center"><input type="text" name="articles[${idx}][location]" value="${loc}"
+          readonly class="location-input sto-input readonly" style="text-align:center;"></td>`;
     let qtyCols = '';
     if (IS_SUPER_USER) {
         qtyCols = `
@@ -357,8 +366,7 @@ function buildRowHtml(idx) {
       <td class="center"><input type="text" name="articles[${idx}][uom]" value=""
             class="part-uom sto-input readonly" readonly style="text-align:center;"></td>
       ${kondisiCol}
-      <td class="center"><input type="text" name="articles[${idx}][location]" value="${loc}"
-            readonly class="location-input sto-input readonly" style="text-align:center;"></td>
+      ${locationCol}
     </tr>`;
 }
 

@@ -423,13 +423,21 @@
 </td>
 @endif
 
-            <td class="center">
-             
-                <input type="text" name="articles[{{ $i }}][location]"
-                  value="{{ $item->location }}" readonly
-                  class="location-input sto-input readonly" style="text-align:center;">
-              
-            </td>
+           {{-- EXISTING ITEMS — kolom Location --}}
+<td class="center">
+  @if($isSuperUser)
+    <select name="articles[{{ $i }}][location]"
+            class="location-input sto-select" style="text-align:center;">
+      @foreach(['Consumable','Chemical','Dead Stock CM1','Raw Material','Finish Goods','WIP Buffing','WIP Sanding','WIP Touch Up','Werate'] as $loc)
+        <option value="{{ $loc }}" @selected($item->location === $loc)>{{ $loc }}</option>
+      @endforeach
+    </select>
+  @else
+    <input type="text" name="articles[{{ $i }}][location]"
+      value="{{ $item->location }}" readonly
+      class="location-input sto-input readonly" style="text-align:center;">
+  @endif
+</td>
           </tr>
           @endforeach
 
@@ -507,13 +515,22 @@
 </td>
 @endif
 
-            <td class="center">
-             
-                <input type="text" name="articles[{{ $i }}][location]"
-                  value="{{ $warehouse ?? '' }}" readonly
-                  class="location-input sto-input readonly" style="text-align:center;">
-              
-            </td>
+          {{-- EMPTY ROWS — kolom Location --}}
+<td class="center">
+  @if($isSuperUser)
+    <select name="articles[{{ $i }}][location]"
+            class="location-input sto-select" style="text-align:center;">
+      <option value="">— Pilih —</option>
+      @foreach(['Consumable','Chemical','Dead Stock CM1','Raw Material','Finish Goods','WIP Buffing','WIP Sanding','WIP Touch Up','Werate'] as $loc)
+        <option value="{{ $loc }}" @selected(($warehouse ?? '') === $loc)>{{ $loc }}</option>
+      @endforeach
+    </select>
+  @else
+    <input type="text" name="articles[{{ $i }}][location]"
+      value="{{ $warehouse ?? '' }}" readonly
+      class="location-input sto-input readonly" style="text-align:center;">
+  @endif
+</td>
           </tr>
           @endfor
 

@@ -32,7 +32,8 @@ class StoItem extends Model
     }
 
     public function article()
-    {
-        return $this->belongsTo(Article::class, 'article_code');
-    }
+{
+    return $this->belongsTo(Article::class, 'article_code', 'article_code');
+    //                                       ↑ FK di sto_items  ↑ PK/kolom di articles
+}
 }
