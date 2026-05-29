@@ -72,6 +72,14 @@ $(document).on('change', '#area_desktop, #area_mobile', function () {
 // Cache area → shelves+items, hindari re-fetch
 const areaCache = {};
 
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+});
+
 // ══════════════════════════════════════════════════════════
 // UTIL
 // ══════════════════════════════════════════════════════════
@@ -1218,14 +1226,13 @@ $(document).on('change blur', '.qty-input', function () {
      autoKondisi($row);
  });
 
-  $(document).on('change blur', '.part-min-package', function () {
+ $(document).on('change', '.part-min-package', function () {
     if (!IS_CHEM_CONS) return;
 
-    const $this  = $(this);
-    const $row   = $this.closest('.sto-row');
-    const row    = $row.find('.part-select').data('row');
-    const newVal = parseFloat($this.val());
-
+    const $this       = $(this);
+    const $row        = $this.closest('.sto-row');
+    const row         = $row.find('.part-select').data('row');
+    const newVal      = parseFloat($this.val());
     const articleCode = $row.find(`input[name="articles[${row}][article_code]"]`).val()?.trim();
 
     if (!articleCode || articleCode === 'OTHER' || isNaN(newVal) || newVal <= 0) return;
@@ -1243,24 +1250,13 @@ $(document).on('change blur', '.qty-input', function () {
         success() {
             $this.css('border-color', 'var(--sto-green-mid)');
             setTimeout(() => $this.css('border-color', ''), 1500);
-
-            // ✅ TOAST SUCCESS
-            Toast.fire({
-                icon: 'success',
-                title: 'Min package berhasil diupdate'
-            });
+            Toast.fire({ icon: 'success', title: 'Min package berhasil diupdate' });
         },
         error(xhr) {
             console.warn('Gagal update min_package:', xhr.responseJSON?.message);
-
             $this.css('border-color', '#E53935');
             setTimeout(() => $this.css('border-color', ''), 1500);
-
-            // ❌ TOAST ERROR
-            Toast.fire({
-                icon: 'error',
-                title: xhr.responseJSON?.message || 'Gagal update min package'
-            });
+            Toast.fire({ icon: 'error', title: xhr.responseJSON?.message || 'Gagal update min package' });
         }
     });
 });
