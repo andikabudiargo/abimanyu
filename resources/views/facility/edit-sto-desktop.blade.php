@@ -3,7 +3,6 @@
      Tampilan Edit STO — desain sama dengan create-sto-desktop-2
      ============================================================ --}}
 
-@push('styles')
 <style>
 :root {
   --sto-blue:        #1565C0;
@@ -189,7 +188,6 @@
 }
 .sto-select:disabled { background-color: var(--sto-surface); color: var(--sto-text-muted); cursor: not-allowed; opacity:.7; }
 </style>
-@endpush
 
   <div class="sto-card">
 
