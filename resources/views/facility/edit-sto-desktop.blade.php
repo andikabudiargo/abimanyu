@@ -398,13 +398,12 @@
 </td>
 
 
-            <td class="center">
-              <input type="text" name="articles[{{ $i }}][uom]"
-                value="{{ $item->article_code === 'OTHER' ? $item->uom : ($item->article->unit ?? '') }}"
-                class="part-uom sto-input readonly"
-                @if($item->article_code !== 'OTHER') readonly @endif
-                style="text-align:center;">
-            </td>
+           <td class="center">
+  <input type="text" name="articles[{{ $i }}][uom]"
+    value="{{ $item->uom ?? '' }}"
+    class="part-uom sto-input"
+    style="text-align:center;">
+</td>
 
            {{-- EXISTING ITEMS: ganti bagian kondisi --}}
 @if(($warehouse ?? null) === 'Chemical')

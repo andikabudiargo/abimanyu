@@ -600,7 +600,7 @@ public function datatables(Request $request)
     5  => 'articles.description',
    6  => $isSuperUser ? 'sto_items.qty' : 'sto_items.qty', // ✅ jangan pakai qty_display
     7  => 'articles.min_package',
-    8  => 'articles.unit',
+   8  => 'sto_items.uom',          // sebelumnya 'articles.unit'
     9  => 'sto_items.kondisi',   // ✅ BARU — geser status ke bawah
     10 => 'status',
     11 => 'stos.sto_number',
@@ -658,13 +658,7 @@ END as qty_display
 'sto_items.qty_2',  // qty user 2
             'articles.min_package',
  
-            DB::raw("
-                CASE
-                    WHEN sto_items.article_code = 'OTHER'
-                    THEN sto_items.uom
-                    ELSE articles.unit
-                END as unit
-            "),
+           'sto_items.uom as unit',
  
             // ✅ STATUS 3 KONDISI — hanya untuk Chemical / Consumable
             // Logika:
