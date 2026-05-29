@@ -1460,27 +1460,41 @@ public function update(Request $request, $id)
                 $existingItem = $sto->items()->lockForUpdate()->find($row['item_id']);
             }
 
-            if ($existingItem) {
+           if ($existingItem) {
 
-                $updateData = [];
+    $updateData = [];
 
-                // ── Qty berdasarkan role ─────────────────────────
-                if ($isSuperUser) {
-                    if (isset($row['qty'])   && $row['qty']   !== '' && $row['qty']   !== null) {
-                        $updateData['qty']   = $row['qty'];
-                    }
-                    if (isset($row['qty_2']) && $row['qty_2'] !== '' && $row['qty_2'] !== null) {
-                        $updateData['qty_2'] = $row['qty_2'];
-                    }
-                } elseif ($isSecondUser) {
-                    if (isset($row['qty_2']) && $row['qty_2'] !== '' && $row['qty_2'] !== null) {
-                        $updateData['qty_2'] = $row['qty_2'];
-                    }
-                } else {
-                    if (isset($row['qty']) && $row['qty'] !== '' && $row['qty'] !== null) {
-                        $updateData['qty'] = $row['qty'];
-                    }
-                }
+    // ── TAMBAH INI: update article_code jika berubah ────
+    if (!empty($row['article_code'])) {
+        $updateData['article_code'] = $row['article_code'];
+        $updateData['other_name']   = $row['article_code'] === 'OTHER'
+            ? ($row['other_name'] ?? null)
+            : null;
+    }
+    if (!empty($row['uom'])) {
+        $updateData['uom'] = $row['uom'];
+    }
+    if (isset($row['min_package'])) {
+        $updateData['min_package'] = $row['min_package'] ?: null;
+    }
+
+    // ── Qty berdasarkan role ─────────────────────────────
+    if ($isSuperUser) {
+        if (isset($row['qty'])   && $row['qty']   !== '' && $row['qty']   !== null) {
+            $updateData['qty']   = $row['qty'];
+        }
+        if (isset($row['qty_2']) && $row['qty_2'] !== '' && $row['qty_2'] !== null) {
+            $updateData['qty_2'] = $row['qty_2'];
+        }
+    } elseif ($isSecondUser) {
+        if (isset($row['qty_2']) && $row['qty_2'] !== '' && $row['qty_2'] !== null) {
+            $updateData['qty_2'] = $row['qty_2'];
+        }
+    } else {
+        if (isset($row['qty']) && $row['qty'] !== '' && $row['qty'] !== null) {
+            $updateData['qty'] = $row['qty'];
+        }
+    }
 
                 // ── [FIX 2] Kondisi selalu ikut diupdate ────────
                 if (isset($row['kondisi'])) {
@@ -1633,6 +1647,7 @@ $totalCount = Article::query()
     return response()->json([
         'results' => $articles->map(fn($a) => [
             'id'          => $a->article_code,
+            'article_code'          => $a->article_code,
             'text'        => "{$a->article_code} - {$a->description}",
             'unit'        => $a->unit,
             'min_package' => $a->min_package,

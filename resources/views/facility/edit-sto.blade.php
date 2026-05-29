@@ -285,10 +285,19 @@ function initSelect2OnRows() {
 // PART SELECT EVENTS
 // ══════════════════════════════════════════════════════════
 $(document).on('select2:select', '.part-select', function (e) {
-    const data    = e.params.data;
-    const $row    = $(this).closest('.sto-row');
-    const row     = $(this).data('row');
+    const data = e.params.data;
+    console.log('select2:select fired', data); // ← TAMBAH INI DULU
+    
+    const $row  = $(this).closest('.sto-row');
+    const row   = $(this).data('row');
     const isOther = data.isOther || String(data.id).startsWith('__OTHER__:');
+
+    const $opt   = $(data.element);
+    const code   = data.code      || $opt.data('code')        || '';
+    const uom    = data.uom       || $opt.data('uom')         || '';
+    const minPkg = data.minPackage || $opt.data('min-package') || '';
+
+    console.log('code:', code, 'uom:', uom, 'minPkg:', minPkg); // ← TAMBAH INI
 
     if (isOther) {
         $(`input[name="articles[${row}][article_code]"]`).val('OTHER');
@@ -296,9 +305,9 @@ $(document).on('select2:select', '.part-select', function (e) {
         $(`input[name="articles[${row}][min_package]"]`).val('');
         $(`input[name="articles[${row}][other_name]"]`).val(data.text);
     } else {
-        $(`input[name="articles[${row}][article_code]"]`).val(data.code || '');
-        $(`input[name="articles[${row}][uom]"]`).val(data.uom || '').prop('readonly', true);
-        $(`input[name="articles[${row}][min_package]"]`).val(data.minPackage || '');
+        $(`input[name="articles[${row}][article_code]"]`).val(code);
+        $(`input[name="articles[${row}][uom]"]`).val(uom).prop('readonly', true);
+        $(`input[name="articles[${row}][min_package]"]`).val(minPkg);
         $(`input[name="articles[${row}][other_name]"]`).val('');
     }
     autoKondisi($row);
