@@ -132,10 +132,10 @@ public function createv2()
         44,45,126  => 'WIP Touch Up',
         108,85   => 'WIP Sanding',
         63, 129, 133=> 'Consumable',
-        67, 54, 132   => 'Chemical',
+        67, 54, 132, 2   => 'Chemical',
         68        => 'Finish Goods',
         92        => 'OT',
-        53, 2 => null, // 🔥 BOLEH PILIH SENDIRI
+        53 => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
