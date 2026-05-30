@@ -624,7 +624,7 @@ function buildMobileRowHtml(idx, opts = {}) {
       <div class="mt-3">
             <label class="text-xs font-semibold text-gray-600 mb-1 block">UOM</label>
             @if(($warehouse ?? null) === 'Chemical')
-              <select name="articles[{{ $i }}][uom]"
+              <select name="articles[{{ $idx }}][uom]"
                       class="part-uom w-full border rounded px-2 py-1 text-sm"
                       data-original-uom="">
                 <option value="">—</option>
