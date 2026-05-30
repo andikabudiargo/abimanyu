@@ -269,12 +269,24 @@ function buildDesktopRowHtml(idx, opts = {}) {
 
       <!-- UOM -->
       <td class="center">
-       <input type="text" name="articles[${idx}][uom]" value="${uom}"
-  class="part-uom sto-input ${IS_CHEM_CONS ? '' : 'readonly'}"
-  ${IS_CHEM_CONS ? '' : 'readonly'}
-  data-ref-uom="${isRef ? uom : ''}"
-  data-original-uom="${uom}"
-  style="text-align:center;">
+        ${IS_CHEM_ONLY
+          ? `<select name="articles[${idx}][uom]"
+                class="part-uom sto-input sto-select"
+                data-ref-uom="${isRef ? uom : ''}"
+                data-original-uom="${uom}"
+                style="text-align:center;">
+              <option value="">—</option>
+              ${['KG','LTR','GLN','BTL'].map(u =>
+                `<option value="${u}" ${uom === u ? 'selected' : ''}>${u}</option>`
+              ).join('')}
+            </select>`
+          : `<input type="text" name="articles[${idx}][uom]" value="${uom}"
+              class="part-uom sto-input readonly"
+              readonly
+              data-ref-uom="${isRef ? uom : ''}"
+              data-original-uom="${uom}"
+              style="text-align:center;">`
+        }
       </td>
 
       <!-- KONDISI -->
