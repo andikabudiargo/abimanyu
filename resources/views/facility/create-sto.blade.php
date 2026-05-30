@@ -621,15 +621,25 @@ function buildMobileRowHtml(idx, opts = {}) {
         
         ${addrBlock}
         
-       <div class="mt-3">
-  <label class="text-xs font-semibold text-gray-600 mb-1 block">UOM</label>
-  <input type="text" name="articles[${idx}][uom]" value="${uom}"
-    class="part-uom w-full border rounded px-2 py-1 text-sm ${IS_CHEM_CONS ? '' : 'bg-gray-100'}"
-    ${IS_CHEM_CONS ? '' : 'readonly'}
-    data-ref-uom="${isRef ? uom : ''}"
-    data-original-uom="${uom}"
-    style="background:${IS_CHEM_CONS ? '' : '#f3f4f6'};">
-</div>
+      <div class="mt-3">
+            <label class="text-xs font-semibold text-gray-600 mb-1 block">UOM</label>
+            @if(($warehouse ?? null) === 'Chemical')
+              <select name="articles[{{ $i }}][uom]"
+                      class="part-uom w-full border rounded px-2 py-1 text-sm"
+                      data-original-uom="">
+                <option value="">—</option>
+                <option value="KG">KG</option>
+                <option value="LTR">LTR</option>
+                <option value="GLN">GLN</option>
+                <option value="BTL">BTL</option>
+              </select>
+            @else
+              <input type="text"
+                    name="articles[{{ $i }}][uom]"
+                    class="part-uom w-full border rounded px-2 py-1 bg-gray-100"
+                    readonly>
+            @endif
+          </div>
 
         ${IS_CHEM_ONLY ? `
        <div class="mt-3">
