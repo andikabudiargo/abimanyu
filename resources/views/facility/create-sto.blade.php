@@ -1566,17 +1566,18 @@ $(document).on('change', '#area_mobile', async function () {
     const $row    = $(this).closest('.sto-row');
     const row     = $(this).data('row');
     const isOther = data.isOther || String(data.id).startsWith('__OTHER__:');
-    const isRef   = $row.data('is-ref') == 1;  // baris referensi dari shelf
+    const isRef   = $row.data('is-ref') == 1;
 
     const $code   = $(`input[name="articles[${row}][article_code]"]`);
-    const $uom    = $(`input[name="articles[${row}][uom]"]`);
+    const $uom    = $(`[name="articles[${row}][uom]"]`);   // ← pakai [name] bukan input[name] agar cocok select & input
     const $minPkg = $(`input[name="articles[${row}][min_package]"]`);
     const $other  = $(`input[name="articles[${row}][other_name]"]`);
     const $header = $row.find('.header-label');
 
     if (isOther) {
         $code.val('OTHER');
-        $uom.val('').removeData('original-uom').prop('readonly', false);
+        $uom.val('').removeData('original-uom');
+        if (!IS_CHEM_ONLY) $uom.prop('readonly', false);
         $minPkg.val('');
         $other.val(data.text);
         $header.text(data.text);
@@ -1586,15 +1587,15 @@ $(document).on('change', '#area_mobile', async function () {
         $other.val('');
         $header.text(data.text);
 
-        // ── UOM: ref row pakai data-ref-uom jika ada, manual pakai article ──
-        const refUom = $uom.data('ref-uom');  // diset saat populateFromItems
+        const refUom = $uom.data('ref-uom');
         const uomVal = (isRef && refUom) ? refUom : (data.uom || '');
 
-       if (IS_CHEM_ONLY) {
-    $uom.val(uomVal).data('original-uom', uomVal); // select, tidak perlu readonly
-} else {
-    $uom.val(uomVal).data('original-uom', uomVal).prop('readonly', true);
-}
+        if (IS_CHEM_ONLY) {
+            $uom.val(uomVal).data('original-uom', uomVal);
+        } else {
+            $uom.val(uomVal).data('original-uom', uomVal).prop('readonly', true);
+        }
+    }
 
     toggleUomByLocation($row);
     $row.find('.qty-input').prop('disabled', false);
