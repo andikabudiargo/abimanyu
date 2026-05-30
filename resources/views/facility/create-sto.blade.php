@@ -1608,7 +1608,7 @@ $(document).on('change', '#area_mobile', async function () {
         $sel.val(null).trigger('change');
         $sel.find('option').filter((_, o) => o.value?.startsWith('__OTHER__:')).remove();
         $(`input[name="articles[${row}][article_code]"]`).val('');
-        $(`input[name="articles[${row}][uom]"]`).val('').prop('readonly', true);
+        $(`[name="articles[${row}][uom]"]`).val('').prop('readonly', !IS_CHEM_ONLY);
         $(`input[name="articles[${row}][min_package]"]`).val('').prop('readonly', true);
         $(`input[name="articles[${row}][other_name]"]`).val('');
         $row.find('.qty-input').val('').prop('disabled', false);
