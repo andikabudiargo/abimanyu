@@ -1590,8 +1590,11 @@ $(document).on('change', '#area_mobile', async function () {
         const refUom = $uom.data('ref-uom');  // diset saat populateFromItems
         const uomVal = (isRef && refUom) ? refUom : (data.uom || '');
 
-        $uom.val(uomVal).data('original-uom', uomVal).prop('readonly', true);
-    }
+       if (IS_CHEM_ONLY) {
+    $uom.val(uomVal).data('original-uom', uomVal); // select, tidak perlu readonly
+} else {
+    $uom.val(uomVal).data('original-uom', uomVal).prop('readonly', true);
+}
 
     toggleUomByLocation($row);
     $row.find('.qty-input').prop('disabled', false);
