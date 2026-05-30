@@ -978,7 +978,8 @@ const total = Math.max(defaultMin, items.length);
     $(`input[name="articles[${i}][min_package]"]`).val(item.min_package || '');
 
     // UOM dari referensi — simpan ke data attribute
-    const $uomField = $(`input[name="articles[${i}][uom]"]`);
+    // BARU — match input DAN select
+const $uomField = $(`[name="articles[${i}][uom]"]`);
     const refUom    = item.unit || '';
     $uomField
         .val(refUom)
