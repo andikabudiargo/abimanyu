@@ -288,6 +288,12 @@ if ($isAuditee && in_array($row->status, ['Verified', 'Returned for Action'])) {
       <a href="'. $process_url .'" class="block px-4 py-2 hover:bg-orange-100 text-orange-700">
                 <i data-feather="refresh-cw" class="w-4 h-4 inline mr-2"></i>Process
             </a>';
+}
+if ($isMR && $row->status == 'Verified') {
+      $actionButtons .= '
+         <a href="'. $edit_url .'" class="block px-4 py-2 hover:bg-gray-100">
+                <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
+            </a>';
 }      
 if ($isMR && $row->status == 'In Progress') {
       $actionButtons .= '
