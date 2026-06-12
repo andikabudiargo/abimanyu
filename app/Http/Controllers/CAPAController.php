@@ -294,7 +294,17 @@ if ($isMR && $row->status == 'Verified') {
          <a href="'. $edit_url .'" class="block px-4 py-2 hover:bg-gray-100">
                 <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
             </a>';
-}      
+}   
+if ($isMR && $row->status == 'Draft') {
+      $actionButtons .= '
+         <a href="'. $edit_url .'" class="block px-4 py-2 hover:bg-gray-100">
+                <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
+            </a>
+            <button onclick="confirmDelete(' . $row->id . ')" 
+                class="w-full text-left text-red-600 px-4 py-2 hover:bg-red-500 hover:text-white">
+                <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
+            </button>';
+}     
 if ($isMR && $row->status == 'In Progress') {
       $actionButtons .= '
          <a href="'. $review_url .'" class="block px-4 py-2 hover:bg-lime-100 text-lime-700">
