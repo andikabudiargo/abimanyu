@@ -114,7 +114,7 @@
         <i class="fa-solid fa-file-pen text-lg"></i>
       </div>
       <div>
-        <p class="text-gray-600 text-sm">Draft</p>
+        <p class="text-gray-600 text-sm">1. Draft (Pertama Dibuat Auditor)</p>
         <p class="text-xl font-bold text-gray-800"> {{ $draft }}</p>
       </div>
     </div>
@@ -125,7 +125,7 @@
         <i class="fa-solid fa-paper-plane text-lg"></i>
       </div>
       <div>
-        <p class="text-gray-600 text-sm">Posted</p>
+        <p class="text-gray-600 text-sm">2. Posted (Disahkan Auditor)</p>
         <p class="text-xl font-bold text-gray-800">{{ $posted }}</p>
       </div>
     </div>
@@ -136,7 +136,7 @@
         <i class="fa-solid fa-circle-check text-lg"></i>
       </div>
       <div>
-        <p class="text-gray-600 text-sm">Verified</p>
+        <p class="text-gray-600 text-sm">3. Verified (Diverifikasi MR)</p>
         <p class="text-xl font-bold text-gray-800">{{ $verified }}</p>
       </div>
     </div>
@@ -147,7 +147,8 @@
         <i class="fa-solid fa-spinner text-lg"></i>
       </div>
       <div>
-        <p class="text-gray-600 text-sm">In Progress</p>
+        <p class="text-gray-600 text-sm">4. In Progress (Sedang Dilengkapi Auditee)
+        </p>
         <p class="text-xl font-bold text-gray-800">{{ $inProgress }}</p>
       </div>
     </div>
@@ -158,7 +159,7 @@
         <i class="fa-solid fa-inbox text-lg"></i>
       </div>
       <div>
-        <p class="text-gray-600 text-sm">Submitted</p>
+        <p class="text-gray-600 text-sm">5. Submitted (Diserahkan Auditee)</p>
         <p class="text-xl font-bold text-gray-800">{{ $submitted }}</p>
       </div>
     </div>
@@ -169,7 +170,7 @@
         <i class="fa-solid fa-user-check text-lg"></i>
       </div>
       <div>
-        <p class="text-gray-600 text-sm">Authorized</p>
+        <p class="text-gray-600 text-sm">6. Authorized (Disahkan MR)</p>
         <p class="text-xl font-bold text-gray-800">{{ $authorized }}</p>
       </div>
     </div>
@@ -180,7 +181,7 @@
         <i class="fa-solid fa-lock text-lg"></i>
       </div>
       <div>
-        <p class="text-gray-600 text-sm">Closed</p>
+        <p class="text-gray-600 text-sm">7. Closed (Ditutup Auditor)</p>
         <p class="text-xl font-bold text-gray-800">{{ $closed }}</p>
       </div>
     </div>
