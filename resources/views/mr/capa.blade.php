@@ -282,6 +282,8 @@
                     <th class="px-4 py-2">Preventive Action</th>
                     <th class="px-4 py-2">PA Due Date</th>
                     <th class="px-4 py-2">Deadline</th>
+                    <th class="px-4 py-2">Closed by</th>
+                    <th class="px-4 py-2">Closed at</th>
                 </tr>
             </thead>
             <tbody>
@@ -719,6 +721,8 @@ div.dt-button-collection .dt-button:hover {
   { data: 'pa', name: 'pa', orderable: false, searchable: false },
   { data: 'pa_due_date', name: 'pa_due_date', orderable: false, searchable: false },
   { data: 'deadline', name: 'deadline', orderable: false, searchable: false },
+  { data: 'approved_by', name: 'approved_by', orderable: false, searchable: false },
+  { data: 'approved_at', name: 'approved_at', orderable: false, searchable: false },
 ]
 
     });
