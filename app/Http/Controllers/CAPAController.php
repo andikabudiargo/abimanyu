@@ -135,6 +135,21 @@ public function userList($id)
     ));
 }
 
+private function formatTanggalIndonesia($date): string
+{
+    if (!$date) return '-';
+    
+    $bulan = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret',
+        4 => 'April', 5 => 'Mei', 6 => 'Juni',
+        7 => 'Juli', 8 => 'Agustus', 9 => 'September',
+        10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
+    
+    $carbon = \Carbon\Carbon::parse($date);
+    return $carbon->day . ' ' . $bulan[$carbon->month] . ' ' . $carbon->year;
+}
+
     public function data(Request $request)
 {
 
@@ -351,13 +366,19 @@ if ($row->status == 'Closed') {
 ->addColumn('ca', fn($row) => optional($row->ca)->description ?? '-')
 ->addColumn('ca_due_date', function ($row) {
     return $row->ca && $row->ca->due_date
-        ? \Carbon\Carbon::parse($row->ca->due_date)->format('d-m-Y')
+        ? $this->formatTanggalIndonesia($row->ca->due_date)
         : '-';
 })
 ->addColumn('pa', fn($row) => optional($row->pa)->description ?? '-')
 ->addColumn('pa_due_date', function ($row) {
     return $row->pa && $row->pa->due_date
-        ? \Carbon\Carbon::parse($row->pa->due_date)->format('d-m-Y')
+        ? $this->formatTanggalIndonesia($row->pa->due_date)
+        : '-';
+})
+
+->addColumn('approved_at', function ($row) {
+    return $row->approved_at
+        ? $this->formatTanggalIndonesia($row->approved_at)
         : '-';
 })
 
@@ -564,15 +585,16 @@ $auditorList .= '</div>';
 })
 
 ->editColumn('report_date', function ($row) {
-
     if (empty($row->report_date)) {
         return '<span class="block w-full italic text-xs text-center text-gray-400">No report date added</span>';
     }
 
+    $formatted = $this->formatTanggalIndonesia($row->report_date);
+
     return '
         <div class="flex items-center justify-center gap-2 text-sm text-gray-700 font-medium">
             <i class="fa-solid fa-calendar text-slate-500"></i>
-            <span>'.e($row->report_date).'</span>
+            <span>' . e($formatted) . '</span>
         </div>
     ';
 })
@@ -661,7 +683,7 @@ $auditorList .= '</div>';
         ->editColumn('created_at', function ($row) {
             return \Carbon\Carbon::parse($row->created_at)->format('d-m-Y H:i');
         })
-        ->rawColumns(['action', 'category', 'status', 'auditors', 'capa_number','departemen', 'dept_representative','status','report_date','deadline'])
+        ->rawColumns(['action', 'category', 'status', 'auditors', 'capa_number','departemen', 'dept_representative','status','report_date','deadline','approved_at'])
         ->make(true);
 }
 

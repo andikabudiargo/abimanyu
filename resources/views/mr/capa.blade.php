@@ -667,7 +667,7 @@ div.dt-button-collection .dt-button:hover {
                 title: null,
                 text: '<i class="fas fa-file-excel mr-2 text-green-600"></i>Excel',
                 exportOptions: {
-                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14,15] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
+                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14,15,16,17] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
                 }
             },
             {
@@ -678,7 +678,7 @@ div.dt-button-collection .dt-button:hover {
                 pageSize: 'A4',
                 text: '<i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF',
                 exportOptions: {
-                columns:  [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
+                columns:  [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16,17] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
                 },
                  customize: function(doc) {
         // Ubah font seluruh tabel
@@ -692,7 +692,7 @@ div.dt-button-collection .dt-button:hover {
                 text: '<i class="fas fa-print mr-2"></i>Print',
                 orientation: 'landscape',
                 exportOptions: {
-                columns:  [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
+                columns:  [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16,17] // kolom yang akan diexport (tanpa kolom ke-5, yaitu Action)
                 },
                  customize: function (win) {
         // Kecilkan font tabel
