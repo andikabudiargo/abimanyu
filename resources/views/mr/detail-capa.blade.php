@@ -539,8 +539,7 @@
                         </div>
 
                         @php
-    $caExt = pathinfo($capa->ca->supporting_document, PATHINFO_EXTENSION);
-    $caFilename = ($capa->capa_number ?: 'CAPA') . '_CA.' . $caExt;
+    $caFilename = ($capa->capa_number ?: 'CAPA') . '_CA_' . $capa->ca->supporting_document;
 @endphp
 <a href="{{ asset('capa_document/'.$capa->id.'/'.$capa->ca->supporting_document) }}"
    download="{{ $caFilename }}"
@@ -669,8 +668,7 @@
                         </div>
 
                         @php
-    $paExt = pathinfo($capa->pa->supporting_document, PATHINFO_EXTENSION);
-    $paFilename = ($capa->capa_number ?: 'CAPA') . '_PA.' . $paExt;
+    $paFilename = ($capa->capa_number ?: 'CAPA') . '_PA_' . $capa->pa->supporting_document;
 @endphp
 <a href="{{ asset('capa_document/'.$capa->id.'/'.$capa->pa->supporting_document) }}"
    download="{{ $paFilename }}"
