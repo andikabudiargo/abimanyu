@@ -538,9 +538,13 @@
 
                         </div>
 
-                        <a href="{{ asset('capa_document/'.$capa->id.'/'.$capa->ca->supporting_document) }}"
-                           download
-                           class="text-indigo-600 hover:text-indigo-800">
+                        @php
+    $caExt = pathinfo($capa->ca->supporting_document, PATHINFO_EXTENSION);
+    $caFilename = ($capa->capa_number ?: 'CAPA') . '_CA.' . $caExt;
+@endphp
+<a href="{{ asset('capa_document/'.$capa->id.'/'.$capa->ca->supporting_document) }}"
+   download="{{ $caFilename }}"
+   class="text-indigo-600 hover:text-indigo-800">
 
                             <i class="fa-solid fa-download"></i>
 
@@ -664,9 +668,13 @@
 
                         </div>
 
-                        <a href="{{ asset('capa_document/'.$capa->id.'/'.$capa->pa->supporting_document) }}"
-                           download
-                           class="text-indigo-600 hover:text-indigo-800">
+                        @php
+    $paExt = pathinfo($capa->pa->supporting_document, PATHINFO_EXTENSION);
+    $paFilename = ($capa->capa_number ?: 'CAPA') . '_PA.' . $paExt;
+@endphp
+<a href="{{ asset('capa_document/'.$capa->id.'/'.$capa->pa->supporting_document) }}"
+   download="{{ $paFilename }}"
+   class="text-indigo-600 hover:text-indigo-800">
 
                             <i class="fa-solid fa-download"></i>
 
