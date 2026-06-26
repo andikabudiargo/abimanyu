@@ -59,7 +59,8 @@
   <select id="filter-sto-periode"
           class="w-full px-3 py-2 border border-gray-300 rounded-md">
     <option value="">-- All STO Periode --</option>
-    <option value="2026/05">2026 Mei</option>
+    <option value="2026/06">2026 Juni</option>
+    <option value="2026/05">2026 Mei (Closed)</option>
     <option value="2026/04">2026 April (Closed)</option>
     <option value="2026/03">2026 Maret (Closed)</option>
     <option value="2026/02">2026 Februari (Closed)</option>
