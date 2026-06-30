@@ -26,7 +26,6 @@ use PhpOffice\PhpWord\IOFactory as WordIOFactory;
 use PhpOffice\PhpWord\Element\Text;
 use PhpOffice\PhpWord\Element\TextRun;
 use PhpOffice\PhpWord\Element\Table;
-use App\Services\PdfMerger;
 
 use function Symfony\Component\Clock\now;
 
@@ -1749,7 +1748,7 @@ public function pdf($id, Request $request)
         compact('capa', 'logo', 'evidenceImages', 'supportingDocs', 'supportingDocxContent')
     )->render();
 
-    $mpdf = new PdfMerger([
+    $mpdf = new Mpdf([
         'format' => 'A4',
         'margin_top' => 15,
         'margin_bottom' => 15,
@@ -1759,23 +1758,25 @@ public function pdf($id, Request $request)
 
     $mpdf->WriteHTML($html);
 
-    
+    $filename = 'CAPA-' . $capa->capa_number . '.pdf';
+
     /* =====================
        MERGE PDF SUPPORTING DOCS
     ===================== */
-    $this->mergePdfSupportingDocs($supportingPdfs, $mpdf);
-
-    $filename = 'CAPA-' . $capa->capa_number . '.pdf';
+    $finalPdf = $this->mergePdfSupportingDocs($mpdf->Output('', 'S'), $supportingPdfs);
 
     if ($request->has('preview')) {
-
-        $pdfContent = $mpdf->Output($filename, 'S');
-
-        return response($pdfContent, 200, [
+        return response($finalPdf, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$filename.'"'
         ]);
     }
+
+    return response($finalPdf, 200, [
+        'Content-Type' => 'application/pdf',
+        'Content-Disposition' => 'attachment; filename="'.$filename.'"'
+    ]);
+}
 
     return $mpdf->Output($filename, 'D');
 }
@@ -1844,26 +1845,31 @@ private function collectSupportingDocuments(string $basePath, array $actions): a
  * Gabungkan PDF utama dengan daftar PDF supporting (CA/PA) jadi satu file,
  * menggunakan fitur import bawaan mPDF (tidak perlu FPDI terpisah).
  */
-private function mergePdfSupportingDocs(array $supportingPdfs, Mpdf $mpdf): void
+/**
+ * Gabungkan PDF utama (hasil generate mPDF) dengan daftar PDF supporting (CA/PA).
+ */
+private function mergePdfSupportingDocs(string $mainPdfContent, array $supportingPdfs): string
 {
     if (empty($supportingPdfs)) {
-        return;
+        return $mainPdfContent;
     }
 
-    $mpdf->SetImportUse();
+    $tmpMainPdf = storage_path('app/tmp_capa_merge_' . uniqid() . '.pdf');
+    file_put_contents($tmpMainPdf, $mainPdfContent);
+
+    $pdf = new \setasign\Fpdi\Fpdi();
+
+    $this->appendPdfPages($pdf, $tmpMainPdf);
 
     foreach ($supportingPdfs as $doc) {
-
-        $pageCount = $mpdf->SetSourceFile($doc['path']);
-
-        for ($i = 1; $i <= $pageCount; $i++) {
-
-            $tplId = $mpdf->ImportPage($i);
-
-            $mpdf->AddPage();
-            $mpdf->UseTemplate($tplId);
-        }
+        $this->appendPdfPages($pdf, $doc['path']);
     }
+
+    $result = $pdf->Output('S');
+
+    @unlink($tmpMainPdf);
+
+    return $result;
 }
 
 /**
