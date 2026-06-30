@@ -1778,9 +1778,6 @@ public function pdf($id, Request $request)
     ]);
 }
 
-    return $mpdf->Output($filename, 'D');
-}
-
 /**
  * Kumpulkan supporting document (CA & PA) dan kelompokkan jadi:
  * - pdfs          : file pdf asli, siap di-merge
