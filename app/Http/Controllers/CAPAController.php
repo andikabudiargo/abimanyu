@@ -1758,24 +1758,25 @@ public function pdf($id, Request $request)
 
     $mpdf->WriteHTML($html);
 
-    $filename = 'CAPA-' . $capa->capa_number . '.pdf';
-
+    
     /* =====================
        MERGE PDF SUPPORTING DOCS
     ===================== */
-    $finalPdf = $this->mergePdfSupportingDocs($mpdf->Output('', 'S'), $supportingPdfs);
+    $this->mergePdfSupportingDocs($supportingPdfs, $mpdf);
+
+    $filename = 'CAPA-' . $capa->capa_number . '.pdf';
 
     if ($request->has('preview')) {
-        return response($finalPdf, 200, [
+
+        $pdfContent = $mpdf->Output($filename, 'S');
+
+        return response($pdfContent, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$filename.'"'
         ]);
     }
 
-    return response($finalPdf, 200, [
-        'Content-Type' => 'application/pdf',
-        'Content-Disposition' => 'attachment; filename="'.$filename.'"'
-    ]);
+    return $mpdf->Output($filename, 'D');
 }
 
 /**
@@ -1839,30 +1840,29 @@ private function collectSupportingDocuments(string $basePath, array $actions): a
 }
 
 /**
- * Gabungkan PDF utama dengan daftar PDF supporting (CA/PA) jadi satu file.
+ * Gabungkan PDF utama dengan daftar PDF supporting (CA/PA) jadi satu file,
+ * menggunakan fitur import bawaan mPDF (tidak perlu FPDI terpisah).
  */
-private function mergePdfSupportingDocs(string $mainPdfContent, array $supportingPdfs): string
+private function mergePdfSupportingDocs(array $supportingPdfs, Mpdf $mpdf): void
 {
     if (empty($supportingPdfs)) {
-        return $mainPdfContent;
+        return;
     }
 
-    $tmpMainPdf = storage_path('app/tmp_capa_merge_' . uniqid() . '.pdf');
-    file_put_contents($tmpMainPdf, $mainPdfContent);
-
-    $pdfMerge = new \setasign\Fpdi\Fpdi();
-
-    $this->appendPdfPages($pdfMerge, $tmpMainPdf);
+    $mpdf->SetImportUse();
 
     foreach ($supportingPdfs as $doc) {
-        $this->appendPdfPages($pdfMerge, $doc['path']);
+
+        $pageCount = $mpdf->SetSourceFile($doc['path']);
+
+        for ($i = 1; $i <= $pageCount; $i++) {
+
+            $tplId = $mpdf->ImportPage($i);
+
+            $mpdf->AddPage();
+            $mpdf->UseTemplate($tplId);
+        }
     }
-
-    $result = $pdfMerge->Output('S');
-
-    @unlink($tmpMainPdf);
-
-    return $result;
 }
 
 /**
