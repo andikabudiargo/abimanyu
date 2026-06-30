@@ -179,18 +179,16 @@ if (!$isMRCapa) {
 
     } else {
 
-       // Ambil semua department user login
-$userDeptIds = Auth::user()
+      $userDeptIds = Auth::user()
     ->departments()
     ->pluck('departments.id')
     ->toArray();
 
-// Kalau termasuk HRGAIT family → anggap punya semuanya
+// Kalau termasuk HRGAIT family → tambahkan grup HRGAIT lengkap, TANPA menghapus departemen lain
 if (array_intersect($userDeptIds, [2,3,5])) {
-    $userDeptIds = [2,3,5];
+    $userDeptIds = array_unique(array_merge($userDeptIds, [2,3,5]));
 }
 
-// Filter CAPA berdasarkan dept_id
 $query->whereIn('dept_id', $userDeptIds);
 
 
