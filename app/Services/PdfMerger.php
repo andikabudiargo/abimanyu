@@ -8,4 +8,4 @@ use setasign\Fpdi\FpdiTrait;
 class PdfMerger extends Mpdf
 {
     use FpdiTrait;
-}
+}   

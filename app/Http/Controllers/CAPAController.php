@@ -26,6 +26,7 @@ use PhpOffice\PhpWord\IOFactory as WordIOFactory;
 use PhpOffice\PhpWord\Element\Text;
 use PhpOffice\PhpWord\Element\TextRun;
 use PhpOffice\PhpWord\Element\Table;
+use App\Services\PdfMerger;
 
 use function Symfony\Component\Clock\now;
 
@@ -1748,7 +1749,7 @@ public function pdf($id, Request $request)
         compact('capa', 'logo', 'evidenceImages', 'supportingDocs', 'supportingDocxContent')
     )->render();
 
-    $mpdf = new Mpdf([
+    $mpdf = new PdfMerger([
         'format' => 'A4',
         'margin_top' => 15,
         'margin_bottom' => 15,
