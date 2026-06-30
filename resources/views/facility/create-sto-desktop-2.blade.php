@@ -7,11 +7,11 @@
   $isChemCons = in_array($warehouse ?? null, ['Chemical', 'Consumable']);
 
   $year  = 2026;
-  $month = '05';
+  $month = '06';
   $month = str_pad($month, 2, '0', STR_PAD_LEFT);
 
   $stoRange = [
-    'Dead Stock CM1' => [1, 49],
+    'Dead Stock CM1' => [1, 100],
     'Chemical'       => [1000, 1999],
     'Consumable'     => [2000, 2999],
     'Raw Material'   => [3000, 3999],
@@ -19,7 +19,7 @@
     'WIP Sanding'    => [6000, 6999],
     'WIP Touch Up'   => [7000, 7999],
     'Finish Goods'   => [4000, 4999],
-    'OT'             => [50, 999],
+    'OT'             => [101, 999],
     'Werate'         => [8000, 8999],
   ];
 

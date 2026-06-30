@@ -327,11 +327,11 @@ $ticketsToApprove = $canApprove
    
         @php
   $year  = 2026;
-  $month = '05';
+  $month = '06';
 
   // Mapping lokasi → range
  $stoRange = [
-    'Dead Stock CM1' => [1, 49],
+    'Dead Stock CM1' => [1, 100],
     'Chemical'       => [1000, 1999],
     'Consumable'     => [2000, 2999],
     'Raw Material'   => [3000, 3999],
@@ -339,7 +339,7 @@ $ticketsToApprove = $canApprove
     'WIP Sanding'    => [6000, 6999],
     'WIP Touch Up'   => [7000, 7999],
     'Finish Goods'   => [4000, 4999],
-    'OT'             => [50, 999],
+    'OT'             => [101, 999],
     'Werate'         => [8000, 8999],
   ];
 
