@@ -410,6 +410,70 @@
 
 @endif
 
+{{-- ================= SUPPORTING DOCUMENT CONTENT (DOCX) ================= --}}
+@if(!empty($supportingDocxContent))
+
+@foreach($supportingDocxContent as $doc)
+
+<div style="page-break-before: always;"></div>
+
+<table width="100%" style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 12px;">
+    <tr>
+        <th colspan="4" style="text-align:center; background-color:yellow;">
+            {{ $doc['label'] }} — {{ $doc['name'] }}
+        </th>
+    </tr>
+</table>
+
+<div style="margin-top:10px;">
+    @foreach($doc['content'] as $block)
+
+        @if($block['type'] === 'text' && trim($block['value']) !== '')
+            <p style="font-size:11px; margin:4px 0;">{{ $block['value'] }}</p>
+
+        @elseif($block['type'] === 'table')
+            <table border="1" width="100%" cellpadding="5" cellspacing="0" style="margin:8px 0;">
+                @foreach($block['value'] as $row)
+                <tr>
+                    @foreach($row as $cell)
+                    <td style="font-size:10px;">{{ $cell }}</td>
+                    @endforeach
+                </tr>
+                @endforeach
+            </table>
+        @endif
+
+    @endforeach
+</div>
+
+@endforeach
+
+@endif
+
+{{-- ================= SUPPORTING DOCUMENT (FALLBACK LINK) ================= --}}
+@if(!empty($supportingDocs))
+
+<div style="page-break-before: always;"></div>
+
+<h4 style="text-align:center;">Other Supporting Documents</h4>
+
+<table border="1" width="100%" cellpadding="5" cellspacing="0">
+    <tr>
+        <th width="25%">Type</th>
+        <th width="40%">File Name</th>
+        <th width="35%">Link</th>
+    </tr>
+    @foreach($supportingDocs as $doc)
+    <tr>
+        <td>{{ $doc['label'] }}</td>
+        <td>{{ $doc['name'] }}</td>
+        <td><a href="{{ $doc['url'] }}" target="_blank">{{ $doc['url'] }}</a></td>
+    </tr>
+    @endforeach
+</table>
+
+@endif
+
 
 
 

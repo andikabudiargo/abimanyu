@@ -22,6 +22,10 @@ use Mpdf\Mpdf;
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
 use Carbon\Carbon;
+use PhpOffice\PhpWord\IOFactory as WordIOFactory;
+use PhpOffice\PhpWord\Element\Text;
+use PhpOffice\PhpWord\Element\TextRun;
+use PhpOffice\PhpWord\Element\Table;
 
 use function Symfony\Component\Clock\now;
 
@@ -1693,7 +1697,6 @@ public function pdf($id, Request $request)
        LOGO BASE64
     ===================== */
     $logoPath = public_path('img/logo-2.jpg');
-
     $logo = null;
 
     if (file_exists($logoPath)) {
@@ -1705,32 +1708,44 @@ public function pdf($id, Request $request)
     /* =====================
        EVIDENCE BASE64
     ===================== */
-  $evidenceImages = [];
+    $evidenceImages = [];
 
-foreach ($capa->evidences as $evidence) {
+    foreach ($capa->evidences as $evidence) {
 
-    $path = '/home/abimany3/public_html/evidence_capa/'
-            .$capa->id.'/'
-            .$evidence->file_name;
+        $path = '/home/abimany3/public_html/evidence_capa/'
+                .$capa->id.'/'
+                .$evidence->file_name;
 
-    $realPath = realpath($path);
+        $realPath = realpath($path);
 
-    if ($realPath && file_exists($realPath)) {
-        $evidenceImages[] = [
-            'src'  => 'file://' . $realPath,
-            'name' => $evidence->file_name
-        ];
+        if ($realPath && file_exists($realPath)) {
+            $evidenceImages[] = [
+                'src'  => 'file://' . $realPath,
+                'name' => $evidence->file_name
+            ];
+        }
     }
-}
 
+    /* =====================
+       SUPPORTING DOCUMENTS (CA & PA)
+    ===================== */
+    $supportingDocBasePath = '/home/abimany3/public_html/capa_document/' . $capa->id . '/';
 
+    $supporting = $this->collectSupportingDocuments($supportingDocBasePath, [
+        'ca' => $capa->ca,
+        'pa' => $capa->pa,
+    ]);
+
+    $supportingPdfs        = $supporting['pdfs'];
+    $supportingDocxContent = $supporting['docxContent'];
+    $supportingDocs        = $supporting['fallbackLinks'];
 
     /* =====================
        RENDER VIEW
     ===================== */
     $html = view(
         'mr.capa-pdf',
-        compact('capa','logo','evidenceImages')
+        compact('capa', 'logo', 'evidenceImages', 'supportingDocs', 'supportingDocxContent')
     )->render();
 
     $mpdf = new Mpdf([
@@ -1739,24 +1754,201 @@ foreach ($capa->evidences as $evidence) {
         'margin_bottom' => 15,
         'margin_left' => 12,
         'margin_right' => 12,
-        
     ]);
 
     $mpdf->WriteHTML($html);
 
     $filename = 'CAPA-' . $capa->capa_number . '.pdf';
 
+    /* =====================
+       MERGE PDF SUPPORTING DOCS
+    ===================== */
+    $finalPdf = $this->mergePdfSupportingDocs($mpdf->Output('', 'S'), $supportingPdfs);
+
     if ($request->has('preview')) {
-
-        $pdfContent = $mpdf->Output($filename, 'S');
-
-        return response($pdfContent, 200, [
+        return response($finalPdf, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$filename.'"'
         ]);
     }
 
-    return $mpdf->Output($filename, 'D');
+    return response($finalPdf, 200, [
+        'Content-Type' => 'application/pdf',
+        'Content-Disposition' => 'attachment; filename="'.$filename.'"'
+    ]);
+}
+
+/**
+ * Kumpulkan supporting document (CA & PA) dan kelompokkan jadi:
+ * - pdfs          : file pdf asli, siap di-merge
+ * - docxContent   : konten docx yang sudah diextract (untuk ditampilkan via blade)
+ * - fallbackLinks : format lain / docx gagal parse, ditampilkan sebagai link
+ */
+private function collectSupportingDocuments(string $basePath, array $actions): array
+{
+    $pdfs = [];
+    $docxContent = [];
+    $fallbackLinks = [];
+
+    foreach ($actions as $label => $action) {
+
+        if (!$action || !$action->supporting_document) {
+            continue;
+        }
+
+        $filePath = $basePath . $action->supporting_document;
+
+        if (!file_exists($filePath)) {
+            continue;
+        }
+
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $labelText = strtoupper($label) . ' Supporting Document';
+
+        if ($ext === 'pdf') {
+            $pdfs[] = ['label' => $labelText, 'path' => $filePath];
+            continue;
+        }
+
+        if ($ext === 'docx') {
+            $extracted = $this->extractDocxContent($filePath);
+
+            if ($extracted !== null) {
+                $docxContent[] = [
+                    'label'   => $labelText,
+                    'name'    => $action->supporting_document,
+                    'content' => $extracted,
+                ];
+                continue;
+            }
+        }
+
+        // fallback: .doc lama, atau docx gagal diparse
+        $fallbackLinks[] = [
+            'label' => $labelText,
+            'name'  => $action->supporting_document,
+            'url'   => url('capa_document/' . basename(rtrim($basePath, '/')) . '/' . $action->supporting_document),
+        ];
+    }
+
+    return [
+        'pdfs'          => $pdfs,
+        'docxContent'   => $docxContent,
+        'fallbackLinks' => $fallbackLinks,
+    ];
+}
+
+/**
+ * Gabungkan PDF utama dengan daftar PDF supporting (CA/PA) jadi satu file.
+ */
+private function mergePdfSupportingDocs(string $mainPdfContent, array $supportingPdfs): string
+{
+    if (empty($supportingPdfs)) {
+        return $mainPdfContent;
+    }
+
+    $tmpMainPdf = storage_path('app/tmp_capa_merge_' . uniqid() . '.pdf');
+    file_put_contents($tmpMainPdf, $mainPdfContent);
+
+    $pdfMerge = new \setasign\Fpdi\Fpdi();
+
+    $this->appendPdfPages($pdfMerge, $tmpMainPdf);
+
+    foreach ($supportingPdfs as $doc) {
+        $this->appendPdfPages($pdfMerge, $doc['path']);
+    }
+
+    $result = $pdfMerge->Output('S');
+
+    @unlink($tmpMainPdf);
+
+    return $result;
+}
+
+/**
+ * Import semua halaman dari satu file PDF ke dokumen FPDI yang sedang dibangun.
+ */
+private function appendPdfPages(\setasign\Fpdi\Fpdi $pdf, string $sourcePath): void
+{
+    $pageCount = $pdf->setSourceFile($sourcePath);
+
+    for ($i = 1; $i <= $pageCount; $i++) {
+        $tplId = $pdf->importPage($i);
+        $size  = $pdf->getTemplateSize($tplId);
+        $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+        $pdf->useTemplate($tplId);
+    }
+}
+
+/**
+ * Extract teks & tabel dari file docx (PHPWord). Return null kalau gagal parse.
+ */
+private function extractDocxContent(string $filePath): ?array
+{
+    try {
+        $phpWord = \PhpOffice\PhpWord\IOFactory::load($filePath, 'Word2007');
+        $content = [];
+
+        foreach ($phpWord->getSections() as $section) {
+            foreach ($section->getElements() as $element) {
+
+                if ($element instanceof \PhpOffice\PhpWord\Element\Text) {
+                    $content[] = ['type' => 'text', 'value' => $element->getText()];
+
+                } elseif ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
+                    $line = '';
+                    foreach ($element->getElements() as $child) {
+                        if (method_exists($child, 'getText')) {
+                            $line .= $child->getText();
+                        }
+                    }
+                    $content[] = ['type' => 'text', 'value' => $line];
+
+                } elseif ($element instanceof \PhpOffice\PhpWord\Element\Table) {
+                    $content[] = ['type' => 'table', 'value' => $this->extractDocxTable($element)];
+                }
+            }
+        }
+
+        return $content;
+
+    } catch (\Exception $e) {
+        return null;
+    }
+}
+
+/**
+ * Ubah elemen Table PHPWord jadi array baris x kolom string.
+ */
+private function extractDocxTable(\PhpOffice\PhpWord\Element\Table $table): array
+{
+    $rows = [];
+
+    foreach ($table->getRows() as $row) {
+        $cells = [];
+
+        foreach ($row->getCells() as $cell) {
+            $cellText = '';
+
+            foreach ($cell->getElements() as $cellElement) {
+                if (method_exists($cellElement, 'getText')) {
+                    $cellText .= $cellElement->getText() . ' ';
+                } elseif (method_exists($cellElement, 'getElements')) {
+                    foreach ($cellElement->getElements() as $sub) {
+                        if (method_exists($sub, 'getText')) {
+                            $cellText .= $sub->getText() . ' ';
+                        }
+                    }
+                }
+            }
+
+            $cells[] = trim($cellText);
+        }
+
+        $rows[] = $cells;
+    }
+
+    return $rows;
 }
 
 
