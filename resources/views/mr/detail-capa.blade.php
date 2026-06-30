@@ -739,13 +739,13 @@
            ← Back
          </a>
 
-        @if($capa->status === 'Authorized')
+       {{ -- @if($capa->status === 'Authorized')
     <button type="submit" id="submitBtn"
         class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
         <i class="fa-solid fa-check-circle"></i>
         Closed
     </button>
-@endif
+@endif--}}
 
       </div>
 
