@@ -828,7 +828,7 @@
         <!-- Footer -->
         <div class="mt-6 text-center">
             <button id="closeCapaModalBtn" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">
-                Close
+                Tutup
             </button>
         </div>
     </div>
