@@ -2825,8 +2825,7 @@ ORDER BY sort_group ASC, rm_code, fg_code
 
 public function getReferenceAreas(Request $request)
 {
-
-$userId = auth()->id();
+    $userId = auth()->id();
     $warehouse = $request->input('warehouse');
 
     if (!$warehouse) {
@@ -2835,6 +2834,7 @@ $userId = auth()->id();
 
     $masters = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
         ->where('is_active', 1)
+        ->withCount('items')                    // 🔥 FIX: load items_count di fungsi yang benar
         ->select('id', 'area', 'shelves')
         ->orderBy('area')
         ->get();
@@ -2845,32 +2845,32 @@ $userId = auth()->id();
         ->where('stos.warehouse', $warehouse)
         ->whereYear('stos.created_at', now()->year)
         ->whereMonth('stos.created_at', now()->month)
-         ->where(function ($q) use ($userId) {
-        $q->where('stos.created_by', $userId)
-          ->orWhere('stos.created_by_2', $userId);
-    })
+        ->where(function ($q) use ($userId) {
+            $q->where('stos.created_by', $userId)
+              ->orWhere('stos.created_by_2', $userId);
+        })
         ->select('stos.area', 'stos.shelves')
         ->distinct()
         ->get()
         ->groupBy('area')
         ->map(fn($rows) => $rows->pluck('shelves')->toArray());
 
-    // Group per area, cek apakah SEMUA shelf di area tersebut sudah tersimpan
     $areas = $masters
         ->groupBy('area')
         ->map(function ($shelvesInArea, $area) use ($savedShelvesInWarehouse) {
-            $allShelvesInArea  = $shelvesInArea->pluck('shelves')->toArray();
-            $savedShelves      = $savedShelvesInWarehouse->get($area, []);
-            // all_saved = semua shelf di referensi sudah ada di sto_items
-             // ── FIX: hitung hanya shelf yang punya item ──────────────
+            $savedShelves = $savedShelvesInWarehouse->get($area, []);
+
+            // 🔥 FIX: exclude shelf tipe Pallet dari syarat "harus sudah tersimpan"
+            // supaya area tidak dianggap closed hanya gara-gara shelf non-pallet selesai,
+            // sekaligus shelf Pallet sendiri tidak pernah dianggap "sudah tersimpan"
             $shelvesWithItems = $shelvesInArea
-                ->filter(fn($m) => $m->items_count > 0)
+                ->filter(function ($m) {
+                    $isPallet = strtolower(trim($m->shelves ?? '')) === 'pallet';
+                    return $m->items_count > 0 && !$isPallet;
+                })
                 ->pluck('shelves')
                 ->toArray();
 
-            // all_saved = true HANYA jika:
-            // 1. Ada minimal 1 shelf yang punya item di area ini
-            // 2. Semua shelf yang punya item sudah tersimpan
             $allSaved = count($shelvesWithItems) > 0
                 && count(array_diff($shelvesWithItems, $savedShelves)) === 0;
 
@@ -2949,7 +2949,7 @@ public function getReferenceItemsByArea(Request $request)
 
         // 🔥 KHUSUS SHELF BERTIPE "PALLET" → JANGAN PERNAH AUTO all_saved
         // meski semua qty sudah diisi verifikator 1 & 2
-        $isPalletShelf = str_contains(strtolower($master->shelves ?? ''), 'Pallet');
+        $isPalletShelf = str_contains(strtolower($master->shelves ?? ''), 'pallet');
 
         $allSaved = !$isPalletShelf
             && $items->isNotEmpty()
