@@ -121,7 +121,7 @@
                     <th class="px-4 py-2 text-left">Address</th>
                     <th class="px-4 py-2 text-left">Part Code</th>
                     <th class="px-4 py-2 text-left">Part Name</th>
-                 @if(in_array(auth()->id(), [53, 2]))
+                 @if(in_array(auth()->id(), [53, 2, 57]))
     <th class="px-4 py-2 text-center">Qty 1</th>
     <th class="px-4 py-2 text-center">Qty 2</th>
 @endif
@@ -131,7 +131,7 @@
                     <th class="px-4 py-2 text-center">Status</th>
                     <th class="px-4 py-2 text-center">STO Number</th>
                    <th class="px-4 py-2 text-center">Verifikator 1</th>
-@if(in_array(auth()->id(), [53, 2]))
+@if(in_array(auth()->id(), [53, 2, 57]))
 <th class="px-4 py-2 text-center">Verifikator 2</th>
 @endif
                     <th class="px-4 py-2 text-center">Created at</th>
@@ -335,7 +335,7 @@ div.dt-button-collection .dt-button:hover {
 $(function () {
 
 // ✅ Taruh di sini, SEBELUM DataTable init
- const isSuperUser = {{ in_array(auth()->id(), [53, 2]) ? 'true' : 'false' }};
+ const isSuperUser = {{ in_array(auth()->id(), [53, 2, 57]) ? 'true' : 'false' }};
 
 const qtyColumns = isSuperUser ? [
     { data: 'qty_1', className: 'text-center' },
