@@ -135,7 +135,7 @@ public function createv2()
         67, 54, 132, 2   => 'Chemical',
         68        => 'Finish Goods',
         92        => 'OT',
-        53 => null, // 🔥 BOLEH PILIH SENDIRI
+        53, 57 => null, // 🔥 BOLEH PILIH SENDIRI
         default   => 'Raw Material',
     };
 }
@@ -589,7 +589,7 @@ public function checkAreaShelf(Request $request)
 public function datatables(Request $request)
 {
     $userId = Auth::id();
-    $superUsers = [53, 2]; // <-- tambahin di sini kalau nambah lagi
+    $superUsers = [53, 2, 57]; // <-- tambahin di sini kalau nambah lagi
     $isSuperUser = in_array($userId, $superUsers);
 
     $columns = [
