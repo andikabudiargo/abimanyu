@@ -966,7 +966,373 @@ $kondisiBadge = match($row->kondisi ?? '') {
     ]);
 }
 
+
 public function datatables2(Request $request)
+{
+    $userId = Auth::id();
+    $superUsers = [53, 2]; // <-- tambahin di sini kalau nambah lagi
+    $isSuperUser = in_array($userId, $superUsers);
+
+    $columns = [
+        0  => null,
+        1  => 'sto_items.location',
+        2  => 'stos.area',
+        3  => 'stos.shelves',
+        4  => 'sto_items.article_code',
+        5  => 'articles.description',
+        6  => 'sto_items.qty_display',
+        7  => 'articles.min_package',
+        8  => 'articles.unit',
+        9  => 'sto_items.kondisi',
+        10 => 'status',
+        11 => 'stos.sto_number',
+        12 => 'u1.name',
+        13 => 'stos.created_at',
+        14 => 'stos.note',
+    ];
+
+    $warehouse = $this->userWarehouse();
+    $limit     = $request->length;
+    $start     = $request->start;
+
+    // =====================================================================
+    // FILTER BULAN
+    // Default TETAP 2 bulan: 2026/06 dan 2026/07
+    // Kalau user pilih bulan tertentu lewat request (sto_month), pakai itu saja (single bulan)
+    // =====================================================================
+    $defaultMonths = ['2026/06', '2026/07'];
+
+    $selectedMonths = $request->filled('sto_month')
+        ? [$request->sto_month]
+        : $defaultMonths;
+
+    // Helper closure biar tidak duplikasi logic di $query & $totalDataQuery
+    $applyMonthFilter = function ($q) use ($selectedMonths) {
+        $q->where(function ($sub) use ($selectedMonths) {
+            foreach ($selectedMonths as $month) {
+                $sub->orWhere('stos.sto_number', 'like', $month . '/%');
+            }
+        });
+    };
+
+    // =====================================================================
+    // BASE QUERY
+    // =====================================================================
+    $query = DB::table('sto_items')
+        ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+        ->leftJoin('articles', 'articles.article_code', '=', 'sto_items.article_code')
+        ->leftJoin('users as u1', 'u1.id', '=', 'stos.created_by')
+        ->leftJoin('users as u2', 'u2.id', '=', 'stos.created_by_2')
+        ->select(
+            'stos.area',
+            'stos.shelves',
+            'sto_items.id as sto_item_id',
+            'sto_items.sto_id',
+            'sto_items.location',
+            'sto_items.article_code',
+            'sto_items.kondisi',
+
+            DB::raw("
+                CASE
+                    WHEN sto_items.article_code = 'OTHER'
+                    THEN sto_items.other_name
+                    ELSE articles.description
+                END as part_name
+            "),
+
+            DB::raw("
+                CASE
+                    WHEN " . ($isSuperUser ? 1 : 0) . " = 1
+                        THEN COALESCE(sto_items.qty, sto_items.qty_2, 0)
+                    WHEN {$userId} = stos.created_by
+                        THEN COALESCE(sto_items.qty, 0)
+                    WHEN {$userId} = stos.created_by_2
+                        THEN COALESCE(sto_items.qty_2, 0)
+                    ELSE 0
+                END as qty_display
+            "),
+
+            'sto_items.qty',
+            'sto_items.qty_2',
+            'articles.min_package',
+
+            DB::raw("
+                CASE
+                    WHEN sto_items.article_code = 'OTHER'
+                    THEN sto_items.uom
+                    ELSE articles.unit
+                END as unit
+            "),
+
+            DB::raw("
+                CASE
+                    WHEN LOWER(sto_items.location) LIKE '%chemical%'
+                      OR LOWER(sto_items.location) LIKE '%consumable%'
+                    THEN
+                        CASE
+                            WHEN sto_items.qty IS NULL OR sto_items.qty_2 IS NULL
+                                THEN 'NOT COMPLETE'
+                            WHEN sto_items.qty = sto_items.qty_2
+                                THEN 'MATCH'
+                            ELSE 'NOT MATCH'
+                        END
+                    ELSE NULL
+                END as status
+            "),
+
+            'stos.sto_number',
+
+            DB::raw("
+                CASE
+                    WHEN " . ($isSuperUser ? 1 : 0) . " = 1
+                        THEN u1.name
+                    WHEN stos.created_by   = {$userId} THEN u1.name
+                    WHEN stos.created_by_2 = {$userId} THEN u2.name
+                    ELSE NULL
+                END as created_by
+            "),
+
+            DB::raw("
+                CASE
+                    WHEN " . ($isSuperUser ? 1 : 0) . " = 1
+                        THEN u2.name
+                    ELSE NULL
+                END as created_by_2_name
+            "),
+
+            'stos.created_at',
+            'stos.note'
+        );
+
+    // =====================================================================
+    // ANTI-CONTEK: user hanya bisa lihat STO miliknya
+    // =====================================================================
+    if (!$isSuperUser) {
+        $query->where(function ($q) use ($userId) {
+            $q->where('stos.created_by', $userId)
+              ->orWhere('stos.created_by_2', $userId);
+        });
+    }
+
+    // Terapkan filter bulan (default 2 bulan tetap, atau 1 bulan dari request)
+    $applyMonthFilter($query);
+
+    // =====================================================================
+    // FILTER WAREHOUSE (user terkunci ke warehouse tertentu)
+    // =====================================================================
+    if (!$isSuperUser && !is_null($warehouse)) {
+        $query->where('sto_items.location', $warehouse);
+    }
+
+    // =====================================================================
+    // FILTER REQUEST TAMBAHAN
+    // =====================================================================
+    if ($request->filled('location') && is_null($warehouse)) {
+        $query->where('sto_items.location', $request->location);
+    }
+
+    if ($request->filled('article')) {
+        $query->where(function ($q) use ($request) {
+            $q->where('sto_items.article_code', 'like', "%{$request->article}%")
+              ->orWhere('sto_items.other_name', 'like', "%{$request->article}%");
+        });
+    }
+
+    if ($request->filled('sto_number')) {
+        $query->where('stos.sto_number', 'like', '%' . $request->sto_number . '%');
+    }
+
+    if ($request->filled('kondisi')) {
+        $query->where('sto_items.kondisi', $request->kondisi);
+    }
+
+    if ($request->filled('status')) {
+        $status = $request->status;
+
+        $query->where(function ($q) use ($status) {
+            if ($status === 'MATCH') {
+                $q->whereNotNull('sto_items.qty')
+                  ->whereNotNull('sto_items.qty_2')
+                  ->whereColumn('sto_items.qty', '=', 'sto_items.qty_2');
+            }
+
+            if ($status === 'NOT MATCH') {
+                $q->whereNotNull('sto_items.qty')
+                  ->whereNotNull('sto_items.qty_2')
+                  ->whereColumn('sto_items.qty', '!=', 'sto_items.qty_2');
+            }
+
+            if ($status === 'NOT COMPLETE') {
+                $q->where(function ($sub) {
+                    $sub->whereNull('sto_items.qty')
+                        ->orWhereNull('sto_items.qty_2');
+                });
+            }
+        });
+    }
+
+    // =====================================================================
+    // GLOBAL SEARCH
+    // =====================================================================
+    if (!empty($request->search['value'])) {
+        $search = $request->search['value'];
+
+        $query->where(function ($q) use ($search) {
+            $q->where('sto_items.article_code', 'LIKE', "%{$search}%")
+              ->orWhere('articles.description',  'LIKE', "%{$search}%")
+              ->orWhere('stos.sto_number',        'LIKE', "%{$search}%")
+              ->orWhere('sto_items.location',     'LIKE', "%{$search}%")
+              ->orWhere('u1.name',                'LIKE', "%{$search}%")
+              ->orWhere('u2.name',                'LIKE', "%{$search}%")
+              ->orWhere('sto_items.other_name',   'LIKE', "%{$search}%");
+        });
+    }
+
+    // =====================================================================
+    // TOTAL RECORDS (query terpisah, filter sama persis dgn base query)
+    // =====================================================================
+    $totalDataQuery = DB::table('sto_items')
+        ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+        ->leftJoin('articles', 'articles.article_code', '=', 'sto_items.article_code')
+        ->where(function ($q) use ($userId) {
+            $q->where('stos.created_by', $userId)
+              ->orWhere('stos.created_by_2', $userId);
+        });
+
+    $applyMonthFilter($totalDataQuery);
+
+    if (!$isSuperUser && !is_null($warehouse)) {
+        $totalDataQuery->where('sto_items.location', $warehouse);
+    }
+
+    $totalData = $totalFiltered = $totalDataQuery->count();
+
+    // =====================================================================
+    // ORDERING & PAGINATION
+    // =====================================================================
+    $orderColumnIndex = $request->input('order.0.column');
+    $orderDir         = $request->input('order.0.dir', 'desc');
+
+    if (
+        isset($columns[$orderColumnIndex]) &&
+        $columns[$orderColumnIndex] !== null
+    ) {
+        $query->orderBy($columns[$orderColumnIndex], $orderDir);
+    } else {
+        $query->orderBy('stos.sto_number', 'desc');
+    }
+
+    if ($limit != -1) {
+        $query->offset($start)->limit($limit);
+    }
+
+    $data = $query->get();
+
+    // =====================================================================
+    // FORMAT DATA UNTUK RESPONSE
+    // =====================================================================
+    $result = [];
+    $twoDecimalLocations = ['Chemical', 'Dead Stock CM1', 'Consumable'];
+
+    foreach ($data as $row) {
+
+        $dropdownId = 'dropdown-' . $row->sto_item_id;
+        $editUrl    = route('facility.sto.edit', ['id' => $row->sto_id]);
+
+        $qtyFormatted = in_array($row->location, $twoDecimalLocations)
+            ? number_format($row->qty_display, 2)
+            : number_format($row->qty_display, 0);
+
+        $qty1 = null;
+        $qty2 = null;
+
+        if ($isSuperUser) {
+            $qty1 = $row->qty !== null
+                ? (in_array($row->location, $twoDecimalLocations) ? number_format($row->qty, 2) : number_format($row->qty, 0))
+                : '-';
+            $qty2 = $row->qty_2 !== null
+                ? (in_array($row->location, $twoDecimalLocations) ? number_format($row->qty_2, 2) : number_format($row->qty_2, 0))
+                : '-';
+        }
+
+        $statusBadge = null;
+        if (!is_null($row->status)) {
+            $statusBadge = match ($row->status) {
+                'MATCH'        => '<span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded font-semibold">MATCH</span>',
+                'NOT MATCH'    => '<span class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded font-semibold">NOT MATCH</span>',
+                'NOT COMPLETE' => '<span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded font-semibold">NOT COMPLETE</span>',
+                default        => null,
+            };
+        }
+
+        $kondisiBadge = match ($row->kondisi ?? '') {
+            'Utuh'       => '<span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded font-semibold">Utuh</span>',
+            'Tidak Utuh' => '<span class="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded font-semibold">Tidak Utuh</span>',
+            default      => '<span class="text-gray-400">—</span>',
+        };
+
+        $editButton = '
+            <a href="' . $editUrl . '" class="block px-4 py-2 hover:bg-gray-100">
+                <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>Edit
+            </a>
+        ';
+
+        $result[] = [
+            'DT_RowAttr' => [
+                'data-id' => $row->sto_id,
+                'class'   => 'sto-row cursor-pointer hover:bg-blue-50',
+            ],
+
+            'action' => '
+                <div class="relative inline-block text-left">
+                  <button type="button"
+                    onclick="toggleDropdown(\'' . $dropdownId . '\')"
+                    class="inline-flex justify-center w-full px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <i data-feather="align-justify"></i>
+                  </button>
+                  <div id="' . $dropdownId . '"
+                    class="hidden origin-top-right absolute right-100 mt-2 w-28 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div class="py-1 text-sm text-gray-700">
+                      ' . $editButton . '
+                      <button onclick="deleteSTO(' . $row->sto_id . ')"
+                        class="w-full text-red-500 text-left px-4 py-2 hover:bg-red-500 hover:text-gray-100">
+                        <i data-feather="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>',
+
+            'location'     => $row->location,
+            'area'         => $row->area,
+            'shelves'      => $row->shelves,
+            'article_code' => $row->article_code,
+            'part_name'    => $row->part_name,
+            'qty'          => $isSuperUser ? $qty1 : $qtyFormatted,
+            ...($isSuperUser ? [
+                'qty_1' => $qty1,
+                'qty_2' => $qty2,
+            ] : []),
+            'min_package'  => $row->min_package,
+            'unit'         => $row->unit,
+            'kondisi'      => $kondisiBadge,
+            'status'       => $statusBadge,
+            'sto_number'   => $row->sto_number,
+            'created_by'   => $row->created_by,
+            'created_by_2' => $isSuperUser ? ($row->created_by_2_name ?? '-') : null,
+            'created_at'   => $row->created_at,
+            'note'         => $row->note,
+        ];
+    }
+
+    return response()->json([
+        'draw'            => intval($request->draw),
+        'recordsTotal'    => $totalData,
+        'recordsFiltered' => $totalFiltered,
+        'data'            => $result,
+    ]);
+}
+
+public function datatables3(Request $request)
 {
     $userId = Auth::id();
     $superUsers = [53, 2]; // <-- tambahin di sini kalau nambah lagi
