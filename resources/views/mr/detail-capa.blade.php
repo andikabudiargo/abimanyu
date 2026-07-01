@@ -12,6 +12,10 @@
     $pa  = $capa->actions->firstWhere('type', 'PA');
     $caClosed = ($ca->status ?? '') === 'Closed';
     $paClosed = ($pa->status ?? '') === 'Closed';
+
+     $isAuditor = $capa->auditors
+        ->pluck('user_id')
+        ->contains(auth()->id());
 @endphp
 
  <div class="flex flex-col md:flex-row gap-4">
@@ -739,12 +743,13 @@
            ← Back
          </a>
 
-       {{--
+       @if($isAuditor)
     <button type="submit" id="submitBtn"
         class="w-28 flex items-center justify-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded shadow">
         <i class="fa-solid fa-check-circle"></i>
         Closed
-    </button> --}}
+    </button>
+    @endif
 
       </div>
 
