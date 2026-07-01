@@ -2949,7 +2949,7 @@ public function getReferenceItemsByArea(Request $request)
 
         // 🔥 KHUSUS SHELF BERTIPE "PALLET" → JANGAN PERNAH AUTO all_saved
         // meski semua qty sudah diisi verifikator 1 & 2
-        $isPalletShelf = str_contains(strtolower($master->shelves ?? ''), 'pallet');
+        $isPalletShelf = str_contains(strtolower($master->shelves ?? ''), 'Pallet');
 
         $allSaved = !$isPalletShelf
             && $items->isNotEmpty()
@@ -2986,12 +2986,12 @@ public function getReferenceItemsByAreaOld(Request $request)
         return response()->json(['items' => [], 'shelves' => []]);
     }
 
-    $masters = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
-        ->where('area', $area)
-        ->where('is_active', 1)
-        ->with(['items.article'])
-        ->orderBy('shelves')
-        ->get();
+   $masters = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
+    ->where('is_active', 1)
+    ->withCount('items')              // 🔥 FIX: load items_count
+    ->select('id', 'area', 'shelves')
+    ->orderBy('area')
+    ->get();
 
     // ✅ Kumpulkan semua article_code yang sudah tersimpan di SELURUH AREA ini
     //    (bukan per shelf, tapi per area — agar item yang ada di 2 shelf
