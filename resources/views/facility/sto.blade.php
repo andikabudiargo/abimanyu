@@ -79,9 +79,9 @@
   <select id="filter-status"
           class="w-full px-3 py-2 border border-gray-300 rounded-md">
     <option value="">-- All Status --</option>
-    <option value="Match">Match</option>
-    <option value="Not Match">Not Match</option>
-    <option value="Not Complete">Not Complete</option>
+    <option value="MATCH">Match</option>
+    <option value="NOT MATCH">Not Match</option>
+    <option value="NOT COMPLETE">Not Complete</option>
   </select>
 </div>
 
