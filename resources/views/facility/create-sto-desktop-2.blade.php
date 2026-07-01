@@ -572,6 +572,7 @@
       <div>
         <input type="text" id="searchArticle" placeholder="Cari part..." class="sto-input" style="width:200px; font-size:12px;">
       </div>
+</div>
 
       <div style="position:relative;">
         {{-- Loading overlay --}}
