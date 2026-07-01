@@ -1695,9 +1695,70 @@ $(document).on('change', '#area_mobile', async function () {
         });
     });
 syncTableHeader();
+
+
+(function () {
+  const searchInput = document.getElementById('searchArticle');
+  const tbody        = document.getElementById('article-table');
+
+  if (!searchInput || !tbody) return;
+
+  function getRowText(row) {
+    // Part Code (readonly input)
+    const codeInput = row.querySelector('.article-code');
+    const codeVal   = codeInput ? codeInput.value : '';
+
+    // Part Name — support plain <select> maupun select2
+    let nameVal = '';
+    const partSelect = row.querySelector('.part-select');
+    if (partSelect) {
+      // Jika pakai select2, teks yang tampil ada di sibling .select2-selection__rendered
+      const select2Rendered = row.querySelector('.select2-selection__rendered');
+      if (select2Rendered) {
+        nameVal = select2Rendered.getAttribute('title') || select2Rendered.textContent || '';
+      } else if (partSelect.selectedIndex >= 0) {
+        nameVal = partSelect.options[partSelect.selectedIndex].text || '';
+      }
+    }
+
+    // Address (kalau mode area/chemical-consumable)
+    const addrLabel = row.querySelector('.row-addr-label');
+    const addrVal    = addrLabel ? addrLabel.textContent : '';
+
+    return (codeVal + ' ' + nameVal + ' ' + addrVal).toLowerCase();
+  }
+
+  function filterRows() {
+    const keyword = searchInput.value.trim().toLowerCase();
+    const rows = tbody.querySelectorAll('tr.sto-row');
+
+    rows.forEach(function (row) {
+      if (!keyword) {
+        row.style.display = '';
+        return;
+      }
+      const haystack = getRowText(row);
+      row.style.display = haystack.includes(keyword) ? '' : 'none';
+    });
+  }
+
+  // Live filter saat mengetik
+  searchInput.addEventListener('input', filterRows);
+
+  // Kalau part-select diganti pakai select2 dan baris ditambah secara dinamis,
+  // tetap jalankan filter ulang setelah select2 berubah (opsional, aman dipanggil berkali-kali)
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.classList && e.target.classList.contains('part-select')) {
+      filterRows();
+    }
+  });
+})();
     
 }); // end document.ready
 </script>
 @endpush
 
 @endsection
+
+
+

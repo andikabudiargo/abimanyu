@@ -561,11 +561,17 @@
       </div>
       @endif
 
+      <div class="justify-between">
+        <div>
       {{-- ── STOCK ITEMS TABLE ── --}}
       <p class="sto-section-title">
         <i data-feather="list" class="w-3.5 h-3.5"></i>
         Stock Articles
       </p>
+      </div>
+      <div>
+        <input type="text" id="searchArticle" placeholder="Cari part..." class="sto-input" style="width:200px; font-size:12px;">
+      </div>
 
       <div style="position:relative;">
         {{-- Loading overlay --}}
