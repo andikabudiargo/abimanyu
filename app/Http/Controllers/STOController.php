@@ -1120,7 +1120,7 @@ DB::raw("
     // =====================================================================
     // FILTER BULAN (default bulan berjalan)
     // =====================================================================
-    $defaultMonth = '2026/06';
+    $defaultMonth = '2026/07';
  
     $selectedMonth = $request->filled('sto_month')
         ? $request->sto_month
