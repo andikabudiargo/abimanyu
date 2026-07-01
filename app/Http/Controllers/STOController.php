@@ -129,7 +129,7 @@ public function createv2()
         69        => 'Raw Material',
         85        => 'Werate',
         43,150     => 'WIP Buffing',
-        44,45  => 'WIP Touch Up',
+        44,45, 88  => 'WIP Touch Up',
         108,126   => 'WIP Sanding',
         63, 129, 133=> 'Consumable',
         67, 54, 132, 2   => 'Chemical',
