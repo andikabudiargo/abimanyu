@@ -403,6 +403,11 @@ $ticketsToApprove = $canApprove
 
   @endif
 
+   <input
+        type="text"
+        class="w-full px-4 py-2 mt-1 rounded-lg bg-gray-100 text-gray-700 border border-gray-200 shadow-sm" placeholder="search part..." id="searchPartMobile"
+      >
+
 </div>
 
 
@@ -442,6 +447,87 @@ $ticketsToApprove = $canApprove
 </script>
 
 @stack('scripts')
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const searchInput = document.getElementById('searchArticle');
+  const tbody        = document.getElementById('article-table');
+
+  if (!searchInput || !tbody) return;
+
+  function getRowText(row) {
+    // Part Code
+    const codeInput = row.querySelector('.article-code');
+    const codeVal   = codeInput ? codeInput.value : '';
+
+    // Part Name — ambil dari select2 rendered text DI DALAM row ini
+    let nameVal = '';
+    const rendered = row.querySelector('.select2-selection__rendered');
+    if (rendered) {
+      nameVal = rendered.getAttribute('title') || rendered.textContent || '';
+    } else {
+      // fallback kalau select2 belum ke-init / plain select
+      const partSelect = row.querySelector('.part-select');
+      if (partSelect && partSelect.selectedIndex >= 0) {
+        nameVal = partSelect.options[partSelect.selectedIndex].text || '';
+      }
+    }
+
+    // Address (mode area/chemical-consumable)
+    const addrLabel = row.querySelector('.row-addr-label');
+    const addrVal    = addrLabel ? addrLabel.textContent : '';
+
+    // Location
+    const locInput = row.querySelector('.location-input');
+    const locVal    = locInput ? locInput.value : '';
+
+    return (codeVal + ' ' + nameVal + ' ' + addrVal + ' ' + locVal).toLowerCase();
+  }
+
+  function filterRows() {
+    const keyword = searchInput.value.trim().toLowerCase();
+    const rows = tbody.querySelectorAll('tr.sto-row');
+
+    let visibleCount = 0;
+
+    rows.forEach(function (row) {
+      if (!keyword) {
+        row.style.display = '';
+        visibleCount++;
+        return;
+      }
+      const haystack = getRowText(row);
+      const match = haystack.includes(keyword);
+      row.style.display = match ? '' : 'none';
+      if (match) visibleCount++;
+    });
+  }
+
+  // Debounce biar tidak filter setiap ketikan (opsional, tapi lebih smooth)
+  let debounceTimer;
+  searchInput.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(filterRows, 150);
+  });
+
+  // Filter ulang setiap ada perubahan pilihan part (select2 / native select)
+  // Pakai event delegation supaya baris baru (Add Row) tetap ke-cover
+  $(document).on('select2:select select2:unselect change', '.part-select', function () {
+    filterRows();
+  });
+
+  // Kalau ada tombol Add Row, filter ulang setelah baris baru ditambahkan
+  const btnAddRow = document.getElementById('btnAddRow');
+  if (btnAddRow) {
+    btnAddRow.addEventListener('click', function () {
+      // beri delay kecil supaya row baru + select2 selesai render dulu
+      setTimeout(filterRows, 200);
+    });
+  }
+});
+</script>
+@endpush
 
 
 </body>
