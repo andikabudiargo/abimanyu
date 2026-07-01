@@ -2884,8 +2884,99 @@ $userId = auth()->id();
     return response()->json(['areas' => $areas]);
 }
 
-// GET /facility/sto/reference/items-by-area?warehouse=Chemical&area=Line+1
 public function getReferenceItemsByArea(Request $request)
+{
+    $userId = auth()->id();
+    $warehouse = $request->input('warehouse');
+    $area      = $request->input('area');
+
+    if (!$warehouse || !$area) {
+        return response()->json(['items' => [], 'shelves' => []]);
+    }
+
+    $masters = \App\Models\StoReferenceMaster::where('warehouse', $warehouse)
+        ->where('area', $area)
+        ->where('is_active', 1)
+        ->with(['items.article'])
+        ->orderBy('shelves')
+        ->get();
+
+    // ✅ Kumpulkan semua article_code yang sudah tersimpan di SELURUH AREA ini
+    $savedCodesInArea = \DB::table('sto_items')
+        ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+        ->where('stos.warehouse', $warehouse)
+        ->where('stos.area', $area)
+        ->whereYear('stos.created_at', now()->year)
+        ->whereMonth('stos.created_at', now()->month)
+        ->where(function ($q) use ($userId) {
+            $q->where('stos.created_by', $userId)
+              ->orWhere('stos.created_by_2', $userId);
+        })
+        ->pluck('sto_items.article_code')
+        ->unique()
+        ->toArray();
+
+    $savedItemsByShelf = \DB::table('sto_items')
+        ->join('stos', 'stos.id', '=', 'sto_items.sto_id')
+        ->where('stos.warehouse', $warehouse)
+        ->where('stos.area', $area)
+        ->whereYear('stos.created_at', now()->year)
+        ->whereMonth('stos.created_at', now()->month)
+        ->where(function ($q) use ($userId) {
+            $q->where('stos.created_by', $userId)
+              ->orWhere('stos.created_by_2', $userId);
+        })
+        ->select('sto_items.article_code', 'stos.shelves')
+        ->get()
+        ->groupBy('shelves');
+
+    $shelves = [];
+    foreach ($masters as $master) {
+        $savedCodesInShelf = collect($savedItemsByShelf->get($master->shelves, []))
+            ->pluck('article_code')
+            ->toArray();
+
+        $items = $master->items->map(function ($item) use ($savedCodesInArea) {
+            return [
+                'article_id'    => optional($item->article)->id,
+                'article_code'  => $item->article_code,
+                'description'   => optional($item->article)->description,
+                'unit'          => optional($item->article)->unit,
+                'min_package'   => optional($item->article)->min_package,
+                'already_saved' => in_array($item->article_code, $savedCodesInArea),
+            ];
+        });
+
+        // 🔥 KHUSUS SHELF BERTIPE "PALLET" → JANGAN PERNAH AUTO all_saved
+        // meski semua qty sudah diisi verifikator 1 & 2
+        $isPalletShelf = str_contains(strtolower($master->shelves ?? ''), 'pallet');
+
+        $allSaved = !$isPalletShelf
+            && $items->isNotEmpty()
+            && $items->every(fn($i) => $i['already_saved']);
+
+        $shelves[] = [
+            'id'         => $master->id,
+            'shelves'    => $master->shelves,
+            'items'      => $items,
+            'all_saved'  => $allSaved,
+            'is_pallet'  => $isPalletShelf, // opsional, buat dipakai di frontend kalau perlu badge/beda styling
+        ];
+    }
+
+    $allItems = collect($shelves)
+        ->flatMap(fn($s) => $s['items'])
+        ->unique('article_code')
+        ->values();
+
+    return response()->json([
+        'shelves'   => $shelves,
+        'all_items' => $allItems,
+    ]);
+}
+
+// GET /facility/sto/reference/items-by-area?warehouse=Chemical&area=Line+1
+public function getReferenceItemsByAreaOld(Request $request)
 {
     $userId = auth()->id();
     $warehouse = $request->input('warehouse');
@@ -3036,6 +3127,72 @@ public function getReferenceItems(Request $request)
 // app/Http/Controllers/StoController.php
 
 public function signItem(Request $request)
+{
+    $request->validate([
+        'master_id'    => 'required|exists:sto_reference_masters,id',
+        'article_code' => 'required|string|max:50',
+        'unit'         => 'nullable|string|max:20',
+    ]);
+
+    $master = \App\Models\StoReferenceMaster::findOrFail($request->master_id);
+
+    // =========================
+    // 1️⃣ CEK DI SHELF YANG SAMA (existing behavior)
+    // =========================
+    $existsSameShelf = \DB::table('sto_reference_items')
+        ->where('sto_reference_id', $request->master_id)
+        ->where('article_code', $request->article_code)
+        ->exists();
+
+    if ($existsSameShelf) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Article sudah ada di address ini',
+        ], 422);
+    }
+
+    // =========================
+    // 2️⃣ 🔥 CEK DI AREA/SHELF LAIN (dalam warehouse yang sama)
+    // =========================
+    $existingElsewhere = \DB::table('sto_reference_items as ri')
+        ->join('sto_reference_masters as rm', 'rm.id', '=', 'ri.sto_reference_id')
+        ->where('ri.article_code', $request->article_code)
+        ->where('rm.warehouse', $master->warehouse)
+        ->where('rm.is_active', 1)
+        ->where('rm.id', '!=', $request->master_id)
+        ->select('rm.area', 'rm.shelves')
+        ->first();
+
+    if ($existingElsewhere) {
+        return response()->json([
+            'success' => false,
+            'message' => "Article sudah ter-assign di Rack \"{$existingElsewhere->area}\" / Address \"{$existingElsewhere->shelves}\"",
+        ], 422);
+    }
+
+    // =========================
+    // 3️⃣ INSERT BARU
+    // =========================
+    \DB::table('sto_reference_items')->insert([
+        'sto_reference_id' => $request->master_id,
+        'article_code'     => $request->article_code,
+        'uom'              => $request->unit,
+        'created_at'       => now(),
+        'updated_at'       => now(),
+    ]);
+
+    $article = \DB::table('articles')
+        ->where('article_code', $request->article_code)
+        ->value('description');
+
+    return response()->json([
+        'success'     => true,
+        'message'     => 'Item berhasil di-assign ke address',
+        'description' => $article ?? null,
+    ]);
+}
+
+public function signItemOld(Request $request)
 {
     $request->validate([
         'master_id'    => 'required|exists:sto_reference_masters,id',
