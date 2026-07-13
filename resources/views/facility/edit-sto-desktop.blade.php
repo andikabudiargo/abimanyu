@@ -427,7 +427,7 @@
   @if($isSuperUser)
     <select name="articles[{{ $i }}][location]"
             class="location-input sto-select" style="text-align:center;">
-      @foreach(['Consumable','Chemical','Dead Stock CM1','Raw Material','Finish Goods','WIP Buffing','WIP Sanding','WIP Touch Up','Werate'] as $loc)
+      @foreach(['Consumable','Chemical','Dead Stock CM1','Raw Material','Finish Goods','WIP Buffing','WIP Sanding','WIP Touch Up','Werate','OT'] as $loc)
         <option value="{{ $loc }}" @selected($item->location === $loc)>{{ $loc }}</option>
       @endforeach
     </select>
