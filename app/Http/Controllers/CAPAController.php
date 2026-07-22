@@ -107,7 +107,7 @@ public function userList($id)
   $overdue = CAPAAction::where('type', 'PA')
     ->whereDate('due_date', '<', $today)
     ->whereHas('capa', function ($q) {
-        $q->where('status', 'In Progress');
+        $q->where('status', 'Approved');
     })
     ->count();
 
@@ -117,7 +117,7 @@ public function userList($id)
     ->where('type', 'PA')
     ->whereDate('due_date', '<', $today)
     ->whereHas('capa', function ($q) {
-        $q->where('status', 'In Progress');
+        $q->where('status', 'Approved');
     })
     ->orderBy('due_date', 'asc')
     ->get();
