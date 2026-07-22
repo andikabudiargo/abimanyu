@@ -64,6 +64,7 @@
         <option value="Posted">Posted</option>
         <option value="Verified">Verified</option>
         <option value="In Progress">In Progress</option>
+        <option value="Approved">Approved</option>
         <option value="Submitted">Submitted</option>
         <option value="Authorized">Authorized</option>
         <option value="Closed">Closed</option>
@@ -153,13 +154,25 @@
       </div>
     </div>
 
+    <!-- Approved -->
+    <div class="flex items-center p-4 bg-gray-50 rounded-lg hover:shadow-md transition">
+      <div class="p-3 bg-lime-500 text-white shadow-md rounded-lg mr-3">
+        <i class="fa-solid fa-circle-check text-lg"></i>
+      </div>
+      <div>
+        <p class="text-gray-600 text-sm">5. Approved (Perbaikan Disetujui MR)
+        </p>
+        <p class="text-xl font-bold text-gray-800">{{ $inProgress }}</p>
+      </div>
+    </div>
+
     <!-- Submitted -->
     <div class="flex items-center p-4 bg-gray-50 rounded-lg hover:shadow-md transition">
       <div class="p-3 bg-indigo-600 text-white shadow-md rounded-lg mr-3">
         <i class="fa-solid fa-inbox text-lg"></i>
       </div>
       <div>
-        <p class="text-gray-600 text-sm">5. Submitted (Diserahkan Auditee)</p>
+        <p class="text-gray-600 text-sm">6. Submitted (Auditee Menyerahkan Evidence)</p>
         <p class="text-xl font-bold text-gray-800">{{ $submitted }}</p>
       </div>
     </div>
@@ -170,7 +183,7 @@
         <i class="fa-solid fa-user-check text-lg"></i>
       </div>
       <div>
-        <p class="text-gray-600 text-sm">6. Authorized (Disahkan MR)</p>
+        <p class="text-gray-600 text-sm">7. Authorized (Disahkan MR)</p>
         <p class="text-xl font-bold text-gray-800">{{ $authorized }}</p>
       </div>
     </div>
@@ -181,7 +194,7 @@
         <i class="fa-solid fa-lock text-lg"></i>
       </div>
       <div>
-        <p class="text-gray-600 text-sm">7. Closed (Ditutup Auditor)</p>
+        <p class="text-gray-600 text-sm">8. Closed (Ditutup Auditor)</p>
         <p class="text-xl font-bold text-gray-800">{{ $closed }}</p>
       </div>
     </div>
