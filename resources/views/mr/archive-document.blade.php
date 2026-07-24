@@ -10,8 +10,9 @@
 @if($pendingReceive->count() > 0 || $pendingSocialize->count() > 0)
 <div id="pending-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
+    <div id="pending-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
     {{-- ═══ KIRI: PENDING RECEIVE ═══ --}}
-    @if($pendingReceive->count() > 0)
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
         <div class="border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 flex items-center justify-between flex-wrap gap-3">
             <div>
@@ -24,17 +25,18 @@
         </div>
 
         <div class="p-5 space-y-3">
-            @foreach($pendingReceive as $copy)
+            @forelse($pendingReceive as $copy)
             <div class="border border-gray-200 rounded-xl bg-white shadow-sm p-4 border-l-4 border-l-blue-400">
                 <div class="flex items-center justify-between gap-3 flex-wrap">
                     <div>
                         <h3 class="text-sm font-semibold text-gray-800">
                             {{ $copy->registration->document_number }} — {{ $copy->registration->document_title ?? '-' }}
                         </h3>
-                        <p class="text-xs text-gray-500 mt-0.5">
-                            {{ $copy->qty ?? 1 }} Lembar
-                            @if($copy->size) ({{ $copy->size }}) @endif
-                        </p>
+                        <div class="flex items-center gap-2 mt-1.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                {{ $copy->qty ?? 1 }} Lembar {{ $copy->size }}
+                            </span>
+                        </div>
                     </div>
                     <form action="{{ route('mr.document.confirm.received', $copy->id) }}" method="POST" class="confirm-received-form">
                         @csrf
@@ -45,13 +47,19 @@
                     </form>
                 </div>
             </div>
-            @endforeach
+            @empty
+            <div class="flex flex-col items-center justify-center text-center py-10 px-4">
+                <div class="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center mb-3">
+                    <i data-feather="inbox" class="w-5 h-5 text-blue-400"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-600">No documents pending receipt</p>
+                <p class="text-xs text-gray-400 mt-1">All documents for your department have been received.</p>
+            </div>
+            @endforelse
         </div>
     </div>
-    @endif
 
     {{-- ═══ KANAN: PENDING SOCIALIZATION ═══ --}}
-    @if($pendingSocialize->count() > 0)
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
         <div class="border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 flex items-center justify-between flex-wrap gap-3">
             <div>
@@ -64,13 +72,24 @@
         </div>
 
         <div class="p-5 space-y-3">
-            @foreach($pendingSocialize as $copy)
+            @forelse($pendingSocialize as $copy)
             <details class="group border border-gray-200 rounded-xl bg-white shadow-sm">
                 <summary class="list-none flex items-center justify-between p-4 cursor-pointer border-l-4 border-l-amber-400 hover:bg-gray-50 transition-colors rounded-xl group-open:rounded-b-none group-open:border-b group-open:border-gray-200 [&::-webkit-details-marker]:hidden">
-                    <h3 class="text-sm font-semibold text-gray-800">
-                        {{ $copy->registration->document_number }} — {{ $copy->registration->document_title ?? '-' }}
-                        <span class="ml-1 text-gray-500 font-normal">({{ $copy->qty ?? 1 }} Lembar)</span>
-                    </h3>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">
+                            {{ $copy->registration->document_number }} — {{ $copy->registration->document_title ?? '-' }}
+                        </h3>
+                        <div class="flex items-center gap-2 mt-1.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                {{ $copy->qty ?? 1 }} Lembar
+                            </span>
+                            @if($copy->size)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                {{ $copy->size }}
+                            </span>
+                            @endif
+                        </div>
+                    </div>
                     <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -99,9 +118,19 @@
                     </form>
                 </div>
             </details>
-            @endforeach
+            @empty
+            <div class="flex flex-col items-center justify-center text-center py-10 px-4">
+                <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center mb-3">
+                    <i data-feather="calendar" class="w-5 h-5 text-amber-400"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-600">No documents pending socialization</p>
+                <p class="text-xs text-gray-400 mt-1">Documents will appear here once they're marked as received.</p>
+            </div>
+            @endforelse
         </div>
     </div>
+
+</div>
     @endif
 
 </div>
@@ -1182,6 +1211,8 @@ $(function(){
     });
 
 });
+
+feather.replace(); // ⬅️ Ini untuk memastikan ikon feather muncul ulang setiap render
   </script>
 
 @endpush
