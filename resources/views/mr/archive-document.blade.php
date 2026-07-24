@@ -7,60 +7,103 @@
 
 @section('content')
 
-@if($pendingCopies->count() > 0)
-<div id="pending-section" class="bg-white border border-gray-200 rounded-2xl shadow-sm mb-6 overflow-hidden">
+@if($pendingReceive->count() > 0 || $pendingSocialize->count() > 0)
+<div id="pending-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
-    {{-- Header --}}
-    <div class="border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-        <div>
-            <h2 class="text-lg font-semibold text-gray-800">Pending Document Socialization</h2>
-            <p class="text-sm text-gray-500 mt-0.5">Konfirmasi dokumen yang telah disosialisasikan.</p>
+    {{-- ═══ KIRI: PENDING RECEIVE ═══ --}}
+    @if($pendingReceive->count() > 0)
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800">Pending Document Receipt</h2>
+                <p class="text-sm text-gray-500 mt-0.5">Konfirmasi bahwa dokumen telah diterima oleh departemen Anda.</p>
+            </div>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                {{ $pendingReceive->count() }} Pending
+            </span>
         </div>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
-            {{ $pendingCopies->count() }} Pending
-        </span>
-    </div>
 
-    {{-- Content --}}
-    <div class="p-5 space-y-3">
-        @foreach($pendingCopies as $copy)
-        <details class="group border border-gray-200 rounded-xl bg-white shadow-sm">
-            <summary class="list-none flex items-center justify-between p-4 cursor-pointer border-l-4 border-l-amber-400 hover:bg-gray-50 transition-colors rounded-xl group-open:rounded-b-none group-open:border-b group-open:border-gray-200 [&::-webkit-details-marker]:hidden">
-                <h3 class="text-sm font-semibold text-gray-800">
-                    {{ $copy->registration->document_number }} — {{ $copy->registration->document_title ?? '-' }}
-                    <span class="ml-1 text-gray-500 font-normal">({{ $copy->qty ?? 1 }} Lembar)</span>
-                </h3>
-                <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                </span>
-            </summary>
-            
-            <div class="p-5 bg-slate-50/50 rounded-b-xl">
-                <div class="mb-4">
-                    <p class="text-sm font-medium text-gray-800">Apakah Anda sudah mensosialisasikan dokumen ini?</p>
-                    <p class="text-xs text-gray-500 mt-1">Jika sudah, silakan unggah bukti sosialisasi untuk menyelesaikan konfirmasi.</p>
-                </div>
-                
-                {{-- Inline Form --}}
-                <form action="{{ route('mr.document.confirm.receive', $copy->id) }}" method="POST" enctype="multipart/form-data" class="confirm-receipt-form">
-                    @csrf
-                    <div class="flex items-center gap-3">
-                        <div class="flex-1">
-                            <input type="file" name="evidence" required
-                                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400">
-                        </div>
+        <div class="p-5 space-y-3">
+            @foreach($pendingReceive as $copy)
+            <div class="border border-gray-200 rounded-xl bg-white shadow-sm p-4 border-l-4 border-l-blue-400">
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">
+                            {{ $copy->registration->document_number }} — {{ $copy->registration->document_title ?? '-' }}
+                        </h3>
+                        <p class="text-xs text-gray-500 mt-0.5">
+                            {{ $copy->qty ?? 1 }} Lembar
+                            @if($copy->size) ({{ $copy->size }}) @endif
+                        </p>
+                    </div>
+                    <form action="{{ route('mr.document.confirm.received', $copy->id) }}" method="POST" class="confirm-received-form">
+                        @csrf
                         <button type="submit"
-                            class="shrink-0 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium shadow-sm transition-colors duration-150">
+                            class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow-sm transition-colors duration-150 whitespace-nowrap">
                             Confirm Receipt
                         </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </details>
-        @endforeach
+            @endforeach
+        </div>
     </div>
+    @endif
+
+    {{-- ═══ KANAN: PENDING SOCIALIZATION ═══ --}}
+    @if($pendingSocialize->count() > 0)
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800">Pending Document Socialization</h2>
+                <p class="text-sm text-gray-500 mt-0.5">Konfirmasi dokumen yang telah disosialisasikan.</p>
+            </div>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                {{ $pendingSocialize->count() }} Pending
+            </span>
+        </div>
+
+        <div class="p-5 space-y-3">
+            @foreach($pendingSocialize as $copy)
+            <details class="group border border-gray-200 rounded-xl bg-white shadow-sm">
+                <summary class="list-none flex items-center justify-between p-4 cursor-pointer border-l-4 border-l-amber-400 hover:bg-gray-50 transition-colors rounded-xl group-open:rounded-b-none group-open:border-b group-open:border-gray-200 [&::-webkit-details-marker]:hidden">
+                    <h3 class="text-sm font-semibold text-gray-800">
+                        {{ $copy->registration->document_number }} — {{ $copy->registration->document_title ?? '-' }}
+                        <span class="ml-1 text-gray-500 font-normal">({{ $copy->qty ?? 1 }} Lembar)</span>
+                    </h3>
+                    <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                </summary>
+
+                <div class="p-5 bg-slate-50/50 rounded-b-xl">
+                    <div class="mb-4">
+                        <p class="text-sm font-medium text-gray-800">Apakah Anda sudah mensosialisasikan dokumen ini?</p>
+                        <p class="text-xs text-gray-500 mt-1">Jika sudah, silakan unggah bukti sosialisasi untuk menyelesaikan konfirmasi.</p>
+                    </div>
+
+                    <form action="{{ route('mr.document.confirm.socialize', $copy->id) }}" method="POST" enctype="multipart/form-data" class="confirm-socialize-form">
+                        @csrf
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1">
+                                <input type="file" name="evidence" required
+                                    class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                            </div>
+                            <button type="submit"
+                                class="shrink-0 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium shadow-sm transition-colors duration-150">
+                                Confirm Socialization
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </details>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
 </div>
 @endif
    <div class="bg-white shadow rounded-xl p-6 mb-6">
@@ -1079,10 +1122,41 @@ $('#returnNote').on('keydown', function(e) {
 });
 
 $(function(){
-    $(document).on('submit', '.confirm-receipt-form', function(e){
+
+    // ── Confirm Receipt (tanpa file, hanya konfirmasi) ──
+    $(document).on('submit', '.confirm-received-form', function(e){
+        e.preventDefault();
+        var $form = $(this);
+        var $btn  = $form.find('button[type="submit"]');
+        $btn.prop('disabled', true).text('Processing...');
+
+        $.ajax({
+            url: $form.attr('action'),
+            method: 'POST',
+            data: $form.serialize(),
+            success: function(response){
+                if(response.success){
+                    showToast('success', response.message);
+                    setTimeout(function() { location.reload(); }, 1500);
+                } else {
+                    showToast('error', response.message || 'Error');
+                    $btn.prop('disabled', false).text('Confirm Receipt');
+                }
+            },
+            error: function(xhr){
+                var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Server error';
+                showToast('error', msg);
+                $btn.prop('disabled', false).text('Confirm Receipt');
+            }
+        });
+    });
+
+    // ── Confirm Socialization (wajib evidence) ──
+    $(document).on('submit', '.confirm-socialize-form', function(e){
         e.preventDefault();
         var $form = $(this);
         var formData = new FormData(this);
+
         $.ajax({
             url: $form.attr('action'),
             method: 'POST',
@@ -1094,46 +1168,19 @@ $(function(){
             },
             success: function(response){
                 if(response.success){
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: response.message,
-                        timer: 3000,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    });
-                    // Close the accordion after success
-                                        // Reload the page after showing the success toast
-                    setTimeout(function() {
-                        location.reload();
-                    }, 3000);
+                    showToast('success', response.message);
+                    setTimeout(function() { location.reload(); }, 1500);
                 } else {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'error',
-                        title: response.message || 'Error',
-                        timer: 3000,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    });
+                    showToast('error', response.message || 'Error');
                 }
             },
             error: function(xhr){
                 var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Server error';
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'error',
-                    title: msg,
-                    timer: 3000,
-                    timerProgressBar: true,
-                    showConfirmButton: false
-                });
+                showToast('error', msg);
             }
         });
     });
+
 });
   </script>
 

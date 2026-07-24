@@ -48,18 +48,34 @@ private function resolveDepartmentGroup($deptId)
 }
 
     public function index()
-    {
-        $pendingCopies = DocumentCopy::with('registration')
-    ->whereIn('department_id', auth()->user()->departments->pluck('id'))
-    ->whereNull('socialization_date')
-    ->whereHas('registration', function ($q) {
-        $q->where('status', 'Published');
-    })
-    ->latest()
-    ->get();
-         $departments = Department::orderBy('name')->get(); // ambil semua department
-        return view('mr.archive-document', compact('departments','pendingCopies'));
-    }
+{
+    $departmentIds = auth()->user()->departments->pluck('id');
+
+    // Tahap 1: Belum dikonfirmasi diterima sama sekali
+    $pendingReceive = DocumentCopy::with('registration')
+        ->whereIn('department_id', $departmentIds)
+        ->whereNull('received_at')
+        ->whereHas('registration', function ($q) {
+            $q->where('status', 'Published');
+        })
+        ->latest()
+        ->get();
+
+    // Tahap 2: Sudah diterima, tapi belum disosialisasikan
+    $pendingSocialize = DocumentCopy::with('registration')
+        ->whereIn('department_id', $departmentIds)
+        ->whereNotNull('received_at')
+        ->whereNull('socialization_date')
+        ->whereHas('registration', function ($q) {
+            $q->where('status', 'Published');
+        })
+        ->latest()
+        ->get();
+
+    $departments = Department::orderBy('name')->get();
+
+    return view('mr.archive-document', compact('departments', 'pendingReceive', 'pendingSocialize'));
+}
 
     public function create()
     {
@@ -138,7 +154,7 @@ private function resolveDepartmentGroup($deptId)
     return response()->json($docs);
 }
 
-public function confirmReceive(Request $request, $id)
+public function confirmSocialize(Request $request, $id)
 {
     DB::beginTransaction();
 
@@ -149,11 +165,6 @@ public function confirmReceive(Request $request, $id)
 
         $copy = DocumentCopy::with('registration')->findOrFail($id);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validasi department user
-        |--------------------------------------------------------------------------
-        */
         $user = auth()->user();
 
         $userDeptIds = $user->departments()
@@ -164,11 +175,15 @@ public function confirmReceive(Request $request, $id)
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Upload evidence ke folder document yang sama
-        |--------------------------------------------------------------------------
-        */
+        // ✅ Wajib sudah dikonfirmasi diterima dulu sebelum sosialisasi
+        if (is_null($copy->received_at)) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Dokumen harus dikonfirmasi diterima terlebih dahulu sebelum sosialisasi.',
+            ], 400);
+        }
 
         $registration = $copy->registration;
 
@@ -182,33 +197,15 @@ public function confirmReceive(Request $request, $id)
         }
 
         $file = $request->file('evidence');
-
         $extension = strtolower($file->getClientOriginalExtension());
 
-        /*
-        |--------------------------------------------------------------------------
-        | Simpan nama asli + extension
-        |--------------------------------------------------------------------------
-        */
-
-        $originalName = pathinfo(
-            $file->getClientOriginalName(),
-            PATHINFO_FILENAME
-        );
-
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $originalName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $originalName);
         $originalName = preg_replace('/_+/', '_', $originalName);
         $originalName = trim($originalName, '_');
 
         $baseName = $registration->document_number . '_evidence_' . $originalName;
-
         $filename = $baseName . '.' . $extension;
-
-        /*
-        |--------------------------------------------------------------------------
-        | Handle duplicate
-        |--------------------------------------------------------------------------
-        */
 
         $i = 1;
         while (file_exists($destinationPath . '/' . $filename)) {
@@ -216,26 +213,14 @@ public function confirmReceive(Request $request, $id)
             $i++;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Move file
-        |--------------------------------------------------------------------------
-        */
-
         $file->move($destinationPath, $filename);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Atomic update anti race condition
-        |--------------------------------------------------------------------------
-        */
 
         $updated = DocumentCopy::where('id', $id)
             ->whereNull('socialization_date')
             ->update([
                 'socialization_date' => now(),
                 'socialized_by'      => $user->id,
-                'evidence_path'      => $filename, // hanya nama file
+                'evidence_path'      => $filename,
             ]);
 
         if (!$updated) {
@@ -251,7 +236,7 @@ public function confirmReceive(Request $request, $id)
 
         return response()->json([
             'success' => true,
-            'message' => 'Konfirmasi penerimaan dokumen berhasil.',
+            'message' => 'Konfirmasi sosialisasi dokumen berhasil.',
         ]);
 
     } catch (\Exception $e) {
@@ -877,23 +862,25 @@ if ($need4m && $request->hasFile('file_4m_path')) {
                 ]);
             }
 
-            // =========================
-            // 9. SHARE DEPT
-            // =========================
-            if ($request->has('share_dept')) {
-                foreach ($request->share_dept as $i => $deptId) {
+           // =========================
+// 9. SHARE DEPT
+// =========================
+if ($request->has('share_dept')) {
+    foreach ($request->share_dept as $i => $deptId) {
 
-                    $qty = $request->share_qty[$i] ?? 0;
+        $qty  = $request->share_qty[$i] ?? 0;
+        $size = $request->share_size[$i] ?? 'A4';
 
-                    if (!empty($deptId) && $qty > 0) {
-                        DocumentCopy::create([
-                            'registration_id' => $registration->id,
-                            'department_id'   => $deptId,
-                            'qty'             => $qty,
-                        ]);
-                    }
-                }
-            }
+        if (!empty($deptId) && $qty > 0) {
+            DocumentCopy::create([
+                'registration_id' => $registration->id,
+                'department_id'   => $deptId,
+                'qty'             => $qty,
+                'size'            => $size,
+            ]);
+        }
+    }
+}
 
             DB::commit();
 
@@ -1085,25 +1072,27 @@ $isResubmit = $request->is_resubmit == 1;
         $doc->save();
         }
 
-        // =========================
-        // 6. REFRESH COPY
-        // =========================
-        DocumentCopy::where('registration_id', $doc->id)->delete();
+      // =========================
+// 6. REFRESH COPY
+// =========================
+DocumentCopy::where('registration_id', $doc->id)->delete();
 
-        if ($request->has('share_dept')) {
-            foreach ($request->share_dept as $i => $deptId) {
+if ($request->has('share_dept')) {
+    foreach ($request->share_dept as $i => $deptId) {
 
-                $qty = $request->share_qty[$i] ?? 0;
+        $qty  = $request->share_qty[$i] ?? 0;
+        $size = $request->share_size[$i] ?? 'A4';
 
-                if ($deptId && $qty > 0) {
-                    DocumentCopy::create([
-                        'registration_id' => $doc->id,
-                        'department_id'   => $deptId,
-                        'qty'             => $qty,
-                    ]);
-                }
-            }
+        if ($deptId && $qty > 0) {
+            DocumentCopy::create([
+                'registration_id' => $doc->id,
+                'department_id'   => $deptId,
+                'qty'             => $qty,
+                'size'            => $size,
+            ]);
         }
+    }
+}
 
         DB::commit();
 
@@ -1851,6 +1840,57 @@ public function revision($id)
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
         ]
     );
+}
+
+public function confirmReceived(Request $request, $id)
+{
+    DB::beginTransaction();
+
+    try {
+        $copy = DocumentCopy::with('registration')->findOrFail($id);
+
+        $user = auth()->user();
+
+        $userDeptIds = $user->departments()
+            ->pluck('departments.id')
+            ->toArray();
+
+        if (!in_array($copy->department_id, $userDeptIds)) {
+            abort(403);
+        }
+
+        $updated = DocumentCopy::where('id', $id)
+            ->whereNull('received_at')
+            ->update([
+                'received_at' => now(),
+                'received_by' => $user->id,
+            ]);
+
+        if (!$updated) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Dokumen sudah dikonfirmasi diterima oleh user lain.',
+            ], 400);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Konfirmasi penerimaan dokumen berhasil.',
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Server error',
+            'error'   => $e->getMessage(),
+        ], 500);
+    }
 }
 
 }

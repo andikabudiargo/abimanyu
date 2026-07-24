@@ -689,36 +689,43 @@ textarea.f-input { resize: vertical; }
                     </button>
                 </div>
                 <div class="c-card-body" style="padding: 0;">
-                    <table class="dist-table">
-                        <thead>
-                            <tr>
-                                <th style="width:55%;">Department</th>
-                                <th style="width:20%;">Qty (sheets)</th>
-                                <th style="width:25%; text-align:right; padding-right:16px;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="distTableBody">
-                            <tr class="dist-row">
-                                <td>
-                                    <select name="share_dept[]" class="f-input" style="padding:6px 10px;">
-                                        <option value="">— Select Department —</option>
-                                         <option value="2">HRGAIT</option>
-                                        @foreach($departments as $d) 
-                                            <option value="{{ $d->id }}">{{ $d->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="number" name="share_qty[]" min="1" value="1"
-                                           class="f-input" style="padding:6px 10px; max-width:80px;">
-                                </td>
-                                <td style="text-align:right; padding-right:16px;">
-                                    <button type="button" class="removeDistRow btn btn-danger"
-                                            style="padding:4px 10px; font-size:11px; opacity:.4; pointer-events:none;">Remove</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                  <table class="dist-table">
+    <thead>
+        <tr>
+            <th style="width:40%;">Department</th>
+            <th style="width:15%;">Size</th>
+            <th style="width:20%;">Qty (sheets)</th>
+            <th style="width:25%; text-align:right; padding-right:16px;">Action</th>
+        </tr>
+    </thead>
+    <tbody id="distTableBody">
+        <tr class="dist-row">
+            <td>
+                <select name="share_dept[]" class="f-input" style="padding:6px 10px;">
+                    <option value="">— Select Department —</option>
+                     <option value="2">HRGAIT</option>
+                    @foreach($departments as $d) 
+                        <option value="{{ $d->id }}">{{ $d->name }}</option>
+                    @endforeach
+                </select>
+            </td>
+            <td>
+                <select name="share_size[]" class="f-input" style="padding:6px 10px;">
+                    <option value="A4">A4</option>
+                    <option value="A3">A3</option>
+                </select>
+            </td>
+            <td>
+                <input type="number" name="share_qty[]" min="1" value="1"
+                       class="f-input" style="padding:6px 10px; max-width:80px;">
+            </td>
+            <td style="text-align:right; padding-right:16px;">
+                <button type="button" class="removeDistRow btn btn-danger"
+                        style="padding:4px 10px; font-size:11px; opacity:.4; pointer-events:none;">Remove</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
                 </div>
             </div>
 
@@ -1098,27 +1105,34 @@ $(document).ready(function () {
     loadDocNumbers($('.docType:checked').val());
 
     // ── Distribution table rows ──
-    $('#addDeptBtn').on('click', function () {
-        const row = `<tr class="dist-row">
-            <td>
-                <select name="share_dept[]" class="f-input" style="padding:6px 10px;">
-                    <option value="">— Select Department —</option>
-                    @foreach($departments as $d)
-                        <option value="{{ $d->id }}">{{ $d->name }}</option>
-                    @endforeach
-                </select>
-            </td>
-            <td>
-                <input type="number" name="share_qty[]" min="1" value="1"
-                       class="f-input" style="padding:6px 10px; max-width:80px;">
-            </td>
-            <td style="text-align:right; padding-right:16px;">
-                <button type="button" class="removeDistRow btn btn-danger" style="padding:4px 10px; font-size:11px;">Remove</button>
-            </td>
-        </tr>`;
-        $('#distTableBody').append(row);
-        syncRemoveBtns();
-    });
+   $('#addDeptBtn').on('click', function () {
+    const row = `<tr class="dist-row">
+        <td>
+            <select name="share_dept[]" class="f-input" style="padding:6px 10px;">
+                <option value="">— Select Department —</option>
+                <option value="2">HRGAIT</option>
+                @foreach($departments as $d)
+                    <option value="{{ $d->id }}">{{ $d->name }}</option>
+                @endforeach
+            </select>
+        </td>
+        <td>
+            <select name="share_size[]" class="f-input" style="padding:6px 10px;">
+                <option value="A4">A4</option>
+                <option value="A3">A3</option>
+            </select>
+        </td>
+        <td>
+            <input type="number" name="share_qty[]" min="1" value="1"
+                   class="f-input" style="padding:6px 10px; max-width:80px;">
+        </td>
+        <td style="text-align:right; padding-right:16px;">
+            <button type="button" class="removeDistRow btn btn-danger" style="padding:4px 10px; font-size:11px;">Remove</button>
+        </td>
+    </tr>`;
+    $('#distTableBody').append(row);
+    syncRemoveBtns();
+});
 
     $(document).on('click', '.removeDistRow', function () {
         if ($('.dist-row').length > 1) { $(this).closest('tr').remove(); syncRemoveBtns(); }
@@ -1163,11 +1177,13 @@ $(document).ready(function () {
         if (need4m !== '1') formData.delete('file_4m_path');
 
         // Distribution
-        // Remove duplicates first
-        formData.delete('share_dept[]');
-        formData.delete('share_qty[]');
-        $('select[name="share_dept[]"]').each((i, el) => formData.append('share_dept[' + i + ']', el.value));
-        $('input[name="share_qty[]"]').each((i, el) => formData.append('share_qty[' + i + ']', el.value));
+// Remove duplicates first
+formData.delete('share_dept[]');
+formData.delete('share_size[]');
+formData.delete('share_qty[]');
+$('select[name="share_dept[]"]').each((i, el) => formData.append('share_dept[' + i + ']', el.value));
+$('select[name="share_size[]"]').each((i, el) => formData.append('share_size[' + i + ']', el.value));
+$('input[name="share_qty[]"]').each((i, el) => formData.append('share_qty[' + i + ']', el.value));
 
         $.ajax({
             url: '{{ route("mr.doc.store") }}',

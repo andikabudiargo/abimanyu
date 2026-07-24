@@ -312,79 +312,112 @@ $file4mPath = $document->file_4m_path
 @endif
         </div>
 
-        {{-- Copy Distribution --}}
-        <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-            <h2 class="text-sm font-semibold text-gray-800 uppercase tracking-wide mb-4 pb-3 border-b border-gray-100">
-                Copy Distribution (Application for Copies)
-            </h2>
+      {{-- Copy Distribution --}}
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+    <h2 class="text-sm font-semibold text-gray-800 uppercase tracking-wide mb-4 pb-3 border-b border-gray-100">
+        Copy Distribution (Application for Copies)
+    </h2>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="bg-gray-50 text-gray-500 text-xs uppercase">
-                            <th class="px-3 py-2 text-left border border-gray-200">Department</th>
-                            <th class="px-3 py-2 text-center border border-gray-200">Qty</th>
-                            <th class="px-3 py-2 text-center border border-gray-200">Receipent</th>
-                            <th class="px-3 py-2 text-center border border-gray-200">Receive at</th>
-                            <th class="px-3 py-2 text-center border border-gray-200">Evidence</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100" id="copiesTableBody">
-                        @forelse($document->copies ?? [] as $copy)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-3 py-2 border border-gray-200">{{ $copy->department->name ?? '-' }}</td>
-                            <td class="px-3 py-2 border border-gray-200 text-center">{{ $copy->qty }} sheet</td>
-                            <td class="px-3 py-2 border border-gray-200 text-center">{{ $copy->socialized->name ?? '-' }}</td>
-                          <td class="px-3 py-2 border border-gray-200 text-center">
-    {{ $copy->socialization_date ? \Carbon\Carbon::parse($copy->socialization_date)->format('d-m-Y') : '-' }}
-</td>
-                            <td class="px-3 py-2 border border-gray-200 text-center">
-          @if($copy->evidence_path)
-    @php
-        $docType  = strtolower(str_replace(' ', '_', $copy->registration->document_type ?? 'other'));
-        $deptFrom = $copy->registration->department_id ?? 0;
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 text-gray-500 text-xs uppercase">
+                    <th class="px-3 py-2 text-left border border-gray-200">Department</th>
+                    <th class="px-3 py-2 text-center border border-gray-200">Size</th>
+                    <th class="px-3 py-2 text-center border border-gray-200">Qty</th>
+                    <th class="px-3 py-2 text-center border border-gray-200">Received By</th>
+                    <th class="px-3 py-2 text-center border border-gray-200">Received At</th>
+                    <th class="px-3 py-2 text-center border border-gray-200">Socialized By</th>
+                    <th class="px-3 py-2 text-center border border-gray-200">Socialized At</th>
+                    <th class="px-3 py-2 text-center border border-gray-200">Evidence</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100" id="copiesTableBody">
+                @forelse($document->copies ?? [] as $copy)
+                <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2 border border-gray-200">{{ $copy->department->name ?? '-' }}</td>
 
-        // folder sama seperti saat upload di controller
-        $fileUrl = url("/documents/{$docType}/{$deptFrom}/" . $copy->evidence_path);
-    @endphp
+                    <td class="px-3 py-2 border border-gray-200 text-center">
+                        @if($copy->size)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                {{ $copy->size }}
+                            </span>
+                        @else
+                            <span class="text-gray-400">-</span>
+                        @endif
+                    </td>
 
-    <div class="flex items-center justify-center gap-2">
+                    <td class="px-3 py-2 border border-gray-200 text-center">{{ $copy->qty }} sheet</td>
 
-        {{-- Watch --}}
-        <a
-            href="{{ $fileUrl }}"
-            target="_blank"
-            class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
-        >
-            Watch
-        </a>
+                    {{-- Received --}}
+                    <td class="px-3 py-2 border border-gray-200 text-center">
+                        {{ $copy->receivedBy->name ?? '-' }}
+                    </td>
+                    <td class="px-3 py-2 border border-gray-200 text-center">
+                        @if($copy->received_at)
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                <i data-feather="check" class="w-3 h-3"></i>
+                                {{ \Carbon\Carbon::parse($copy->received_at)->format('d-m-Y H:i') }}
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                                Pending
+                            </span>
+                        @endif
+                    </td>
 
-        {{-- Download --}}
-        <a
-            href="{{ $fileUrl }}"
-            download="{{ $copy->evidence_path }}"
-            class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition"
-        >
-            Download
-        </a>
+                    {{-- Socialized --}}
+                    <td class="px-3 py-2 border border-gray-200 text-center">
+                        {{ $copy->socialized->name ?? '-' }}
+                    </td>
+                    <td class="px-3 py-2 border border-gray-200 text-center">
+                        @if($copy->socialization_date)
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                <i data-feather="check" class="w-3 h-3"></i>
+                                {{ \Carbon\Carbon::parse($copy->socialization_date)->format('d-m-Y') }}
+                            </span>
+                        @elseif($copy->received_at)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                                Pending
+                            </span>
+                        @else
+                            <span class="text-gray-400 text-xs">–</span>
+                        @endif
+                    </td>
 
+                    {{-- Evidence --}}
+                    <td class="px-3 py-2 border border-gray-200 text-center">
+                        @if($copy->evidence_path)
+                            @php
+                                $docType  = strtolower(str_replace(' ', '_', $copy->registration->document_type ?? 'other'));
+                                $deptFrom = $copy->registration->department_id ?? 0;
+                                $fileUrl = url("/documents/{$docType}/{$deptFrom}/" . $copy->evidence_path);
+                            @endphp
+
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{{ $fileUrl }}" target="_blank"
+                                   class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition">
+                                    Watch
+                                </a>
+                                <a href="{{ $fileUrl }}" download="{{ $copy->evidence_path }}"
+                                   class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition">
+                                    Download
+                                </a>
+                            </div>
+                        @else
+                            <span class="text-gray-400 text-sm">-</span>
+                        @endif
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="8" class="px-3 py-4 text-center text-gray-400 text-sm">No copy distribution recorded.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-@else
-    <span class="text-gray-400 text-sm">
-        -
-    </span>
-@endif
-        </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="px-3 py-4 text-center text-gray-400 text-sm">No copy distribution recorded.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
+</div>
 
     </div>
 
