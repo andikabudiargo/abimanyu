@@ -337,8 +337,8 @@ Route::prefix('mr')->name('mr.')->group(function () {
     Route::get('/document/data', [DocumentController::class, 'data'])->name('doc.data');
     Route::post('/document/{id}/note', [DocumentController::class, 'addNote'])->name('add.note');
     Route::put('/document/{id}/resubmit', [DocumentController::class, 'resubmit']);
-   Route::post('/document/{id}/confirm-received', [DocumentController::class, 'confirmReceived'])->name('mr.document.confirm.received');
-Route::post('/document/{id}/confirm-socialize', [DocumentController::class, 'confirmSocialize'])->name('mr.document.confirm.socialize');
+   Route::post('/document/{id}/confirm-received', [DocumentController::class, 'confirmReceived'])->name('document.confirm.received');
+Route::post('/document/{id}/confirm-socialize', [DocumentController::class, 'confirmSocialize'])->name('document.confirm.socialize');
     Route::get('/mr/document/{id}/pdf', [DocumentController::class, 'generatePdf'])
     ->name('doc.pdf');
     Route::get('/documents/last-number', [DocumentController::class, 'getLastDocumentNumber'])
