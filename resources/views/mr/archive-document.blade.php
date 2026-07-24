@@ -133,8 +133,6 @@
 </div>
     @endif
 
-</div>
-@endif
    <div class="bg-white shadow rounded-xl p-6 mb-6">
     <h2 class="text-lg font-semibold mb-4">Filter Document Archive</h2>
 
