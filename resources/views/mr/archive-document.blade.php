@@ -7,10 +7,7 @@
 
 @section('content')
 
-@if($pendingReceive->count() > 0 || $pendingSocialize->count() > 0)
 <div id="pending-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-
-    <div id="pending-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
     {{-- ═══ KIRI: PENDING RECEIVE ═══ --}}
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
@@ -24,7 +21,7 @@
             </span>
         </div>
 
-        <div class="p-5 space-y-3">
+        <div class="p-5 space-y-3 max-h-[420px] overflow-y-auto pr-1">
             @forelse($pendingReceive as $copy)
             <div class="border border-gray-200 rounded-xl bg-white shadow-sm p-4 border-l-4 border-l-blue-400">
                 <div class="flex items-center justify-between gap-3 flex-wrap">
@@ -34,8 +31,13 @@
                         </h3>
                         <div class="flex items-center gap-2 mt-1.5">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                                {{ $copy->qty ?? 1 }} Lembar {{ $copy->size }}
+                                {{ $copy->qty ?? 1 }} Lembar
                             </span>
+                            @if($copy->size)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                {{ $copy->size }}
+                            </span>
+                            @endif
                         </div>
                     </div>
                     <form action="{{ route('mr.document.confirm.received', $copy->id) }}" method="POST" class="confirm-received-form">
@@ -71,7 +73,7 @@
             </span>
         </div>
 
-        <div class="p-5 space-y-3">
+         <div class="p-5 space-y-3 max-h-[420px] overflow-y-auto pr-1">
             @forelse($pendingSocialize as $copy)
             <details class="group border border-gray-200 rounded-xl bg-white shadow-sm">
                 <summary class="list-none flex items-center justify-between p-4 cursor-pointer border-l-4 border-l-amber-400 hover:bg-gray-50 transition-colors rounded-xl group-open:rounded-b-none group-open:border-b group-open:border-gray-200 [&::-webkit-details-marker]:hidden">
@@ -131,7 +133,6 @@
     </div>
 
 </div>
-    @endif
 
    <div class="bg-white shadow rounded-xl p-6 mb-6">
     <h2 class="text-lg font-semibold mb-4">Filter Document Archive</h2>
