@@ -21,7 +21,7 @@ class DefectController extends Controller
             'defect'          => 'required|string|max:255',
             'raw_material'    => 'nullable|boolean',
             'description'     => 'nullable|string|max:255',
-            'inspection_post' => 'nullable|in:Incoming,Unloading,Buffing,Touch Up,Final',
+            'inspection_post' => 'nullable|in:Incoming,Unloading,Buffing,Touch Up,Final,Outgoing',
             'category'        => 'nullable|in:NG,NC,Both',
             'status'          => 'nullable|in:active,inactive'
         ]);
@@ -50,7 +50,7 @@ class DefectController extends Controller
         $request->validate([
             'defect'          => 'required|string|max:255',
             'description'     => 'nullable|string|max:255',
-            'inspection_post' => 'nullable|in:Incoming,Unloading,Buffing,Touch Up,Final',
+            'inspection_post' => 'nullable|in:Incoming,Unloading,Buffing,Touch Up,Final,Outgoing',
             'status'          => 'nullable|in:active,inactive'
         ]);
 
@@ -79,6 +79,7 @@ class DefectController extends Controller
         'Buffing'   => 'B',
         'Touch Up'  => 'T',
         'Final'     => 'F',
+        'Outgoing'     => 'O',
     ];
 
     $categoryCode = strtoupper(substr($category, 0, 2)); // NG, NC, BO
@@ -100,6 +101,7 @@ class DefectController extends Controller
         'Buffing'   => 'B',
         'Touch Up'  => 'T',
         'Final'     => 'F',
+        'Outgoing'     => 'O',
     ];
 
     $postCode = $postMap[$inspectionPost] ?? 'X'; // fallback jika tidak dikenali
