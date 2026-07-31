@@ -1846,11 +1846,30 @@ public function revision($id)
         'department',
         'copies.department',
         'copies.registration',
-        'copies.takenFrom',   // ⬅️ tambahkan ini
+        'copies.takenFrom',
         'createdBy',
         'approvedBy',
         'authorizedBy'
     ])->findOrFail($id);
+
+    /* =====================
+       AMBIL REGISTRASI VERSI SEBELUMNYA
+       (untuk data "copy was taken")
+    ===================== */
+    $previousRegistration = DocumentRegistration::where('document_number', $document->document_number)
+        ->where('id', '!=', $document->id)
+        ->where('created_at', '<', $document->created_at)
+        ->orderByDesc('created_at')
+        ->first();
+
+    $takenByDept = collect();
+
+    if ($previousRegistration) {
+        $takenByDept = DocumentCopy::where('registration_id', $previousRegistration->id)
+            ->with('takenFrom')
+            ->get()
+            ->keyBy('department_id');
+    }
 
     /* =====================
        LOGO BASE64
@@ -1865,28 +1884,8 @@ public function revision($id)
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | PAGE 1
-    | Form Pengajuan Pembuatan dan Perubahan Dokumen
-    |--------------------------------------------------------------------------
-    */
     $page1 = view('mr.document-pdf', compact('document', 'logo'))->render();
-
-    /*
-    |--------------------------------------------------------------------------
-    | PAGE 2
-    | Lembar Distribusi Dokumen
-    |--------------------------------------------------------------------------
-    */
-    $page2 = view('mr.doc-distribution-pdf', compact('document', 'logo'))->render();
-
-    /*
-    |--------------------------------------------------------------------------
-    | PAGE 3+
-    | Evidence Attachment Per Copy
-    |--------------------------------------------------------------------------
-    */
+    $page2 = view('mr.doc-distribution-pdf', compact('document', 'logo', 'takenByDept'))->render();
     $page3 = view('mr.document-evidence', compact('document'))->render();
 
     $mpdf = new Mpdf([

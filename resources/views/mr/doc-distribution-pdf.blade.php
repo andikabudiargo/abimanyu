@@ -169,54 +169,46 @@
         </td>
     </tr>
 
-    @for($i = 0; $i < 12; $i++)
-        @php
-            $copy = $document->copies[$i] ?? null;
-        @endphp
+   @for($i = 0; $i < 12; $i++)
+    @php
+        $copy = $document->copies[$i] ?? null;
+        $taken = $copy ? ($takenByDept->get($copy->department_id)) : null;
+    @endphp
 
-        <tr>
-            {{-- NO --}}
-            <td class="center h-30">
-                {{ $i + 1 }}
-            </td>
+    <tr>
+        <td class="center h-30">{{ $i + 1 }}</td>
 
-            {{-- NO. COPY DOCUMENT --}}
-            <td class="center">
-                {{ $copy ? ($i + 1) : '' }}
-            </td>
+        <td class="center">
+            {{ $copy ? ($i + 1) : '' }}
+        </td>
 
-            {{-- RECEIVED DATE --}}
-            <td class="center">
-                {{ $copy && $copy->socialization_date
-                    ? \Carbon\Carbon::parse($copy->socialization_date)->format('d-m-Y')
-                    : '' }}
-            </td>
+        <td class="center">
+            {{ $copy && $copy->socialization_date
+                ? \Carbon\Carbon::parse($copy->socialization_date)->format('d-m-Y')
+                : '' }}
+        </td>
 
-          {{-- NO. COPY DOCUMENT WAS TAKEN --}}
-<td class="center">
-    {{ $copy && $copy->copies_taken
-        ? (($document->revision->revision_number ?? 1) - 1)
-        : '' }}
-</td>
+        {{-- NO. COPY DOCUMENT WAS TAKEN --}}
+        <td class="center">
+            {{ $taken && $taken->copies_taken
+                ? (($document->revision->revision_number ?? 1) - 1)
+                : '' }}
+        </td>
 
-{{-- DATE OF TAKEN --}}
-<td class="center">
-    {{ $copy && $copy->copies_taken_at
-        ? \Carbon\Carbon::parse($copy->copies_taken_at)->format('d-m-Y')
-        : '' }}
-</td>
+        {{-- DATE OF TAKEN --}}
+        <td class="center">
+            {{ $taken && $taken->copies_taken_at
+                ? \Carbon\Carbon::parse($taken->copies_taken_at)->format('d-m-Y')
+                : '' }}
+        </td>
 
-{{-- DEPARTEMEN RECEIVER --}}
-<td>
-    {{ $copy->department->name ?? '' }}
-</td>
+        <td>{{ $copy->department->name ?? '' }}</td>
 
-{{-- NAME & SIGN --}}
-<td>
-    {{ $copy->takenFrom->name ?? $copy->socialized->name ?? '' }}
-</td>
-        </tr>
-    @endfor
+        <td>
+            {{ $taken->takenFrom->name ?? $copy->socialized->name ?? '' }}
+        </td>
+    </tr>
+@endfor
 </table>
 
 </body>
