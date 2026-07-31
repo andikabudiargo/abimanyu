@@ -192,21 +192,29 @@
                     : '' }}
             </td>
 
-            {{-- NO. COPY DOCUMENT WAS TAKEN --}}
-            <td></td>
+          {{-- NO. COPY DOCUMENT WAS TAKEN --}}
+<td class="center">
+    {{ $copy && $copy->copies_taken
+        ? (($document->revision->revision_number ?? 1) - 1)
+        : '' }}
+</td>
 
-            {{-- DATE OF TAKKEN --}}
-            <td></td>
+{{-- DATE OF TAKEN --}}
+<td class="center">
+    {{ $copy && $copy->copies_taken_at
+        ? \Carbon\Carbon::parse($copy->copies_taken_at)->format('d-m-Y')
+        : '' }}
+</td>
 
-            {{-- DEPARTEMEN RECEIVER --}}
-            <td>
-                {{ $copy->department->name ?? '' }}
-            </td>
+{{-- DEPARTEMEN RECEIVER --}}
+<td>
+    {{ $copy->department->name ?? '' }}
+</td>
 
-            {{-- NAME & SIGN --}}
-            <td>
-                {{ $copy->socialized->name ?? '' }}
-            </td>
+{{-- NAME & SIGN --}}
+<td>
+    {{ $copy->takenFrom->name ?? $copy->socialized->name ?? '' }}
+</td>
         </tr>
     @endfor
 </table>

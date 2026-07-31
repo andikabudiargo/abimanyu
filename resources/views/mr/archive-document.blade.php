@@ -7,7 +7,7 @@
 
 @section('content')
 
-<div id="pending-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+<div id="pending-section" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 
     {{-- ═══ KIRI: PENDING RECEIVE ═══ --}}
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
@@ -126,6 +126,75 @@
             @endforelse
         </div>
     </div>
+
+    {{-- ═══ PENDING TAKEN (RETRIEVAL) ═══ --}}
+<div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-6">
+    <div class="border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+        <div>
+            <h2 class="text-lg font-semibold text-gray-800">Pending Document Retrieval</h2>
+            <p class="text-sm text-gray-500 mt-0.5">Dokumen versi lama yang sudah direvisi — konfirmasi penarikan salinan lama dari departemen.</p>
+        </div>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-50 text-red-700 border border-red-200">
+            {{ $pendingTaken->count() }} Pending
+        </span>
+    </div>
+
+    <div class="p-5 space-y-3 max-h-[420px] overflow-y-auto pr-1">
+        @forelse($pendingTaken as $copy)
+        <details class="group border border-gray-200 rounded-xl bg-white shadow-sm">
+            <summary class="list-none flex items-center justify-between p-4 cursor-pointer border-l-4 border-l-red-400 hover:bg-gray-50 transition-colors rounded-xl group-open:rounded-b-none group-open:border-b group-open:border-gray-200 [&::-webkit-details-marker]:hidden">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-800">
+                        {{ $copy->registration->document_number }} — {{ $copy->registration->document_title ?? '-' }}
+                    </h3>
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                            {{ $copy->qty ?? 1 }} Lembar ( {{ $copy->size }} )
+                        </span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                            Versi Lama — Sudah Direvisi
+                        </span>
+                    </div>
+                </div>
+                <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </span>
+            </summary>
+
+            <div class="p-5 bg-slate-50/50 rounded-b-xl">
+                <div class="mb-4">
+                    <p class="text-sm font-medium text-gray-800">Apakah salinan dokumen versi lama sudah ditarik kembali dari departemen ini?</p>
+                    <p class="text-xs text-gray-500 mt-1">Unggah bukti foto penarikan untuk menyelesaikan konfirmasi.</p>
+                </div>
+
+                <form action="{{ route('mr.document.confirm.taken', $copy->id) }}" method="POST" enctype="multipart/form-data" class="confirm-taken-form">
+                    @csrf
+                    <div class="flex items-center gap-3">
+                        <div class="flex-1">
+                            <input type="file" name="taken_evidence" required
+                                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                        </div>
+                        <button type="submit"
+                            class="shrink-0 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium shadow-sm transition-colors duration-150">
+                            Confirm Retrieval
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </details>
+        @empty
+        <div class="flex flex-col items-center justify-center text-center py-10 px-4">
+            <div class="w-12 h-12 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mb-3">
+                <i data-feather="rotate-ccw" class="w-5 h-5 text-red-400"></i>
+            </div>
+            <p class="text-sm font-medium text-gray-600">No old document copies pending retrieval</p>
+            <p class="text-xs text-gray-400 mt-1">Semua salinan dokumen versi lama sudah ditarik.</p>
+        </div>
+        @endforelse
+    </div>
+</div>
 
 </div>
 
@@ -1203,6 +1272,36 @@ $(function(){
             }
         });
     });
+
+    // ── Confirm Taken (wajib evidence) ──
+$(document).on('submit', '.confirm-taken-form', function(e){
+    e.preventDefault();
+    var $form = $(this);
+    var formData = new FormData(this);
+
+    $.ajax({
+        url: $form.attr('action'),
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response){
+            if(response.success){
+                showToast('success', response.message);
+                setTimeout(function() { location.reload(); }, 1500);
+            } else {
+                showToast('error', response.message || 'Error');
+            }
+        },
+        error: function(xhr){
+            var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Server error';
+            showToast('error', msg);
+        }
+    });
+});
 
 });
 

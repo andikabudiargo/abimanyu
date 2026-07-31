@@ -41,6 +41,11 @@ class DocumentRegistration extends Model
         'returned_reason' => 'array',
     ];
 
+    public function currentDocument()
+{
+    return $this->hasOne(Document::class, 'document_number', 'document_number');
+}
+
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);

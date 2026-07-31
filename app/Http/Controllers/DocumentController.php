@@ -51,30 +51,43 @@ private function resolveDepartmentGroup($deptId)
 {
     $departmentIds = auth()->user()->departments->pluck('id');
 
-    // Tahap 1: Belum dikonfirmasi diterima sama sekali
+    // Tahap 1: Belum dikonfirmasi diterima
     $pendingReceive = DocumentCopy::with('registration')
         ->whereIn('department_id', $departmentIds)
         ->whereNull('received_at')
-        ->whereHas('registration', function ($q) {
-            $q->where('status', 'Published');
-        })
+        ->whereHas('registration', fn($q) => $q->where('status', 'Published'))
         ->latest()
         ->get();
 
-    // Tahap 2: Sudah diterima, tapi belum disosialisasikan
+    // Tahap 2: Sudah diterima, belum disosialisasikan
     $pendingSocialize = DocumentCopy::with('registration')
         ->whereIn('department_id', $departmentIds)
         ->whereNotNull('received_at')
         ->whereNull('socialization_date')
+        ->whereHas('registration', fn($q) => $q->where('status', 'Published'))
+        ->latest()
+        ->get();
+
+    // Tahap 3: Copy versi LAMA yang sudah tersalip revisi baru → perlu ditarik MR
+    $pendingTaken = DocumentCopy::with('registration')
+        ->whereIn('department_id', $departmentIds)
+        ->whereNotNull('received_at')          // pernah diterima secara fisik
+        ->where('copies_taken', false)
         ->whereHas('registration', function ($q) {
-            $q->where('status', 'Published');
+            $q->where('status', 'Published')
+              ->whereHas('currentDocument', function ($q2) {
+                  // registrasi ini BUKAN registrasi aktif terbaru untuk document_number tsb
+                  $q2->whereColumn('documents.registration_id', '!=', 'document_registrations.id');
+              });
         })
         ->latest()
         ->get();
 
     $departments = Department::orderBy('name')->get();
 
-    return view('mr.archive-document', compact('departments', 'pendingReceive', 'pendingSocialize'));
+    return view('mr.archive-document', compact(
+        'departments', 'pendingReceive', 'pendingSocialize', 'pendingTaken'
+    ));
 }
 
     public function create()
@@ -237,6 +250,92 @@ public function confirmSocialize(Request $request, $id)
         return response()->json([
             'success' => true,
             'message' => 'Konfirmasi sosialisasi dokumen berhasil.',
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Server error',
+            'error'   => $e->getMessage(),
+        ], 500);
+    }
+}
+
+public function confirmTaken(Request $request, $id)
+{
+    DB::beginTransaction();
+
+    try {
+        $request->validate([
+            'taken_evidence' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+
+        $copy = DocumentCopy::with('registration')->findOrFail($id);
+        $user = auth()->user();
+
+        $userDeptIds = $user->departments()->pluck('departments.id')->toArray();
+
+        if (!in_array($copy->department_id, $userDeptIds)) {
+            abort(403);
+        }
+
+        if (is_null($copy->received_at)) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Dokumen belum pernah dikonfirmasi diterima, tidak bisa ditarik.',
+            ], 400);
+        }
+
+        $registration = $copy->registration;
+        $docType  = strtolower(str_replace(' ', '_', $registration->document_type));
+        $deptFrom = $registration->department_id ?? 0;
+
+        $destinationPath = "/home/abimany3/public_html/documents/{$docType}/{$deptFrom}/taken";
+
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0777, true);
+        }
+
+        $file = $request->file('taken_evidence');
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        $baseName = $registration->document_number . '_taken_evidence';
+        $filename = $baseName . '.' . $extension;
+
+        $i = 1;
+        while (file_exists($destinationPath . '/' . $filename)) {
+            $filename = $baseName . '(' . $i . ').' . $extension;
+            $i++;
+        }
+
+        $file->move($destinationPath, $filename);
+
+        $updated = DocumentCopy::where('id', $id)
+            ->where('copies_taken', false)
+            ->update([
+                'copies_taken'      => true,
+                'copies_taken_from' => $user->id,
+                'copies_taken_at'   => now(),
+                'taken_evidence'    => $filename,
+            ]);
+
+        if (!$updated) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Dokumen sudah dikonfirmasi ditarik oleh user lain.',
+            ], 400);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Konfirmasi penarikan dokumen berhasil.',
         ]);
 
     } catch (\Exception $e) {
@@ -1747,6 +1846,7 @@ public function revision($id)
         'department',
         'copies.department',
         'copies.registration',
+        'copies.takenFrom',   // ⬅️ tambahkan ini
         'createdBy',
         'approvedBy',
         'authorizedBy'
