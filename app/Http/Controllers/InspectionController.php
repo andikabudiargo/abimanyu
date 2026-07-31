@@ -392,7 +392,7 @@ private function resolveInspectionDate(Request $request, string $pos)
     return [null, null, 'empty'];
 }
 
-public function getTopDefect(Request $request)
+     function getTopDefect(Request $request)
 {
     $pos = $request->pos;
 
@@ -427,19 +427,19 @@ public function getTopDefect(Request $request)
     /* ================= TOP DEFECT ================= */
 
     $topDefect = DB::table('inspection_defects as d')
-        ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
-        ->join('defects as f', 'f.id', '=', 'd.defect_id')
-        ->select(
-            'f.defect as defect_name',
-            'f.category',
-            DB::raw('SUM(d.qty) as total_qty')
-        )
-        ->where('i.inspection_post', $pos)
-        ->where($dateFilter)
-        ->groupBy('f.id', 'f.defect', 'f.category')
-        ->orderByDesc('total_qty')
-        ->limit(10)
-        ->get();
+    ->join('inspections as i', 'i.id', '=', 'd.inspection_id')
+    ->join('defects as f', 'f.id', '=', 'd.defect_id')
+    ->select(
+        'f.defect as defect_name',
+        'd.category',                 // ⬅️ diganti dari 'f.category'
+        DB::raw('SUM(d.qty) as total_qty')
+    )
+    ->where('i.inspection_post', $pos)
+    ->where($dateFilter)
+    ->groupBy('f.id', 'f.defect', 'd.category')   // ⬅️ groupBy juga ikut diganti
+    ->orderByDesc('total_qty')
+    ->limit(10)
+    ->get();
 
     /* ================= PERCENTAGE ================= */
 
@@ -707,18 +707,15 @@ public function paretoDefect(Request $request)
     |--------------------------------------------------------------------------
     */
 
-    $query = DB::table('defects as d')
-       ->join('inspection_defects as idf', 'd.id', '=', 'idf.defect_id')
-       ->join('inspections as i', 'i.id', '=', 'idf.inspection_id')
-
-
-        ->select(
-            'd.id',
-            'd.defect',
-            DB::raw('COALESCE(SUM(idf.qty),0) as total')
-        )
-
-        ->where('d.category', 'NG');
+   $query = DB::table('defects as d')
+   ->join('inspection_defects as idf', 'd.id', '=', 'idf.defect_id')
+   ->join('inspections as i', 'i.id', '=', 'idf.inspection_id')
+    ->select(
+        'd.id',
+        'd.defect',
+        DB::raw('COALESCE(SUM(idf.qty),0) as total')
+    )
+    ->where('idf.category', 'NG');   // ⬅️ diganti dari 'd.category'
 
         /*
     |--------------------------------------------------------------------------
