@@ -128,7 +128,7 @@
     </div>
 
     {{-- ═══ PENDING TAKEN (RETRIEVAL) ═══ --}}
-<div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-6">
+<div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
     <div class="border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 flex items-center justify-between flex-wrap gap-3">
         <div>
             <h2 class="text-lg font-semibold text-gray-800">Pending Document Retrieval</h2>
