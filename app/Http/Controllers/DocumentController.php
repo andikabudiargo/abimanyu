@@ -658,9 +658,78 @@ $actionButtons .= '</div></div></div>';
 
 ->addColumn('document', function ($row) {
 
-   if (!$row->file_path) {
-    return '-';
-}
+    // =========================
+    // NORMALIZE DOC TYPE (dipakai hanya kalau file ada)
+    // =========================
+    $extension = $row->file_path
+        ? strtolower(pathinfo($row->file_path, PATHINFO_EXTENSION))
+        : null;
+
+    $icon = match ($extension) {
+        'pdf'         => '<i class="fas fa-file-pdf text-red-500 text-xl"></i>',
+        'doc', 'docx' => '<i class="fas fa-file-word text-blue-500 text-xl"></i>',
+        'xls', 'xlsx' => '<i class="fas fa-file-excel text-green-500 text-xl"></i>',
+        default       => '<i class="fas fa-file text-gray-300 text-xl"></i>',
+    };
+
+    $content = '
+        <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 shadow-sm flex-shrink-0">
+            ' . $icon . '
+        </div>
+
+        <div class="flex flex-col justify-center min-w-0">
+            <span class="text-sm font-semibold text-gray-800 truncate">
+                ' . e($row->document_number) . '
+            </span>
+
+            <span class="text-xs text-gray-500 truncate">
+                ' . e($row->document_title) . '
+            </span>
+        </div>
+    ';
+
+    // =========================
+    // KALAU FILE TIDAK ADA -> tampilkan tanpa link, non-downloadable
+    // =========================
+    if (!$row->file_path) {
+        return '
+            <div class="flex items-center gap-3 p-3 rounded-xl opacity-60 cursor-not-allowed" 
+                 title="File belum tersedia">
+                ' . $content . '
+            </div>
+        ';
+    }
+
+    // =========================
+    // AMBIL DEPT DARI USER PEMBUAT
+    // =========================
+    $docType  = strtolower(str_replace(' ', '_', trim($row->document_type)));
+    $deptFrom = optional($row->createdBy->departments->first())->id;
+
+    // fallback: file ada tapi dept gak ketemu -> tetap non-downloadable
+    if (!$deptFrom) {
+        return '
+            <div class="flex items-center gap-3 p-3 rounded-xl opacity-60 cursor-not-allowed" 
+                 title="File belum tersedia">
+                ' . $content . '
+            </div>
+        ';
+    }
+
+    // =========================
+    // BUILD FILE URL (kalau file & dept lengkap)
+    // =========================
+    $relativePath = "documents/{$docType}/{$deptFrom}/{$row->file_path}";
+    $fileUrl = url($relativePath);
+    $downloadName = $row->file_path;
+
+    return '
+        <a href="' . $fileUrl . '" download="' . e($downloadName) . '" 
+           class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 transition group">
+            ' . $content . '
+        </a>
+    ';
+})
 
 // =========================
 // NORMALIZE DOC TYPE
