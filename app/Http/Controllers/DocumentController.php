@@ -429,6 +429,8 @@ if (!$isMR) {
 
     });
 }
+$query->whereNotNull('file_path')
+      ->where('file_path', '!=', '');
 
 // =========================
 // ORDER TERBARU
