@@ -498,7 +498,7 @@ textarea.f-input { resize: vertical; }
 
                         <div id="revision_group" class="hidden">
                             <label class="f-label">Revision No.</label>
-                            <input type="text" name="revision_number" placeholder="e.g. 02" class="f-input">
+                            <input type="text" name="revision_number" placeholder="e.g. 02" class="f-input" readonly>
                         </div>
                     </div>
 
