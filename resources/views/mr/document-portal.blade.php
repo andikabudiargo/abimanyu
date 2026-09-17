@@ -194,7 +194,7 @@ function renderList() {
         const selected = d.document_number === selectedNumber ? ' is-selected' : '';
         const obsolete = !d.is_active ? ' is-obsolete' : '';
         const statusBadge = !d.is_active
-            ? '<span class="badge type-gray" style="margin-left:6px;">Usang</span>' : '';
+            ? '<span class="badge type-gray" style="margin-left:6px;">Obsolete</span>' : '';
 
         return '<button type="button" class="doc-row' + selected + obsolete + '" data-number="' + esc(d.document_number) + '">'
             + '<span class="doc-icon ' + s.cls + '"><i data-feather="' + s.icon + '"></i></span>'
@@ -273,14 +273,14 @@ function renderDetail() {
     const latest = history[history.length - 1] || {};
     const statusBadge = d.is_active
         ? '<span class="badge" style="background:#f0fdf4; color:#166534;">Published</span>'
-        : '<span class="badge" style="background:#f3f4f6; color:#6b7280;">Usang (Obsolete)</span>';
+        : '<span class="badge" style="background:#f3f4f6; color:#6b7280;">Obsolete</span>';
 
     let actions = '<a href="' + latest.file_url + '" target="_blank" class="btn btn-secondary"><i data-feather="eye"></i>Preview</a>'
         + '<a href="' + latest.file_url + '" download class="btn btn-secondary"><i data-feather="download"></i>Download</a>';
 
     if (d.is_active) {
         actions += '<a href="' + reviseUrl('revision') + '" class="btn btn-primary"><i data-feather="edit-3"></i>Revisi Dokumen</a>'
-            + '<a href="' + reviseUrl('obsolete') + '" class="btn btn-danger"><i data-feather="archive"></i>Jadikan Usang</a>';
+            + '<a href="' + reviseUrl('obsolete') + '" class="btn btn-danger"><i data-feather="archive"></i>Jadikan Obsolete</a>';
     }
 
     const tabs = [['overview', 'Overview'], ['preview', 'Preview'], ['history', 'Riwayat Versi']];
