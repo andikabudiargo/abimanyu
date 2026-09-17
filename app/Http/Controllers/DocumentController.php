@@ -100,27 +100,15 @@ private function resolveDepartmentGroup($deptId)
 
     public function getDocumentNumber(Request $request)
 {
-    $user = auth()->user();
-
-    // =========================
-    // AMBIL & EXPAND DEPT GROUP
-    // =========================
-    $rawDeptIds = $user->departments->pluck('id')->toArray();
-
-    $departmentIds = collect($rawDeptIds)
-        ->flatMap(function ($deptId) {
-            return $this->resolveDepartmentGroup($deptId);
-        })
-        ->unique()
-        ->values();
-
     $query = Document::select(
-        'id',
-        'document_number',
-        'document_title',
-        'current_version',
-        'dept_to'
-    );
+        'documents.id',
+        'documents.document_number',
+        'documents.document_title',
+        'documents.current_version',
+        'documents.dept_from',
+        'documents.dept_to',
+        'dept_from_department.name as dept_from_name'
+    )->leftJoin('departments as dept_from_department', 'dept_from_department.id', '=', 'documents.dept_from');
 
     // =========================
     // NORMALIZE TYPE
@@ -133,7 +121,7 @@ private function resolveDepartmentGroup($deptId)
     if ($type === 'other') {
 
         $query->whereRaw("
-            TRIM(LOWER(document_type)) NOT IN (
+            TRIM(LOWER(documents.document_type)) NOT IN (
                 'sop',
                 'form',
                 'standard',
@@ -144,25 +132,25 @@ private function resolveDepartmentGroup($deptId)
     } else {
 
         $query->whereRaw(
-            "TRIM(LOWER(document_type)) = ?",
+            "TRIM(LOWER(documents.document_type)) = ?",
             [$type]
         );
     }
 
     // =========================
-    // FILTER BY DEPARTMENT (SUDAH GROUPED)
+    // TAMPILKAN SEMUA DEPARTMENT
+    // (dokumen bisa direvisi oleh user dari departemen lain)
     // =========================
-    $query->whereIn('dept_from', $departmentIds);
 
     // =========================
     // ONLY ACTIVE
     // =========================
-    $query->where('is_active', 1);
+    $query->where('documents.is_active', 1);
 
     // =========================
     // ORDER
     // =========================
-    $docs = $query->orderBy('document_number', 'desc')->get();
+    $docs = $query->orderBy('documents.document_number', 'desc')->get();
 
     return response()->json($docs);
 }
@@ -422,10 +410,16 @@ if (!$isMR) {
         ->flatMap(fn($deptId) => $this->resolveDepartmentGroup($deptId))
         ->unique();
 
-    $query->where(function ($q) use ($user, $departmentIds) {
+    $query->where(function ($q) use ($departmentIds) {
 
-        $q->where('created_by', $user->id)
-          ->orWhereIn('department_id', $departmentIds);
+        // Target/approval department dokumen
+        $q->orWhereIn('department_id', $departmentIds)
+          // Department dari user yang membuat/merevisi dokumen
+          // (dokumen bisa direvisi oleh user dari departemen lain,
+          // jadi harus tetap muncul di dashboard departemen tersebut)
+          ->orWhereHas('createdBy.departments', function ($q2) use ($departmentIds) {
+              $q2->whereIn('departments.id', $departmentIds);
+          });
 
     });
 }

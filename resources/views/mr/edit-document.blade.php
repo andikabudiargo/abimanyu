@@ -35,7 +35,7 @@
 }
 .f-input:focus { border-color: #1e3a5f; box-shadow: 0 0 0 2px rgba(30,58,95,.10); }
 .f-input::placeholder { color: #9ca3af; }
-.f-input[readonly] { background: #f9fafb; color: #6b7280; cursor: not-allowed; }
+.f-input[readonly] { background: #e5e7eb; color: #4b5563; cursor: not-allowed; }
 textarea.f-input { resize: vertical; }
 
 /* Type tiles */
@@ -825,11 +825,12 @@ $(document).ready(function () {
                 if (data.length > 0) {
                     $.each(data, (i, doc) => {
                         const sel = doc.document_number === '{{ $document->document_number }}' ? 'selected' : '';
+                        const deptLabel = doc.dept_from_name ? ` (${doc.dept_from_name})` : '';
                         $sel.append(`<option value="${doc.document_number}" ${sel}
                             data-title="${doc.document_title}"
                             data-dept="${doc.dept_to || ''}"
                             data-version="${doc.current_version || 0}">
-                            ${doc.document_number}
+                            ${doc.document_number}${deptLabel}
                         </option>`);
                     });
                     $('#last_doc_info').removeClass('hidden');
