@@ -765,6 +765,7 @@ textarea.f-input { resize: vertical; }
 // ═══════════════════════════════════════════════
 let currentStep = 1;
 const STEPS = 4;
+let pendingPreselectNumber = null;
 
 // Tracks what submission type is active
 function getSubmissionType() {
@@ -929,6 +930,14 @@ function validateStep3() {
 
                 $('#last_doc_info').removeClass('hidden');
                 $('#last_doc_value').text(data[0].document_number);
+
+                if (pendingPreselectNumber) {
+                    const exists = $sel.find('option[value="' + pendingPreselectNumber + '"]').length > 0;
+                    if (exists) {
+                        $sel.val(pendingPreselectNumber).trigger('change');
+                        pendingPreselectNumber = null;
+                    }
+                }
 
             } else {
                 $('#last_doc_info').addClass('hidden');
@@ -1102,9 +1111,26 @@ $(document).ready(function () {
 
    
 
-    // Initial state for default (New Release)
-    applySubmissionTypeLogic('New Release');
-    loadDocNumbers($('.docType:checked').val());
+    // ── Prefill dari Document Portal (tombol Revisi / Jadikan Usang) ──
+    const urlParams = new URLSearchParams(window.location.search);
+    const preMode   = urlParams.get('mode');
+    const preNumber = urlParams.get('number');
+    const preType   = urlParams.get('type');
+
+    if ((preMode === 'revision' || preMode === 'obsolete') && preNumber) {
+        pendingPreselectNumber = preNumber;
+
+        const subVal = preMode === 'revision' ? 'Revision' : 'Obsolete';
+        $('input[name="submission_type"][value="' + subVal + '"]').prop('checked', true).trigger('change');
+
+        const knownTypes = ['Form', 'Work Instructions', 'Standard', 'SOP'];
+        const typeVal = knownTypes.includes(preType) ? preType : 'other';
+        $('input[name="document_type"][value="' + typeVal + '"]').prop('checked', true).trigger('change');
+    } else {
+        // Initial state for default (New Release)
+        applySubmissionTypeLogic('New Release');
+        loadDocNumbers($('.docType:checked').val());
+    }
 
     // ── Distribution table rows ──
    $('#addDeptBtn').on('click', function () {

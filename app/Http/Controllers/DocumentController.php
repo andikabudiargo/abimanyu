@@ -98,6 +98,142 @@ private function resolveDepartmentGroup($deptId)
         return view('mr.create-document', compact('departments'));
     }
 
+    public function portal()
+    {
+        $departments = Department::orderBy('name')->get();
+
+        return view('mr.document-portal', compact('departments'));
+    }
+
+    private function isMR($user)
+    {
+        return $user->departments()
+            ->where('name', 'Management Representative')
+            ->exists();
+    }
+
+    private function buildDocumentFileUrl($documentType, $deptId, $filePath)
+    {
+        if (!$filePath || !$deptId || !$documentType) {
+            return null;
+        }
+
+        $docType = strtolower(str_replace(' ', '_', trim($documentType)));
+
+        return url("documents/{$docType}/{$deptId}/{$filePath}");
+    }
+
+    public function portalData(Request $request)
+    {
+        $user = auth()->user();
+        $isMR = $this->isMR($user);
+
+        $query = Document::with(['deptTo:id,name']);
+
+        if (!$isMR) {
+            $query->where('is_active', 1);
+        }
+
+        if ($request->filled('q')) {
+            $term = $request->q;
+            $query->where(function ($q) use ($term) {
+                $q->where('document_number', 'like', "%{$term}%")
+                  ->orWhere('document_title', 'like', "%{$term}%");
+            });
+        }
+
+        if ($request->filled('department_id')) {
+            $query->where('dept_to', $request->department_id);
+        }
+
+        if ($request->filled('document_type')) {
+            $type = strtolower(trim($request->document_type));
+
+            if ($type === 'other') {
+                $query->whereRaw("
+                    TRIM(LOWER(document_type)) NOT IN (
+                        'sop', 'form', 'standard', 'work instructions'
+                    )
+                ");
+            } else {
+                $query->whereRaw('TRIM(LOWER(document_type)) = ?', [$type]);
+            }
+        }
+
+        $documents = $query->orderBy('document_number')->get();
+
+        $data = $documents->map(function ($doc) {
+            return [
+                'id'              => $doc->id,
+                'document_number' => $doc->document_number,
+                'document_title'  => $doc->document_title,
+                'document_type'   => $doc->document_type,
+                'current_version' => $doc->current_version,
+                'remark'          => $doc->remark,
+                'is_active'       => (bool) $doc->is_active,
+                'department'      => optional($doc->deptTo)->name,
+                'department_id'   => $doc->dept_to,
+                'file_url'        => $this->buildDocumentFileUrl($doc->document_type, $doc->dept_from, $doc->file_path),
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    public function portalHistory($number)
+    {
+        $registrations = DocumentRegistration::with(['createdBy.departments', 'revision'])
+            ->where('document_number', $number)
+            ->where('status', 'Published')
+            ->orderBy('authorized_at')
+            ->get();
+
+        if ($registrations->isEmpty()) {
+            return response()->json(['document' => null, 'history' => []]);
+        }
+
+        $history = $registrations->map(function ($r) {
+            $deptFromId = $r->createdBy
+                ? optional($r->createdBy->departments->first())->id
+                : null;
+
+            return [
+                'version'         => optional($r->revision)->revision_number ?? '00',
+                'submission_type' => $r->submission_type,
+                'document_type'   => $r->document_type,
+                'file_name'       => $r->file_path,
+                'file_url'        => $this->buildDocumentFileUrl($r->document_type, $deptFromId, $r->file_path),
+                'file_4m_url'     => $r->file_4m_path
+                    ? $this->buildDocumentFileUrl($r->document_type, $deptFromId, $r->file_4m_path)
+                    : null,
+                'created_by'      => optional($r->createdBy)->name ?? '-',
+                'created_at'      => optional($r->created_at)->format('d M Y'),
+                'authorized_at'   => optional($r->authorized_at)->format('d M Y'),
+            ];
+        })->values();
+
+        $first = $history->first();
+        $last  = $history->last();
+
+        $document = Document::with('deptTo')->where('document_number', $number)->first();
+
+        return response()->json([
+            'document' => [
+                'document_number' => $number,
+                'document_title'  => optional($document)->document_title,
+                'document_type'   => optional($document)->document_type,
+                'department'      => optional(optional($document)->deptTo)->name,
+                'is_active'       => (bool) optional($document)->is_active,
+                'current_version' => optional($document)->current_version,
+                'submitted_by'    => $first['created_by'],
+                'submitted_at'    => $first['created_at'],
+                'revised_by'      => $last['created_by'],
+                'revised_at'      => $last['authorized_at'] ?? $last['created_at'],
+            ],
+            'history' => $history,
+        ]);
+    }
+
     public function getDocumentNumber(Request $request)
 {
     $query = Document::select(

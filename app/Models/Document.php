@@ -51,6 +51,16 @@ class Document extends Model
         return $this->belongsTo(User::class, 'published_by');
     }
 
+    public function deptFrom()
+    {
+        return $this->belongsTo(Department::class, 'dept_from');
+    }
+
+    public function deptTo()
+    {
+        return $this->belongsTo(Department::class, 'dept_to');
+    }
+
     // =========================
     // SCOPES (BIAR ENAK DIPAKAI)
     // =========================
