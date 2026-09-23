@@ -32,7 +32,10 @@
     $isOwner      = $document->created_by === auth()->id();
    $isSPVTarget = auth()->user()
     ->departments->contains('id', $document->department_id)
-    && auth()->user()->roles->contains('name', 'Supervisor Special Access');
+    && auth()->user()->roles->pluck('name')->intersect([
+        'Supervisor Special Access',
+        'Manager Special Access',
+    ])->isNotEmpty();
     $isMR         = auth()->user()->departments->contains('name', 'Management Representative');
 
     // Flow steps & active index
