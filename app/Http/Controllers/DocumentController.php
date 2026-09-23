@@ -1831,9 +1831,27 @@ public function edit($id)
 
 public function show($id)
 {
-    
     $document = DocumentRegistration::findOrFail($id);
-    return view('mr.detail-document', compact('document'));
+    $user = auth()->user();
+
+    $isOwner = $document->created_by === $user->id;
+
+    // Sama seperti isSPVTarget di data(): departemen di-expand lewat
+    // resolveDepartmentGroup() (mis. HRGAIT = 2,3,5 dianggap satu grup)
+    // supaya SPV di grup yang sama tetap kebagian tombol approve.
+    $departmentIds = $user->departments->pluck('id')
+        ->flatMap(fn($deptId) => $this->resolveDepartmentGroup($deptId))
+        ->unique();
+
+    $isSPVTarget = $departmentIds->contains($document->department_id)
+        && $user->roles->pluck('name')->intersect([
+            'Supervisor Special Access',
+            'Manager Special Access',
+        ])->isNotEmpty();
+
+    $isMR = $user->departments->contains('name', 'Management Representative');
+
+    return view('mr.detail-document', compact('document', 'isOwner', 'isSPVTarget', 'isMR'));
 }
 
 public function addNote(Request $request, $id)

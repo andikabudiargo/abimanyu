@@ -28,15 +28,8 @@
         default       => 'bg-gray-100 text-gray-600',
     };
 
-    // Role checks
-    $isOwner      = $document->created_by === auth()->id();
-   $isSPVTarget = auth()->user()
-    ->departments->contains('id', $document->department_id)
-    && auth()->user()->roles->pluck('name')->intersect([
-        'Supervisor Special Access',
-        'Manager Special Access',
-    ])->isNotEmpty();
-    $isMR         = auth()->user()->departments->contains('name', 'Management Representative');
+    // $isOwner, $isSPVTarget, $isMR datang dari DocumentController::show()
+    // (dihitung sekali di sana biar konsisten sama logic di list view/data())
 
     // Flow steps & active index
     $flowSteps = ['Submitted', 'Approved', 'Published'];
