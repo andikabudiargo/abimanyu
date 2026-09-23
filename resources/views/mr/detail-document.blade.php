@@ -591,7 +591,7 @@ $file4mPath = $document->file_4m_path
                 {{ \Carbon\Carbon::parse($document->returned_at)->format('d M Y, H:i') }}
             </p>
 
-        @elseif($document->approvedBy)
+        @elseif($document->approvedBy && in_array($status, ['Approved', 'Returned by MR', 'Rejected', 'Published']))
             <p class="text-sm font-medium text-gray-800">
                 {{ $document->approvedBy->name }}
             </p>

@@ -734,7 +734,7 @@ if ($isOwner && in_array($row->status, ['Returned by SPV', 'Returned by MR'])) {
     ';
 }
 
-if ($isSPVTarget && $row->status == 'Submitted') {
+if ($isSPVTarget && in_array($row->status, ['Submitted', 'Resubmitted'])) {
         $actionButtons .= '
             <button onclick="approveDOC(' . $id . ')" class="w-full text-left px-4 py-2 text-green-600 hover:bg-green-600 hover:text-white">
                 <i data-feather="check-circle" class="w-4 h-4 inline mr-2"></i>Approve
