@@ -1838,10 +1838,25 @@ public function authorized($id)
 
 public function edit($id)
     {
-         $document = DocumentRegistration::findOrFail($id);
+         $document = DocumentRegistration::with('copies')->findOrFail($id);
         $departments = Department::whereNotIn('id', [2,3,5,11,15,18,20,21])
     ->orderBy('name')
     ->get();
+
+        // Dokumen lama bisa saja punya department_id (approval atau copy) yang
+        // masuk daftar exclude di atas — tetap tampilkan itu biar select terisi.
+        $usedIds = collect([$document->department_id])
+            ->merge($document->copies->pluck('department_id'))
+            ->filter()
+            ->unique();
+        $missingIds = $usedIds->diff($departments->pluck('id'));
+        if ($missingIds->isNotEmpty()) {
+            $departments = $departments
+                ->merge(Department::whereIn('id', $missingIds)->get())
+                ->sortBy('name')
+                ->values();
+        }
+
         return view('mr.edit-document', compact('departments','document'));
     }
 

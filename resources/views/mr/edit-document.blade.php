@@ -541,7 +541,7 @@ textarea.f-input { resize: vertical; }
 
                     {{-- Existing file --}}
                     @if($document->file_path)
-                    <div class="existing-file mb-2">
+                    <div class="existing-file mb-2" id="mainExistingFile">
                         <span class="existing-file-badge">{{ strtoupper(pathinfo($document->file_path, PATHINFO_EXTENSION)) }}</span>
                         <div style="flex:1; min-width:0;">
                             <p class="text-xs font-medium text-gray-700 truncate">{{ basename($document->file_path) }}</p>
@@ -589,7 +589,7 @@ textarea.f-input { resize: vertical; }
 
                     {{-- Existing 4M --}}
                     @if($document->file_4m_path)
-                    <div class="existing-file mb-2" style="border-color: #d1fae5; background: #f0fdf4;">
+                    <div class="existing-file mb-2" id="fm4ExistingFile" style="border-color: #d1fae5; background: #f0fdf4;">
                         <span class="existing-file-badge" style="background:#d1fae5; color:#065f46;">{{ strtoupper(pathinfo($document->file_4m_path, PATHINFO_EXTENSION)) }}</span>
                         <div style="flex:1; min-width:0;">
                             <p class="text-xs font-medium text-gray-700 truncate">{{ basename($document->file_4m_path) }}</p>
@@ -1019,6 +1019,7 @@ function showFilePreview(file, prefix) {
     document.getElementById(prefix+'Size').textContent = size;
     document.getElementById(prefix+'Placeholder').classList.add('hidden');
     document.getElementById(prefix+'Preview').classList.remove('hidden');
+    document.getElementById(prefix+'ExistingFile')?.classList.add('hidden');
 }
 
 function clearFile(prefix) {
@@ -1026,6 +1027,7 @@ function clearFile(prefix) {
     document.getElementById(id).value = '';
     document.getElementById(prefix+'Placeholder').classList.remove('hidden');
     document.getElementById(prefix+'Preview').classList.add('hidden');
+    document.getElementById(prefix+'ExistingFile')?.classList.remove('hidden');
 }
 
 function showToast(icon, title) {
