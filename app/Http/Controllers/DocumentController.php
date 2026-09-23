@@ -123,6 +123,38 @@ private function resolveDepartmentGroup($deptId)
         return url("documents/{$docType}/{$deptId}/{$filePath}");
     }
 
+    // Satu-satunya tempat yang boleh menyimpan file dokumen, dipakai oleh
+    // store() dan update() supaya nama file & lokasinya selalu konsisten
+    // dengan yang diasumsikan oleh download link (data(), authorized(), portal, dst).
+    private function storeDocumentFile($file, $docType, $deptFrom, $docNumber, $docTitle)
+    {
+        $docType = strtolower(str_replace(' ', '_', $docType));
+        $destinationPath = "/home/abimany3/public_html/documents/{$docType}/{$deptFrom}";
+
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0777, true);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        $baseName = $docNumber . '_' . $docTitle;
+        $baseName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $baseName);
+        $baseName = preg_replace('/_+/', '_', $baseName);
+        $baseName = trim($baseName, '_');
+
+        $filename = $baseName . '.' . $extension;
+
+        $i = 1;
+        while (file_exists($destinationPath . '/' . $filename)) {
+            $filename = $baseName . '(' . $i . ').' . $extension;
+            $i++;
+        }
+
+        $file->move($destinationPath, $filename);
+
+        return $filename;
+    }
+
     public function portalData(Request $request)
     {
         $user = auth()->user();
@@ -987,63 +1019,14 @@ $actionButtons .= '</div></div></div>';
             $registrationNumber = "REG{$year}{$running}{$code}";
 
             // =========================
-            // 5. UPLOAD FUNCTION (LOCAL)
-            // =========================
-        $storeFile = function ($file, $docType, $deptFrom, $docNumber, $docTitle) {
-
-    // =========================
-    // FORMAT FOLDER
-    // =========================
-    $docType  = strtolower(str_replace(' ', '_', $docType));
-   $destinationPath = "/home/abimany3/public_html/documents/{$docType}/{$deptFrom}";
-
-    if (!file_exists($destinationPath)) {
-        mkdir($destinationPath, 0777, true);
-    }
-
-    // =========================
-    // EXTENSION
-    // =========================
-    $extension = strtolower($file->getClientOriginalExtension());
-
-    // =========================
-    // FORMAT NAMA FILE
-    // =========================
-    $baseName = $docNumber . '_' . $docTitle;
-
-    $baseName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $baseName);
-    $baseName = preg_replace('/_+/', '_', $baseName);
-    $baseName = trim($baseName, '_');
-
-    $filename = $baseName . '.' . $extension;
-
-    // =========================
-    // HANDLE DUPLICATE
-    // =========================
-    $i = 1;
-    while (file_exists($destinationPath . '/' . $filename)) {
-        $filename = $baseName . '(' . $i . ').' . $extension;
-        $i++;
-    }
-
-    // =========================
-    // MOVE FILE
-    // =========================
-    $file->move($destinationPath, $filename);
-
-    // ❗ RETURN HANYA NAMA FILE
-    return $filename;
-};
-
-            // =========================
-            // 6. UPLOAD FILE
+            // 5. UPLOAD FILE
             // =========================
         $user = auth()->user();
 $deptFrom = $user->departments->first()->id ?? 0;
 
 $fileName = null;
 if ($request->hasFile('file_path')) {
-    $fileName = $storeFile(
+    $fileName = $this->storeDocumentFile(
         $request->file('file_path'),
         $request->document_type,
         $deptFrom,
@@ -1054,7 +1037,7 @@ if ($request->hasFile('file_path')) {
 
 $file4mName = null;
 if ($need4m && $request->hasFile('file_4m_path')) {
-    $file4mName = $storeFile(
+    $file4mName = $this->storeDocumentFile(
         $request->file('file_4m_path'),
         $request->document_type,
         $deptFrom,
@@ -1240,44 +1223,30 @@ $isResubmit = $request->is_resubmit == 1;
         }
 
         // =========================
-        // 3. UPLOAD FUNCTION
+        // 3. FILE UPDATE
+        // (pakai storeDocumentFile() yang sama dengan store(), biar nama
+        // file & lokasinya konsisten dengan yang dipakai link download)
         // =========================
-        $storeFile = function ($file, $folder) {
+        $deptFrom = auth()->user()->departments->first()->id ?? 0;
 
-            $path = public_path($folder);
-
-            if (!file_exists($path)) {
-                mkdir($path, 0777, true);
-            }
-
-            $original = $file->getClientOriginalName();
-            $name     = pathinfo($original, PATHINFO_FILENAME);
-            $ext      = $file->getClientOriginalExtension();
-
-            $name = preg_replace('/[^A-Za-z0-9_\-]/', '_', $name);
-
-            $filename = $name . '.' . $ext;
-            $i = 1;
-
-            while (file_exists($path.'/'.$filename)) {
-                $i++;
-                $filename = $name."($i).".$ext;
-            }
-
-            $file->move($path, $filename);
-
-            return $folder.'/'.$filename;
-        };
-
-        // =========================
-        // 4. FILE UPDATE
-        // =========================
         if ($request->hasFile('file_path')) {
-            $doc->file_path = $storeFile($request->file('file_path'), 'uploads/documents');
+            $doc->file_path = $this->storeDocumentFile(
+                $request->file('file_path'),
+                $request->document_type,
+                $deptFrom,
+                $request->document_number,
+                $request->document_title
+            );
         }
 
         if ($need4m && $request->hasFile('file_4m_path')) {
-            $doc->file_4m_path = $storeFile($request->file('file_4m_path'), 'uploads/documents/4m');
+            $doc->file_4m_path = $this->storeDocumentFile(
+                $request->file('file_4m_path'),
+                $request->document_type,
+                $deptFrom,
+                $request->document_number,
+                $request->document_title . '_4M'
+            );
         }
 
         if (!$need4m) {
