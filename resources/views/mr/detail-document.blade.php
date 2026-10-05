@@ -806,7 +806,7 @@ function authorizedDOC(id) {
             $.post(`/mr/document/${id}/authorized`, { _token: '{{ csrf_token() }}' }, function(res) {
                 showToast('success', res.message || 'Document authorized!');
                 setTimeout(() => location.reload(), 1500);
-            }).fail(() => showToast('error', 'Failed to authorize document.'));
+            }).fail(xhr => showToast('error', xhr.responseJSON?.error || xhr.responseJSON?.message || 'Failed to authorize document.'));
         }
     });
 }
