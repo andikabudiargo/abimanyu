@@ -123,6 +123,35 @@ private function resolveDepartmentGroup($deptId)
         return url("documents/{$docType}/{$deptId}/{$filePath}");
     }
 
+    private function validateDocumentNumber($number, $submissionType, $ignoreRegId = null)
+{
+    $document = Document::where('document_number', $number)->first();
+
+    if (in_array($submissionType, ['Revision', 'Obsolete'])) {
+        if (!$document) {
+            return 'Nomor dokumen tidak ditemukan.';
+        }
+        if (!$document->is_active) {
+            return 'Dokumen sudah obsolete, tidak bisa direvisi/di-obsolete lagi.';
+        }
+    }
+
+    if ($submissionType === 'New Release' && $document) {
+        return 'Nomor dokumen sudah terdaftar (aktif/obsolete), gunakan nomor lain.';
+    }
+
+    $pending = DocumentRegistration::where('document_number', $number)
+        ->whereNotIn('status', ['Published', 'Rejected'])
+        ->when($ignoreRegId, fn($q) => $q->where('id', '!=', $ignoreRegId))
+        ->exists();
+
+    if ($pending) {
+        return 'Masih ada registrasi lain untuk nomor ini yang belum selesai.';
+    }
+
+    return null;
+}
+
     // Satu-satunya tempat yang boleh menyimpan file dokumen, dipakai oleh
     // store() dan update() supaya nama file & lokasinya selalu konsisten
     // dengan yang diasumsikan oleh download link (data(), authorized(), portal, dst).
@@ -986,6 +1015,11 @@ $actionButtons .= '</div></div></div>';
                 ], 422);
             }
 
+            if ($err = $this->validateDocumentNumber($request->document_number, $request->submission_type)) {
+    DB::rollBack();
+    return response()->json(['status' => false, 'message' => $err], 422);
+}
+
             // =========================
             // 3. MAPPING TYPE
             // =========================
@@ -1222,6 +1256,11 @@ $isResubmit = $request->is_resubmit == 1;
             ], 422);
         }
 
+        if ($err = $this->validateDocumentNumber($request->document_number, $request->submission_type, $doc->id)) {
+    DB::rollBack();
+    return response()->json(['status' => false, 'message' => $err], 422);
+}
+
         // =========================
         // 3. FILE UPDATE
         // (pakai storeDocumentFile() yang sama dengan store(), biar nama
@@ -1323,8 +1362,11 @@ public function resubmit(Request $request, $id)
 
         $doc = DocumentRegistration::findOrFail($id);
 
-        // panggil logic update (biar tidak duplikat)
-        $this->update($request, $id);
+      $result = $this->update($request, $id);
+if ($result->getStatusCode() !== 200) {
+    DB::rollBack();
+    return $result;
+}
 
         // reload fresh data
         $doc->refresh();
@@ -1360,6 +1402,10 @@ public function resubmit(Request $request, $id)
 public function storeRevision(Request $request, $id)
 {
     $doc = Document::findOrFail($id);
+
+    if (!$doc->is_active) {
+    return response()->json(['success' => false, 'message' => 'Dokumen sudah obsolete.'], 422);
+}
 
     $request->validate([
         'file' => 'nullable|file|mimes:pdf,xlsx,doc,docx|max:5120',
@@ -1691,6 +1737,7 @@ $webPush->flush();
 
 public function authorized($id)
 {
+
     DB::beginTransaction();
 
     try {
@@ -1739,6 +1786,17 @@ public function authorized($id)
         $document = Document::where('document_number', $doc->document_number)
             ->lockForUpdate()
             ->first();
+
+         // ===== GUARD OBSOLETE =====
+if ($document && !$document->is_active && $submissionType !== 'Obsolete') {
+    throw new \Exception('Dokumen sudah obsolete, tidak bisa dipublish ulang.');
+}
+if (in_array($submissionType, ['Revision', 'Obsolete']) && !$document) {
+    throw new \Exception('Dokumen induk tidak ditemukan.');
+}
+if ($submissionType === 'New Release' && $document) {
+    throw new \Exception('Nomor dokumen sudah terdaftar, tidak bisa New Release.');
+}
 
         if ($document) {
 
