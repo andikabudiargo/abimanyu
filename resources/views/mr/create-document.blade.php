@@ -481,9 +481,9 @@ textarea.f-input { resize: vertical; }
                 </div>
                 <div class="c-card-body space-y-4">
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="numGrid">
                         <div>
-                            <label class="f-label">Document Number <sup>*</sup></label>
+                            <label class="f-label">Document Number <sup id="numRequired">*</sup></label>
                             {{-- New Release: free text --}}
                             <input type="text" id="doc_number_input" name="document_number"
                                    placeholder="e.g. FM-HRD-001" class="f-input">
@@ -500,6 +500,14 @@ textarea.f-input { resize: vertical; }
                         <div id="revision_group" class="hidden">
                             <label class="f-label">Revision No.</label>
                             <input type="text" name="revision_number" placeholder="e.g. 02" class="f-input" readonly>
+                        </div>
+
+                        {{-- Revision/Obsolete + Other: filters the title dropdown --}}
+                        <div id="spec_type_group" class="hidden">
+                            <label class="f-label">Specify Type</label>
+                            <select id="spec_type_select" class="f-input" style="padding:7px 10px;">
+                                <option value="">— All Types —</option>
+                            </select>
                         </div>
                     </div>
 
@@ -772,6 +780,43 @@ function getSubmissionType() {
     return $('input[name="submission_type"]:checked').val();
 }
 function isNewRelease() { return getSubmissionType() === 'New Release'; }
+function isOtherType() { return $('input[name="document_type"]:checked').val() === 'other'; }
+// "Other" + Revision/Obsolete: dropdown lists titles; number is optional for "Other"
+function useTitleDropdown() { return isOtherType() && !isNewRelease(); }
+
+// Real document number to send/show (selected option's number when dropdown is title-based)
+function currentDocNumber() {
+    if (isNewRelease()) return $('#doc_number_input').val().trim();
+    const opt = $('#doc_number_select option:selected');
+    return useTitleDropdown() ? (opt.data('number') || '') : $('#doc_number_select').val();
+}
+
+function updateNumUI() {
+    $('#numRequired').toggleClass('hidden', isOtherType());
+    $('#titleInput').prop('readonly', useTitleDropdown());
+    $('#spec_type_group').toggleClass('hidden', !useTitleDropdown());
+    $('#numGrid').toggleClass('md:grid-cols-3', useTitleDropdown()).toggleClass('md:grid-cols-2', !useTitleDropdown());
+}
+
+// Fill the title dropdown from loaded "other" docs, filtered by Specify Type
+let otherDocs = [];
+function renderTitleOptions() {
+    const $sel = $('#doc_number_select');
+    const t = $('#spec_type_select').val();
+    $sel.html('<option value="">— Select Document Title —</option>');
+    otherDocs.filter(d => !t || d.document_type === t).forEach(doc => {
+        const deptLabel = doc.dept_from_name ? ` (${doc.dept_from_name})` : '';
+        $sel.append($('<option>')
+            .val(doc.document_title)
+            .text(doc.document_title + deptLabel)
+            .attr('data-title', doc.document_title)
+            .attr('data-number', doc.document_number || '')
+            .attr('data-type', doc.document_type || '')
+            .attr('data-dept', doc.dept_to || '')
+            .attr('data-version', doc.current_version || 0));
+    });
+    $sel.trigger('change.select2');
+}
 
 // ═══════════════════════════════════════════════
 // WIZARD NAV
@@ -829,9 +874,7 @@ function updateSummary() {
     const sub   = getSubmissionType();
     const type  = $('input[name="document_type"]:checked').val();
     const typeFin = (type === 'other') ? ($('#otherInput').val() || 'Other') : (type || '—');
-    const docNum = !$('#doc_number_input').hasClass('hidden')
-        ? $('#doc_number_input').val()
-        : $('#doc_number_select').val();
+    const docNum = currentDocNumber();
     const dept = $('#department option:selected').text().trim();
 
     $('#sumSubType').text(sub || '—');
@@ -868,10 +911,11 @@ function validateStep1() {
 }
 
 function validateStep2() {
-    const num = !$('#doc_number_input').hasClass('hidden')
-        ? $('#doc_number_input').val().trim()
-        : $('#doc_number_select').val();
-    if (!num) { showToast('warning', 'Document number is required.'); return false; }
+    if (useTitleDropdown()) {
+        if (!$('#doc_number_select').val()) { showToast('warning', 'Please select a document title.'); return false; }
+    } else if (!isOtherType() && !currentDocNumber()) {
+        showToast('warning', 'Document number is required.'); return false;
+    }
     if (!$('input[name="document_title"]').val().trim()) {
         showToast('warning', 'Document title is required.'); return false;
     }
@@ -912,29 +956,41 @@ function validateStep3() {
 
             const $sel = $('#doc_number_select');
 
+            const byTitle = (type === 'other');
             $sel.html('<option value="">— Select Published Document —</option>');
+
+            if (byTitle) {
+                otherDocs = data;
+                const types = [...new Set(data.map(d => d.document_type).filter(Boolean))].sort();
+                $('#spec_type_select').html('<option value="">— All Types —</option>' +
+                    types.map(t => $('<option>').val(t).text(t)[0].outerHTML).join(''));
+                renderTitleOptions();
+            }
 
             if (data.length > 0) {
 
-                $.each(data, (i, doc) => {
+                if (!byTitle) $.each(data, (i, doc) => {
                     const deptLabel = doc.dept_from_name ? ` (${doc.dept_from_name})` : '';
-                    $sel.append(`
-                        <option value="${doc.document_number}"
-                            data-title="${doc.document_title}"
-                            data-dept="${doc.dept_to || ''}"
-                            data-version="${doc.current_version || 0}">
-                            ${doc.document_number}${deptLabel}
-                        </option>
-                    `);
+                    $sel.append($('<option>')
+                        .val(doc.document_number)
+                        .text(doc.document_number + deptLabel)
+                        .attr('data-title', doc.document_title)
+                        .attr('data-number', doc.document_number || '')
+                        .attr('data-dept', doc.dept_to || '')
+                        .attr('data-version', doc.current_version || 0));
                 });
 
-                $('#last_doc_info').removeClass('hidden');
-                $('#last_doc_value').text(data[0].document_number);
+                if (byTitle) {
+                    $('#last_doc_info').addClass('hidden');
+                } else {
+                    $('#last_doc_info').removeClass('hidden');
+                    $('#last_doc_value').text(data[0].document_number);
+                }
 
                 if (pendingPreselectNumber) {
-                    const exists = $sel.find('option[value="' + pendingPreselectNumber + '"]').length > 0;
-                    if (exists) {
-                        $sel.val(pendingPreselectNumber).trigger('change');
+                    const $m = $sel.find('option').filter((i, o) => $(o).data('number') == pendingPreselectNumber);
+                    if ($m.length) {
+                        $sel.val($m.val()).trigger('change');
                         pendingPreselectNumber = null;
                     }
                 }
@@ -1003,6 +1059,8 @@ function applySubmissionTypeLogic(subType) {
         'hidden',
         isRev || currentType !== 'other'
     );
+
+    updateNumUI();
 }
 
 // ═══════════════════════════════════════════════
@@ -1065,6 +1123,7 @@ $(document).ready(function () {
         // For rev/obsolete, reload the doc number dropdown when type changes
         if (isRev) loadDocNumbers(val);
 
+        updateNumUI();
         updateSummary();
     });
 
@@ -1077,6 +1136,7 @@ $(document).ready(function () {
 
         $('#titleInput').val(title);
         $('#titleCount').text(title.length);
+        updateNumUI();
 
         if (dept) {
             $('#department').val(dept).trigger('change');
@@ -1088,6 +1148,12 @@ $(document).ready(function () {
         }
 
         updateSummary();
+    });
+
+    // ── Specify Type filters the title dropdown ──
+    $('#spec_type_select').on('change', function () {
+        renderTitleOptions();
+        $('#doc_number_select').trigger('change');
     });
 
     // ── Title char count ──
@@ -1186,15 +1252,17 @@ $(document).ready(function () {
         const formData = new FormData(this);
 
         // Resolve document number
-        let docNum = !$('#doc_number_input').hasClass('hidden')
-            ? $('#doc_number_input').val()
-            : $('#doc_number_select').val();
+        let docNum = currentDocNumber();
         formData.delete('document_number');
         formData.append('document_number', docNum);
 
         // Resolve document type
         let docType = $('input[name="document_type"]:checked').val();
-        if (docType === 'other') docType = $('#otherInput').val().trim();
+        if (docType === 'other') {
+            docType = isNewRelease()
+                ? $('#otherInput').val().trim()
+                : $('#doc_number_select option:selected').data('type');
+        }
         formData.set('document_type', docType);
 
         // Resolve 4M
@@ -1308,8 +1376,7 @@ function buildReview() {
     const typeFin = type === 'other' ? ($('#otherInput').val() || '—') : type;
     const subType = $('input[name="submission_type"]:checked').val() || '—';
     const dept    = $('#department option:selected').text().trim() || '—';
-    const docNum  = !$('#doc_number_input').hasClass('hidden')
-                      ? $('#doc_number_input').val() : $('#doc_number_select').val();
+    const docNum  = currentDocNumber();
     const title   = $('input[name="document_title"]').val() || '—';
     const reason  = $('textarea[name="reason"]').val() || 'Not provided';
     const need4m  = $('input[name="need_4m"]:checked').val() === '1' ? 'Yes' : 'No';

@@ -123,9 +123,17 @@ private function resolveDepartmentGroup($deptId)
         return url("documents/{$docType}/{$deptId}/{$filePath}");
     }
 
-    private function validateDocumentNumber($number, $submissionType, $ignoreRegId = null)
+    // Dokumen tipe "other" boleh tanpa nomor → diidentifikasi lewat judul.
+    private function byNumberOrTitle($model, $number, $title)
+    {
+        return $number
+            ? $model::where('document_number', $number)
+            : $model::whereNull('document_number')->where('document_title', $title);
+    }
+
+    private function validateDocumentNumber($number, $submissionType, $ignoreRegId = null, $title = null)
 {
-    $document = Document::where('document_number', $number)->first();
+    $document = $this->byNumberOrTitle(Document::class, $number, $title)->first();
 
     if (in_array($submissionType, ['Revision', 'Obsolete'])) {
         if (!$document) {
@@ -140,7 +148,7 @@ private function resolveDepartmentGroup($deptId)
         return 'Nomor dokumen sudah terdaftar (aktif/obsolete), gunakan nomor lain.';
     }
 
-    $pending = DocumentRegistration::where('document_number', $number)
+    $pending = $this->byNumberOrTitle(DocumentRegistration::class, $number, $title)
         ->whereNotIn('status', ['Published', 'Rejected'])
         ->when($ignoreRegId, fn($q) => $q->where('id', '!=', $ignoreRegId))
         ->exists();
@@ -301,6 +309,7 @@ private function resolveDepartmentGroup($deptId)
         'documents.id',
         'documents.document_number',
         'documents.document_title',
+        'documents.document_type',
         'documents.current_version',
         'documents.dept_from',
         'documents.dept_to',
@@ -347,7 +356,7 @@ private function resolveDepartmentGroup($deptId)
     // =========================
     // ORDER
     // =========================
-    $docs = $query->orderBy('documents.document_number', 'desc')->get();
+    $docs = $query->orderBy('documents.document_number', 'desc')->orderBy('documents.document_title')->get();
 
     return response()->json($docs);
 }
@@ -1015,7 +1024,13 @@ $actionButtons .= '</div></div></div>';
                 ], 422);
             }
 
-            if ($err = $this->validateDocumentNumber($request->document_number, $request->submission_type)) {
+            $isOther = !in_array($request->document_type, ['Form', 'Work Instructions', 'Standard', 'SOP']);
+            if (!$request->document_number && !$isOther) {
+                DB::rollBack();
+                return response()->json(['status' => false, 'message' => 'Document number is required.'], 422);
+            }
+
+            if ($err = $this->validateDocumentNumber($request->document_number, $request->submission_type, null, $request->document_title)) {
     DB::rollBack();
     return response()->json(['status' => false, 'message' => $err], 422);
 }
@@ -1256,7 +1271,7 @@ $isResubmit = $request->is_resubmit == 1;
             ], 422);
         }
 
-        if ($err = $this->validateDocumentNumber($request->document_number, $request->submission_type, $doc->id)) {
+        if ($err = $this->validateDocumentNumber($request->document_number, $request->submission_type, $doc->id, $request->document_title)) {
     DB::rollBack();
     return response()->json(['status' => false, 'message' => $err], 422);
 }
@@ -1783,7 +1798,7 @@ public function authorized($id)
         // =========================
         // 5. CHECK DOCUMENT EXIST
         // =========================
-        $document = Document::where('document_number', $doc->document_number)
+        $document = $this->byNumberOrTitle(Document::class, $doc->document_number, $doc->document_title)
             ->lockForUpdate()
             ->first();
 
