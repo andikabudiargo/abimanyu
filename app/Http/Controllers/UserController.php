@@ -208,7 +208,7 @@ public function toggleStatus(Request $request)
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:50|unique:users,username,'.$user->id,
             'email' => 'nullable|email|max:255|unique:users,email,'.$user->id,
-            'password' => 'nullable|confirmed|min:6',
+            'password' => 'nullable|min:6|same:confirm_password',
             'departments' => 'nullable|array|min:1',
             'roles' => 'nullable|array|min:1',
             'avatar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -239,9 +239,14 @@ public function toggleStatus(Request $request)
 
         $user->save();
 
-        // Sync departments & roles
-        $user->departments()->sync($validated['departments']);
-        $user->roles()->sync($validated['roles']); // gunakan 'role', bukan 'roles'
+        // Sync departments & roles — skip kalau field tidak dikirim (misal saat user update akun sendiri,
+        // select departments/roles di-disable sehingga tidak ikut submit)
+        if (array_key_exists('departments', $validated)) {
+            $user->departments()->sync($validated['departments']);
+        }
+        if (array_key_exists('roles', $validated)) {
+            $user->roles()->sync($validated['roles']); // gunakan 'role', bukan 'roles'
+        }
 
         return response()->json([
             'success' => true,
