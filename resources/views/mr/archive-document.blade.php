@@ -676,7 +676,7 @@ function reloadChartDashboard() {
     const [from, to] = range.split(' to ').map(s => (s || '').trim());
 
     $.ajax({
-        url: '{{ route("doc.chart.data") }}',
+        url: '{{ route("mr.doc.chart.data") }}',
         method: 'GET',
         data: { from: from || null, to: to || from || null },
         success: function (res) {
