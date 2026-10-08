@@ -85,21 +85,30 @@ private function resolveDepartmentGroup($deptId)
 
     $departments = Department::orderBy('name')->get();
 
-    // Chart Dashboard: jumlah per tipe dokumen & departemen dengan pengajuan terbanyak
-    $docTypeCounts = DocumentRegistration::selectRaw('document_type, count(*) as total')
-        ->groupBy('document_type')
-        ->pluck('total', 'document_type');
+    // Chart Dashboard: hanya untuk user departemen Management Representative
+    $isMR = auth()->user()->departments()
+        ->where('name', 'Management Representative')
+        ->exists();
 
-    $deptSubmissionCounts = DocumentRegistration::with('department')
-        ->selectRaw('department_id, count(*) as total')
-        ->groupBy('department_id')
-        ->orderByDesc('total')
-        ->get()
-        ->mapWithKeys(fn ($row) => [$row->department->name ?? 'Unknown' => $row->total]);
+    $docTypeCounts = collect();
+    $deptSubmissionCounts = collect();
+
+    if ($isMR) {
+        $docTypeCounts = DocumentRegistration::selectRaw('document_type, count(*) as total')
+            ->groupBy('document_type')
+            ->pluck('total', 'document_type');
+
+        $deptSubmissionCounts = DocumentRegistration::with('department')
+            ->selectRaw('department_id, count(*) as total')
+            ->groupBy('department_id')
+            ->orderByDesc('total')
+            ->get()
+            ->mapWithKeys(fn ($row) => [$row->department->name ?? 'Unknown' => $row->total]);
+    }
 
     return view('mr.archive-document', compact(
         'departments', 'pendingReceive', 'pendingSocialize', 'pendingTaken',
-        'docTypeCounts', 'deptSubmissionCounts'
+        'isMR', 'docTypeCounts', 'deptSubmissionCounts'
     ));
 }
 

@@ -281,6 +281,7 @@
     </form>
 </div>
 
+@if($isMR)
 <div class="bg-white shadow rounded-xl p-6 mb-6">
     <h2 class="text-lg font-semibold mb-4">Chart Dashboard</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -294,6 +295,7 @@
         </div>
     </div>
 </div>
+@endif
 
    {{-- 📄 TABEL --}}
 <div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
@@ -643,6 +645,7 @@ div.dt-button-collection .dt-button:hover {
 }
 
 </style>
+@if($isMR)
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1"></script>
 <script>
 new ApexCharts(document.querySelector("#chartDocType"), {
@@ -659,6 +662,7 @@ new ApexCharts(document.querySelector("#chartDeptSubmission"), {
     xaxis: { categories: @json($deptSubmissionCounts->keys()) },
 }).render();
 </script>
+@endif
 <script>
  function showToast(type, message) {
     Swal.fire({
