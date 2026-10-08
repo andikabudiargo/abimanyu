@@ -281,6 +281,20 @@
     </form>
 </div>
 
+<div class="bg-white shadow rounded-xl p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4">Chart Dashboard</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h3 class="text-sm font-semibold text-gray-700 mb-2 text-center">Jumlah per Tipe Dokumen</h3>
+            <div id="chartDocType"></div>
+        </div>
+        <div>
+            <h3 class="text-sm font-semibold text-gray-700 mb-2 text-center">Pengajuan Terbanyak per Departemen</h3>
+            <div id="chartDeptSubmission"></div>
+        </div>
+    </div>
+</div>
+
    {{-- 📄 TABEL --}}
 <div class="table-responsive bg-white shadow rounded-xl p-6 mb-2">
     <h2 class="text-lg font-semibold mb-2">Document Registration List</h2>
@@ -629,6 +643,22 @@ div.dt-button-collection .dt-button:hover {
 }
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1"></script>
+<script>
+new ApexCharts(document.querySelector("#chartDocType"), {
+    chart: { type: 'donut', height: 300 },
+    labels: @json($docTypeCounts->keys()),
+    series: @json($docTypeCounts->values()),
+    legend: { position: 'bottom' },
+}).render();
+
+new ApexCharts(document.querySelector("#chartDeptSubmission"), {
+    chart: { type: 'bar', height: 300 },
+    plotOptions: { bar: { horizontal: true } },
+    series: [{ name: 'Pengajuan', data: @json($deptSubmissionCounts->values()) }],
+    xaxis: { categories: @json($deptSubmissionCounts->keys()) },
+}).render();
+</script>
 <script>
  function showToast(type, message) {
     Swal.fire({
