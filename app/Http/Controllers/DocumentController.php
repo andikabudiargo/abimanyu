@@ -86,31 +86,75 @@ private function resolveDepartmentGroup($deptId)
     $departments = Department::orderBy('name')->get();
 
     // Chart Dashboard: hanya untuk user departemen Management Representative
-    $isMR = auth()->user()->departments()
-        ->where('name', 'Management Representative')
-        ->exists();
+    $isMR = $this->isMR(auth()->user());
 
     $docTypeCounts = collect();
-    $deptSubmissionCounts = collect();
+    $socializationCounts = collect();
 
     if ($isMR) {
-        $docTypeCounts = DocumentRegistration::selectRaw('document_type, count(*) as total')
-            ->groupBy('document_type')
-            ->pluck('total', 'document_type');
-
-        $deptSubmissionCounts = DocumentRegistration::with('department')
-            ->selectRaw('department_id, count(*) as total')
-            ->groupBy('department_id')
-            ->orderByDesc('total')
-            ->get()
-            ->mapWithKeys(fn ($row) => [$row->department->name ?? 'Unknown' => $row->total]);
+        $chart = $this->buildChartData(null, null);
+        $docTypeCounts = $chart['docTypeCounts'];
+        $socializationCounts = $chart['socializationCounts'];
     }
 
     return view('mr.archive-document', compact(
         'departments', 'pendingReceive', 'pendingSocialize', 'pendingTaken',
-        'isMR', 'docTypeCounts', 'deptSubmissionCounts'
+        'isMR', 'docTypeCounts', 'socializationCounts'
     ));
 }
+
+    public function chartData(Request $request)
+    {
+        if (!$this->isMR(auth()->user())) {
+            abort(403);
+        }
+
+        $chart = $this->buildChartData($request->input('from'), $request->input('to'));
+
+        return response()->json([
+            'docTypeCounts'       => $chart['docTypeCounts'],
+            'socializationCounts' => $chart['socializationCounts'],
+        ]);
+    }
+
+    private function buildChartData($from, $to)
+    {
+        $query = DocumentRegistration::query();
+
+        if ($from) {
+            $query->whereDate('created_at', '>=', $from);
+        }
+        if ($to) {
+            $query->whereDate('created_at', '<=', $to);
+        }
+
+        $docTypeCounts = (clone $query)
+            ->selectRaw('document_type, count(*) as total')
+            ->groupBy('document_type')
+            ->pluck('total', 'document_type');
+
+        $socialized = 0;
+        $notSocialized = 0;
+
+        (clone $query)->with('copies')->get()->each(function ($registration) use (&$socialized, &$notSocialized) {
+            if ($registration->copies->isEmpty()) {
+                $notSocialized++;
+                return;
+            }
+
+            $registration->copies->every(fn ($copy) => !is_null($copy->socialization_date))
+                ? $socialized++
+                : $notSocialized++;
+        });
+
+        return [
+            'docTypeCounts' => $docTypeCounts,
+            'socializationCounts' => collect([
+                'Sudah Disosialisasikan' => $socialized,
+                'Belum Disosialisasikan' => $notSocialized,
+            ]),
+        ];
+    }
 
     public function create()
     {

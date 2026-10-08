@@ -283,15 +283,21 @@
 
 @if($isMR)
 <div class="bg-white shadow rounded-xl p-6 mb-6">
-    <h2 class="text-lg font-semibold mb-4">Chart Dashboard</h2>
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="text-lg font-semibold">Chart Dashboard</h2>
+        <div class="flex items-center gap-2">
+            <input type="text" id="chart-date-filter" class="w-64 border border-gray-300 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring focus:border-blue-500" placeholder="Registration Date: YYYY-MM-DD to YYYY-MM-DD" autocomplete="off">
+            <button type="button" id="chart-date-reset" class="text-sm text-gray-500 hover:text-gray-700 px-2 py-2">Reset</button>
+        </div>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
             <h3 class="text-sm font-semibold text-gray-700 mb-2 text-center">Jumlah per Tipe Dokumen</h3>
             <div id="chartDocType"></div>
         </div>
         <div>
-            <h3 class="text-sm font-semibold text-gray-700 mb-2 text-center">Pengajuan Terbanyak per Departemen</h3>
-            <div id="chartDeptSubmission"></div>
+            <h3 class="text-sm font-semibold text-gray-700 mb-2 text-center">Status Sosialisasi Dokumen Registrasi</h3>
+            <div id="chartSocialization"></div>
         </div>
     </div>
 </div>
@@ -648,19 +654,58 @@ div.dt-button-collection .dt-button:hover {
 @if($isMR)
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1"></script>
 <script>
-new ApexCharts(document.querySelector("#chartDocType"), {
-    chart: { type: 'donut', height: 300 },
-    labels: @json($docTypeCounts->keys()),
-    series: @json($docTypeCounts->values()),
-    legend: { position: 'bottom' },
-}).render();
-
-new ApexCharts(document.querySelector("#chartDeptSubmission"), {
+const chartDocType = new ApexCharts(document.querySelector("#chartDocType"), {
     chart: { type: 'bar', height: 300 },
     plotOptions: { bar: { horizontal: true } },
-    series: [{ name: 'Pengajuan', data: @json($deptSubmissionCounts->values()) }],
-    xaxis: { categories: @json($deptSubmissionCounts->keys()) },
-}).render();
+    series: [{ name: 'Jumlah', data: @json($docTypeCounts->values()) }],
+    xaxis: { categories: @json($docTypeCounts->keys()) },
+});
+chartDocType.render();
+
+const chartSocialization = new ApexCharts(document.querySelector("#chartSocialization"), {
+    chart: { type: 'donut', height: 300 },
+    labels: @json($socializationCounts->keys()),
+    series: @json($socializationCounts->values()),
+    colors: ['#16a34a', '#f59e0b'],
+    legend: { position: 'bottom' },
+});
+chartSocialization.render();
+
+function reloadChartDashboard() {
+    const range = $('#chart-date-filter').val() || '';
+    const [from, to] = range.split(' to ').map(s => (s || '').trim());
+
+    $.ajax({
+        url: '{{ route("doc.chart.data") }}',
+        method: 'GET',
+        data: { from: from || null, to: to || from || null },
+        success: function (res) {
+            chartDocType.updateOptions({
+                series: [{ name: 'Jumlah', data: Object.values(res.docTypeCounts) }],
+                xaxis: { categories: Object.keys(res.docTypeCounts) },
+            });
+            chartSocialization.updateOptions({
+                labels: Object.keys(res.socializationCounts),
+                series: Object.values(res.socializationCounts),
+            });
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    flatpickr("#chart-date-filter", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        maxDate: "today",
+        allowInput: true,
+        onClose: reloadChartDashboard,
+    });
+
+    $('#chart-date-reset').on('click', function () {
+        $('#chart-date-filter').val('');
+        reloadChartDashboard();
+    });
+});
 </script>
 @endif
 <script>

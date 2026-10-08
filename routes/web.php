@@ -316,6 +316,7 @@ Route::get('/atk/{id}/print', [ATKController::class, 'printRequest'])
 
 Route::prefix('mr')->name('mr.')->group(function () {
     Route::get('/document/index', [DocumentController::class, 'index'])->name('doc.index');
+    Route::get('/document/chart-data', [DocumentController::class, 'chartData'])->name('doc.chart.data');
     Route::get('/document/portal', [DocumentController::class, 'portal'])->name('doc.portal');
     Route::get('/document/portal-data', [DocumentController::class, 'portalData'])->name('doc.portal.data');
     Route::get('/document/portal/{number}/history', [DocumentController::class, 'portalHistory'])->name('doc.portal.history');
