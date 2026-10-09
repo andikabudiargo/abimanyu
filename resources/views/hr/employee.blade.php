@@ -9,10 +9,14 @@
 <div class="container mx-auto px-4 py-6 bg-white border rounded-lg">
 
     <div class="mb-4">
-        <a href="{{ route('hr.employee.create') }}">
-        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">+ Add Employee</button>
-        </a>
+        <a href="{{ route('hr.employee.create') }}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">+ Add Employee</a>
     </div>
+
+    @if(session('error'))
+    <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+        {{ session('error') }}
+    </div>
+    @endif
 
     @if(session('success'))
     <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded">
@@ -20,50 +24,52 @@
     </div>
     @endif
 
+    {{-- Kolom Division tidak ditampilkan karena tabel employees tidak memiliki kolom division. --}}
+    {{-- Kolom End Date tidak ditampilkan karena tabel employees tidak memiliki kolom end date. --}}
     <div class="overflow-x-auto">
         <table class="min-w-full table-auto border-collapse border border-gray-300 shadow rounded-lg">
-           <thead class="bg-gray-100 text-gray-700">
-    <tr>
-        <th class="border px-4 py-2 text-center">Action</th>
-        <th class="border px-4 py-2 text-left">Subcon</th>
-        <th class="border px-4 py-2 text-left">NIK</th>
-        <th class="border px-4 py-2 text-left">Name</th>
-        <th class="border px-4 py-2 text-left">Status</th>
-        <th class="border px-4 py-2 text-left">Departement</th>
-        <th class="border px-4 py-2 text-center">Position</th>
-        <th class="border px-4 py-2 text-center">Division</th>
-        <th class="border px-4 py-2 text-center">Join Date</th>
-        <th class="border px-4 py-2 text-center">End Date</th>
-        <th class="border px-4 py-2 text-center">Gender</th>
-        <th class="border px-4 py-2 text-center">Phone Number</th>
-    </tr>
-</thead>
-<tbody>
-    @forelse($employees as $employee)
-    <tr>
-        <td class="border px-4 py-2 text-center">
-            <span class="text-gray-400 cursor-not-allowed text-sm" title="Fitur kontrak belum tersedia">Kontrak</span>
-        </td>
-        <td class="border px-4 py-2">{{ $employee->employee_type }}</td>
-        <td class="border px-4 py-2">{{ $employee->nik }}</td>
-        <td class="border px-4 py-2">{{ $employee->name }}</td>
-        <td class="border px-4 py-2 text-center">{{ $employee->status }}</td>
-        <td class="border px-4 py-2">{{ $employee->departments->pluck('name')->join(', ') }}</td>
-        <td class="border px-4 py-2 text-center">{{ $employee->positions->pluck('name')->join(', ') }}</td>
-        {{-- Kolom Division tidak ditampilkan karena tabel employees tidak memiliki kolom division. --}}
-        <td class="border px-4 py-2 text-center">-</td>
-        <td class="border px-4 py-2 text-center">{{ optional($employee->join_date)->format('d-m-Y') ?? '-' }}</td>
-        {{-- Kolom End Date tidak ditampilkan karena tabel employees tidak memiliki kolom end date. --}}
-        <td class="border px-4 py-2 text-center">-</td>
-        <td class="border px-4 py-2 text-center">{{ $employee->gender ?: '-' }}</td>
-        <td class="border px-4 py-2 text-center">{{ $employee->phone ?: '-' }}</td>
-    </tr>
-    @empty
-    <tr>
-        <td colspan="12" class="border px-4 py-2 text-center">Belum ada data employee.</td>
-    </tr>
-    @endforelse
-</tbody>
+            <thead class="bg-blue-500 text-white uppercase text-xs font-bold tracking-wider">
+                <tr>
+                    <th class="px-4 py-2 text-center whitespace-nowrap">Action</th>
+                    <th class="px-4 py-2 text-left whitespace-nowrap">Subcon</th>
+                    <th class="px-4 py-2 text-left whitespace-nowrap">NIK</th>
+                    <th class="px-4 py-2 text-left whitespace-nowrap">Name</th>
+                    <th class="px-4 py-2 text-center whitespace-nowrap">Status</th>
+                    <th class="px-4 py-2 text-left whitespace-nowrap">Departement</th>
+                    <th class="px-4 py-2 text-left whitespace-nowrap">Position</th>
+                    <th class="px-4 py-2 text-center whitespace-nowrap">Join Date</th>
+                    <th class="px-4 py-2 text-center whitespace-nowrap">Gender</th>
+                    <th class="px-4 py-2 text-center whitespace-nowrap">Phone Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($employees as $employee)
+                <tr class="odd:bg-white even:bg-gray-100 hover:bg-gray-50">
+                    <td class="border px-4 py-2 text-center whitespace-nowrap">
+                        <span class="text-gray-400 cursor-not-allowed text-sm" title="Fitur kontrak belum tersedia">Kontrak</span>
+                    </td>
+                    <td class="border px-4 py-2 whitespace-nowrap">{{ $employee->employee_type }}</td>
+                    <td class="border px-4 py-2 whitespace-nowrap">{{ $employee->nik }}</td>
+                    <td class="border px-4 py-2 whitespace-nowrap">{{ $employee->name }}</td>
+                    <td class="border px-4 py-2 text-center whitespace-nowrap">{{ $employee->status }}</td>
+                    <td class="border px-4 py-2 whitespace-nowrap">{{ $employee->departments->pluck('name')->join(', ') }}</td>
+                    <td class="border px-4 py-2 whitespace-nowrap">{{ $employee->positions->pluck('name')->join(', ') }}</td>
+                    <td class="border px-4 py-2 text-center whitespace-nowrap">{{ optional($employee->join_date)->format('d-m-Y') ?? '-' }}</td>
+                    <td class="border px-4 py-2 text-center whitespace-nowrap">{{ $employee->gender ?: '-' }}</td>
+                    <td class="border px-4 py-2 text-center whitespace-nowrap">{{ $employee->phone ?: '-' }}</td>
+                </tr>
+                @empty
+                <tr class="odd:bg-white even:bg-gray-100 hover:bg-gray-50">
+                    <td colspan="10" class="border px-4 py-8 text-center whitespace-nowrap">
+                        <div class="flex flex-col items-center gap-3">
+                            <i data-feather="inbox" class="w-8 h-8 text-gray-400"></i>
+                            <span class="text-gray-500">Belum ada data employee</span>
+                            <a href="{{ route('hr.employee.create') }}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">+ Add Employee</a>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
         </table>
     </div>
 </div>
