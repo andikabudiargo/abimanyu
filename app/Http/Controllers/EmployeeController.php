@@ -56,7 +56,7 @@ class EmployeeController extends Controller
             'name' => 'required|string|max:100',
             'nik' => 'required|integer|unique:employees,nik',
             'employee_type' => 'required|string|max:50',
-            'gender' => 'nullable|in:Laki-Laki,Perempuan',
+            'gender' => 'nullable|in:Male,Female',
             'religion' => 'nullable|string|max:50',
             'birth_date' => 'nullable|date',
             'birth_place' => 'nullable|string|max:100',
@@ -80,6 +80,11 @@ class EmployeeController extends Controller
 
         $departmentId = $validated['department'] ?? null;
         $positionId = $validated['position_id'] ?? null;
+
+        // Form memakai nilai Male/Female, kolom gender di database bertipe enum('Laki-Laki','Perempuan').
+        if ($validated['gender'] !== null) {
+            $validated['gender'] = ['Male' => 'Laki-Laki', 'Female' => 'Perempuan'][$validated['gender']];
+        }
         unset($validated['department'], $validated['position_id']);
 
         $employee = Employee::create($validated);

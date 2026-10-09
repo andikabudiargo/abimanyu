@@ -37,8 +37,8 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
              <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
         <option value="">-- Select Gender --</option>
-        <option value="Laki-Laki">Laki-Laki</option>
-        <option value="Perempuan">Perempuan</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
     </select>
         </div>
         <div>
