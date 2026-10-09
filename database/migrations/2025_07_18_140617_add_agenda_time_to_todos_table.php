@@ -7,24 +7,17 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tidak ada aksi: kolom `agenda_time` sudah termasuk dalam migration `create_todos_table`
+     * (baseline skema dump produksi), sehingga tidak perlu ditambahkan lagi.
      */
     public function up(): void
     {
-       // migration
-Schema::table('todos', function (Blueprint $table) {
-    $table->dateTime('agenda_time')->nullable();
-});
-
     }
 
     /**
-     * Reverse the migrations.
+     * Tidak ada aksi: kolom dimiliki oleh migration `create_todos_table`, bukan migration ini.
      */
     public function down(): void
     {
-        Schema::table('todos', function (Blueprint $table) {
-            //
-        });
     }
 };

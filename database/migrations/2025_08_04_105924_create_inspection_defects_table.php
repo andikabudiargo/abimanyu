@@ -4,24 +4,37 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-    public function up()
+return new class extends Migration
+{
+    /**
+     * Buat struktur tabel sesuai skema dump produksi (abimany3_abimanyu_db).
+     */
+    public function up(): void
     {
-        Schema::create('inspection_defects', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('inspection_id');
-            $table->string('defect');
-            $table->integer('qty');
-            $table->text('note')->nullable();
-            $table->timestamps();
+        if (! Schema::hasTable('inspection_defects')) {
+            Schema::create('inspection_defects', function (Blueprint $table) {
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
 
-            $table->foreign('inspection_id')->references('id')->on('inspections')->onDelete('cascade');
-        });
+                $table->id();
+                $table->unsignedBigInteger('inspection_id');
+                $table->string('category', 50)->nullable();
+                $table->unsignedBigInteger('defect_id');
+                $table->integer('qty');
+                $table->integer('ok_repair');
+                $table->text('note_defect')->nullable();
+                $table->timestamp('created_at')->nullable();
+                $table->timestamp('updated_at')->nullable();
+
+            });
+        }
     }
 
-    public function down()
+    /**
+     * Hapus tabel yang dibuat oleh migration ini.
+     */
+    public function down(): void
     {
         Schema::dropIfExists('inspection_defects');
     }
 };
-

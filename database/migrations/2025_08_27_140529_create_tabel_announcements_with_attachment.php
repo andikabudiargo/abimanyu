@@ -4,39 +4,65 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAnnouncementsWithAttachmentsAndReceipents extends Migration
+return new class extends Migration
 {
-    public function up()
+    /**
+     * Buat struktur tabel sesuai skema dump produksi (abimany3_abimanyu_db).
+     */
+    public function up(): void
     {
-        // Tabel utama announcement
-        Schema::create('announcements', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->text('description');
-            $table->enum('category', ['event', 'himbauan', 'warning', 'other'])->default('other');
-            $table->date('display_start');
-            $table->date('display_end');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('announcements')) {
+            Schema::create('announcements', function (Blueprint $table) {
+                $table->charset('latin1');
+                $table->collation('latin1_swedish_ci');
 
-        // Tabel attachment (bisa multiple)
-        Schema::create('announcement_attachments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('announcement_id')->constrained('announcements')->onDelete('cascade');
-            $table->string('filename');        // nama file di server
-            $table->timestamps();
-        });
+                $table->integer('id')->autoIncrement();
+                $table->string('category', 100);
+                $table->string('title');
+                $table->text('description');
+                $table->date('display_start');
+                $table->date('display_end');
+                $table->integer('created_by')->nullable();
+                $table->dateTime('created_at');
+                $table->dateTime('updated_at');
 
-        // Pivot table untuk recipients
-        Schema::create('announcement_recipient', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('announcement_id')->constrained('announcements')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->timestamps();
-        });
+                $table->primary(['id']);
+            });
+        }
+
+        if (! Schema::hasTable('announcement_attachments')) {
+            Schema::create('announcement_attachments', function (Blueprint $table) {
+                $table->charset('latin1');
+                $table->collation('latin1_swedish_ci');
+
+                $table->integer('id')->autoIncrement();
+                $table->integer('announcement_id');
+                $table->string('path');
+                $table->timestamp('created_at')->useCurrent()->useCurrentOnUpdate();
+                $table->dateTime('updated_at');
+
+                $table->primary(['id']);
+            });
+        }
+
+        if (! Schema::hasTable('announcement_recipient')) {
+            Schema::create('announcement_recipient', function (Blueprint $table) {
+                $table->charset('latin1');
+                $table->collation('latin1_swedish_ci');
+
+                $table->integer('id')->autoIncrement();
+                $table->integer('announcement_id');
+                $table->integer('user_id');
+
+                $table->primary(['id']);
+            });
+        }
     }
 
-    public function down()
+    /**
+     * Hapus tabel yang dibuat oleh migration ini.
+     */
+    public function down(): void
     {
         Schema::dropIfExists('announcement_recipient');
         Schema::dropIfExists('announcement_attachments');

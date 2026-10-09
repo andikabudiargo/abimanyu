@@ -7,31 +7,41 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Buat struktur tabel sesuai skema dump produksi (abimany3_abimanyu_db).
      */
     public function up(): void
     {
-        Schema::create('transfer_in', function (Blueprint $table) {
-            $table->id();
-            $table->string('reference_number')->unique();
-            $table->enum('transfer_type', ['incoming', 'mutasi', 'retur', 'transit']);
-            $table->unsignedBigInteger('supplier_id')->nullable();
-            $table->unsignedBigInteger('from_location')->nullable();
-            $table->unsignedBigInteger('to_location')->nullable();
-            $table->text('note')->nullable();
-            $table->timestamps();
+        if (! Schema::hasTable('transfer_in')) {
+            Schema::create('transfer_in', function (Blueprint $table) {
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
 
-            $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('set null');
-            $table->foreign('from_location')->references('id')->on('warehouses')->onDelete('set null');
-            $table->foreign('to_location')->references('id')->on('warehouses')->onDelete('set null');
-        });
+                $table->id();
+                $table->string('code')->nullable();
+                $table->string('supplier_code', 50)->nullable();
+                $table->date('date')->nullable();
+                $table->string('status')->default('Draft');
+                $table->string('reference_number');
+                $table->string('transfer_category');
+                $table->unsignedBigInteger('from_location')->nullable();
+                $table->text('note')->nullable();
+                $table->string('qr_code_path')->nullable();
+                $table->string('created_by')->nullable();
+                $table->timestamp('created_at')->nullable();
+                $table->integer('approved_by')->nullable();
+                $table->dateTime('approved_at')->nullable();
+                $table->timestamp('updated_at')->nullable();
+
+                $table->unique(['code'], 'code');
+            });
+        }
     }
 
     /**
-     * Reverse the migrations.
+     * Hapus tabel yang dibuat oleh migration ini.
      */
     public function down(): void
     {
-        Schema::dropIfExists('table_transfer_in');
+        Schema::dropIfExists('transfer_in');
     }
 };
