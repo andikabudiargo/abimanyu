@@ -14,6 +14,12 @@
         </a>
     </div>
 
+    @if(session('success'))
+    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded">
+        {{ session('success') }}
+    </div>
+    @endif
+
     <div class="overflow-x-auto">
         <table class="min-w-full table-auto border-collapse border border-gray-300 shadow rounded-lg">
            <thead class="bg-gray-100 text-gray-700">
@@ -33,21 +39,30 @@
     </tr>
 </thead>
 <tbody>
-    <tr class="">
-        <td class="border px-4 py-2"></td>
-        <td class="border px-4 py-2"></td>
-        <td class="border px-4 py-2"></td>
-        <td class="border px-4 py-2"></td>
-        <td class="border px-4 py-2 text-center"></td>
-        <td class="border px-4 py-2 text-center"></td>
-        <td class="border px-4 py-2 text-center space-x-2"></td>
-        <td class="border px-4 py-2 text-center space-x-2"></td>
-        <td class="border px-4 py-2 text-center space-x-2"></td>
-        <td class="border px-4 py-2 text-center space-x-2"></td>
-        <td class="border px-4 py-2 text-center space-x-2"></td>
-        <td class="border px-4 py-2 text-center space-x-2"></td>
+    @forelse($employees as $employee)
+    <tr>
+        <td class="border px-4 py-2 text-center">
+            <a href="{{ route('hr.contract.create') }}" class="text-blue-600 hover:underline text-sm">Kontrak</a>
+        </td>
+        <td class="border px-4 py-2">{{ $employee->employee_type }}</td>
+        <td class="border px-4 py-2">{{ $employee->nik }}</td>
+        <td class="border px-4 py-2">{{ $employee->name }}</td>
+        <td class="border px-4 py-2 text-center">{{ $employee->status }}</td>
+        <td class="border px-4 py-2">{{ $employee->departments->pluck('name')->join(', ') }}</td>
+        <td class="border px-4 py-2 text-center">{{ $employee->positions->pluck('name')->join(', ') }}</td>
+        {{-- Kolom Division tidak ditampilkan karena tabel employees tidak memiliki kolom division. --}}
+        <td class="border px-4 py-2 text-center">-</td>
+        <td class="border px-4 py-2 text-center">{{ optional($employee->join_date)->format('d-m-Y') ?? '-' }}</td>
+        {{-- Kolom End Date tidak ditampilkan karena tabel employees tidak memiliki kolom end date. --}}
+        <td class="border px-4 py-2 text-center">-</td>
+        <td class="border px-4 py-2 text-center">{{ $employee->gender ?: '-' }}</td>
+        <td class="border px-4 py-2 text-center">{{ $employee->phone ?: '-' }}</td>
     </tr>
-
+    @empty
+    <tr>
+        <td colspan="12" class="border px-4 py-2 text-center">Belum ada data employee.</td>
+    </tr>
+    @endforelse
 </tbody>
         </table>
     </div>

@@ -209,6 +209,7 @@ Route::prefix('hr')->name('hr.')->group(function () {
       Route::get('/employee/dashboard', [EmployeeController::class, 'index'])->name('employee.index');
        Route::get('/employee/create', [EmployeeController::class, 'create'])->name('employee.create');
        Route::get('/employee/contract', [EmployeeController::class, 'createContract'])->name('contract.create');
+       Route::post('/employee/store', [EmployeeController::class, 'store'])->name('employee.store');
        Route::get('/attendance/index', [AttendanceController::class, 'index'])->name('attendance.index');
        Route::get('/attendance/data', [AttendanceController::class, 'getDataAttendance'])->name('attendance.data');
 });

@@ -15,7 +15,7 @@
         <button @click="activeTab = 'apd'" :class="{ 'bg-blue-600 text-white': activeTab === 'apd' }" class="px-4 py-2 border rounded hover:bg-blue-600 hover:text-white transition">APD Checklist</button>
     </div>
 
-    <form action="" method="POST">
+    <form action="{{ route('hr.employee.store') }}" method="POST">
         @csrf
 
        {{-- Personal & Account Information --}}
@@ -37,21 +37,21 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
              <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
         <option value="">-- Select Gender --</option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
+        <option value="Laki-Laki">Laki-Laki</option>
+        <option value="Perempuan">Perempuan</option>
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Religion</label>
-           <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
+           <select name="religion" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
         <option value="">-- Select Religion --</option>
-        <option value="Male">Islam</option>
-        <option value="Female">Katolik</option>
-        <option value="Female">Protestan</option>
-        <option value="Female">Hindu</option>
-        <option value="Female">Buddha</option>
-        <option value="Female">Konghucu</option>
-        <option value="Female">Lainnya</option>
+        <option value="Islam">Islam</option>
+        <option value="Katolik">Katolik</option>
+        <option value="Protestan">Protestan</option>
+        <option value="Hindu">Hindu</option>
+        <option value="Buddha">Buddha</option>
+        <option value="Konghucu">Konghucu</option>
+        <option value="Lainnya">Lainnya</option>
     </select>
         </div>
         <div>
@@ -68,26 +68,26 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Last Education</label>
-            <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
+            <select name="last_education" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
         <option value="">-- Select Education --</option>
-        <option value="Male">SMK/SMA</option>
-        <option value="Female">D3</option>
-        <option value="Female">S1</option>
-        <option value="Female">S2</option>
-        <option value="Female">S3</option>
+        <option value="SMK/SMA">SMK/SMA</option>
+        <option value="D3">D3</option>
+        <option value="S1">S1</option>
+        <option value="S2">S2</option>
+        <option value="S3">S3</option>
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Marital Status</label>
-            <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
+            <select name="marital_status" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
         <option value="">-- Select Status --</option>
-        <option value="Male">Lajang</option>
-        <option value="Female">Menikah</option>
+        <option value="Lajang">Lajang</option>
+        <option value="Menikah">Menikah</option>
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Number of Children</label>
-            <input type="number" name="children" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="number" name="dependents" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
     </div>
 
@@ -126,11 +126,11 @@
     <div class="grid grid-cols-3 gap-6">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Family Card Number</label>
-            <input type="text" name="kk" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="kk_number" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">ID Card Number</label>
-            <input type="text" name="nik" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="ktp_number" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">PTKP Category</label>
@@ -142,11 +142,11 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">BPJS Kesehatan</label>
-            <input type="text" name="bpjs_kes" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="bpjs_ks" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">NPWP Number</label>
-            <input type="text" name="npwp" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="npwp_number" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
@@ -154,11 +154,11 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Account Bank Name</label>
-            <input type="text" name="bank_name" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="bank_account_name" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Account Bank Number</label>
-            <input type="text" name="bank_account" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="bank_number" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
     </div>
 </div>
@@ -177,36 +177,37 @@
     <div class="grid grid-cols-3 gap-6 mb-2">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Subcon*</label>
-            <input type="text" name="name" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500" required>
+            <input type="text" name="employee_type" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500" required>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">NIK*</label>
-             <input type="text" name="name" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500" required>
+             <input type="text" name="nik" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500" required>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Departement</label>
-           <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
-        <option value="">-- Select Religion --</option>
-        <option value="Male">Islam</option>
-        <option value="Female">Katolik</option>
-        <option value="Female">Protestan</option>
-        <option value="Female">Hindu</option>
-        <option value="Female">Buddha</option>
-        <option value="Female">Konghucu</option>
-        <option value="Female">Lainnya</option>
+           <select name="department" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
+        <option value="">-- Select Departement --</option>
+        @foreach($departments as $department)
+        <option value="{{ $department->id }}">{{ $department->name }}</option>
+        @endforeach
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
-            <input type="date" name="birth_date" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="division" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Position</label>
-            <input type="text" name="birth_place" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <select name="position_id" class="w-full border rounded px-3 py-2 bg-white shadow-sm">
+                <option value="">-- Select Position --</option>
+                @foreach($positions as $position)
+                <option value="{{ $position->id }}">{{ $position->name }}</option>
+                @endforeach
+            </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Group Schedule</label>
-            <input type="text" name="nationality" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="group_schedule" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
     </div>
 
