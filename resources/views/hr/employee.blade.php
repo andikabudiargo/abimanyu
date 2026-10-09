@@ -9,7 +9,7 @@
 <div class="container mx-auto px-4 py-6 bg-white border rounded-lg">
 
     <div class="mb-4">
-        <a href="{{ route('hr.create-employee.index') }}">
+        <a href="{{ route('hr.employee.create') }}">
         <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">+ Add Employee</button>
         </a>
     </div>
