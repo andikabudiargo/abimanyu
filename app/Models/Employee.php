@@ -16,7 +16,7 @@ class Employee extends Model
         'nationality',
 
         // Family / PTKP
-        'marital_status',
+        'marriage_status',
         'dependents',
         'spouse_works',
 

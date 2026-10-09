@@ -45,7 +45,8 @@ class EmployeeController extends Controller
 
     /**
      * Simpan data employee baru dari form.
-     * Department dan position disimpan lewat pivot, sedangkan field tanpa kolom tujuan diabaikan.
+     * Department dan position disimpan lewat pivot, marital status dipetakan dari form
+     * (Lajang/Menikah) ke kolom marriage_status (0/1), sedangkan field tanpa kolom tujuan diabaikan.
      *
      * @param  \Illuminate\Http\Request  $request  Request berisi data form employee.
      * @return \Illuminate\Http\RedirectResponse
@@ -57,6 +58,7 @@ class EmployeeController extends Controller
             'nik' => 'required|integer|unique:employees,nik',
             'employee_type' => 'required|string|max:50',
             'gender' => 'nullable|in:Male,Female',
+            'marital_status' => 'required|in:Lajang,Menikah',
             'religion' => 'nullable|string|max:50',
             'birth_date' => 'nullable|date',
             'birth_place' => 'nullable|string|max:100',
@@ -85,7 +87,10 @@ class EmployeeController extends Controller
         if ($validated['gender'] !== null) {
             $validated['gender'] = ['Male' => 'Laki-Laki', 'Female' => 'Perempuan'][$validated['gender']];
         }
-        unset($validated['department'], $validated['position_id']);
+
+        // Form mengirim Lajang/Menikah, kolom marriage_status bertipe boolean (0/1).
+        $validated['marriage_status'] = $validated['marital_status'] === 'Menikah' ? 1 : 0;
+        unset($validated['department'], $validated['position_id'], $validated['marital_status']);
 
         $employee = Employee::create($validated);
 
