@@ -421,7 +421,7 @@
           <ul class="pc-submenu">
             <li class="pc-item"><a class="pc-link" href="{{ route('hr.department.index') }}">Department Management</a></li>
             <li class="pc-item"><a href="{{ route('hr.position.index') }}" class="pc-link">Position Managament</a></li>
-            <li class="pc-item"><a href="{{ route('hr.employee.index') }}" class="pc-link">Employees Managament</a></li>
+            <li class="pc-item"><a href="{{ route('hr.employee.index') }}" class="pc-link">Employees Management</a></li>
              </ul>
             </li>
             <li class="pc-item pc-hasmenu">
