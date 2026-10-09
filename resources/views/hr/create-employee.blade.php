@@ -110,7 +110,7 @@
 
     <div class="mt-6">
         <label class="block text-sm font-medium text-gray-700 mb-1">Add Picture</label>
-        <input type="file" name="picture" class="w-full text-sm border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+        <input type="file" name="picture" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed w-full text-sm border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
     </div>
 </div>
 
@@ -134,7 +134,7 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">PTKP Category</label>
-            <input type="text" name="ptkp" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="ptkp" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">BPJS Ketenagakerjaan</label>
@@ -150,7 +150,7 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
-            <input type="text" name="bank" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="bank" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Account Bank Name</label>
@@ -194,7 +194,7 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
-            <input type="text" name="division" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="division" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Position</label>
@@ -207,7 +207,7 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Group Schedule</label>
-            <input type="text" name="group_schedule" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="group_schedule" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
     </div>
 
