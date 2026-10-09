@@ -19,10 +19,12 @@
 <div class="container mx-auto px-4 py-6 bg-white border rounded-lg" x-data="{ activeTab: '{{ $tabAwal }}' }">
     {{-- Navigation Buttons --}}
     <div class="mb-6 space-x-2">
-        <button @click="activeTab = 'personal'" :class="{ 'bg-blue-600 text-white': activeTab === 'personal' }" class="px-4 py-2 border rounded hover:bg-blue-600 hover:text-white transition">Personal & Account</button>
-        <button @click="activeTab = 'job'" :class="{ 'bg-blue-600 text-white': activeTab === 'job' }" class="px-4 py-2 border rounded hover:bg-blue-600 hover:text-white transition">Job Information</button>
-        <button @click="activeTab = 'training'" :class="{ 'bg-blue-600 text-white': activeTab === 'training' }" class="px-4 py-2 border rounded hover:bg-blue-600 hover:text-white transition">Training History</button>
-        <button @click="activeTab = 'apd'" :class="{ 'bg-blue-600 text-white': activeTab === 'apd' }" class="px-4 py-2 border rounded hover:bg-blue-600 hover:text-white transition">APD Checklist</button>
+        {{-- hover: pada binding tab aktif menahan warna biru penuh saat kursor di atasnya,
+             agar tab aktif tidak memudar mengikuti hover tab nonaktif. --}}
+        <button @click="activeTab = 'personal'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'personal' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">Personal & Account</button>
+        <button @click="activeTab = 'job'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'job' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">Job Information</button>
+        <button @click="activeTab = 'training'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'training' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">Training History</button>
+        <button @click="activeTab = 'apd'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'apd' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">APD Checklist</button>
     </div>
 
     {{-- Blok error validasi server: diletakkan tepat di atas form agar pesan gagal validasi langsung terlihat --}}
@@ -51,14 +53,14 @@
         <span>Personal Information</span>
     </div>
 
-    <div class="grid grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name*</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name<small class="text-red-600">*</small></label>
             <input type="text" name="name" value="{{ old('name') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('name') border-red-500 @enderror" required>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-             <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm @error('gender') border-red-500 @enderror" required>
+             <select name="gender" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('gender') border-red-500 @enderror">
         <option value="">-- Select Gender --</option>
         <option value="Male" @selected(old('gender') == 'Male')>Male</option>
         <option value="Female" @selected(old('gender') == 'Female')>Female</option>
@@ -66,7 +68,7 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Religion</label>
-           <select name="religion" class="w-full border rounded px-3 py-2 bg-white shadow-sm @error('religion') border-red-500 @enderror" required>
+           <select name="religion" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('religion') border-red-500 @enderror">
         <option value="">-- Select Religion --</option>
         <option value="Islam" @selected(old('religion') == 'Islam')>Islam</option>
         <option value="Katolik" @selected(old('religion') == 'Katolik')>Katolik</option>
@@ -91,7 +93,7 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Last Education</label>
-            <select name="last_education" class="w-full border rounded px-3 py-2 bg-white shadow-sm @error('last_education') border-red-500 @enderror" required>
+            <select name="last_education" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('last_education') border-red-500 @enderror">
         <option value="">-- Select Education --</option>
         <option value="SMK/SMA" @selected(old('last_education') == 'SMK/SMA')>SMK/SMA</option>
         <option value="D3" @selected(old('last_education') == 'D3')>D3</option>
@@ -101,8 +103,8 @@
     </select>
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Marital Status</label>
-            <select name="marital_status" class="w-full border rounded px-3 py-2 bg-white shadow-sm @error('marital_status') border-red-500 @enderror" required>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Marital Status<small class="text-red-600">*</small></label>
+            <select name="marital_status" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('marital_status') border-red-500 @enderror" required>
         <option value="">-- Select Status --</option>
         <option value="Lajang" @selected(old('marital_status') == 'Lajang')>Lajang</option>
         <option value="Menikah" @selected(old('marital_status') == 'Menikah')>Menikah</option>
@@ -133,7 +135,7 @@
 
     <div class="mt-6">
         <label class="block text-sm font-medium text-gray-700 mb-1">Add Picture</label>
-        <input type="file" name="picture" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed w-full text-sm border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+        <input type="file" name="picture" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed bg-gray-100 text-gray-400 w-full text-sm border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
     </div>
 </div>
 
@@ -146,42 +148,42 @@
         <span>Account Information</span>
     </div>
 
-    <div class="grid grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Family Card Number</label>
-            <input type="text" name="kk_number" value="{{ old('kk_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm @error('kk_number') border-red-500 @enderror">
+            <input type="text" name="kk_number" value="{{ old('kk_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('kk_number') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">ID Card Number</label>
-            <input type="text" name="ktp_number" value="{{ old('ktp_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm @error('ktp_number') border-red-500 @enderror">
+            <input type="text" name="ktp_number" value="{{ old('ktp_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('ktp_number') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">PTKP Category</label>
-            <input type="text" name="ptkp" value="{{ old('ptkp') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="ptkp" value="{{ old('ptkp') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed bg-gray-100 text-gray-400 w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">BPJS Ketenagakerjaan</label>
-            <input type="text" name="bpjs_tk" value="{{ old('bpjs_tk') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm @error('bpjs_tk') border-red-500 @enderror">
+            <input type="text" name="bpjs_tk" value="{{ old('bpjs_tk') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bpjs_tk') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">BPJS Kesehatan</label>
-            <input type="text" name="bpjs_ks" value="{{ old('bpjs_ks') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm @error('bpjs_ks') border-red-500 @enderror">
+            <input type="text" name="bpjs_ks" value="{{ old('bpjs_ks') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bpjs_ks') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">NPWP Number</label>
-            <input type="text" name="npwp_number" value="{{ old('npwp_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm @error('npwp_number') border-red-500 @enderror">
+            <input type="text" name="npwp_number" value="{{ old('npwp_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('npwp_number') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
-            <input type="text" name="bank" value="{{ old('bank') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="bank" value="{{ old('bank') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed bg-gray-100 text-gray-400 w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Account Bank Name</label>
-            <input type="text" name="bank_account_name" value="{{ old('bank_account_name') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm @error('bank_account_name') border-red-500 @enderror">
+            <input type="text" name="bank_account_name" value="{{ old('bank_account_name') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bank_account_name') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Account Bank Number</label>
-            <input type="text" name="bank_number" value="{{ old('bank_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm @error('bank_number') border-red-500 @enderror">
+            <input type="text" name="bank_number" value="{{ old('bank_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bank_number') border-red-500 @enderror">
         </div>
     </div>
 </div>
@@ -197,18 +199,18 @@
         <span>Job Information</span>
     </div>
 
-    <div class="grid grid-cols-3 gap-6 mb-2">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Subcon*</label>
-            <input type="text" name="employee_type" value="{{ old('employee_type') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('employee_type') border-red-500 @enderror">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Subcon<small class="text-red-600">*</small></label>
+            <input type="text" name="employee_type" value="{{ old('employee_type') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('employee_type') border-red-500 @enderror" required>
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">NIK*</label>
-             <input type="text" name="nik" value="{{ old('nik') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('nik') border-red-500 @enderror">
+            <label class="block text-sm font-medium text-gray-700 mb-1">NIK<small class="text-red-600">*</small></label>
+             <input type="text" name="nik" value="{{ old('nik') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('nik') border-red-500 @enderror" required>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Departement</label>
-           <select name="department" class="w-full border rounded px-3 py-2 bg-white shadow-sm @error('department') border-red-500 @enderror">
+           <select name="department" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('department') border-red-500 @enderror">
         <option value="">-- Select Departement --</option>
         @foreach($departments as $department)
         <option value="{{ $department->id }}" @selected(old('department') == $department->id)>{{ $department->name }}</option>
@@ -217,11 +219,11 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
-            <input type="text" name="division" value="{{ old('division') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="division" value="{{ old('division') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed bg-gray-100 text-gray-400 w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Position</label>
-            <select name="position_id" class="w-full border rounded px-3 py-2 bg-white shadow-sm @error('position_id') border-red-500 @enderror">
+            <select name="position_id" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('position_id') border-red-500 @enderror">
                 <option value="">-- Select Position --</option>
                 @foreach($positions as $position)
                 <option value="{{ $position->id }}" @selected(old('position_id') == $position->id)>{{ $position->name }}</option>
@@ -230,7 +232,7 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Group Schedule</label>
-            <input type="text" name="group_schedule" value="{{ old('group_schedule') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="group_schedule" value="{{ old('group_schedule') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed bg-gray-100 text-gray-400 w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
     </div>
 
@@ -238,7 +240,7 @@
  <!-- Join Date -->
     <div class="mb-6">
         <label class="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
-        <input type="date" name="join_date" value="{{ old('join_date') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm @error('join_date') border-red-500 @enderror">
+        <input type="date" name="join_date" value="{{ old('join_date') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('join_date') border-red-500 @enderror">
     </div>
 
     <!-- Contract History -->
@@ -256,14 +258,14 @@
 </div>
 
         {{-- Training History --}}
-        <div x-show="activeTab === 'training'" x-cloak class="grid grid-cols-3 gap-4">
+        <div x-show="activeTab === 'training'" x-cloak class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div>
         <label class="block font-medium">Training Title</label>
-        <input type="text" name="training_title[]" value="{{ old('training_title.0') }}" class="w-full border rounded px-3 py-2">
+        <input type="text" name="training_title[]" value="{{ old('training_title.0') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
     </div>
     <div>
         <label class="block font-medium">Training Date</label>
-        <input type="date" name="training_date[]" value="{{ old('training_date.0') }}" class="w-full border rounded px-3 py-2">
+        <input type="date" name="training_date[]" value="{{ old('training_date.0') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
     </div>
 </div>
 
@@ -282,6 +284,7 @@
         {{-- Submit Button --}}
         <div class="mt-6">
             <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">Save</button>
+            <a href="{{ route('hr.employee.index') }}" class="ml-2 px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded inline-block">Cancel</a>
         </div>
     </form>
 </div>
@@ -301,11 +304,11 @@ function addApdRow() {
     row.innerHTML = `
         <div>
             <label class="block text-xs text-gray-600 mb-1">APD Name</label>
-            <input type="text" name="apd_name[]" class="w-full border rounded px-2 py-1 shadow-sm">
+            <input type="text" name="apd_name[]" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
         <div>
             <label class="block text-xs text-gray-600 mb-1">Given Date</label>
-            <input type="date" name="apd_date[]" class="w-full border rounded px-2 py-1 shadow-sm">
+            <input type="date" name="apd_date[]" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
         <div>
             <label class="block text-xs text-gray-600 mb-1">Accepted?</label>
@@ -313,7 +316,7 @@ function addApdRow() {
         </div>
         <div>
             <label class="block text-xs text-gray-600 mb-1">Replacement Cycle</label>
-            <input type="text" name="apd_cycle[]" placeholder="e.g. 1 year / 6 months" class="w-full border rounded px-2 py-1 shadow-sm">
+            <input type="text" name="apd_cycle[]" placeholder="e.g. 1 year / 6 months" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
         <div class="flex items-center pt-5">
             <button type="button" onclick="removeApdRow(this)" class="text-red-600 hover:underline text-sm">Remove</button>
@@ -367,7 +370,7 @@ window.addEventListener('DOMContentLoaded', () => {
     row.innerHTML = `
         <div>
             <label class="block text-xs text-gray-600 mb-1">Contract Type</label>
-            <select name="contract_type[]" class="w-full border rounded-lg px-2 py-1 shadow-sm" onchange="handleContractTypeChange(this)">
+            <select name="contract_type[]" class="w-full border rounded-lg px-3 py-2 shadow-sm" onchange="handleContractTypeChange(this)">
                 <option value="OJT">OJT</option>
                 <option value="Contract ${nextContractNumber}">Contract ${nextContractNumber}</option>
                 <option value="Permanent">Permanent</option>
@@ -376,12 +379,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
         <div class="date-fields">
             <label class="block text-xs text-gray-600 mb-1">Start Date</label>
-            <input type="date" name="contract_start[]" class="w-full border rounded-lg px-2 py-1 shadow-sm">
+            <input type="date" name="contract_start[]" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
 
         <div class="date-fields">
             <label class="block text-xs text-gray-600 mb-1">End Date</label>
-            <input type="date" name="contract_end[]" class="w-full border rounded-lg px-2 py-1 shadow-sm">
+            <input type="date" name="contract_end[]" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
 
         <div class="flex items-center pt-5">
@@ -411,7 +414,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 skDiv.className = 'sk-number';
                 skDiv.innerHTML = `
                     <label class="block text-xs text-gray-600 mb-1">SK Number</label>
-                    <input type="text" name="sk_number[]" class="w-full border rounded-lg px-2 py-1 shadow-sm">
+                    <input type="text" name="sk_number[]" class="w-full border rounded-lg px-3 py-2 shadow-sm">
                 `;
                 // Insert before the "remove" button column
                 row.insertBefore(skDiv, row.children[3]);
