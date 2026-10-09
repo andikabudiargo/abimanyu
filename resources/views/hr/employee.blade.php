@@ -42,7 +42,7 @@
     @forelse($employees as $employee)
     <tr>
         <td class="border px-4 py-2 text-center">
-            <a href="{{ route('hr.contract.create') }}" class="text-blue-600 hover:underline text-sm">Kontrak</a>
+            <span class="text-gray-400 cursor-not-allowed text-sm" title="Fitur kontrak belum tersedia">Kontrak</span>
         </td>
         <td class="border px-4 py-2">{{ $employee->employee_type }}</td>
         <td class="border px-4 py-2">{{ $employee->nik }}</td>
