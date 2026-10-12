@@ -47,6 +47,15 @@
                 <tr class="odd:bg-white even:bg-gray-100 hover:bg-gray-50">
                     <td class="border px-4 py-2 text-center whitespace-nowrap">
                         <span class="text-gray-400 cursor-not-allowed text-sm" title="Fitur kontrak belum tersedia">Kontrak</span>
+                        |
+                        <a href="{{ route('hr.employee.edit', $employee) }}" class="text-blue-600 hover:underline">Edit</a>
+                        |
+                        {{-- Pola DepartmentController: form spoofing DELETE + confirm() native. --}}
+                        <form action="{{ route('hr.employee.destroy', $employee) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin hapus employee ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:underline">Hapus</button>
+                        </form>
                     </td>
                     <td class="border px-4 py-2 whitespace-nowrap">{{ $employee->employee_type }}</td>
                     <td class="border px-4 py-2 whitespace-nowrap">{{ $employee->nik }}</td>

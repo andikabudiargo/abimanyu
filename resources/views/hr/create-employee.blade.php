@@ -7,6 +7,8 @@
 
 @section('content')
 @php
+    // View ganda create/edit: $isEdit aktif saat route edit membawa $employee.
+    $isEdit = isset($employee);
     // Tahap 1 (kepercayaan form): tab awal mengikuti error validasi pertama dari server.
     // Jika error berasal dari field tab Job Information, tab itu yang dibuka agar pesan error
     // langsung terlihat tanpa user berpindah tab manual.
@@ -40,8 +42,12 @@
 
     {{-- novalidate: validasi server adalah satu-satunya sumber kebenaran, agar error tampil
          sebagai blok merah di atas form alih-alih diblokir senyap oleh browser. --}}
-    <form action="{{ route('hr.employee.store') }}" method="POST" novalidate>
+    {{-- $isEdit: action & method spoofing PUT untuk update, POST untuk store. --}}
+    <form action="{{ $isEdit ? route('hr.employee.update', $employee) : route('hr.employee.store') }}" method="POST" novalidate>
         @csrf
+        @if($isEdit)
+        @method('PUT')
+        @endif
 
        {{-- Personal & Account Information --}}
 <div x-show="activeTab === 'personal'" class="space-y-12">
@@ -56,80 +62,83 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Full Name<small class="text-red-600">*</small></label>
-            <input type="text" name="name" value="{{ old('name') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('name') border-red-500 @enderror" required>
+            <input type="text" name="name" value="{{ old('name', $employee->name ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('name') border-red-500 @enderror" required>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
              <select name="gender" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('gender') border-red-500 @enderror">
         <option value="">-- Select Gender --</option>
-        <option value="Male" @selected(old('gender') == 'Male')>Male</option>
-        <option value="Female" @selected(old('gender') == 'Female')>Female</option>
+        {{-- Saat edit, gender di DB ('Laki-Laki'/'Perempuan') dipetakan balik ke opsi form Male/Female. --}}
+        <option value="Male" @selected(old('gender', $isEdit ? ($employee->gender === 'Laki-Laki' ? 'Male' : ($employee->gender === 'Perempuan' ? 'Female' : '')) : '') == 'Male')>Male</option>
+        <option value="Female" @selected(old('gender', $isEdit ? ($employee->gender === 'Laki-Laki' ? 'Male' : ($employee->gender === 'Perempuan' ? 'Female' : '')) : '') == 'Female')>Female</option>
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Religion</label>
            <select name="religion" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('religion') border-red-500 @enderror">
         <option value="">-- Select Religion --</option>
-        <option value="Islam" @selected(old('religion') == 'Islam')>Islam</option>
-        <option value="Katolik" @selected(old('religion') == 'Katolik')>Katolik</option>
-        <option value="Protestan" @selected(old('religion') == 'Protestan')>Protestan</option>
-        <option value="Hindu" @selected(old('religion') == 'Hindu')>Hindu</option>
-        <option value="Buddha" @selected(old('religion') == 'Buddha')>Buddha</option>
-        <option value="Konghucu" @selected(old('religion') == 'Konghucu')>Konghucu</option>
-        <option value="Lainnya" @selected(old('religion') == 'Lainnya')>Lainnya</option>
+        <option value="Islam" @selected(old('religion', $employee->religion ?? '') == 'Islam')>Islam</option>
+        <option value="Katolik" @selected(old('religion', $employee->religion ?? '') == 'Katolik')>Katolik</option>
+        <option value="Protestan" @selected(old('religion', $employee->religion ?? '') == 'Protestan')>Protestan</option>
+        <option value="Hindu" @selected(old('religion', $employee->religion ?? '') == 'Hindu')>Hindu</option>
+        <option value="Buddha" @selected(old('religion', $employee->religion ?? '') == 'Buddha')>Buddha</option>
+        <option value="Konghucu" @selected(old('religion', $employee->religion ?? '') == 'Konghucu')>Konghucu</option>
+        <option value="Lainnya" @selected(old('religion', $employee->religion ?? '') == 'Lainnya')>Lainnya</option>
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
-            <input type="date" name="birth_date" value="{{ old('birth_date') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('birth_date') border-red-500 @enderror">
+            {{-- birth_date cast date di model, diformat 'Y-m-d' untuk input type=date. --}}
+            <input type="date" name="birth_date" value="{{ old('birth_date', optional($employee->birth_date ?? null)->format('Y-m-d')) }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('birth_date') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Birth Place</label>
-            <input type="text" name="birth_place" value="{{ old('birth_place') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('birth_place') border-red-500 @enderror">
+            <input type="text" name="birth_place" value="{{ old('birth_place', $employee->birth_place ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('birth_place') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
-            <input type="text" name="nationality" value="{{ old('nationality') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('nationality') border-red-500 @enderror">
+            <input type="text" name="nationality" value="{{ old('nationality', $employee->nationality ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('nationality') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Last Education</label>
             <select name="last_education" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('last_education') border-red-500 @enderror">
         <option value="">-- Select Education --</option>
-        <option value="SMK/SMA" @selected(old('last_education') == 'SMK/SMA')>SMK/SMA</option>
-        <option value="D3" @selected(old('last_education') == 'D3')>D3</option>
-        <option value="S1" @selected(old('last_education') == 'S1')>S1</option>
-        <option value="S2" @selected(old('last_education') == 'S2')>S2</option>
-        <option value="S3" @selected(old('last_education') == 'S3')>S3</option>
+        <option value="SMK/SMA" @selected(old('last_education', $employee->last_education ?? '') == 'SMK/SMA')>SMK/SMA</option>
+        <option value="D3" @selected(old('last_education', $employee->last_education ?? '') == 'D3')>D3</option>
+        <option value="S1" @selected(old('last_education', $employee->last_education ?? '') == 'S1')>S1</option>
+        <option value="S2" @selected(old('last_education', $employee->last_education ?? '') == 'S2')>S2</option>
+        <option value="S3" @selected(old('last_education', $employee->last_education ?? '') == 'S3')>S3</option>
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Marital Status<small class="text-red-600">*</small></label>
             <select name="marital_status" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('marital_status') border-red-500 @enderror" required>
         <option value="">-- Select Status --</option>
-        <option value="Lajang" @selected(old('marital_status') == 'Lajang')>Lajang</option>
-        <option value="Menikah" @selected(old('marital_status') == 'Menikah')>Menikah</option>
+        {{-- marriage_status di DB 0/1 dipetakan balik ke opsi form Lajang/Menikah. --}}
+        <option value="Lajang" @selected(old('marital_status', $isEdit ? ($employee->marriage_status ? 'Menikah' : 'Lajang') : '') == 'Lajang')>Lajang</option>
+        <option value="Menikah" @selected(old('marital_status', $isEdit ? ($employee->marriage_status ? 'Menikah' : 'Lajang') : '') == 'Menikah')>Menikah</option>
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Number of Children</label>
-            <input type="number" name="dependents" value="{{ old('dependents') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('dependents') border-red-500 @enderror">
+            <input type="number" name="dependents" value="{{ old('dependents', $employee->dependents ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('dependents') border-red-500 @enderror">
         </div>
     </div>
 
    <div class="mt-6">
     <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-    <textarea name="address" rows="3" class="w-full border rounded-lg px-3 py-2 shadow-sm resize-none focus:outline-none focus:ring focus:border-blue-500 @error('address') border-red-500 @enderror">{{ old('address') }}</textarea>
+    <textarea name="address" rows="3" class="w-full border rounded-lg px-3 py-2 shadow-sm resize-none focus:outline-none focus:ring focus:border-blue-500 @error('address') border-red-500 @enderror">{{ old('address', $employee->address ?? '') }}</textarea>
 </div>
 
 
     <div class="grid grid-cols-2 gap-6 mt-6">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-            <input type="text" name="phone" value="{{ old('phone') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('phone') border-red-500 @enderror">
+            <input type="text" name="phone" value="{{ old('phone', $employee->phone ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('phone') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" name="email" value="{{ old('email') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('email') border-red-500 @enderror">
+            <input type="email" name="email" value="{{ old('email', $employee->email ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('email') border-red-500 @enderror">
         </div>
     </div>
 
@@ -151,11 +160,11 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Family Card Number</label>
-            <input type="text" name="kk_number" value="{{ old('kk_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('kk_number') border-red-500 @enderror">
+            <input type="text" name="kk_number" value="{{ old('kk_number', $employee->kk_number ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('kk_number') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">ID Card Number</label>
-            <input type="text" name="ktp_number" value="{{ old('ktp_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('ktp_number') border-red-500 @enderror">
+            <input type="text" name="ktp_number" value="{{ old('ktp_number', $employee->ktp_number ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('ktp_number') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">PTKP Category</label>
@@ -163,15 +172,15 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">BPJS Ketenagakerjaan</label>
-            <input type="text" name="bpjs_tk" value="{{ old('bpjs_tk') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bpjs_tk') border-red-500 @enderror">
+            <input type="text" name="bpjs_tk" value="{{ old('bpjs_tk', $employee->bpjs_tk ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bpjs_tk') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">BPJS Kesehatan</label>
-            <input type="text" name="bpjs_ks" value="{{ old('bpjs_ks') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bpjs_ks') border-red-500 @enderror">
+            <input type="text" name="bpjs_ks" value="{{ old('bpjs_ks', $employee->bpjs_ks ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bpjs_ks') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">NPWP Number</label>
-            <input type="text" name="npwp_number" value="{{ old('npwp_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('npwp_number') border-red-500 @enderror">
+            <input type="text" name="npwp_number" value="{{ old('npwp_number', $employee->npwp_number ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('npwp_number') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
@@ -179,11 +188,11 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Account Bank Name</label>
-            <input type="text" name="bank_account_name" value="{{ old('bank_account_name') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bank_account_name') border-red-500 @enderror">
+            <input type="text" name="bank_account_name" value="{{ old('bank_account_name', $employee->bank_account_name ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bank_account_name') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Account Bank Number</label>
-            <input type="text" name="bank_number" value="{{ old('bank_number') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bank_number') border-red-500 @enderror">
+            <input type="text" name="bank_number" value="{{ old('bank_number', $employee->bank_number ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bank_number') border-red-500 @enderror">
         </div>
     </div>
 </div>
@@ -202,18 +211,18 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Subcon<small class="text-red-600">*</small></label>
-            <input type="text" name="employee_type" value="{{ old('employee_type') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('employee_type') border-red-500 @enderror" required>
+            <input type="text" name="employee_type" value="{{ old('employee_type', $employee->employee_type ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('employee_type') border-red-500 @enderror" required>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">NIK<small class="text-red-600">*</small></label>
-             <input type="text" name="nik" value="{{ old('nik') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('nik') border-red-500 @enderror" required>
+             <input type="text" name="nik" value="{{ old('nik', $employee->nik ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('nik') border-red-500 @enderror" required>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Departement</label>
            <select name="department" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('department') border-red-500 @enderror">
         <option value="">-- Select Departement --</option>
         @foreach($departments as $department)
-        <option value="{{ $department->id }}" @selected(old('department') == $department->id)>{{ $department->name }}</option>
+        <option value="{{ $department->id }}" @selected(old('department', $isEdit ? $employee->departments->first()?->id : '') == $department->id)>{{ $department->name }}</option>
         @endforeach
     </select>
         </div>
@@ -226,7 +235,7 @@
             <select name="position_id" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('position_id') border-red-500 @enderror">
                 <option value="">-- Select Position --</option>
                 @foreach($positions as $position)
-                <option value="{{ $position->id }}" @selected(old('position_id') == $position->id)>{{ $position->name }}</option>
+                <option value="{{ $position->id }}" @selected(old('position_id', $isEdit ? $employee->positions->first()?->id : '') == $position->id)>{{ $position->name }}</option>
                 @endforeach
             </select>
         </div>
@@ -240,7 +249,8 @@
  <!-- Join Date -->
     <div class="mb-6">
         <label class="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
-        <input type="date" name="join_date" value="{{ old('join_date') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('join_date') border-red-500 @enderror">
+        {{-- join_date cast date di model, diformat 'Y-m-d' untuk input type=date. --}}
+        <input type="date" name="join_date" value="{{ old('join_date', optional($employee->join_date ?? null)->format('Y-m-d')) }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('join_date') border-red-500 @enderror">
     </div>
 
     <!-- Contract History -->
@@ -283,7 +293,7 @@
 
         {{-- Submit Button --}}
         <div class="mt-6">
-            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">Save</button>
+            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">{{ $isEdit ? 'Update' : 'Save' }}</button>
             <a href="{{ route('hr.employee.index') }}" class="ml-2 px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded inline-block">Cancel</a>
         </div>
     </form>
