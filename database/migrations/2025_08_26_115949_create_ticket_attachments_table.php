@@ -7,23 +7,26 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Buat struktur tabel sesuai skema dump produksi (abimany3_abimanyu_db).
      */
     public function up(): void
     {
-         Schema::create('ticket_attachments', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('ticket_id');
-            $table->string('path');
-            $table->timestamp('created_at')->useCurrent();
+        if (! Schema::hasTable('ticket_attachments')) {
+            Schema::create('ticket_attachments', function (Blueprint $table) {
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
 
-            // Jika ingin relasi ke tabel tickets
-            $table->foreign('ticket_id')->references('id')->on('tickets')->onDelete('cascade');
-        });
+                $table->id();
+                $table->unsignedBigInteger('ticket_id');
+                $table->string('path');
+                $table->timestamp('created_at')->useCurrent();
+
+            });
+        }
     }
 
     /**
-     * Reverse the migrations.
+     * Hapus tabel yang dibuat oleh migration ini.
      */
     public function down(): void
     {

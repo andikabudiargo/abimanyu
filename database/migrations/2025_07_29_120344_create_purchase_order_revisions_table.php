@@ -7,18 +7,25 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Buat struktur tabel sesuai skema dump produksi (abimany3_abimanyu_db).
      */
     public function up(): void
     {
-        Schema::create('purchase_order_revisions', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('purchase_order_revisions')) {
+            Schema::create('purchase_order_revisions', function (Blueprint $table) {
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
+
+                $table->id();
+                $table->timestamp('created_at')->nullable();
+                $table->timestamp('updated_at')->nullable();
+
+            });
+        }
     }
 
     /**
-     * Reverse the migrations.
+     * Hapus tabel yang dibuat oleh migration ini.
      */
     public function down(): void
     {

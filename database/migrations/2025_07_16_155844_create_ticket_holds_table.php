@@ -7,25 +7,31 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Buat struktur tabel sesuai skema dump produksi (abimany3_abimanyu_db).
      */
-   public function up()
-{
-    Schema::create('ticket_holds', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('ticket_id')->constrained('tickets')->onDelete('cascade');
-        $table->string('reason');
-        $table->text('description')->nullable(); // Untuk custom reason
-        $table->timestamp('start_at')->nullable();
-        $table->timestamp('end_at')->nullable();
-        $table->foreignId('created_by')->constrained('users'); // siapa yang melakukan hold
-        $table->timestamps();
-    });
-}
+    public function up(): void
+    {
+        if (! Schema::hasTable('ticket_holds')) {
+            Schema::create('ticket_holds', function (Blueprint $table) {
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
 
+                $table->id();
+                $table->unsignedBigInteger('ticket_id');
+                $table->string('reason');
+                $table->text('description')->nullable();
+                $table->timestamp('start_at')->nullable();
+                $table->timestamp('end_at')->nullable();
+                $table->unsignedBigInteger('created_by');
+                $table->timestamp('created_at')->nullable();
+                $table->timestamp('updated_at')->nullable();
+
+            });
+        }
+    }
 
     /**
-     * Reverse the migrations.
+     * Hapus tabel yang dibuat oleh migration ini.
      */
     public function down(): void
     {

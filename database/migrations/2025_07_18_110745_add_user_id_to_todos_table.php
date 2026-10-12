@@ -7,24 +7,17 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tidak ada aksi: kolom `user_id` sudah termasuk dalam migration `create_todos_table`
+     * (baseline skema dump produksi), sehingga tidak perlu ditambahkan lagi.
      */
-   public function up()
-{
-    Schema::table('todos', function (Blueprint $table) {
-        $table->unsignedBigInteger('user_id')->after('id');
+    public function up(): void
+    {
+    }
 
-        // Jika ada tabel users
-        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-    });
-}
-
-public function down()
-{
-    Schema::table('todos', function (Blueprint $table) {
-        $table->dropForeign(['user_id']);
-        $table->dropColumn('user_id');
-    });
-}
-
+    /**
+     * Tidak ada aksi: kolom dimiliki oleh migration `create_todos_table`, bukan migration ini.
+     */
+    public function down(): void
+    {
+    }
 };

@@ -7,20 +7,25 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Buat struktur tabel sesuai skema dump produksi (abimany3_abimanyu_db).
      */
     public function up(): void
     {
-        Schema::create('department_user', function (Blueprint $table) {
-    $table->foreignId('user_id')->constrained()->onDelete('cascade');
-    $table->foreignId('department_id')->constrained()->onDelete('cascade');
-    $table->primary(['user_id', 'department_id']);
-});
+        if (! Schema::hasTable('department_user')) {
+            Schema::create('department_user', function (Blueprint $table) {
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
 
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('department_id');
+
+                $table->primary(['user_id', 'department_id']);
+            });
+        }
     }
 
     /**
-     * Reverse the migrations.
+     * Hapus tabel yang dibuat oleh migration ini.
      */
     public function down(): void
     {
