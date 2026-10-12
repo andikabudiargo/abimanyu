@@ -26,7 +26,6 @@
         <button @click="activeTab = 'personal'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'personal' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">Personal & Account</button>
         <button @click="activeTab = 'job'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'job' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">Job Information</button>
         <button @click="activeTab = 'training'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'training' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">Training History</button>
-        <button @click="activeTab = 'apd'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'apd' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">APD Checklist</button>
     </div>
 
     {{-- Blok error validasi server: diletakkan tepat di atas form agar pesan gagal validasi langsung terlihat --}}
@@ -280,17 +279,6 @@
 </div>
 
 
-         {{-- APD Given --}}
-<div x-show="activeTab === 'apd'" x-cloak class="mb-6">
-    <label class="block text-sm font-medium text-gray-700 mb-2">APD Given</label>
-    <div id="apd-rows">
-        <!-- Baris APD akan ditambahkan di sini -->
-    </div>
-    <button type="button" onclick="addApdRow()" class="mt-2 text-blue-600 hover:underline text-sm">+ Add APD</button>
-</div>
-
-
-
         {{-- Submit Button --}}
         <div class="mt-6">
             <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">{{ $isEdit ? 'Update' : 'Save' }}</button>
@@ -299,54 +287,6 @@
     </form>
 </div>
 @endsection
-
-<script>
-let apdIndex = 0;
-
-function addApdRow() {
-    apdIndex++;
-    const container = document.getElementById('apd-rows');
-
-    const row = document.createElement('div');
-    row.className = 'grid grid-cols-6 gap-4 mb-2 apd-row items-end';
-    row.setAttribute('data-index', apdIndex);
-
-    row.innerHTML = `
-        <div>
-            <label class="block text-xs text-gray-600 mb-1">APD Name</label>
-            <input type="text" name="apd_name[]" class="w-full border rounded-lg px-3 py-2 shadow-sm">
-        </div>
-        <div>
-            <label class="block text-xs text-gray-600 mb-1">Given Date</label>
-            <input type="date" name="apd_date[]" class="w-full border rounded-lg px-3 py-2 shadow-sm">
-        </div>
-        <div>
-            <label class="block text-xs text-gray-600 mb-1">Accepted?</label>
-            <input type="checkbox" name="apd_checklist[]" class="mt-2">
-        </div>
-        <div>
-            <label class="block text-xs text-gray-600 mb-1">Replacement Cycle</label>
-            <input type="text" name="apd_cycle[]" placeholder="e.g. 1 year / 6 months" class="w-full border rounded-lg px-3 py-2 shadow-sm">
-        </div>
-        <div class="flex items-center pt-5">
-            <button type="button" onclick="removeApdRow(this)" class="text-red-600 hover:underline text-sm">Remove</button>
-        </div>
-    `;
-
-    container.appendChild(row);
-}
-
-function removeApdRow(button) {
-    const row = button.closest('.apd-row');
-    row.remove();
-}
-
-// Tambahkan satu baris saat halaman load
-window.addEventListener('DOMContentLoaded', () => {
-    addApdRow();
-});
-</script>
-
 
    <script>
     function addContractRow() {

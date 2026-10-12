@@ -71,14 +71,14 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Tampilkan halaman detail employee lengkap dengan relasi department dan position.
+     * Tampilkan halaman detail employee lengkap dengan relasi department, position, dan distribusi APD.
      *
      * @param  \App\Models\Employee  $employee  Employee yang ditampilkan (route model binding).
      * @return \Illuminate\Contracts\View\View
      */
     public function show(Employee $employee)
     {
-        $employee = Employee::with(['departments', 'positions'])->findOrFail($employee->id);
+        $employee = Employee::with(['departments', 'positions', 'distributions'])->findOrFail($employee->id);
 
         return view('hr.detail-employee', compact('employee'));
     }
