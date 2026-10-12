@@ -71,6 +71,19 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Tampilkan halaman detail employee lengkap dengan relasi department dan position.
+     *
+     * @param  \App\Models\Employee  $employee  Employee yang ditampilkan (route model binding).
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function show(Employee $employee)
+    {
+        $employee = Employee::with(['departments', 'positions'])->findOrFail($employee->id);
+
+        return view('hr.detail-employee', compact('employee'));
+    }
+
+    /**
      * Tampilkan form edit employee; view yang sama dengan create, input sudah terisi data employee.
      *
      * @param  \App\Models\Employee  $employee  Employee yang akan diedit (route model binding).
