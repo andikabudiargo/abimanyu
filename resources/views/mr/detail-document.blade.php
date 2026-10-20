@@ -314,10 +314,24 @@ $file4mPath = $document->file_4m_path
         Copy Distribution (Application for Copies)
     </h2>
 
+    @php
+        $toRoman = function ($number) {
+            $map = ['M'=>1000,'CM'=>900,'D'=>500,'CD'=>400,'C'=>100,'XC'=>90,'L'=>50,'XL'=>40,'X'=>10,'IX'=>9,'V'=>5,'IV'=>4,'I'=>1];
+            $result = '';
+            foreach ($map as $roman => $value) {
+                while ($number >= $value) {
+                    $result .= $roman;
+                    $number -= $value;
+                }
+            }
+            return $result;
+        };
+    @endphp
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="bg-gray-50 text-gray-500 text-xs uppercase">
+                    <th class="px-3 py-2 text-center border border-gray-200">No</th>
                     <th class="px-3 py-2 text-left border border-gray-200">Department</th>
                     <th class="px-3 py-2 text-center border border-gray-200">Size</th>
                     <th class="px-3 py-2 text-center border border-gray-200">Qty</th>
@@ -329,8 +343,9 @@ $file4mPath = $document->file_4m_path
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100" id="copiesTableBody">
-                @forelse($document->copies ?? [] as $copy)
+                @forelse($document->copies ?? [] as $copyIndex => $copy)
                 <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2 border border-gray-200 text-center">{{ $toRoman($copyIndex + 1) }}</td>
                     <td class="px-3 py-2 border border-gray-200">{{ $copy->department->name ?? '-' }}</td>
 
                     <td class="px-3 py-2 border border-gray-200 text-center">
@@ -407,7 +422,7 @@ $file4mPath = $document->file_4m_path
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-3 py-4 text-center text-gray-400 text-sm">No copy distribution recorded.</td>
+                    <td colspan="9" class="px-3 py-4 text-center text-gray-400 text-sm">No copy distribution recorded.</td>
                 </tr>
                 @endforelse
             </tbody>
