@@ -47,15 +47,9 @@
             text-align: center;
             font-style: italic;
         }
-
-        .page-break {
-            page-break-after: always;
-        }
     </style>
 </head>
 <body>
-
-@foreach($document->copies as $index => $copy)
 
     <div class="title">
         LAMPIRAN EVIDENCE DISTRIBUSI DOKUMEN<br>
@@ -103,27 +97,21 @@
             );
         }
     }
-@endphp
+    @endphp
 
-<div class="evidence-wrapper">
-    @if($evidencePath)
-        <img
-            src="{{ $evidencePath }}"
-            class="evidence-img"
-            alt="Evidence"
-        >
-    @else
-        <div class="no-evidence">
-            Evidence not available
-        </div>
-    @endif
-</div>
-
-    @if(!$loop->last)
-        <div class="page-break"></div>
-    @endif
-
-@endforeach
+    <div class="evidence-wrapper">
+        @if($evidencePath)
+            <img
+                src="{{ $evidencePath }}"
+                class="evidence-img"
+                alt="Evidence"
+            >
+        @else
+            <div class="no-evidence">
+                Evidence not available
+            </div>
+        @endif
+    </div>
 
 </body>
 </html>

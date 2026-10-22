@@ -54,6 +54,23 @@
         .h-80 { height: 80px; }
         .h-120 { height: 120px; }
         .h-150 { height: 150px; }
+
+        .stamp-container {
+            position: relative;
+        }
+
+        .stamp-approved {
+            position: absolute;
+            top: 42px;
+            left: 22%;
+            border: 3px solid #1a7a1a;
+            color: #1a7a1a;
+            font-weight: bold;
+            font-size: 20px;
+            padding: 4px 14px;
+            transform: rotate(-12deg);
+            opacity: 0.75;
+        }
     </style>
 </head>
 <body>
@@ -401,6 +418,10 @@
     @endfor
 </table>
 
+<div class="stamp-container">
+@if($document->approved_at)
+    <div class="stamp-approved">APPROVED</div>
+@endif
 <table>
     {{-- Header --}}
     <tr>
@@ -478,6 +499,7 @@
         </td>
     </tr>
 </table>
+</div>
 
 </body>
 </html>

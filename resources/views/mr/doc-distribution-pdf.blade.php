@@ -126,7 +126,7 @@
             <b>NOMOR REVISI</b><br>
             <i>REVISION NUMBER</i>
         </td>
-        <td>: {{ $document->revision->revision_number ?? '' }}</td>
+        <td>: {{ $document->revision ? str_pad($document->revision->revision_number, 2, '0', STR_PAD_LEFT) : '00' }}</td>
     </tr>
 
     <tr>

@@ -2161,7 +2161,6 @@ public function revision($id)
 
     $page1 = view('mr.document-pdf', compact('document', 'logo'))->render();
     $page2 = view('mr.doc-distribution-pdf', compact('document', 'logo', 'takenByDept'))->render();
-    $page3 = view('mr.document-evidence', compact('document'))->render();
 
     $mpdf = new Mpdf([
         'mode' => 'utf-8',
@@ -2196,9 +2195,11 @@ public function revision($id)
     | Evidence Attachment
     |--------------------------------------------------------------------------
     */
-    if ($document->copies->count() > 0) {
+    foreach ($document->copies as $index => $copy) {
         $mpdf->AddPage();
-        $mpdf->WriteHTML($page3);
+        $mpdf->WriteHTML(
+            view('mr.document-evidence', compact('copy', 'index'))->render()
+        );
     }
 
     $filename = ($document->document_number ?? 'document') . '.pdf';
