@@ -55,21 +55,15 @@
         .h-120 { height: 120px; }
         .h-150 { height: 150px; }
 
-        .stamp-container {
-            position: relative;
-        }
-
         .stamp-approved {
-            position: absolute;
-            top: 42px;
-            left: 22%;
-            border: 3px solid #1a7a1a;
+            display: inline-block;
+            border: 2px solid #1a7a1a;
             color: #1a7a1a;
             font-weight: bold;
-            font-size: 20px;
-            padding: 4px 14px;
+            font-size: 13px;
+            padding: 2px 8px;
             transform: rotate(-12deg);
-            opacity: 0.75;
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -418,10 +412,6 @@
     @endfor
 </table>
 
-<div class="stamp-container">
-@if($document->approved_at)
-    <div class="stamp-approved">APPROVED</div>
-@endif
 <table>
     {{-- Header --}}
     <tr>
@@ -464,9 +454,21 @@
 
     {{-- Area tanda tangan --}}
     <tr>
-        <td class="h-50"></td>
-        <td></td>
-        <td></td>
+        <td class="h-50 center">
+            @if($document->authorized_at)
+                <span class="stamp-approved">APPROVED</span>
+            @endif
+        </td>
+        <td class="center">
+            @if($document->created_at)
+                <span class="stamp-approved">APPROVED</span>
+            @endif
+        </td>
+        <td class="center">
+            @if($document->approved_at)
+                <span class="stamp-approved">APPROVED</span>
+            @endif
+        </td>
     </tr>
 
     {{-- Date --}}
@@ -499,7 +501,6 @@
         </td>
     </tr>
 </table>
-</div>
 
 </body>
 </html>

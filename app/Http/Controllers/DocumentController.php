@@ -2116,6 +2116,8 @@ public function revision($id)
 
     public function generatePdf($id)
 {
+    ini_set('pcre.backtrack_limit', '10000000');
+
     $document = DocumentRegistration::with([
         'revision',
         'department',
