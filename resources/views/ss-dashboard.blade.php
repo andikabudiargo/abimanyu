@@ -207,6 +207,13 @@ input[type=number] {
                     <div class="text-white/40 text-[10px] leading-tight">{{ $user->departments->first()?->name ?? $user->department }}</div>
                 </div>
             </div>
+            <a href="{{ route('dashboard') }}"
+                class="flex items-center gap-1 text-[11px] text-white/50 border border-white/15 rounded px-2.5 py-1.5 hover:text-white hover:border-white/35 transition-all font-medium">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 10.5L12 3l9 7.5M5 9.5V21h5v-6h4v6h5V9.5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="hidden sm:inline">Dashboard</span>
+            </a>
             <form action="{{ route('suggestion.logout') }}" method="POST">
                 @csrf
                 <button type="submit"
