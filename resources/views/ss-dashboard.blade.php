@@ -317,11 +317,11 @@ input[type=number] {
 @endif
 
 {{-- ═══ PAGE LAYOUT ═══ --}}
-<div class="px-6 py-4">
-<div class="flex gap-3 items-start">
+<div class="px-3 sm:px-6 py-4">
+<div class="flex flex-col lg:flex-row gap-3 lg:items-start">
 
   {{-- ══════════════ SIDEBAR ══════════════ --}}
-  <div class="w-64 shrink-0 hidden lg:flex flex-col gap-3">
+  <div class="w-full lg:w-64 shrink-0 flex flex-col gap-3">
 
  @if($activePeriod)
 @php
@@ -501,26 +501,22 @@ input[type=number] {
 {{-- ═══════════════ PAGE CONTENT ═══════════════ --}}
 <div class="flex-1 min-w-0 px-3 py-4 ">
 <div class="mb-3 ">
-  <div class="relative overflow-visible rounded-md
-              bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400
+  <div class="relative overflow-hidden rounded-xl
+              bg-[#1e3a5f]
                px-6 py-5 md:px-8
               flex items-end justify-between gap-4">
 
     <!-- Ornamen lingkaran -->
-    <div class="absolute -right-4 top-1/2 -translate-y-1/2
-                w-24 h-24 rounded-full bg-blue-300 opacity-35 z-0"></div>
-    <div class="absolute right-12 -bottom-5
-                w-14 h-14 rounded-full bg-blue-300 opacity-20 z-0"></div>
+    <div class="absolute -right-6 -top-10
+                w-32 h-32 rounded-full bg-white opacity-[0.04] z-0"></div>
 
     <!-- TEXT + CTA -->
     <div class="flex-1 min-w-0 relative z-10 pr-4 pb-1">
       <h2 class="text-sm md:text-base font-semibold text-white mb-1">
-        Welcome back,
-        <span class="underline text-white">{{ $user->name }}</span>
+        Selamat datang, <span class="text-white">{{ $user->name }}</span>
       </h2>
-      <p class="text-xs text-slate-200 leading-relaxed max-w-sm mb-4">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        Donec volutpat felis velit, vitae fermentum nulla ultrices et.
+      <p class="text-xs text-white/60 leading-relaxed max-w-sm mb-4">
+        Sampaikan ide perbaikan Anda untuk proses kerja yang lebih baik di PT. Abimanyu Sekar Nusantara.
       </p>
 
  @php
@@ -908,35 +904,35 @@ input[type=number] {
     <div class="tab-pane" id="pane-periods">
 
         {{-- Form Buat Periode --}}
-        <div class="bg-white border border-gray-200 rounded-xl shadow-sm mb-4">
-            <div class="px-4 py-3 border-b border-gray-100 text-xs font-semibold text-gray-800">Buat Periode Baru</div>
-            <div class="p-4">
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm mb-4">
+            <div class="px-5 py-3.5 border-b border-slate-100 text-[11px] font-bold uppercase tracking-widest text-slate-500">Buat Periode Baru</div>
+            <div class="p-5">
                 <form method="POST" action="{{ route('suggestion.improvement.period.store') }}">
                     @csrf
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                         <div>
-                            <label class="block text-[11px] font-medium text-gray-600 mb-1">Nama Periode *</label>
-                            <input type="text" name="name" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#1e3a5f] transition-colors" placeholder="Q2 2025" required/>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1.5">Nama Periode *</label>
+                            <input type="text" name="name" class="w-full h-10 text-xs border border-slate-200 rounded-lg px-3 outline-none focus:border-[#1e3a5f] focus:ring-1 focus:ring-[#1e3a5f]/20 transition-colors" placeholder="Q2 2025" required/>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-medium text-gray-600 mb-1">Tanggal Mulai *</label>
-                            <input type="date" name="start_date" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#1e3a5f] transition-colors" required/>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1.5">Tanggal Mulai *</label>
+                            <input type="date" name="start_date" class="w-full h-10 text-xs border border-slate-200 rounded-lg px-3 outline-none focus:border-[#1e3a5f] focus:ring-1 focus:ring-[#1e3a5f]/20 transition-colors" required/>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-medium text-gray-600 mb-1">Tanggal Tutup *</label>
-                            <input type="date" name="end_date" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#1e3a5f] transition-colors" required/>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1.5">Tanggal Tutup *</label>
+                            <input type="date" name="end_date" class="w-full h-10 text-xs border border-slate-200 rounded-lg px-3 outline-none focus:border-[#1e3a5f] focus:ring-1 focus:ring-[#1e3a5f]/20 transition-colors" required/>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-medium text-gray-600 mb-1">Max Submit/Karyawan</label>
-                            <input type="number" name="max_submissions" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#1e3a5f] transition-colors" placeholder="Kosong = tak terbatas" min="1"/>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1.5">Max Submit/Karyawan</label>
+                            <input type="number" name="max_submissions" class="w-full h-10 text-xs border border-slate-200 rounded-lg px-3 outline-none focus:border-[#1e3a5f] focus:ring-1 focus:ring-[#1e3a5f]/20 transition-colors" placeholder="Kosong = tak terbatas" min="1"/>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <label class="flex items-center gap-2 text-xs cursor-pointer">
-                            <input type="checkbox" name="is_active" value="1" checked class="accent-[#1e3a5f]"/>
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="is_active" value="1" checked class="accent-[#1e3a5f] w-3.5 h-3.5"/>
                             Aktifkan langsung
                         </label>
-                        <button type="submit" class="px-4 py-2 bg-[#1e3a5f] text-white text-xs font-medium rounded-lg hover:bg-[#162d4a] transition-colors">
+                        <button type="submit" class="px-4 py-2 bg-[#1e3a5f] text-white text-xs font-semibold rounded-lg hover:bg-[#162d4a] transition-colors">
                             Simpan Periode
                         </button>
                     </div>
@@ -945,8 +941,8 @@ input[type=number] {
         </div>
 
         {{-- Daftar Periode --}}
-        <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-            <div class="px-4 py-3 border-b border-gray-100 text-xs font-semibold text-gray-800">Daftar Periode</div>
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div class="px-5 py-3.5 border-b border-slate-100 text-[11px] font-bold uppercase tracking-widest text-slate-500">Daftar Periode</div>
 
             {{-- Mobile card list --}}
             <div class="divide-y divide-gray-50 sm:hidden">
