@@ -41,8 +41,16 @@ class DocumentRegistration extends Model
         'returned_reason' => 'array',
     ];
 
-    public function currentDocument()
+    public function currentDocument(): HasOne
 {
+    // Dokumen tipe "other" tanpa nomor (document_number kosong) tidak boleh
+    // di-join lewat document_number, karena semua dokumen tanpa nomor akan
+    // bertabrakan di nilai '' / null yang sama. Pakai judul sebagai kuncinya.
+    if (!$this->document_number) {
+        return $this->hasOne(Document::class, 'document_title', 'document_title')
+            ->where(fn($q) => $q->whereNull('document_number')->orWhere('document_number', ''));
+    }
+
     return $this->hasOne(Document::class, 'document_number', 'document_number');
 }
 
