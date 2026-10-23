@@ -26,12 +26,8 @@ class APDDistribution extends Model
     // Aktifkan timestamps (karena kamu punya created_at dan updated_at)
     public $timestamps = true;
 
-    // Format tanggal otomatis sebagai Carbon instance
-    protected $dates = [
-        'distribution_date',
-        'created_at',
-        'updated_at',
-    ];
+    // Catatan: tidak ada $dates/$casts untuk distribution_date — kolom date mentah (string).
+    // Konvensi seluruh codebase (facility/apd, APDController): \Carbon\Carbon::parse() saat dibutuhkan.
 
     /**
      * Relasi ke model User (yang membuat distribusi)

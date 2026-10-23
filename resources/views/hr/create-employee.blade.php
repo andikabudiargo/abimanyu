@@ -6,17 +6,47 @@
 @section('breadcrumb-active', 'Employee Information')
 
 @section('content')
-<div class="container mx-auto px-4 py-6 bg-white border rounded-lg" x-data="{ activeTab: 'personal' }">
+@php
+    // View ganda create/edit: $isEdit aktif saat route edit membawa $employee.
+    $isEdit = isset($employee);
+    // Tahap 1 (kepercayaan form): tab awal mengikuti error validasi pertama dari server.
+    // Jika error berasal dari field tab Job Information, tab itu yang dibuka agar pesan error
+    // langsung terlihat tanpa user berpindah tab manual.
+    $tabAwal = 'personal';
+    $fieldTabJob = ['employee_type', 'nik', 'department', 'division', 'position_id', 'group_schedule', 'join_date'];
+    if (in_array($errors->keys()[0] ?? null, $fieldTabJob, true)) {
+        $tabAwal = 'job';
+    }
+@endphp
+<div class="container mx-auto px-4 py-6 bg-white border rounded-lg" x-data="{ activeTab: '{{ $tabAwal }}' }">
     {{-- Navigation Buttons --}}
     <div class="mb-6 space-x-2">
-        <button @click="activeTab = 'personal'" :class="{ 'bg-blue-600 text-white': activeTab === 'personal' }" class="px-4 py-2 border rounded hover:bg-blue-600 hover:text-white transition">Personal & Account</button>
-        <button @click="activeTab = 'job'" :class="{ 'bg-blue-600 text-white': activeTab === 'job' }" class="px-4 py-2 border rounded hover:bg-blue-600 hover:text-white transition">Job Information</button>
-        <button @click="activeTab = 'training'" :class="{ 'bg-blue-600 text-white': activeTab === 'training' }" class="px-4 py-2 border rounded hover:bg-blue-600 hover:text-white transition">Training History</button>
-        <button @click="activeTab = 'apd'" :class="{ 'bg-blue-600 text-white': activeTab === 'apd' }" class="px-4 py-2 border rounded hover:bg-blue-600 hover:text-white transition">APD Checklist</button>
+        {{-- hover: pada binding tab aktif menahan warna biru penuh saat kursor di atasnya,
+             agar tab aktif tidak memudar mengikuti hover tab nonaktif. --}}
+        <button @click="activeTab = 'personal'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'personal' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">Personal & Account</button>
+        <button @click="activeTab = 'job'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'job' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">Job Information</button>
+        <button @click="activeTab = 'training'" :class="{ 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white': activeTab === 'training' }" class="px-4 py-2 border rounded hover:bg-blue-50 hover:text-blue-600 transition">Training History</button>
     </div>
 
-    <form action="" method="POST">
+    {{-- Blok error validasi server: diletakkan tepat di atas form agar pesan gagal validasi langsung terlihat --}}
+    @if($errors->any())
+    <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+        <ul class="list-disc pl-5">
+            @foreach($errors->all() as $pesanError)
+                <li>{{ $pesanError }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+    {{-- novalidate: validasi server adalah satu-satunya sumber kebenaran, agar error tampil
+         sebagai blok merah di atas form alih-alih diblokir senyap oleh browser. --}}
+    {{-- $isEdit: action & method spoofing PUT untuk update, POST untuk store. --}}
+    <form action="{{ $isEdit ? route('hr.employee.update', $employee) : route('hr.employee.store') }}" method="POST" novalidate>
         @csrf
+        @if($isEdit)
+        @method('PUT')
+        @endif
 
        {{-- Personal & Account Information --}}
 <div x-show="activeTab === 'personal'" class="space-y-12">
@@ -28,89 +58,92 @@
         <span>Personal Information</span>
     </div>
 
-    <div class="grid grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name*</label>
-            <input type="text" name="name" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500" required>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name<small class="text-red-600">*</small></label>
+            <input type="text" name="name" value="{{ old('name', $employee->name ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('name') border-red-500 @enderror" required>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-             <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
+             <select name="gender" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('gender') border-red-500 @enderror">
         <option value="">-- Select Gender --</option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
+        {{-- Saat edit, gender di DB ('Laki-Laki'/'Perempuan') dipetakan balik ke opsi form Male/Female. --}}
+        <option value="Male" @selected(old('gender', $isEdit ? ($employee->gender === 'Laki-Laki' ? 'Male' : ($employee->gender === 'Perempuan' ? 'Female' : '')) : '') == 'Male')>Male</option>
+        <option value="Female" @selected(old('gender', $isEdit ? ($employee->gender === 'Laki-Laki' ? 'Male' : ($employee->gender === 'Perempuan' ? 'Female' : '')) : '') == 'Female')>Female</option>
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Religion</label>
-           <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
+           <select name="religion" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('religion') border-red-500 @enderror">
         <option value="">-- Select Religion --</option>
-        <option value="Male">Islam</option>
-        <option value="Female">Katolik</option>
-        <option value="Female">Protestan</option>
-        <option value="Female">Hindu</option>
-        <option value="Female">Buddha</option>
-        <option value="Female">Konghucu</option>
-        <option value="Female">Lainnya</option>
+        <option value="Islam" @selected(old('religion', $employee->religion ?? '') == 'Islam')>Islam</option>
+        <option value="Katolik" @selected(old('religion', $employee->religion ?? '') == 'Katolik')>Katolik</option>
+        <option value="Protestan" @selected(old('religion', $employee->religion ?? '') == 'Protestan')>Protestan</option>
+        <option value="Hindu" @selected(old('religion', $employee->religion ?? '') == 'Hindu')>Hindu</option>
+        <option value="Buddha" @selected(old('religion', $employee->religion ?? '') == 'Buddha')>Buddha</option>
+        <option value="Konghucu" @selected(old('religion', $employee->religion ?? '') == 'Konghucu')>Konghucu</option>
+        <option value="Lainnya" @selected(old('religion', $employee->religion ?? '') == 'Lainnya')>Lainnya</option>
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
-            <input type="date" name="birth_date" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            {{-- birth_date cast date di model, diformat 'Y-m-d' untuk input type=date. --}}
+            <input type="date" name="birth_date" value="{{ old('birth_date', optional($employee->birth_date ?? null)->format('Y-m-d')) }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('birth_date') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Birth Place</label>
-            <input type="text" name="birth_place" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="birth_place" value="{{ old('birth_place', $employee->birth_place ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('birth_place') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
-            <input type="text" name="nationality" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="nationality" value="{{ old('nationality', $employee->nationality ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('nationality') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Last Education</label>
-            <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
+            <select name="last_education" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('last_education') border-red-500 @enderror">
         <option value="">-- Select Education --</option>
-        <option value="Male">SMK/SMA</option>
-        <option value="Female">D3</option>
-        <option value="Female">S1</option>
-        <option value="Female">S2</option>
-        <option value="Female">S3</option>
+        <option value="SMK/SMA" @selected(old('last_education', $employee->last_education ?? '') == 'SMK/SMA')>SMK/SMA</option>
+        <option value="D3" @selected(old('last_education', $employee->last_education ?? '') == 'D3')>D3</option>
+        <option value="S1" @selected(old('last_education', $employee->last_education ?? '') == 'S1')>S1</option>
+        <option value="S2" @selected(old('last_education', $employee->last_education ?? '') == 'S2')>S2</option>
+        <option value="S3" @selected(old('last_education', $employee->last_education ?? '') == 'S3')>S3</option>
     </select>
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Marital Status</label>
-            <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Marital Status<small class="text-red-600">*</small></label>
+            <select name="marital_status" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('marital_status') border-red-500 @enderror" required>
         <option value="">-- Select Status --</option>
-        <option value="Male">Lajang</option>
-        <option value="Female">Menikah</option>
+        {{-- marriage_status di DB 0/1 dipetakan balik ke opsi form Lajang/Menikah. --}}
+        <option value="Lajang" @selected(old('marital_status', $isEdit ? ($employee->marriage_status ? 'Menikah' : 'Lajang') : '') == 'Lajang')>Lajang</option>
+        <option value="Menikah" @selected(old('marital_status', $isEdit ? ($employee->marriage_status ? 'Menikah' : 'Lajang') : '') == 'Menikah')>Menikah</option>
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Number of Children</label>
-            <input type="number" name="children" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="number" name="dependents" value="{{ old('dependents', $employee->dependents ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('dependents') border-red-500 @enderror">
         </div>
     </div>
 
    <div class="mt-6">
     <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-    <textarea name="address" rows="3" class="w-full border rounded-lg px-3 py-2 shadow-sm resize-none focus:outline-none focus:ring focus:border-blue-500"></textarea>
+    <textarea name="address" rows="3" class="w-full border rounded-lg px-3 py-2 shadow-sm resize-none focus:outline-none focus:ring focus:border-blue-500 @error('address') border-red-500 @enderror">{{ old('address', $employee->address ?? '') }}</textarea>
 </div>
 
 
     <div class="grid grid-cols-2 gap-6 mt-6">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-            <input type="text" name="phone" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="phone" value="{{ old('phone', $employee->phone ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('phone') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" name="email" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="email" name="email" value="{{ old('email', $employee->email ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('email') border-red-500 @enderror">
         </div>
     </div>
 
     <div class="mt-6">
         <label class="block text-sm font-medium text-gray-700 mb-1">Add Picture</label>
-        <input type="file" name="picture" class="w-full text-sm border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+        <input type="file" name="picture" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed bg-gray-100 text-gray-400 w-full text-sm border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
     </div>
 </div>
 
@@ -123,42 +156,42 @@
         <span>Account Information</span>
     </div>
 
-    <div class="grid grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Family Card Number</label>
-            <input type="text" name="kk" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="kk_number" value="{{ old('kk_number', $employee->kk_number ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('kk_number') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">ID Card Number</label>
-            <input type="text" name="nik" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="ktp_number" value="{{ old('ktp_number', $employee->ktp_number ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('ktp_number') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">PTKP Category</label>
-            <input type="text" name="ptkp" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="ptkp" value="{{ old('ptkp') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed bg-gray-100 text-gray-400 w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">BPJS Ketenagakerjaan</label>
-            <input type="text" name="bpjs_tk" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="bpjs_tk" value="{{ old('bpjs_tk', $employee->bpjs_tk ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bpjs_tk') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">BPJS Kesehatan</label>
-            <input type="text" name="bpjs_kes" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="bpjs_ks" value="{{ old('bpjs_ks', $employee->bpjs_ks ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bpjs_ks') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">NPWP Number</label>
-            <input type="text" name="npwp" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="npwp_number" value="{{ old('npwp_number', $employee->npwp_number ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('npwp_number') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
-            <input type="text" name="bank" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="bank" value="{{ old('bank') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed bg-gray-100 text-gray-400 w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Account Bank Name</label>
-            <input type="text" name="bank_name" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="bank_account_name" value="{{ old('bank_account_name', $employee->bank_account_name ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bank_account_name') border-red-500 @enderror">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Account Bank Number</label>
-            <input type="text" name="bank_account" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+            <input type="text" name="bank_number" value="{{ old('bank_number', $employee->bank_number ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('bank_number') border-red-500 @enderror">
         </div>
     </div>
 </div>
@@ -174,39 +207,40 @@
         <span>Job Information</span>
     </div>
 
-    <div class="grid grid-cols-3 gap-6 mb-2">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Subcon*</label>
-            <input type="text" name="name" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500" required>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Subcon<small class="text-red-600">*</small></label>
+            <input type="text" name="employee_type" value="{{ old('employee_type', $employee->employee_type ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('employee_type') border-red-500 @enderror" required>
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">NIK*</label>
-             <input type="text" name="name" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500" required>
+            <label class="block text-sm font-medium text-gray-700 mb-1">NIK<small class="text-red-600">*</small></label>
+             <input type="text" name="nik" value="{{ old('nik', $employee->nik ?? '') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('nik') border-red-500 @enderror" required>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Departement</label>
-           <select name="gender" class="w-full border rounded px-3 py-2 bg-white shadow-sm" required>
-        <option value="">-- Select Religion --</option>
-        <option value="Male">Islam</option>
-        <option value="Female">Katolik</option>
-        <option value="Female">Protestan</option>
-        <option value="Female">Hindu</option>
-        <option value="Female">Buddha</option>
-        <option value="Female">Konghucu</option>
-        <option value="Female">Lainnya</option>
+           <select name="department" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('department') border-red-500 @enderror">
+        <option value="">-- Select Departement --</option>
+        @foreach($departments as $department)
+        <option value="{{ $department->id }}" @selected(old('department', $isEdit ? $employee->departments->first()?->id : '') == $department->id)>{{ $department->name }}</option>
+        @endforeach
     </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
-            <input type="date" name="birth_date" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="division" value="{{ old('division') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed bg-gray-100 text-gray-400 w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Position</label>
-            <input type="text" name="birth_place" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <select name="position_id" class="w-full border rounded-lg px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('position_id') border-red-500 @enderror">
+                <option value="">-- Select Position --</option>
+                @foreach($positions as $position)
+                <option value="{{ $position->id }}" @selected(old('position_id', $isEdit ? $employee->positions->first()?->id : '') == $position->id)>{{ $position->name }}</option>
+                @endforeach
+            </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Group Schedule</label>
-            <input type="text" name="nationality" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
+            <input type="text" name="group_schedule" value="{{ old('group_schedule') }}" disabled title="Belum dapat diinput (kolom belum tersedia di database)" class="cursor-not-allowed bg-gray-100 text-gray-400 w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
         </div>
     </div>
 
@@ -214,7 +248,8 @@
  <!-- Join Date -->
     <div class="mb-6">
         <label class="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
-        <input type="date" name="join_date" class="w-full border rounded-lg px-3 py-2 shadow-sm">
+        {{-- join_date cast date di model, diformat 'Y-m-d' untuk input type=date. --}}
+        <input type="date" name="join_date" value="{{ old('join_date', optional($employee->join_date ?? null)->format('Y-m-d')) }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500 @error('join_date') border-red-500 @enderror">
     </div>
 
     <!-- Contract History -->
@@ -232,84 +267,26 @@
 </div>
 
         {{-- Training History --}}
-        <div x-show="activeTab === 'training'" x-cloak class="grid grid-cols-3 gap-4">
+        <div x-show="activeTab === 'training'" x-cloak class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div>
         <label class="block font-medium">Training Title</label>
-        <input type="text" name="training_title[]" class="w-full border rounded px-3 py-2">
+        <input type="text" name="training_title[]" value="{{ old('training_title.0') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
     </div>
     <div>
         <label class="block font-medium">Training Date</label>
-        <input type="date" name="training_date[]" class="w-full border rounded px-3 py-2">
+        <input type="date" name="training_date[]" value="{{ old('training_date.0') }}" class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-500">
     </div>
 </div>
-
-
-         {{-- APD Given --}}
-<div x-show="activeTab === 'apd'" x-cloak class="mb-6">
-    <label class="block text-sm font-medium text-gray-700 mb-2">APD Given</label>
-    <div id="apd-rows">
-        <!-- Baris APD akan ditambahkan di sini -->
-    </div>
-    <button type="button" onclick="addApdRow()" class="mt-2 text-blue-600 hover:underline text-sm">+ Add APD</button>
-</div>
-
 
 
         {{-- Submit Button --}}
         <div class="mt-6">
-            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">Save</button>
+            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">{{ $isEdit ? 'Update' : 'Save' }}</button>
+            <a href="{{ route('hr.employee.index') }}" class="ml-2 px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded inline-block">Cancel</a>
         </div>
     </form>
 </div>
 @endsection
-
-<script>
-let apdIndex = 0;
-
-function addApdRow() {
-    apdIndex++;
-    const container = document.getElementById('apd-rows');
-
-    const row = document.createElement('div');
-    row.className = 'grid grid-cols-6 gap-4 mb-2 apd-row items-end';
-    row.setAttribute('data-index', apdIndex);
-
-    row.innerHTML = `
-        <div>
-            <label class="block text-xs text-gray-600 mb-1">APD Name</label>
-            <input type="text" name="apd_name[]" class="w-full border rounded px-2 py-1 shadow-sm">
-        </div>
-        <div>
-            <label class="block text-xs text-gray-600 mb-1">Given Date</label>
-            <input type="date" name="apd_date[]" class="w-full border rounded px-2 py-1 shadow-sm">
-        </div>
-        <div>
-            <label class="block text-xs text-gray-600 mb-1">Accepted?</label>
-            <input type="checkbox" name="apd_checklist[]" class="mt-2">
-        </div>
-        <div>
-            <label class="block text-xs text-gray-600 mb-1">Replacement Cycle</label>
-            <input type="text" name="apd_cycle[]" placeholder="e.g. 1 year / 6 months" class="w-full border rounded px-2 py-1 shadow-sm">
-        </div>
-        <div class="flex items-center pt-5">
-            <button type="button" onclick="removeApdRow(this)" class="text-red-600 hover:underline text-sm">Remove</button>
-        </div>
-    `;
-
-    container.appendChild(row);
-}
-
-function removeApdRow(button) {
-    const row = button.closest('.apd-row');
-    row.remove();
-}
-
-// Tambahkan satu baris saat halaman load
-window.addEventListener('DOMContentLoaded', () => {
-    addApdRow();
-});
-</script>
-
 
    <script>
     function addContractRow() {
@@ -343,7 +320,7 @@ window.addEventListener('DOMContentLoaded', () => {
     row.innerHTML = `
         <div>
             <label class="block text-xs text-gray-600 mb-1">Contract Type</label>
-            <select name="contract_type[]" class="w-full border rounded-lg px-2 py-1 shadow-sm" onchange="handleContractTypeChange(this)">
+            <select name="contract_type[]" class="w-full border rounded-lg px-3 py-2 shadow-sm" onchange="handleContractTypeChange(this)">
                 <option value="OJT">OJT</option>
                 <option value="Contract ${nextContractNumber}">Contract ${nextContractNumber}</option>
                 <option value="Permanent">Permanent</option>
@@ -352,12 +329,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
         <div class="date-fields">
             <label class="block text-xs text-gray-600 mb-1">Start Date</label>
-            <input type="date" name="contract_start[]" class="w-full border rounded-lg px-2 py-1 shadow-sm">
+            <input type="date" name="contract_start[]" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
 
         <div class="date-fields">
             <label class="block text-xs text-gray-600 mb-1">End Date</label>
-            <input type="date" name="contract_end[]" class="w-full border rounded-lg px-2 py-1 shadow-sm">
+            <input type="date" name="contract_end[]" class="w-full border rounded-lg px-3 py-2 shadow-sm">
         </div>
 
         <div class="flex items-center pt-5">
@@ -387,7 +364,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 skDiv.className = 'sk-number';
                 skDiv.innerHTML = `
                     <label class="block text-xs text-gray-600 mb-1">SK Number</label>
-                    <input type="text" name="sk_number[]" class="w-full border rounded-lg px-2 py-1 shadow-sm">
+                    <input type="text" name="sk_number[]" class="w-full border rounded-lg px-3 py-2 shadow-sm">
                 `;
                 // Insert before the "remove" button column
                 row.insertBefore(skDiv, row.children[3]);

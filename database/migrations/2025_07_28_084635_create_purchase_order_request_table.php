@@ -7,28 +7,28 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Buat struktur tabel sesuai skema dump produksi (abimany3_abimanyu_db).
      */
     public function up(): void
     {
-      Schema::create('purchase_order_request', function (Blueprint $table) {
-    $table->id();
-    $table->unsignedBigInteger('purchase_order_id');
-    $table->unsignedBigInteger('purchase_request_id');
-    $table->timestamps();
+        if (! Schema::hasTable('purchase_order_request')) {
+            Schema::create('purchase_order_request', function (Blueprint $table) {
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
 
-    $table->foreign('purchase_order_id')->references('id')->on('purchase_orders')->onDelete('cascade');
-    $table->foreign('purchase_request_id')->references('id')->on('purchase_requests')->onDelete('cascade');
+                $table->id();
+                $table->unsignedBigInteger('purchase_order_id');
+                $table->unsignedBigInteger('purchase_request_id');
+                $table->timestamp('created_at')->nullable();
+                $table->timestamp('updated_at')->nullable();
 
-    // Ganti nama constraint UNIQUE yang terlalu panjang
-    $table->unique(['purchase_order_id', 'purchase_request_id'], 'po_pr_unique');
-});
-
-
+                $table->unique(['purchase_order_id', 'purchase_request_id'], 'po_pr_unique');
+            });
+        }
     }
 
     /**
-     * Reverse the migrations.
+     * Hapus tabel yang dibuat oleh migration ini.
      */
     public function down(): void
     {

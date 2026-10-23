@@ -7,25 +7,17 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tidak ada aksi: kolom `due_date`, `processed_by`, `processed_at` sudah termasuk dalam migration `create_tickets_table`
+     * (baseline skema dump produksi), sehingga tidak perlu ditambahkan lagi.
      */
     public function up(): void
     {
-        Schema::table('tickets', function (Blueprint $table) {
-    $table->date('due_date')->nullable();
-    $table->unsignedBigInteger('processed_by')->nullable();
-    $table->timestamp('processed_at')->nullable();
-});
-
     }
 
     /**
-     * Reverse the migrations.
+     * Tidak ada aksi: kolom dimiliki oleh migration `create_tickets_table`, bukan migration ini.
      */
     public function down(): void
     {
-        Schema::table('tickets', function (Blueprint $table) {
-            //
-        });
     }
 };

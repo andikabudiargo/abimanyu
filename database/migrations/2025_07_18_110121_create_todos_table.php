@@ -4,21 +4,36 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTodosTable extends Migration
+return new class extends Migration
 {
-    public function up()
+    /**
+     * Buat struktur tabel sesuai skema dump produksi (abimany3_abimanyu_db).
+     */
+    public function up(): void
     {
-        Schema::create('todos', function (Blueprint $table) {
-            $table->id();
-            $table->string('task');
-            $table->boolean('done')->default(false);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('todos')) {
+            Schema::create('todos', function (Blueprint $table) {
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
+
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->string('task');
+                $table->text('description')->nullable();
+                $table->boolean('done')->default(0);
+                $table->timestamp('created_at')->nullable();
+                $table->timestamp('updated_at')->nullable();
+                $table->dateTime('agenda_time')->nullable();
+
+            });
+        }
     }
 
-    public function down()
+    /**
+     * Hapus tabel yang dibuat oleh migration ini.
+     */
+    public function down(): void
     {
         Schema::dropIfExists('todos');
     }
-}
-
+};

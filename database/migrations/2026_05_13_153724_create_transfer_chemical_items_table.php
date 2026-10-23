@@ -6,23 +6,32 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Buat struktur tabel sesuai skema dump produksi (abimany3_abimanyu_db).
+     */
     public function up(): void
     {
-        Schema::create('transfer_chemical_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('transfer_chemical_id')
-                  ->constrained('transfer_chemicals')
-                  ->cascadeOnDelete();
-            $table->foreignId('article_code')
-                  ->constrained('articles')
-                  ->restrictOnDelete();
-            $table->enum('condition', ['Utuh', 'Tidak Utuh']);
-            $table->decimal('qty', 10, 2);
-            $table->string('unit', 20);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('transfer_chemical_items')) {
+            Schema::create('transfer_chemical_items', function (Blueprint $table) {
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
+
+                $table->id();
+                $table->unsignedBigInteger('transfer_chemical_id');
+                $table->string('article_code', 20);
+                $table->enum('condition', ['Utuh', 'Tidak Utuh']);
+                $table->decimal('qty', 10, 2);
+                $table->string('unit', 20);
+                $table->timestamp('created_at')->nullable();
+                $table->timestamp('updated_at')->nullable();
+
+            });
+        }
     }
 
+    /**
+     * Hapus tabel yang dibuat oleh migration ini.
+     */
     public function down(): void
     {
         Schema::dropIfExists('transfer_chemical_items');
