@@ -7,20 +7,17 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tidak ada aksi: kolom `status` sudah termasuk dalam migration `create_suppliers_table`
+     * (baseline skema dump produksi), sehingga tidak perlu ditambahkan lagi.
      */
-    public function up()
-{
-    Schema::table('suppliers', function (Blueprint $table) {
-        $table->enum('status', ['active', 'inactive'])->default('active')->after('join_date');
-    });
-}
+    public function up(): void
+    {
+    }
 
-public function down()
-{
-    Schema::table('suppliers', function (Blueprint $table) {
-        $table->dropColumn('status');
-    });
-}
-
+    /**
+     * Tidak ada aksi: kolom dimiliki oleh migration `create_suppliers_table`, bukan migration ini.
+     */
+    public function down(): void
+    {
+    }
 };

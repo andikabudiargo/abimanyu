@@ -16,7 +16,7 @@ class Employee extends Model
         'nationality',
 
         // Family / PTKP
-        'marital_status',
+        'marriage_status',
         'dependents',
         'spouse_works',
 
@@ -45,8 +45,8 @@ class Employee extends Model
         'ktp_number',
         'kk_number',
         'npwp_number',
-        'bpjs_ketenagakerjaan',
-        'bpjs_kesehatan',
+        'bpjs_tk',
+        'bpjs_ks',
         'bank_number',
         'bank_account_name',
 
@@ -58,6 +58,12 @@ class Employee extends Model
         'ijazah',
         'skck',
         'mcu',
+    ];
+
+    // Kolom tanggal dikonversi otomatis ke Carbon agar bisa diformat (format('d-m-Y')) di view.
+    protected $casts = [
+        'birth_date' => 'date',
+        'join_date' => 'date',
     ];
 
      public function departments()
