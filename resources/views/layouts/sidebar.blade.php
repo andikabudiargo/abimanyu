@@ -593,6 +593,7 @@
             <li class="pc-item"><a class="pc-link" href="{{ route('mr.capa.index') }}">CAPA Management</a></li>
              </ul>
             </li>
+            <li class="pc-item"><a class="pc-link" href="{{ route('suggestion.login') }}"><span class="pc-micon"> <i data-feather="award"></i> </span><span class="pc-mtext">Suggestion System</span></a></li>
 @if(
     in_array('Information & Technology', $userDepartments) || 
     in_array('Superuser', $userRoles)

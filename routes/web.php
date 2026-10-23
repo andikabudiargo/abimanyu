@@ -80,6 +80,7 @@ Route::get('/login-magang', function () {
 Route::get('/suggestion/login', [SuggestionAuthController::class, 'showLogin'])->name('suggestion.login');
 Route::post('/suggestion/otp/send', [SuggestionAuthController::class, 'sendOtp'])->name('suggestion.otp.send');
 Route::post('/suggestion/otp/verify', [SuggestionAuthController::class, 'verifyOtp'])->name('suggestion.otp.verify');
+Route::post('/suggestion/login-nik', [SuggestionAuthController::class, 'loginByNik'])->name('suggestion.login.nik');
 
 Route::middleware(['suggestion.auth'])->prefix('suggestion')->name('suggestion.')->group(function () {
 

@@ -458,6 +458,55 @@
                         <div class="spinner" id="send-spinner" style="display:none;"></div>
                     </button>
                 </form>
+
+                <div class="divider">
+                    <div class="divider-line"></div>
+                    <span class="divider-text">atau</span>
+                    <div class="divider-line"></div>
+                </div>
+
+                <button type="button" class="btn-ghost" style="width:100%; justify-content:center;" onclick="goToNikStep()">
+                    Masuk dengan NIK saja (tanpa OTP)
+                </button>
+            </div>
+
+            {{-- ── STEP NIK: Login tanpa OTP ── --}}
+            <div class="step-view" id="step-nik">
+                <div class="info-box">
+                    Masuk langsung menggunakan NIK karyawan, tanpa kode OTP.
+                </div>
+
+                <form method="POST" action="{{ route('suggestion.login.nik') }}">
+                    @csrf
+
+                    <div class="field-group">
+                        <label for="nik">NIK Karyawan</label>
+                        <input
+                            type="text"
+                            id="nik"
+                            name="nik"
+                            placeholder="Masukkan NIK"
+                            value="{{ old('nik') }}"
+                            autocomplete="off"
+                            required
+                        />
+                        @error('nik')
+                            <p class="error-msg">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <button type="submit" class="btn-primary">Masuk</button>
+                </form>
+
+                <div class="divider">
+                    <div class="divider-line"></div>
+                    <span class="divider-text">atau</span>
+                    <div class="divider-line"></div>
+                </div>
+
+                <button type="button" class="btn-ghost" style="width:100%; justify-content:center;" onclick="backToStep1()">
+                    Gunakan email &amp; OTP
+                </button>
             </div>
 
             {{-- ── STEP 2: OTP ── --}}
@@ -548,6 +597,19 @@
         goToStep2('{{ session('email_for_otp', old('email', '')) }}');
     @endif
 
+    // If there's a NIK error from server, show the NIK step automatically
+    @if($errors->has('nik'))
+        goToNikStep();
+    @endif
+
+    function goToNikStep() {
+        document.getElementById('step-1').classList.remove('active');
+        document.getElementById('step-2').classList.remove('active');
+        document.getElementById('step-nik').classList.add('active');
+        document.getElementById('form-title').textContent    = 'Masuk dengan NIK';
+        document.getElementById('form-subtitle').textContent = 'Tanpa kode verifikasi';
+    }
+
     function goToStep2(email) {
         document.getElementById('step-1').classList.remove('active');
         document.getElementById('step-2').classList.add('active');
@@ -563,6 +625,7 @@
 
     function backToStep1() {
         document.getElementById('step-2').classList.remove('active');
+        document.getElementById('step-nik').classList.remove('active');
         document.getElementById('step-1').classList.add('active');
         document.getElementById('bar-2').classList.remove('active');
         document.getElementById('bar-1').classList.remove('done');

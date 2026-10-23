@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -163,6 +164,53 @@ class SuggestionAuthController extends Controller
 return redirect()
     ->route('suggestion.dashboard')
     ->with('status', "Selamat datang, {$user->name}!");
+    }
+
+    // ================================================================
+    // LOGIN VIA NIK (tanpa OTP) — alternatif dari login email+OTP
+    // ================================================================
+    public function loginByNik(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'nik' => ['required'],
+        ], [
+            'nik.required' => 'NIK wajib diisi.',
+        ]);
+
+        $nik = trim($request->nik);
+
+        $employee = Employee::where('nik', $nik)->first();
+
+        if (!$employee) {
+            throw ValidationException::withMessages([
+                'nik' => 'NIK tidak ditemukan. Hubungi HR/IT jika ada masalah.',
+            ]);
+        }
+
+        $user = User::where('email', $employee->email)->first();
+
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'nik' => 'Akun sistem untuk karyawan ini belum tersedia. Hubungi HR/IT.',
+            ]);
+        }
+
+        $user->update([
+            'last_login' => now(),
+            'last_ip'    => $request->ip(),
+        ]);
+
+        $dept = $user->departments->pluck('name')->toArray();
+
+        Session::put('suggestion_user_id',    $user->id);
+        Session::put('suggestion_user_name',  $employee->name);
+        Session::put('suggestion_user_email', $user->email);
+        Session::put('suggestion_dept', $dept);
+        Session::regenerate();
+
+        return redirect()
+            ->route('suggestion.dashboard')
+            ->with('status', "Selamat datang, {$employee->name}!");
     }
 
     // ================================================================
