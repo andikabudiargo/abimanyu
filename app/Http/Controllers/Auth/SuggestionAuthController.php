@@ -235,11 +235,18 @@ return redirect()
             'suggestion_user_id',
             'suggestion_user_name',
             'suggestion_user_email',
+            'suggestion_dept',
         ]);
 
-        Session::regenerate();
+        // Sesi suggestion mengikuti login utama (lihat showLogin()), jadi
+        // logout di sini juga harus mengakhiri login utama, kalau tidak
+        // showLogin() akan langsung membuat ulang sesi suggestion-nya.
+        Auth::guard('web')->logout();
 
-        return redirect()->route('suggestion.login')
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')
             ->with('status', 'Anda telah berhasil keluar.');
     }
 

@@ -40,7 +40,7 @@ class SuggestionController extends Controller
 
     private function isImprovement(User $user): bool
     {
-        return strtolower($user->departments->first()?->name) === 'improvement';
+        return $user->departments->contains('name', 'Management Representative');
     }
 
     private function isSpv(User $user): bool
