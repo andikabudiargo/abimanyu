@@ -181,7 +181,7 @@ input[type=number] {
 }
 </style>
 </head>
-<body class="bg-gray-100 text-gray-900 min-h-screen">
+<body class="bg-slate-100 text-slate-900 min-h-screen">
 
 {{-- ═══════════════ TOP NAV ═══════════════ --}}
 <nav class="bg-[#1e3a5f] sticky top-0 z-50 shadow-md">
@@ -230,14 +230,14 @@ input[type=number] {
 
 {{-- ═══════════════ SUB NAV (Improvement & Manager) ═══════════════ --}}
 @if($isImprovement || $isManager || $isSpv)
-<div class="bg-white border-b border-gray-200 sticky top-14 z-40 shadow-sm">
+<div class="bg-white border-b border-slate-200 sticky top-14 z-40 shadow-sm">
     <div class="max-w-screen-xl mx-auto px-2 sm:px-4">
         <div class="flex items-center justify-around sm:justify-start gap-0 overflow-x-auto scrollbar-none">
 
             {{-- DASHBOARD --}}
             <button id="subnav-overview"
                 class="subnav-btn shrink-0 flex items-center justify-center sm:justify-start gap-0 sm:gap-1.5
-                       px-3 sm:px-3.5 py-3 text-xs font-medium text-gray-500
+                       px-3 sm:px-3.5 py-3 text-xs font-medium text-slate-500
                        border-b-2 border-transparent -mb-px transition-all whitespace-nowrap active"
                 onclick="switchSubnav('overview')">
 
@@ -256,7 +256,7 @@ input[type=number] {
             {{-- ANALYTICS --}}
             <button id="subnav-analytics"
                 class="subnav-btn shrink-0 flex items-center justify-center sm:justify-start gap-0 sm:gap-1.5
-                       px-3 sm:px-3.5 py-3 text-xs font-medium text-gray-500
+                       px-3 sm:px-3.5 py-3 text-xs font-medium text-slate-500
                        border-b-2 border-transparent -mb-px transition-all whitespace-nowrap"
                 onclick="switchSubnav('analytics')">
 
@@ -275,7 +275,7 @@ input[type=number] {
             {{-- PERIODE --}}
             <button id="subnav-periods"
                 class="subnav-btn shrink-0 flex items-center justify-center sm:justify-start gap-0 sm:gap-1.5
-                       px-3 sm:px-3.5 py-3 text-xs font-medium text-gray-500
+                       px-3 sm:px-3.5 py-3 text-xs font-medium text-slate-500
                        border-b-2 border-transparent -mb-px transition-all whitespace-nowrap"
                 onclick="switchSubnav('periods')">
 
@@ -294,7 +294,7 @@ input[type=number] {
             {{-- PENILAIAN --}}
             <button id="subnav-formula"
                 class="subnav-btn shrink-0 flex items-center justify-center sm:justify-start gap-0 sm:gap-1.5
-                       px-3 sm:px-3.5 py-3 text-xs font-medium text-gray-500
+                       px-3 sm:px-3.5 py-3 text-xs font-medium text-slate-500
                        border-b-2 border-transparent -mb-px transition-all whitespace-nowrap"
                 onclick="switchSubnav('formula')">
 
@@ -569,7 +569,7 @@ input[type=number] {
 <div class="tab-pane active" id="pane-overview">
 
   {{-- WRAPPER CARD --}}
-<div class="bg-white shadow-sm overflow-hidden rounded-xl">
+<div class="bg-white border border-slate-200 shadow-sm overflow-hidden rounded-xl">
 
   {{-- ── HEADER ACCORDION ── --}}
   <div id="accordion-header"
@@ -869,26 +869,26 @@ input[type=number] {
 </div>
 
         {{-- Top SS + Top Dept --}}
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                    <div class="text-xs font-semibold text-gray-800">Top SS by Score</div>
-                    <span class="text-[10px] text-gray-400">SS dengan nilai tertinggi</span>
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                    <div class="text-xs font-semibold text-slate-800">Top SS by Score</div>
+                    <span class="text-[10px] text-slate-400">SS dengan nilai tertinggi</span>
                 </div>
                 <div class="p-4 space-y-3">
                     @forelse($topSS ?? [] as $idx => $ss)
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-bold text-gray-300 w-4">{{ $idx+1 }}</span>
+                        <span class="text-[10px] font-bold text-slate-300 w-4">{{ $idx+1 }}</span>
                         <div class="flex-1 min-w-0">
-                            <div class="text-xs font-medium text-gray-700 truncate">{{ $ss->theme }}</div>
-                            <div class="text-[10px] text-gray-400">{{ $ss->departments->name }} — {{ $ss->user->name }}</div>
+                            <div class="text-xs font-medium text-slate-700 truncate">{{ $ss->theme }}</div>
+                            <div class="text-[10px] text-slate-400">{{ $ss->departments->name }} — {{ $ss->user->name }}</div>
                         </div>
-                        <div class="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden shrink-0">
+                        <div class="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden shrink-0">
                             <div class="h-full bg-[#1e3a5f] rounded-full" style="width:{{ $ss->score_total }}%"></div>
                         </div>
-                        <span class="text-xs font-bold text-gray-800 w-8 text-right">{{ number_format($ss->score_total,1) }}</span>
+                        <span class="text-xs font-bold text-slate-800 w-8 text-right">{{ number_format($ss->score_total,1) }}</span>
                     </div>
                     @empty
-                    <p class="text-xs text-gray-400 py-4 text-center">Belum ada SS yang dinilai.</p>
+                    <p class="text-xs text-slate-400 py-4 text-center">Belum ada SS yang dinilai.</p>
                     @endforelse
                 </div>
             </div>
@@ -945,21 +945,21 @@ input[type=number] {
             <div class="px-5 py-3.5 border-b border-slate-100 text-[11px] font-bold uppercase tracking-widest text-slate-500">Daftar Periode</div>
 
             {{-- Mobile card list --}}
-            <div class="divide-y divide-gray-50 sm:hidden">
+            <div class="divide-y divide-slate-50 sm:hidden">
                 @forelse($periods ?? [] as $period)
                 <div class="p-4">
                     <div class="flex items-start justify-between gap-2 mb-2">
                         <div>
-                            <div class="text-xs font-semibold text-gray-800">{{ $period->name }}</div>
-                            <div class="text-[10px] text-gray-400 mt-0.5">
+                            <div class="text-xs font-semibold text-slate-800">{{ $period->name }}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">
                                 {{ \Carbon\Carbon::parse($period->start_date)->format('d M Y') }} — {{ \Carbon\Carbon::parse($period->end_date)->format('d M Y') }}
                             </div>
-                            <div class="text-[10px] text-gray-400">Max: {{ $period->max_submissions ?? 'Tidak terbatas' }}</div>
+                            <div class="text-[10px] text-slate-400">Max: {{ $period->max_submissions ?? 'Tidak terbatas' }}</div>
                         </div>
                         @if($period->is_active)
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-green-100 text-green-700 shrink-0">Aktif</span>
                         @else
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 shrink-0">Non-aktif</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 shrink-0">Non-aktif</span>
                         @endif
                     </div>
                     <div class="flex items-center gap-2">
@@ -983,7 +983,7 @@ input[type=number] {
                     </div>
                 </div>
                 @empty
-                <div class="p-8 text-center text-xs text-gray-400">Belum ada periode.</div>
+                <div class="p-8 text-center text-xs text-slate-400">Belum ada periode.</div>
                 @endforelse
             </div>
 
@@ -991,30 +991,30 @@ input[type=number] {
             <div class="hidden sm:block tbl-scroll">
                 <table class="w-full border-collapse text-xs">
                     <thead>
-                        <tr class="bg-gray-50">
-                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-500 border-b border-gray-200">Nama</th>
-                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-500 border-b border-gray-200">Mulai</th>
-                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-500 border-b border-gray-200">Tutup</th>
-                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-500 border-b border-gray-200">Max Submit</th>
-                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-500 border-b border-gray-200">Status</th>
-                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-500 border-b border-gray-200">Aksi</th>
+                        <tr class="bg-slate-50">
+                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">Nama</th>
+                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">Mulai</th>
+                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">Tutup</th>
+                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">Max Submit</th>
+                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">Status</th>
+                            <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($periods ?? [] as $period)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 border-b border-gray-50 font-medium text-gray-800">{{ $period->name }}</td>
-                            <td class="px-4 py-3 border-b border-gray-50 text-gray-600">{{ \Carbon\Carbon::parse($period->start_date)->format('d M Y') }}</td>
-                            <td class="px-4 py-3 border-b border-gray-50 text-gray-600">{{ \Carbon\Carbon::parse($period->end_date)->format('d M Y') }}</td>
-                            <td class="px-4 py-3 border-b border-gray-50 text-gray-600">{{ $period->max_submissions ?? 'Tidak terbatas' }}</td>
-                            <td class="px-4 py-3 border-b border-gray-50">
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 border-b border-slate-50 font-medium text-slate-800">{{ $period->name }}</td>
+                            <td class="px-4 py-3 border-b border-slate-50 text-slate-600">{{ \Carbon\Carbon::parse($period->start_date)->format('d M Y') }}</td>
+                            <td class="px-4 py-3 border-b border-slate-50 text-slate-600">{{ \Carbon\Carbon::parse($period->end_date)->format('d M Y') }}</td>
+                            <td class="px-4 py-3 border-b border-slate-50 text-slate-600">{{ $period->max_submissions ?? 'Tidak terbatas' }}</td>
+                            <td class="px-4 py-3 border-b border-slate-50">
                                 @if($period->is_active)
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-green-100 text-green-700">Aktif</span>
                                 @else
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600">Non-aktif</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">Non-aktif</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 border-b border-gray-50">
+                            <td class="px-4 py-3 border-b border-slate-50">
                                 <div class="flex items-center gap-2">
                                     @if(!$period->is_active)
                                     <form method="POST" action="{{ route('suggestion.improvement.period.update',$period->id) }}">
@@ -1037,7 +1037,7 @@ input[type=number] {
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="6" class="text-center py-8 text-gray-400 text-xs">Belum ada periode.</td></tr>
+                        <tr><td colspan="6" class="text-center py-8 text-slate-400 text-xs">Belum ada periode.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -1059,8 +1059,8 @@ input[type=number] {
 
         {{-- ── Section: Formula Aktif ── --}}
         <div class="flex items-center gap-3 mb-3">
-            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Formula Aktif</span>
-            <div class="flex-1 h-px bg-gray-200"></div>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Formula Aktif</span>
+            <div class="flex-1 h-px bg-slate-200"></div>
         </div>
 
         @if($activeFormula)
@@ -1071,8 +1071,8 @@ input[type=number] {
                  onclick="toggleFormula({{ $activeFormula->id }})">
                 <div class="flex items-center gap-2.5 flex-1 min-w-0">
                     <div class="flex-1 min-w-0">
-                        <div class="text-sm font-semibold text-gray-900">{{ $activeFormula->name }}</div>
-                        <div class="text-[10px] text-gray-500 mt-0.5">
+                        <div class="text-sm font-semibold text-slate-900">{{ $activeFormula->name }}</div>
+                        <div class="text-[10px] text-slate-500 mt-0.5">
                             Dibuat {{ $activeFormula->created_at->format('d M Y') }}
                             · {{ $activeFormula->items->count() }} item
                             · {{ $activeFormula->tiers->count() }} tier reward
@@ -1092,8 +1092,8 @@ input[type=number] {
                         @csrf @method('PATCH')
                     </form>
                     <button onclick="toggleFormula({{ $activeFormula->id }})"
-                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
-                        <svg id="chevron-{{ $activeFormula->id }}" class="w-3.5 h-3.5 text-gray-400 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
+                        <svg id="chevron-{{ $activeFormula->id }}" class="w-3.5 h-3.5 text-slate-400 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9" stroke-width="1.5"/>
                         </svg>
                     </button>
@@ -1106,42 +1106,42 @@ input[type=number] {
             </div>
         </div>
         @else
-        <div class="bg-white border border-dashed border-gray-300 rounded-xl p-8 text-center mb-4">
-            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white border border-dashed border-slate-300 rounded-xl p-8 text-center mb-4">
+            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3" stroke-width="1.5"/>
                     <path d="M14 2l6 6m0 0l-6 6" stroke-width="1.5"/>
                 </svg>
             </div>
-            <div class="text-sm font-medium text-gray-600 mb-1">Tidak ada formula aktif</div>
-            <div class="text-xs text-gray-400">Aktifkan formula dari daftar di bawah atau buat yang baru.</div>
+            <div class="text-sm font-medium text-slate-600 mb-1">Tidak ada formula aktif</div>
+            <div class="text-xs text-slate-400">Aktifkan formula dari daftar di bawah atau buat yang baru.</div>
         </div>
         @endif
 
         {{-- ── Section: Formula Lainnya ── --}}
         @if($inactiveFormulas->count() > 0)
         <div class="flex items-center gap-3 my-4">
-            <div class="flex-1 h-px bg-gray-200"></div>
-            <span class="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Formula Lainnya</span>
-            <div class="flex-1 h-px bg-gray-200"></div>
+            <div class="flex-1 h-px bg-slate-200"></div>
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Formula Lainnya</span>
+            <div class="flex-1 h-px bg-slate-200"></div>
         </div>
 
         <div class="space-y-3 mb-4">
             @foreach($inactiveFormulas as $formula)
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm" id="formula-card-{{ $formula->id }}">
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm" id="formula-card-{{ $formula->id }}">
 
-                <div class="flex items-center justify-between gap-3 px-4 py-3.5 bg-gray-50 rounded-t-xl cursor-pointer"
+                <div class="flex items-center justify-between gap-3 px-4 py-3.5 bg-slate-50 rounded-t-xl cursor-pointer"
                      onclick="toggleFormula({{ $formula->id }})">
                     <div class="flex-1 min-w-0">
-                        <div class="text-sm font-medium text-gray-600">{{ $formula->name }}</div>
-                        <div class="text-[10px] text-gray-400 mt-0.5">
+                        <div class="text-sm font-medium text-slate-600">{{ $formula->name }}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">
                             Dibuat {{ $formula->created_at->format('d M Y') }}
                             · {{ $formula->items->count() }} item
                             · {{ $formula->tiers->count() }} tier
                         </div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0" onclick="event.stopPropagation()">
-                        <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-500">Non-aktif</span>
+                        <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500">Non-aktif</span>
                         <button onclick="confirmActivateFormula({{ $formula->id }}, '{{ $formula->name }}')"
                             class="px-2.5 py-1.5 text-[11px] font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors">
                             Aktifkan
@@ -1157,8 +1157,8 @@ input[type=number] {
                             @csrf @method('DELETE')
                         </form>
                         <button onclick="toggleFormula({{ $formula->id }})"
-                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
-                            <svg id="chevron-{{ $formula->id }}" class="w-3.5 h-3.5 text-gray-400 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
+                            <svg id="chevron-{{ $formula->id }}" class="w-3.5 h-3.5 text-slate-400 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <polyline points="6 9 12 15 18 9" stroke-width="1.5"/>
                             </svg>
                         </button>
@@ -1167,8 +1167,8 @@ input[type=number] {
 
                 <div class="collapse-body" id="formula-detail-{{ $formula->id }}">
                     @include('formula_detail', ['formula' => $formula])
-                    <div class="flex items-center justify-between gap-3 px-4 py-3 bg-gray-50 border-t border-gray-100 rounded-b-xl flex-wrap">
-                        <span class="text-xs text-gray-400">Mengaktifkan formula ini akan menonaktifkan yang sedang aktif.</span>
+                    <div class="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 border-t border-slate-100 rounded-b-xl flex-wrap">
+                        <span class="text-xs text-slate-400">Mengaktifkan formula ini akan menonaktifkan yang sedang aktif.</span>
                         <button onclick="confirmActivateFormula({{ $formula->id }}, '{{ $formula->name }}')"
                             class="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors">
                             Aktifkan Formula Ini
@@ -1182,15 +1182,15 @@ input[type=number] {
 
         {{-- ── Section: Buat Formula Baru ── --}}
         <div class="flex items-center gap-3 my-4">
-            <div class="flex-1 h-px bg-gray-200"></div>
-            <span class="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Buat Formula Baru</span>
-            <div class="flex-1 h-px bg-gray-200"></div>
+            <div class="flex-1 h-px bg-slate-200"></div>
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Buat Formula Baru</span>
+            <div class="flex-1 h-px bg-slate-200"></div>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-            <div class="px-4 py-3.5 border-b border-gray-100">
-                <div class="text-xs font-semibold text-gray-800">Form Pembuatan Formula Penilaian</div>
-                <div class="text-[10px] text-gray-400 mt-0.5">Isi item penilaian, kriteria range point, dan tier reward.</div>
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div class="px-4 py-3.5 border-b border-slate-100">
+                <div class="text-xs font-semibold text-slate-800">Form Pembuatan Formula Penilaian</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">Isi item penilaian, kriteria range point, dan tier reward.</div>
             </div>
             <div class="p-4">
                 <form id="formula-form" onsubmit="return false;">
@@ -1199,8 +1199,8 @@ input[type=number] {
                     {{-- Nama Formula --}}
                     <div class="flex flex-col sm:flex-row sm:items-end gap-3 mb-5">
                         <div class="flex-1">
-                            <label class="block text-[11px] font-medium text-gray-600 mb-1">Nama Formula *</label>
-                            <input type="text" name="name" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#1e3a5f] transition-colors" placeholder="Formula Penilaian SS 2026" required/>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1">Nama Formula *</label>
+                            <input type="text" name="name" class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#1e3a5f] transition-colors" placeholder="Formula Penilaian SS 2026" required/>
                         </div>
                         <label class="flex items-center gap-2 text-xs cursor-pointer pb-0.5">
                             <input type="checkbox" name="is_active" value="1" checked class="accent-[#1e3a5f] w-3.5 h-3.5"/>
@@ -1211,41 +1211,41 @@ input[type=number] {
                     {{-- Item Penilaian --}}
                     <div class="mb-5">
                         <div class="flex items-center justify-between mb-3">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Item Penilaian + Kriteria</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Item Penilaian + Kriteria</div>
                             <button type="button" onclick="addItemBlock()"
-                                class="flex items-center gap-1 px-3 py-1.5 text-[11px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                class="flex items-center gap-1 px-3 py-1.5 text-[11px] font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
                                 + Tambah Item
                             </button>
                         </div>
                         <div id="item-container" class="space-y-3">
-                            <div class="item-block border border-gray-200 rounded-xl p-4">
+                            <div class="item-block border border-slate-200 rounded-xl p-4">
                                 <div class="flex gap-2 items-center mb-3">
                                     <input type="text" name="items[0][item_name]"
-                                        class="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#1e3a5f] transition-colors"
+                                        class="flex-1 text-xs border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-[#1e3a5f] transition-colors"
                                         placeholder="Nama Item (contoh: Quality)" required/>
                                     <button type="button" onclick="removeItem(this)"
                                         class="w-8 h-8 flex items-center justify-center text-red-500 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors text-sm font-bold shrink-0">✕</button>
                                 </div>
                                 {{-- Kriteria header (desktop) --}}
                                 <div class="hidden sm:grid grid-cols-[80px_70px_70px_1fr_32px] gap-2 mb-2 px-1">
-                                    <span class="text-[10px] font-semibold text-gray-400">Grade</span>
-                                    <span class="text-[10px] font-semibold text-gray-400">Min</span>
-                                    <span class="text-[10px] font-semibold text-gray-400">Max</span>
-                                    <span class="text-[10px] font-semibold text-gray-400">Deskripsi</span>
+                                    <span class="text-[10px] font-semibold text-slate-400">Grade</span>
+                                    <span class="text-[10px] font-semibold text-slate-400">Min</span>
+                                    <span class="text-[10px] font-semibold text-slate-400">Max</span>
+                                    <span class="text-[10px] font-semibold text-slate-400">Deskripsi</span>
                                     <span></span>
                                 </div>
                                 <div class="criteria-container space-y-2">
                                     <div class="criteria-row grid grid-cols-2 sm:grid-cols-[80px_70px_70px_1fr_32px] gap-2">
-                                        <input type="text" name="items[0][criterias][0][grade]" class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Grade (A)" required/>
-                                        <input type="number" name="items[0][criterias][0][min_point]" class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Min" min="1" required/>
-                                        <input type="number" name="items[0][criterias][0][max_point]" class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Max" min="1" required/>
-                                        <input type="text" name="items[0][criterias][0][description]" class="col-span-2 sm:col-span-1 text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Deskripsi kriteria" required/>
+                                        <input type="text" name="items[0][criterias][0][grade]" class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Grade (A)" required/>
+                                        <input type="number" name="items[0][criterias][0][min_point]" class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Min" min="1" required/>
+                                        <input type="number" name="items[0][criterias][0][max_point]" class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Max" min="1" required/>
+                                        <input type="text" name="items[0][criterias][0][description]" class="col-span-2 sm:col-span-1 text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Deskripsi kriteria" required/>
                                         <button type="button" onclick="removeCriteria(this)"
                                             class="w-8 h-8 flex items-center justify-center text-red-400 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors text-sm">✕</button>
                                     </div>
                                 </div>
                                 <button type="button" onclick="addCriteriaRow(this)"
-                                    class="mt-2 flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-gray-500 hover:text-gray-700 transition-colors">
+                                    class="mt-2 flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 transition-colors">
                                     + Tambah Kriteria
                                 </button>
                             </div>
@@ -1255,23 +1255,23 @@ input[type=number] {
                     {{-- Tier Reward --}}
                     <div class="mb-5">
                         <div class="flex items-center justify-between mb-3">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Tier Reward</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tier Reward</div>
                             <button type="button" onclick="addTierRow()"
-                                class="flex items-center gap-1 px-3 py-1.5 text-[11px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                class="flex items-center gap-1 px-3 py-1.5 text-[11px] font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
                                 + Tambah Tier
                             </button>
                         </div>
                         <div class="hidden sm:grid grid-cols-[1fr_1fr_1fr_32px] gap-2 mb-2 px-1">
-                            <span class="text-[10px] font-semibold text-gray-400">Min Avg</span>
-                            <span class="text-[10px] font-semibold text-gray-400">Max Avg</span>
-                            <span class="text-[10px] font-semibold text-gray-400">Reward (Rp)</span>
+                            <span class="text-[10px] font-semibold text-slate-400">Min Avg</span>
+                            <span class="text-[10px] font-semibold text-slate-400">Max Avg</span>
+                            <span class="text-[10px] font-semibold text-slate-400">Reward (Rp)</span>
                             <span></span>
                         </div>
                         <div id="tier-container" class="space-y-2">
                             <div class="tier-row grid grid-cols-2 sm:grid-cols-[1fr_1fr_1fr_32px] gap-2">
-                                <input type="number" name="tiers[0][min_score]" class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Min Avg" required/>
-                                <input type="number" name="tiers[0][max_score]" class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Max Avg" required/>
-                                <input type="number" name="tiers[0][reward_amount]" class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Contoh: 150000" required/>
+                                <input type="number" name="tiers[0][min_score]" class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Min Avg" required/>
+                                <input type="number" name="tiers[0][max_score]" class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Max Avg" required/>
+                                <input type="number" name="tiers[0][reward_amount]" class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Contoh: 150000" required/>
                                 <button type="button" onclick="removeTier(this)"
                                     class="w-8 h-8 flex items-center justify-center text-red-400 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors text-sm">✕</button>
                             </div>
@@ -1280,8 +1280,8 @@ input[type=number] {
 
                     {{-- Catatan --}}
                     <div class="mb-5">
-                        <label class="block text-[11px] font-medium text-gray-600 mb-1">Catatan (opsional)</label>
-                        <input type="text" name="notes" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#1e3a5f] transition-colors" placeholder="Contoh: Berlaku mulai Q1 2026"/>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">Catatan (opsional)</label>
+                        <input type="text" name="notes" class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#1e3a5f] transition-colors" placeholder="Contoh: Berlaku mulai Q1 2026"/>
                     </div>
 
                     <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-[#1e3a5f] text-white text-xs font-semibold rounded-lg hover:bg-[#162d4a] transition-colors">
@@ -1297,48 +1297,48 @@ input[type=number] {
 
 {{-- ═══════════════ SPV MODAL ═══════════════ --}}
 <div id="spv-modal" class="hidden fixed inset-0 bg-black/50 z-[500] flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full sm:w-[440px] sm:max-w-[92vw] max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-xl border border-gray-200 shadow-xl">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <div class="text-sm font-semibold text-gray-900">
+    <div class="bg-white w-full sm:w-[440px] sm:max-w-[92vw] max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-xl border border-slate-200 shadow-xl">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div class="text-sm font-semibold text-slate-900">
                 Review SS — <span id="spv-ss-num" class="text-[#1e3a5f] font-mono"></span>
             </div>
-            <button onclick="closeModal('spv-modal')" class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
+            <button onclick="closeModal('spv-modal')" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke-width="2"/></svg>
             </button>
         </div>
         <form id="spv-form" method="POST">
             @csrf
             <div class="p-5">
-                <label class="block text-[11px] font-medium text-gray-600 mb-2">Keputusan *</label>
+                <label class="block text-[11px] font-medium text-slate-600 mb-2">Keputusan *</label>
                 <div class="grid grid-cols-3 gap-2 mb-4">
                     <div id="dt-approve" onclick="selectDecision('approve')"
-                        class="decision-tile flex flex-col items-center gap-1 p-3 border border-gray-200 rounded-xl cursor-pointer text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all">
+                        class="decision-tile flex flex-col items-center gap-1 p-3 border border-slate-200 rounded-xl cursor-pointer text-xs font-semibold text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all">
                         <input type="radio" name="action" value="approve" id="r-approve" class="hidden"/>
                         <span class="text-lg">✓</span> Setujui
                     </div>
                     <div id="dt-return" onclick="selectDecision('return')"
-                        class="decision-tile flex flex-col items-center gap-1 p-3 border border-gray-200 rounded-xl cursor-pointer text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all">
+                        class="decision-tile flex flex-col items-center gap-1 p-3 border border-slate-200 rounded-xl cursor-pointer text-xs font-semibold text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all">
                         <input type="radio" name="action" value="return" id="r-return" class="hidden"/>
                         <span class="text-lg">↩</span> Kembalikan
                     </div>
                     <div id="dt-reject" onclick="selectDecision('reject')"
-                        class="decision-tile flex flex-col items-center gap-1 p-3 border border-gray-200 rounded-xl cursor-pointer text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all">
+                        class="decision-tile flex flex-col items-center gap-1 p-3 border border-slate-200 rounded-xl cursor-pointer text-xs font-semibold text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all">
                         <input type="radio" name="action" value="reject" id="r-reject" class="hidden"/>
                         <span class="text-lg">✕</span> Tolak
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-medium text-gray-600 mb-1">
+                    <label class="block text-[11px] font-medium text-slate-600 mb-1">
                         Catatan <span id="note-req" class="text-red-500 hidden">*</span>
                     </label>
                     <textarea name="note" id="spv-note" rows="3"
-                        class="w-full text-xs border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-[#1e3a5f] resize-none transition-colors"
+                        class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-[#1e3a5f] resize-none transition-colors"
                         placeholder="Tuliskan alasan atau catatan untuk pengaju..."></textarea>
                 </div>
             </div>
-            <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-100 bg-gray-50 rounded-b-xl sm:rounded-b-xl">
+            <div class="flex justify-end gap-2 px-5 py-4 border-t border-slate-100 bg-slate-50 rounded-b-xl sm:rounded-b-xl">
                 <button type="button" onclick="closeModal('spv-modal')"
-                    class="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    class="px-4 py-2 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
                     Batal
                 </button>
                 <button
@@ -3094,13 +3094,13 @@ function switchTab(tab, el) {
 function switchSubnav(tab) {
     document.querySelectorAll('.subnav-btn').forEach(b => {
         b.classList.remove('active','text-[#1e3a5f]','border-[#1e3a5f]','font-semibold');
-        b.classList.add('text-gray-500','border-transparent');
+        b.classList.add('text-slate-500','border-transparent');
     });
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     const btn = document.getElementById('subnav-' + tab);
     if (btn) {
         btn.classList.add('active','text-[#1e3a5f]','border-[#1e3a5f]','font-semibold');
-        btn.classList.remove('text-gray-500','border-transparent');
+        btn.classList.remove('text-slate-500','border-transparent');
     }
     document.getElementById('pane-' + tab)?.classList.add('active');
     if (tab === 'analytics') initCharts();
@@ -3108,7 +3108,7 @@ function switchSubnav(tab) {
 // Style active subnav on load
 document.querySelectorAll('.subnav-btn.active').forEach(b => {
     b.classList.add('text-[#1e3a5f]','border-[#1e3a5f]','font-semibold');
-    b.classList.remove('text-gray-500','border-transparent');
+    b.classList.remove('text-slate-500','border-transparent');
 });
 
 // ── Filter table ──
@@ -3184,7 +3184,7 @@ function openSpvDecision(id, ssNum) {
     'border-red-500','bg-red-50','text-red-700'
 );
 
-        tile.classList.add('border-gray-200','text-gray-600');
+        tile.classList.add('border-slate-200','text-slate-600');
         document.getElementById('r-' + action).checked = false;
     });
 
@@ -3207,7 +3207,7 @@ function selectDecision(action) {
             'border-red-500','bg-red-50','text-red-700'
         );
 
-        tile.classList.add('border-gray-200','text-gray-600');
+        tile.classList.add('border-slate-200','text-slate-600');
         radio.checked = false;
     });
 
@@ -3491,30 +3491,30 @@ let tierCount  = document.querySelectorAll('.tier-row').length  || 1;
 
 function buildCriteriaRow(ii, ci) {
     return `<div class="criteria-row grid grid-cols-2 sm:grid-cols-[80px_70px_70px_1fr_32px] gap-2">
-        <input type="text"   name="items[${ii}][criterias][${ci}][grade]"       class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Grade" required/>
-        <input type="number" name="items[${ii}][criterias][${ci}][min_point]"   class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Min" min="1" required/>
-        <input type="number" name="items[${ii}][criterias][${ci}][max_point]"   class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Max" min="1" required/>
-        <input type="text"   name="items[${ii}][criterias][${ci}][description]" class="col-span-2 sm:col-span-1 text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Deskripsi" required/>
+        <input type="text"   name="items[${ii}][criterias][${ci}][grade]"       class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Grade" required/>
+        <input type="number" name="items[${ii}][criterias][${ci}][min_point]"   class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Min" min="1" required/>
+        <input type="number" name="items[${ii}][criterias][${ci}][max_point]"   class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Max" min="1" required/>
+        <input type="text"   name="items[${ii}][criterias][${ci}][description]" class="col-span-2 sm:col-span-1 text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Deskripsi" required/>
         <button type="button" onclick="removeCriteria(this)" class="w-8 h-8 flex items-center justify-center text-red-400 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 text-sm">✕</button>
     </div>`;
 }
 function addItemBlock() {
     const i = itemCount++;
     document.getElementById('item-container').insertAdjacentHTML('beforeend', `
-    <div class="item-block border border-gray-200 rounded-xl p-4">
+    <div class="item-block border border-slate-200 rounded-xl p-4">
         <div class="flex gap-2 items-center mb-3">
-            <input type="text" name="items[${i}][item_name]" class="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Nama Item" required/>
+            <input type="text" name="items[${i}][item_name]" class="flex-1 text-xs border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Nama Item" required/>
             <button type="button" onclick="removeItem(this)" class="w-8 h-8 flex items-center justify-center text-red-500 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 text-sm font-bold shrink-0">✕</button>
         </div>
         <div class="hidden sm:grid grid-cols-[80px_70px_70px_1fr_32px] gap-2 mb-2 px-1">
-            <span class="text-[10px] font-semibold text-gray-400">Grade</span>
-            <span class="text-[10px] font-semibold text-gray-400">Min</span>
-            <span class="text-[10px] font-semibold text-gray-400">Max</span>
-            <span class="text-[10px] font-semibold text-gray-400">Deskripsi</span>
+            <span class="text-[10px] font-semibold text-slate-400">Grade</span>
+            <span class="text-[10px] font-semibold text-slate-400">Min</span>
+            <span class="text-[10px] font-semibold text-slate-400">Max</span>
+            <span class="text-[10px] font-semibold text-slate-400">Deskripsi</span>
             <span></span>
         </div>
         <div class="criteria-container space-y-2">${buildCriteriaRow(i,0)}</div>
-        <button type="button" onclick="addCriteriaRow(this)" class="mt-2 flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-gray-500 hover:text-gray-700 transition-colors">+ Tambah Kriteria</button>
+        <button type="button" onclick="addCriteriaRow(this)" class="mt-2 flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 transition-colors">+ Tambah Kriteria</button>
     </div>`);
 }
 function addCriteriaRow(btn) {
@@ -3541,9 +3541,9 @@ function addTierRow() {
     const i = tierCount++;
     document.getElementById('tier-container').insertAdjacentHTML('beforeend', `
     <div class="tier-row grid grid-cols-2 sm:grid-cols-[1fr_1fr_1fr_32px] gap-2">
-        <input type="number" name="tiers[${i}][min_score]"    class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Min Avg" required/>
-        <input type="number" name="tiers[${i}][max_score]"    class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Max Avg" required/>
-        <input type="number" name="tiers[${i}][reward_amount]" class="text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Reward (Rp)" required/>
+        <input type="number" name="tiers[${i}][min_score]"    class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Min Avg" required/>
+        <input type="number" name="tiers[${i}][max_score]"    class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Max Avg" required/>
+        <input type="number" name="tiers[${i}][reward_amount]" class="text-xs border border-slate-200 rounded-lg px-2.5 py-2 outline-none focus:border-[#1e3a5f]" placeholder="Reward (Rp)" required/>
         <button type="button" onclick="removeTier(this)" class="w-8 h-8 flex items-center justify-center text-red-400 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 text-sm">✕</button>
     </div>`);
 }
