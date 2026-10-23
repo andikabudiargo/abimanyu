@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
@@ -30,6 +31,18 @@ class SuggestionAuthController extends Controller
     if (Session::has('suggestion_user_id')) {
 
         $dept = Session::get('suggestion_dept', []);
+
+        return redirect()->route('suggestion.dashboard');
+    }
+
+    // Sudah login di sistem utama → pakai sesi itu, tidak perlu login ulang
+    if (Auth::check()) {
+        $user = Auth::user();
+
+        Session::put('suggestion_user_id',    $user->id);
+        Session::put('suggestion_user_name',  $user->name);
+        Session::put('suggestion_user_email', $user->email);
+        Session::put('suggestion_dept', $user->departments->pluck('name')->toArray());
 
         return redirect()->route('suggestion.dashboard');
     }
