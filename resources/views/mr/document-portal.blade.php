@@ -290,7 +290,7 @@ function renderDetail() {
 
     let overviewHtml = '<table class="review-table">'
         + '<tr><td class="r-key">Departemen</td><td class="r-val">' + esc(d.department || '-') + '</td></tr>'
-        + '<tr><td class="r-key">Tipe Dokumen</td><td class="r-val">' + esc(d.document_type || '-') + '</td></tr>'
+        + '<tr><td class="r-key">Tipe Dokumen</td><td class="r-val" style="text-transform:uppercase;">' + esc(d.document_type || '-') + '</td></tr>'
         + '<tr><td class="r-key">Versi Saat Ini</td><td class="r-val">v' + esc(d.current_version || '00') + '</td></tr>'
         + '<tr><td class="r-key">Diajukan Oleh</td><td class="r-val">' + esc(d.submitted_by) + ' &middot; ' + esc(d.submitted_at) + '</td></tr>'
         + '<tr><td class="r-key">Direvisi Terakhir Oleh</td><td class="r-val">' + esc(d.revised_by) + ' &middot; ' + esc(d.revised_at) + '</td></tr>'

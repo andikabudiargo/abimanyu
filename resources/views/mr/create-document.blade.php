@@ -64,7 +64,7 @@ textarea.f-input { resize: vertical; }
 .type-tile input[type="radio"] { display: none; }
 .type-tile-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #d1d5db; flex-shrink: 0; transition: all .15s; }
 .type-tile.is-selected .type-tile-dot { background: #1e3a5f; border-color: #1e3a5f; }
-.type-tile-label { font-size: 12px; font-weight: 500; color: #374151; }
+.type-tile-label { font-size: 12px; font-weight: 500; color: #374151; text-transform: uppercase; }
 .type-tile.is-selected .type-tile-label { color: #1e3a5f; }
 /* =========================
    COLOR VARIANTS
@@ -454,9 +454,18 @@ textarea.f-input { resize: vertical; }
                     {{-- Only shown for New Release + "Other" --}}
                     <div id="otherTypeWrap" class="hidden mt-3">
                         <label class="f-label">Specify Type <sup>*</sup></label>
+                        <select id="otherTypePreset" class="f-input mb-2">
+                            <option value="">— Pilih dari daftar (opsional) —</option>
+                            <option value="QUALITY CONTROL PROCESS CHART (QCPC)">QUALITY CONTROL PROCESS CHART (QCPC)</option>
+                            <option value="PART INSPECTION STANDARD (PIS)">PART INSPECTION STANDARD (PIS)</option>
+                            <option value="STANDARD PACKING (STDP)">STANDARD PACKING (STDP)</option>
+                            <option value="LIST STANDARD MIXING (LSM)">LIST STANDARD MIXING (LSM)</option>
+                            <option value="PROSES FLOWCHART (PFC)">PROSES FLOWCHART (PFC)</option>
+                            <option value="PROCESS FAILURE AND EFFECT ANALYSIS (PFMEA)">PROCESS FAILURE AND EFFECT ANALYSIS (PFMEA)</option>
+                        </select>
                         <input type="text" name="document_type_other" id="otherInput"
                                placeholder="e.g. Manual Instruction, Module, Guideline..."
-                               class="f-input">
+                               class="f-input" style="text-transform: uppercase;">
                     </div>
                 </div>
 
@@ -1105,6 +1114,12 @@ $(document).ready(function () {
         updateSummary();
     });
 
+    // ── "Other" type preset picks fill the free-text field; user can still edit it ──
+    $(document).on('change', '#otherTypePreset', function () {
+        const v = $(this).val();
+        if (v) $('#otherInput').val(v).trigger('input');
+    });
+
     // ── Document type tile change ──
     $(document).on('change', 'input[name="document_type"]', function () {
         // Skip disabled tiles
@@ -1260,7 +1275,7 @@ $(document).ready(function () {
         let docType = $('input[name="document_type"]:checked').val();
         if (docType === 'other') {
             docType = isNewRelease()
-                ? $('#otherInput').val().trim()
+                ? $('#otherInput').val().trim().toUpperCase()
                 : $('#doc_number_select option:selected').data('type');
         }
         formData.set('document_type', docType);

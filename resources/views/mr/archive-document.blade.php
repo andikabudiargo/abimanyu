@@ -209,7 +209,7 @@
             </div>
             <div>
                 <label class="block text-sm mb-1 font-medium text-gray-700">Document Type</label>
-                   <select id="filter-type" name="document_type" class="status w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                   <select id="filter-type" name="document_type" class="status w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 uppercase">
         <option value="">-- All Document Type --</option>
         <option value="Standard">Standard</option>
         <option value="Work Instructions">Work Instructions</option>
@@ -296,7 +296,7 @@
             <div id="chartDocType"></div>
         </div>
         <div>
-            <h3 class="text-sm font-semibold text-gray-700 mb-2 text-center">Status Sosialisasi Dokumen Registrasi</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-2 text-center">Status Sosialisasi per Jenis Dokumen</h3>
             <div id="chartSocialization"></div>
         </div>
     </div>
@@ -658,14 +658,27 @@ const chartDocType = new ApexCharts(document.querySelector("#chartDocType"), {
     chart: { type: 'bar', height: 300 },
     plotOptions: { bar: { horizontal: true } },
     series: [{ name: 'Jumlah', data: @json($docTypeCounts->values()) }],
-    xaxis: { categories: @json($docTypeCounts->keys()) },
+    xaxis: { categories: @json($docTypeCounts->keys()->map(fn($k) => mb_strtoupper($k))) },
 });
 chartDocType.render();
 
+function buildSocialSeries(data) {
+    const categories = Object.keys(data);
+    return {
+        categories: categories.map(c => c.toUpperCase()),
+        series: [
+            { name: 'Sudah Disosialisasikan', data: categories.map(c => data[c]['Sudah Disosialisasikan'] || 0) },
+            { name: 'Belum Disosialisasikan', data: categories.map(c => data[c]['Belum Disosialisasikan'] || 0) },
+        ],
+    };
+}
+
+const socialInit = buildSocialSeries(@json($socializationCounts));
 const chartSocialization = new ApexCharts(document.querySelector("#chartSocialization"), {
-    chart: { type: 'donut', height: 300 },
-    labels: @json($socializationCounts->keys()),
-    series: @json($socializationCounts->values()),
+    chart: { type: 'bar', height: 300, stacked: true },
+    plotOptions: { bar: { horizontal: false } },
+    series: socialInit.series,
+    xaxis: { categories: socialInit.categories },
     colors: ['#16a34a', '#f59e0b'],
     legend: { position: 'bottom' },
 });
@@ -682,11 +695,12 @@ function reloadChartDashboard() {
         success: function (res) {
             chartDocType.updateOptions({
                 series: [{ name: 'Jumlah', data: Object.values(res.docTypeCounts) }],
-                xaxis: { categories: Object.keys(res.docTypeCounts) },
+                xaxis: { categories: Object.keys(res.docTypeCounts).map(c => c.toUpperCase()) },
             });
+            const social = buildSocialSeries(res.socializationCounts);
             chartSocialization.updateOptions({
-                labels: Object.keys(res.socializationCounts),
-                series: Object.values(res.socializationCounts),
+                series: social.series,
+                xaxis: { categories: social.categories },
             });
         }
     });

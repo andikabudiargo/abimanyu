@@ -133,26 +133,26 @@ private function resolveDepartmentGroup($deptId)
             ->groupBy('document_type')
             ->pluck('total', 'document_type');
 
-        $socialized = 0;
-        $notSocialized = 0;
+        $socializationByType = [];
 
-        (clone $query)->with('copies')->get()->each(function ($registration) use (&$socialized, &$notSocialized) {
-            if ($registration->copies->isEmpty()) {
-                $notSocialized++;
-                return;
+        (clone $query)->with('copies')->get()->each(function ($registration) use (&$socializationByType) {
+            $type = $registration->document_type ?: 'Unknown';
+
+            if (!isset($socializationByType[$type])) {
+                $socializationByType[$type] = ['Sudah Disosialisasikan' => 0, 'Belum Disosialisasikan' => 0];
             }
 
-            $registration->copies->every(fn ($copy) => !is_null($copy->socialization_date))
-                ? $socialized++
-                : $notSocialized++;
+            $isSocialized = $registration->copies->isNotEmpty()
+                && $registration->copies->every(fn ($copy) => !is_null($copy->socialization_date));
+
+            $isSocialized
+                ? $socializationByType[$type]['Sudah Disosialisasikan']++
+                : $socializationByType[$type]['Belum Disosialisasikan']++;
         });
 
         return [
             'docTypeCounts' => $docTypeCounts,
-            'socializationCounts' => collect([
-                'Sudah Disosialisasikan' => $socialized,
-                'Belum Disosialisasikan' => $notSocialized,
-            ]),
+            'socializationCounts' => collect($socializationByType),
         ];
     }
 
@@ -1003,7 +1003,7 @@ $actionButtons .= '</div></div></div>';
 
     $document_type = $row->document_type ?? 'Unknown';
 
-    $commonClasses = 'inline-block w-28 text-center text-xs border font-medium p-1 rounded-xl';
+    $commonClasses = 'inline-block w-28 text-center text-xs border font-medium p-1 rounded-xl uppercase';
 
     return match ($document_type) {
 

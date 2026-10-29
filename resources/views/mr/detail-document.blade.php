@@ -168,7 +168,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 mb-1">Document Type</p>
-                    <p class="text-sm text-gray-800">{{ $document->document_type ?? '-' }}</p>
+                    <p class="text-sm text-gray-800 uppercase">{{ $document->document_type ?? '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 mb-1">Revision No.</p>
