@@ -5,6 +5,16 @@
 @section('breadcrumb-item', 'HR')
 @section('breadcrumb-active', 'Employee Information')
 
+@push('styles')
+<style>
+    /* x-cloak belum punya aturan di layout: tanpa ini elemen ber-x-cloak (tab & tombol Edit)
+       tampil sekilas sebelum Alpine selesai inisialisasi. */
+    [x-cloak] {
+        display: none !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container mx-auto px-4 py-6 bg-white border rounded-lg" x-data="{ activeTab: 'personal' }">
 
@@ -214,9 +224,11 @@
         </div>
     </div>
 
-    {{-- Aksi bawah: selalu terlihat di luar tab. Tombol Edit mengikuti gaya + Add Employee pada halaman list. --}}
+    {{-- Aksi bawah: selalu terlihat di luar tab. Tombol Edit mengikuti gaya + Add Employee pada halaman list.
+         Tombol Edit disembunyikan saat tab APD Distribution aktif (data APD read-only, edit employee
+         tidak relevan di tab ini) dan muncul kembali di tab Personal/Job. --}}
     <div class="mt-6 flex items-center gap-4">
-        <a href="{{ route('hr.employee.edit', $employee) }}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Edit</a>
+        <a href="{{ route('hr.employee.edit', $employee) }}" x-show="activeTab !== 'apd'" x-cloak class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Edit</a>
         <a href="{{ route('hr.employee.index') }}" class="text-blue-600 hover:underline">Kembali</a>
     </div>
 </div>

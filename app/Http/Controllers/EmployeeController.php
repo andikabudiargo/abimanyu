@@ -12,15 +12,62 @@ use Illuminate\Support\Facades\Schema;
 class EmployeeController extends Controller
 {
     /**
-     * Tampilkan dashboard data employees lengkap dengan relasi department dan position.
+     * Tampilkan halaman list employees. Data tabel dimuat lewat endpoint data()
+     * (DataTables server-side); departments & employeeTypes hanya untuk opsi filter.
      */
     public function index()
     {
-        $employees = Employee::with(['departments', 'positions'])
-            ->orderBy('name')
-            ->get();
+        return view('hr.employee', [
+            'departments' => Department::orderBy('name')->get(['id', 'name']),
+            'employeeTypes' => Employee::query()
+                ->select('employee_type')
+                ->whereNotNull('employee_type')
+                ->distinct()
+                ->orderBy('employee_type')
+                ->pluck('employee_type'),
+        ]);
+    }
 
-        return view('hr.employee', compact('employees'));
+    /**
+     * Sumber data list employee untuk DataTables server-side (search + filter).
+     *
+     * @param  \Illuminate\Http\Request  $request  Parameter DataTables + filter form (search_text, employee_type, department_id).
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function data(Request $request)
+    {
+        $query = Employee::query()
+            ->select(['id', 'nik', 'name', 'employee_type', 'status'])
+            ->when($request->filled('search_text'), function ($q) use ($request) {
+                $text = $request->search_text;
+                $q->where(fn($q2) => $q2->where('name', 'like', "%{$text}%")->orWhere('nik', 'like', "%{$text}%"));
+            })
+            ->when($request->filled('employee_type'), fn($q) => $q->where('employee_type', $request->employee_type))
+            // Filter department wajib whereHas (bukan join): pivot department_employee bisa berisi
+            // lebih dari satu department per employee sehingga join menduplikasi baris.
+            ->when($request->filled('department_id'), fn($q) => $q->whereHas('departments',
+                fn($q2) => $q2->where('departments.id', $request->department_id)));
+
+        // Tidak ada orderBy statis di sini: urutan default (name asc) diatur view lewat
+        // DataTables `order`, agar klik header kolom bisa mengganti asc/desc.
+
+        return datatables()->of($query)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                $detailUrl = route('hr.employee.show', $row->id);
+                $editUrl = route('hr.employee.edit', $row->id);
+                $deleteUrl = route('hr.employee.destroy', $row->id);
+
+                // Markup aksi disamakan dengan view hr.employee (ikon feather + teks, spoofing DELETE + confirm native).
+                return '<a href="' . $detailUrl . '" class="text-blue-600 hover:underline" title="Detail"><i data-feather="eye" class="w-4 h-4 inline-block align-middle"></i> Detail</a>'
+                    . ' <a href="' . $editUrl . '" class="text-blue-600 hover:underline ml-3" title="Edit"><i data-feather="edit-2" class="w-4 h-4 inline-block align-middle"></i> Edit</a>'
+                    . ' <form action="' . $deleteUrl . '" method="POST" class="inline ml-3" onsubmit="return confirm(\'Yakin ingin hapus employee ini?\')">'
+                    . csrf_field() . method_field('DELETE')
+                    . '<button type="submit" class="text-red-600 hover:underline" title="Hapus"><i data-feather="trash-2" class="w-4 h-4 inline-block align-middle"></i> Hapus</button>'
+                    . '</form>';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
 
     /**
