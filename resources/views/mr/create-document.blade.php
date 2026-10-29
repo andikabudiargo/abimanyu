@@ -454,17 +454,24 @@ textarea.f-input { resize: vertical; }
                     {{-- Only shown for New Release + "Other" --}}
                     <div id="otherTypeWrap" class="hidden mt-3">
                         <label class="f-label">Specify Type <sup>*</sup></label>
-                        <select id="otherTypePreset" class="f-input mb-2">
-                            <option value="">— Pilih dari daftar (opsional) —</option>
-                            <option value="QUALITY CONTROL PROCESS CHART (QCPC)">QUALITY CONTROL PROCESS CHART (QCPC)</option>
-                            <option value="PART INSPECTION STANDARD (PIS)">PART INSPECTION STANDARD (PIS)</option>
-                            <option value="STANDARD PACKING (STDP)">STANDARD PACKING (STDP)</option>
-                            <option value="LIST STANDARD MIXING (LSM)">LIST STANDARD MIXING (LSM)</option>
-                            <option value="PROSES FLOWCHART (PFC)">PROSES FLOWCHART (PFC)</option>
-                            <option value="PROCESS FAILURE AND EFFECT ANALYSIS (PFMEA)">PROCESS FAILURE AND EFFECT ANALYSIS (PFMEA)</option>
-                        </select>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3" id="otherTypePresetTiles">
+                            @foreach([
+                                'QUALITY CONTROL PROCESS CHART (QCPC)',
+                                'PART INSPECTION STANDARD (PIS)',
+                                'STANDARD PACKING (STDP)',
+                                'LIST STANDARD MIXING (LSM)',
+                                'PROSES FLOWCHART (PFC)',
+                                'PROCESS FAILURE AND EFFECT ANALYSIS (PFMEA)',
+                            ] as $preset)
+                            <label class="type-tile type-gray">
+                                <input type="radio" name="document_type_preset" value="{{ $preset }}" class="docTypePreset">
+                                <span class="type-tile-dot"></span>
+                                <span class="type-tile-label">{{ $preset }}</span>
+                            </label>
+                            @endforeach
+                        </div>
                         <input type="text" name="document_type_other" id="otherInput"
-                               placeholder="e.g. Manual Instruction, Module, Guideline..."
+                               placeholder="Atau ketik manual, misal: Manual Instruction, Module, Guideline..."
                                class="f-input" style="text-transform: uppercase;">
                     </div>
                 </div>
@@ -1114,10 +1121,11 @@ $(document).ready(function () {
         updateSummary();
     });
 
-    // ── "Other" type preset picks fill the free-text field; user can still edit it ──
-    $(document).on('change', '#otherTypePreset', function () {
-        const v = $(this).val();
-        if (v) $('#otherInput').val(v).trigger('input');
+    // ── "Other" type preset tiles fill the free-text field; user can still edit it ──
+    $(document).on('change', 'input[name="document_type_preset"]', function () {
+        $('#otherTypePresetTiles .type-tile').removeClass('is-selected');
+        $(this).closest('.type-tile').addClass('is-selected');
+        $('#otherInput').val($(this).val()).trigger('input');
     });
 
     // ── Document type tile change ──
